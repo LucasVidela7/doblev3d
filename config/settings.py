@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-8p8oqev98on0k2yik#jh@_h21*d$jj%eluk^$k&ead*lnr20y3'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
 ALLOWED_HOSTS = ["*"]
 
@@ -36,6 +36,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    "costos",
+    "productos",
+    "kits",
+    "clientes",
+    "pedidos",
+    "stock",
+    "produccion",
+    "dashboard",
 ]
 
 MIDDLEWARE = [
@@ -121,3 +130,7 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.up.railway.app",
+]

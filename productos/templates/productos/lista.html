@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Productos | Doble V 3D</title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+            background:
+                #f5f5f5;
+
+            color:
+                #333333;
+        }
+
+        .contenedor {
+            max-width: 1300px;
+            margin: auto;
+        }
+
+
+        /* =========================================
+           ENCABEZADO
+        ========================================= */
+
+        .encabezado {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            margin: 0 0 5px 0;
+        }
+
+        .subtitulo {
+            color: #777777;
+        }
+
+        .volver {
+            display: inline-block;
+
+            padding: 10px 15px;
+
+            background: white;
+
+            border-radius: 8px;
+
+            text-decoration: none;
+
+            color: #333333;
+
+            font-size: 13px;
+
+            font-weight: bold;
+
+            box-shadow:
+                0 2px 8px rgba(0,0,0,.07);
+        }
+
+        .volver:hover {
+            background: #eeeeee;
+        }
+
+
+        /* =========================================
+           BUSCADOR
+        ========================================= */
+
+        .buscador {
+            background: white;
+
+            border-radius: 12px;
+
+            padding: 18px;
+
+            margin-bottom: 20px;
+
+            box-shadow:
+                0 2px 8px rgba(0,0,0,.07);
+        }
+
+        .buscador-form {
+            display: grid;
+
+            grid-template-columns:
+                minmax(250px, 1fr)
+                240px
+                auto
+                auto;
+
+            gap: 12px;
+
+            align-items: end;
+        }
+
+        .campo label {
+            display: block;
+
+            margin-bottom: 6px;
+
+            font-size: 11px;
+
+            font-weight: bold;
+
+            color: #666666;
+        }
+
+        input,
+        select {
+            width: 100%;
+
+            height: 42px;
+
+            padding: 9px 11px;
+
+            border:
+                1px solid #cccccc;
+
+            border-radius: 7px;
+
+            background: white;
+
+            font-size: 14px;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #666666;
+        }
+
+
+        /* =========================================
+           BOTONES
+        ========================================= */
+
+        .boton {
+            height: 42px;
+
+            padding: 0 18px;
+
+            border: none;
+
+            border-radius: 7px;
+
+            cursor: pointer;
+
+            font-weight: bold;
+
+            font-size: 12px;
+
+            text-decoration: none;
+
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            white-space: nowrap;
+        }
+
+        .boton-buscar {
+            background: #333333;
+            color: white;
+        }
+
+        .boton-buscar:hover {
+            background: #111111;
+        }
+
+        .boton-limpiar {
+            background: #eeeeee;
+            color: #444444;
+        }
+
+        .boton-limpiar:hover {
+            background: #dddddd;
+        }
+
+
+        /* =========================================
+           RESULTADOS
+        ========================================= */
+
+        .resumen-resultados {
+            margin-bottom: 12px;
+
+            color: #777777;
+
+            font-size: 13px;
+        }
+
+
+        /* =========================================
+           TABLA
+        ========================================= */
+
+        .tabla-contenedor {
+            background: white;
+
+            border-radius: 12px;
+
+            overflow: hidden;
+
+            box-shadow:
+                0 2px 8px rgba(0,0,0,.07);
+        }
+
+        table {
+            width: 100%;
+
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #eeeeee;
+        }
+
+        th {
+            padding: 13px 14px;
+
+            text-align: left;
+
+            font-size: 11px;
+
+            color: #666666;
+
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 14px;
+
+            border-bottom:
+                1px solid #eeeeee;
+
+            vertical-align: middle;
+        }
+
+        tbody tr:hover {
+            background: #fafafa;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+
+        /* =========================================
+           COLUMNAS
+        ========================================= */
+
+        .codigo {
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .nombre {
+            font-weight: 600;
+        }
+
+        .numero {
+            text-align: center;
+        }
+
+        .stock {
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .precio {
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+
+        /* =========================================
+           BADGES
+        ========================================= */
+
+        .badge {
+            display: inline-block;
+
+            padding: 5px 9px;
+
+            border-radius: 15px;
+
+            font-size: 11px;
+
+            font-weight: bold;
+
+            white-space: nowrap;
+        }
+
+        .badge-tipo {
+            background: #e7f1ff;
+            color: #084298;
+        }
+
+        .badge-activo {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-inactivo {
+            background: #e2e3e5;
+            color: #666666;
+        }
+
+        .badge-si {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-no {
+            background: #eeeeee;
+            color: #777777;
+        }
+
+
+        /* =========================================
+           SIN DATOS
+        ========================================= */
+
+        .sin-datos {
+            padding: 35px !important;
+
+            text-align: center;
+
+            color: #777777;
+        }
+
+
+        /* =========================================
+           RESPONSIVE
+        ========================================= */
+
+        @media (max-width: 900px) {
+
+            body {
+                padding: 10px;
+            }
+
+            .encabezado {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .buscador-form {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .tabla-contenedor {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 1000px;
+            }
+
+        }
+
+        @media (max-width: 600px) {
+
+            .buscador-form {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="contenedor">
+
+
+    <!-- =========================================
+         ENCABEZADO
+    ========================================== -->
+
+    <div class="encabezado">
+
+        <div>
+
+            <h1>
+                Productos
+            </h1>
+
+            <div class="subtitulo">
+                Catálogo y stock de productos
+            </div>
+
+        </div>
+
+
+        <a
+            href="{% url 'dashboard:inicio' %}"
+            class="volver"
+        >
+            ← Inicio
+        </a>
+
+    </div>
+
+
+    <!-- =========================================
+         BUSCADOR
+    ========================================== -->
+
+    <div class="buscador">
+
+        <form
+            method="get"
+            class="buscador-form"
+        >
+
+
+            <!-- BUSCAR -->
+
+            <div class="campo">
+
+                <label>
+                    BUSCAR PRODUCTO
+                </label>
+
+                <input
+                    type="text"
+                    name="q"
+                    value="{{ busqueda }}"
+                    placeholder="Nombre o ID..."
+                    autofocus
+                >
+
+            </div>
+
+
+            <!-- TIPO -->
+
+            <div class="campo">
+
+                <label>
+                    TIPO
+                </label>
+
+                <select name="tipo">
+
+                    <option value="">
+                        Todos los tipos
+                    </option>
+
+                    {% for tipo in tipos %}
+
+                        {% if tipo_seleccionado == tipo.id|stringformat:"s" %}
+
+                            <option
+                                value="{{ tipo.id }}"
+                                selected
+                            >
+                                {{ tipo.nombre }}
+                            </option>
+
+                        {% else %}
+
+                            <option value="{{ tipo.id }}">
+                                {{ tipo.nombre }}
+                            </option>
+
+                        {% endif %}
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+
+            <!-- BUSCAR -->
+
+            <button
+                type="submit"
+                class="boton boton-buscar"
+            >
+                BUSCAR
+            </button>
+
+
+            <!-- LIMPIAR -->
+
+            <a
+                href="{% url 'productos:lista' %}"
+                class="boton boton-limpiar"
+            >
+                LIMPIAR
+            </a>
+
+
+        </form>
+
+    </div>
+
+
+    <!-- =========================================
+         RESULTADOS
+    ========================================== -->
+
+    <div class="resumen-resultados">
+
+        {{ productos|length }}
+
+        {% if productos|length == 1 %}
+            producto encontrado
+        {% else %}
+            productos encontrados
+        {% endif %}
+
+    </div>
+
+
+    <!-- =========================================
+         TABLA
+    ========================================== -->
+
+    <div class="tabla-contenedor">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        CÓDIGO
+                    </th>
+
+                    <th>
+                        PRODUCTO
+                    </th>
+
+                    <th>
+                        TIPO
+                    </th>
+
+                    <th>
+                        CATEGORÍA
+                    </th>
+
+                    <th class="numero">
+                        TIEMPO
+                    </th>
+
+                    <th class="numero">
+                        PESO
+                    </th>
+
+                    <th class="numero">
+                        STOCK
+                    </th>
+
+                    <th>
+                        PRECIO
+                    </th>
+
+                    <th>
+                        IMPRESIÓN
+                    </th>
+
+                    <th>
+                        ESTADO
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for producto in productos %}
+
+                    <tr>
+
+
+                        <!-- CÓDIGO -->
+
+                        <td class="codigo">
+                            {{ producto.codigo }}
+                        </td>
+
+
+                        <!-- NOMBRE -->
+
+                        <td class="nombre">
+                            {{ producto.nombre }}
+                        </td>
+
+
+                        <!-- TIPO -->
+
+                        <td>
+
+                            <span class="badge badge-tipo">
+                                {{ producto.tipo.nombre }}
+                            </span>
+
+                        </td>
+
+
+                        <!-- CATEGORÍA -->
+
+                        <td>
+                            {{ producto.get_categoria_display }}
+                        </td>
+
+
+                        <!-- TIEMPO -->
+
+                        <td class="numero">
+
+                            {{ producto.horas }} h
+
+                            {% if producto.minutos %}
+
+                                {{ producto.minutos }} min
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- PESO -->
+
+                        <td class="numero">
+                            {{ producto.peso_gramos }} g
+                        </td>
+
+
+                        <!-- STOCK -->
+
+                        <td class="stock">
+                            {{ producto.stock }}
+                        </td>
+
+
+                        <!-- PRECIO -->
+
+                        <td class="precio">
+                            $ {{ producto.subtotal }}
+                        </td>
+
+
+                        <!-- IMPRESIÓN -->
+
+                        <td>
+
+                            {% if producto.requiere_impresion %}
+
+                                <span class="badge badge-si">
+                                    SÍ
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge badge-no">
+                                    NO
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- ESTADO -->
+
+                        <td>
+
+                            {% if producto.activo %}
+
+                                <span class="badge badge-activo">
+                                    ACTIVO
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge badge-inactivo">
+                                    INACTIVO
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                    </tr>
+
+
+                {% empty %}
+
+                    <tr>
+
+                        <td
+                            colspan="10"
+                            class="sin-datos"
+                        >
+
+                            No se encontraron productos.
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+</div>
+
+</body>
+
+</html>

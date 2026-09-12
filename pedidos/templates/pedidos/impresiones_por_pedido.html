@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Impresiones por pedido | Doble V 3D</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            color: #333333;
+        }
+
+        .contenedor {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        h1 {
+            margin-top: 0;
+            margin-bottom: 25px;
+        }
+
+
+        /* PEDIDO */
+
+        .pedido {
+            background: white;
+            margin-bottom: 22px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+        }
+
+
+        /* CABECERA */
+
+        .cabecera-pedido {
+            display: grid;
+            grid-template-columns:
+                160px
+                180px
+                1fr
+                160px;
+            gap: 20px;
+            background: #eeeeee;
+            padding: 15px 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #666666;
+        }
+
+        .dato {
+            margin-top: 6px;
+            font-size: 15px;
+            font-weight: normal;
+            color: #222222;
+        }
+
+
+        /* ESTADOS */
+
+        .badge-estado {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .estado-pendiente {
+            background: #eeeeee;
+            color: #444444;
+        }
+
+        .estado-preparando {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .estado-listo {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .estado-entregado {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .estado-cancelado {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+
+        /* TABLA */
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #fafafa;
+        }
+
+        th {
+            text-align: left;
+            padding: 13px 15px;
+            font-size: 12px;
+            color: #666666;
+            border-bottom: 1px solid #dddddd;
+        }
+
+        td {
+            padding: 14px 15px;
+            border-bottom: 1px solid #eeeeee;
+            vertical-align: middle;
+        }
+
+        tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .producto {
+            font-weight: 500;
+        }
+
+        .codigo-producto {
+            color: #888888;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+
+        .cantidad {
+            width: 180px;
+            text-align: center;
+            font-size: 17px;
+            font-weight: bold;
+        }
+
+
+        /* CHECKBOX */
+
+        .columna-listo {
+            width: 200px;
+            text-align: center;
+        }
+
+        .form-listo {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+        }
+
+        .checkbox-listo {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+        }
+
+        .texto-pendiente {
+            font-size: 12px;
+            font-weight: bold;
+            color: #777777;
+        }
+
+        .texto-listo {
+            font-size: 12px;
+            font-weight: bold;
+            color: #155724;
+        }
+
+
+        /* FILA LISTA */
+
+        tr.fila-lista {
+            background: #f3faf5;
+        }
+
+        tr.fila-lista:hover {
+            background: #edf7ef;
+        }
+
+
+        /* RESPONSIVE */
+
+        @media (max-width: 800px) {
+
+            body {
+                padding: 10px;
+            }
+
+            .cabecera-pedido {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .pedido {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 600px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="contenedor">
+
+    <h1>Impresiones por pedido</h1>
+
+
+    {% for grupo in pedidos_impresion %}
+
+    <div class="pedido">
+
+
+        <!-- CABECERA -->
+
+        <div class="cabecera-pedido">
+
+            <div>
+
+                FECHA ENTREGA
+
+                <div class="dato">
+
+                    {% if grupo.pedido.fecha_entrega %}
+
+                    {{ grupo.pedido.fecha_entrega|date:"d/m/Y" }}
+
+                    {% else %}
+
+                    Sin fecha
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <div>
+
+                ID PEDIDO
+
+                <div class="dato">
+                    {{ grupo.pedido.codigo }}
+                </div>
+
+            </div>
+
+
+            <div>
+
+                CLIENTE
+
+                <div class="dato">
+                    {{ grupo.pedido.cliente.nombre }}
+                </div>
+
+            </div>
+
+
+            <div>
+
+                ESTADO
+
+                <div class="dato">
+
+                        <span
+                                class="
+                                badge-estado
+
+                                {% if grupo.pedido.estado == 'PENDIENTE' %}
+                                    estado-pendiente
+
+                                {% elif grupo.pedido.estado == 'PREPARANDO' %}
+                                    estado-preparando
+
+                                {% elif grupo.pedido.estado == 'LISTO' %}
+                                    estado-listo
+
+                                {% elif grupo.pedido.estado == 'ENTREGADO' %}
+                                    estado-entregado
+
+                                {% elif grupo.pedido.estado == 'CANCELADO' %}
+                                    estado-cancelado
+                                {% endif %}
+                            "
+                        >
+
+                            {{ grupo.pedido.get_estado_display }}
+
+                        </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PRODUCTOS -->
+
+        <table>
+
+            <thead>
+
+            <tr>
+
+                <th>
+                    PRODUCTO
+                </th>
+
+                <th class="cantidad">
+                    CANTIDAD
+                </th>
+
+                <th class="columna-listo">
+                    LISTO
+                </th>
+
+            </tr>
+
+            </thead>
+
+
+            <tbody>
+
+            {% for item in grupo.productos %}
+
+            <tr
+                    {% if item.listo %}
+                    class="fila-lista"
+                    {% endif %}
+            >
+
+
+                <!-- PRODUCTO -->
+
+                <td class="producto">
+
+                                <span class="codigo-producto">
+                                    {{ item.producto.codigo }}
+                                </span>
+
+                    {{ item.producto.nombre }}
+
+                </td>
+
+
+                <!-- CANTIDAD -->
+
+                <td class="cantidad">
+
+                    {{ item.cantidad_pedido }}
+
+                </td>
+
+
+                <!-- LISTO -->
+
+                <td class="columna-listo">
+
+                    <form
+                            class="form-listo"
+                            method="post"
+                            action="{% url 'pedidos:cambiar_listo_impresion' %}"
+                    >
+
+                        {% csrf_token %}
+
+                        <input
+                                type="hidden"
+                                name="estado_id"
+                                value="{{ item.estado_id }}"
+                        >
+
+                        <!--
+                            No mostramos el stock,
+                            pero lo seguimos enviando
+                            para realizar el descuento.
+                        -->
+
+                        <input
+                                type="hidden"
+                                name="stock_usado"
+                                value="{{ item.stock_usado }}"
+                        >
+
+
+                        {% if item.listo %}
+
+                        <input
+                                type="hidden"
+                                name="listo"
+                                value="0"
+                        >
+
+                        <input
+                                class="checkbox-listo"
+                                type="checkbox"
+                                checked
+                                onchange="this.form.submit()"
+                        >
+
+                        <span class="texto-listo">
+                                            LISTO
+                                        </span>
+
+
+                        {% else %}
+
+                        <input
+                                type="hidden"
+                                name="listo"
+                                value="1"
+                        >
+
+                        <input
+                                class="checkbox-listo"
+                                type="checkbox"
+                                onchange="this.form.submit()"
+                        >
+
+                        <span class="texto-pendiente">
+                                            PENDIENTE
+                                        </span>
+
+                        {% endif %}
+
+                    </form>
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    {% empty %}
+
+    <div class="sin-datos">
+
+        No hay pedidos para preparar.
+
+    </div>
+
+    {% endfor %}
+
+</div>
+
+</body>
+
+</html>

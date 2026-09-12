@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Producción | Doble V 3D</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            color: #333333;
+        }
+
+        .contenedor {
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        h1 {
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+
+        .subtitulo {
+            color: #777777;
+            margin-bottom: 25px;
+        }
+
+
+        /* =========================================
+           MENSAJES
+        ========================================= */
+
+        .mensaje {
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+
+        .mensaje.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .mensaje.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+
+        /* =========================================
+           FORMULARIO
+        ========================================= */
+
+        .formulario {
+            background: white;
+            border-radius: 12px;
+            padding: 22px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+        }
+
+        .formulario h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .campos {
+            display: grid;
+            grid-template-columns:
+                minmax(240px, 2fr)
+                110px
+                200px
+                160px
+                minmax(220px, 2fr);
+            gap: 15px;
+            align-items: end;
+        }
+
+        .campo label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #666666;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cccccc;
+            border-radius: 7px;
+            background: white;
+            font-size: 14px;
+            height: 40px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 70px;
+            height: auto;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #666666;
+        }
+
+        .observaciones {
+            margin-top: 18px;
+        }
+
+
+        /* =========================================
+           TIEMPO DE IMPRESIÓN
+        ========================================= */
+
+        .bloque-tiempo {
+            margin-top: 20px;
+            padding: 18px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .bloque-tiempo-titulo {
+            margin-bottom: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #444444;
+        }
+
+
+        /* TIEMPO MANUAL */
+
+        .tiempo-manual-contenedor {
+            display: none;
+            grid-template-columns:
+                160px
+                160px
+                minmax(230px, 1fr);
+            gap: 12px;
+            align-items: end;
+        }
+
+        .tiempo-manual-contenedor.activo {
+            display: grid;
+        }
+
+        .campo-tiempo {
+            min-width: 0;
+        }
+
+        .campo-tiempo label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #666666;
+        }
+
+        .campo-tiempo input {
+            width: 100%;
+        }
+
+
+        /* TIEMPO AUTOMÁTICO */
+
+        .tiempo-automatico {
+            display: none;
+            padding: 13px 15px;
+            background: #e8f5e9;
+            color: #1b5e20;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .tiempo-automatico.activo {
+            display: block;
+        }
+
+        .tiempo-automatico strong {
+            margin-left: 5px;
+            font-size: 15px;
+        }
+
+
+        /* FIN ESTIMADO */
+
+        .fin-preview {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            padding: 0 14px;
+            border-radius: 7px;
+            background: #e7f1ff;
+            color: #084298;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .fin-preview strong {
+            margin-left: 5px;
+            font-size: 15px;
+        }
+
+        .fin-automatico {
+            margin-top: 12px;
+        }
+
+
+        /* =========================================
+           BOTÓN
+        ========================================= */
+
+        .acciones-formulario {
+            margin-top: 18px;
+            text-align: right;
+        }
+
+        .boton {
+            border: none;
+            border-radius: 7px;
+            padding: 11px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .boton-principal {
+            background: #333333;
+            color: white;
+        }
+
+        .boton-principal:hover {
+            background: #111111;
+        }
+
+
+        /* =========================================
+           TABLA
+        ========================================= */
+
+        .tabla-contenedor {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #eeeeee;
+        }
+
+        th {
+            padding: 13px 12px;
+            text-align: left;
+            font-size: 11px;
+            color: #666666;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #eeeeee;
+            vertical-align: middle;
+        }
+
+        tbody tr:hover {
+            background: #fafafa;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .codigo {
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .producto {
+            font-weight: 500;
+        }
+
+        .cantidad {
+            text-align: center;
+            font-size: 17px;
+            font-weight: bold;
+        }
+
+        .fecha-hora {
+            white-space: nowrap;
+        }
+
+        .fin-estimado {
+            white-space: nowrap;
+            font-weight: 600;
+        }
+
+
+        /* =========================================
+           DESTINO
+        ========================================= */
+
+        .destino {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .destino-stock {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .destino-pedido {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+
+        /* =========================================
+           ESTADOS
+        ========================================= */
+
+        .estado-form {
+            margin: 0;
+        }
+
+        .estado-select {
+            min-width: 140px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+
+        .estado-PENDIENTE {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .estado-IMPRIMIENDO {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .estado-LISTO {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .estado-CANCELADO {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+
+        /* =========================================
+           SIN DATOS
+        ========================================= */
+
+        .sin-datos {
+            padding: 30px !important;
+            text-align: center;
+            color: #777777;
+        }
+
+
+        /* =========================================
+           RESPONSIVE
+        ========================================= */
+
+        @media (max-width: 1100px) {
+
+            .campos {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .tabla-contenedor {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 1200px;
+            }
+
+        }
+
+        @media (max-width: 700px) {
+
+            body {
+                padding: 10px;
+            }
+
+            .campos {
+                grid-template-columns: 1fr;
+            }
+
+            .tiempo-manual-contenedor {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .fin-preview {
+                grid-column: 1 / -1;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="contenedor">
+
+
+    <!-- =========================================
+         TÍTULO
+    ========================================== -->
+
+    <h1>
+        Producción
+    </h1>
+
+    <div class="subtitulo">
+        Gestión de impresiones y fabricación
+    </div>
+
+
+    <!-- =========================================
+         MENSAJES
+    ========================================== -->
+
+    {% if messages %}
+
+        {% for message in messages %}
+
+            <div class="mensaje {{ message.tags }}">
+                {{ message }}
+            </div>
+
+        {% endfor %}
+
+    {% endif %}
+
+
+    <!-- =========================================
+         NUEVA PRODUCCIÓN
+    ========================================== -->
+
+    <div class="formulario">
+
+        <h2>
+            Nueva producción
+        </h2>
+
+        <form
+            method="post"
+            action="{% url 'produccion:nueva' %}"
+            id="form-produccion"
+        >
+
+            {% csrf_token %}
+
+
+            <!-- DATOS PRINCIPALES -->
+
+            <div class="campos">
+
+
+                <!-- PRODUCTO -->
+
+                <div class="campo">
+
+                    <label>
+                        PRODUCTO
+                    </label>
+
+                    <select
+                        name="producto"
+                        id="producto"
+                        required
+                    >
+
+                        <option value="">
+                            Seleccionar producto
+                        </option>
+
+                        {% for producto in productos %}
+
+                            <option
+                                value="{{ producto.id }}"
+                                data-horas="{{ producto.horas }}"
+                                data-minutos="{{ producto.minutos }}"
+                            >
+                                {{ producto.codigo }} - {{ producto.nombre }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- CANTIDAD -->
+
+                <div class="campo">
+
+                    <label>
+                        CANTIDAD
+                    </label>
+
+                    <input
+                        type="number"
+                        name="cantidad"
+                        id="cantidad"
+                        min="1"
+                        value="1"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- INICIO -->
+
+                <div class="campo">
+
+                    <label>
+                        INICIO DE IMPRESIÓN
+                    </label>
+
+                    <input
+                        type="datetime-local"
+                        name="inicio_impresion"
+                        id="inicio_impresion"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- DESTINO -->
+
+                <div class="campo">
+
+                    <label>
+                        DESTINO
+                    </label>
+
+                    <select
+                        name="destino"
+                        id="destino"
+                        required
+                    >
+
+                        <option value="STOCK">
+                            Stock
+                        </option>
+
+                        <option value="PEDIDO">
+                            Pedido
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- PEDIDO -->
+
+                <div
+                    class="campo"
+                    id="campo-pedido"
+                    style="display: none;"
+                >
+
+                    <label>
+                        PEDIDO
+                    </label>
+
+                    <select
+                        name="pedido"
+                        id="pedido"
+                    >
+
+                        <option value="">
+                            Seleccionar pedido
+                        </option>
+
+                        {% for pedido in pedidos %}
+
+                            <option value="{{ pedido.id }}">
+                                {{ pedido.codigo }} - {{ pedido.cliente.nombre }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <!-- =========================================
+                 TIEMPO DE IMPRESIÓN
+            ========================================== -->
+
+            <div class="bloque-tiempo">
+
+                <div class="bloque-tiempo-titulo">
+                    TIEMPO DE IMPRESIÓN
+                </div>
+
+
+                <!-- CANTIDAD = 1 -->
+
+                <div
+                    class="tiempo-automatico"
+                    id="tiempo-automatico"
+                >
+
+                    Tiempo automático del producto:
+
+                    <strong id="texto-tiempo-automatico">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <!-- CANTIDAD > 1 -->
+
+                <div
+                    class="tiempo-manual-contenedor"
+                    id="tiempo-manual"
+                >
+
+
+                    <!-- HORAS -->
+
+                    <div class="campo-tiempo">
+
+                        <label>
+                            HORAS
+                        </label>
+
+                        <input
+                            type="number"
+                            name="horas"
+                            id="horas"
+                            min="0"
+                            value="0"
+                        >
+
+                    </div>
+
+
+                    <!-- MINUTOS -->
+
+                    <div class="campo-tiempo">
+
+                        <label>
+                            MINUTOS
+                        </label>
+
+                        <input
+                            type="number"
+                            name="minutos"
+                            id="minutos"
+                            min="0"
+                            max="59"
+                            value="0"
+                        >
+
+                    </div>
+
+
+                    <!-- FIN ESTIMADO -->
+
+                    <div>
+
+                        <label
+                            style="
+                                display: block;
+                                margin-bottom: 6px;
+                                font-size: 11px;
+                                font-weight: bold;
+                                color: #666666;
+                            "
+                        >
+                            FINALIZACIÓN
+                        </label>
+
+                        <div class="fin-preview">
+
+                            Fin estimado:
+
+                            <strong id="fin-estimado-manual">
+                                —
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+
+                <!-- FIN PARA TIEMPO AUTOMÁTICO -->
+
+                <div
+                    class="fin-preview fin-automatico"
+                    id="fin-automatico"
+                    style="display: none;"
+                >
+
+                    Fin estimado:
+
+                    <strong id="fin-estimado-automatico">
+                        —
+                    </strong>
+
+                </div>
+
+
+            </div>
+
+
+            <!-- =========================================
+                 OBSERVACIONES
+            ========================================== -->
+
+            <div class="campo observaciones">
+
+                <label>
+                    OBSERVACIONES
+                </label>
+
+                <textarea
+                    name="observaciones"
+                    placeholder="Opcional"
+                ></textarea>
+
+            </div>
+
+
+            <!-- =========================================
+                 BOTÓN
+            ========================================== -->
+
+            <div class="acciones-formulario">
+
+                <button
+                    type="submit"
+                    class="boton boton-principal"
+                >
+                    + CREAR PRODUCCIÓN
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- =========================================
+         LISTA DE PRODUCCIONES
+    ========================================== -->
+
+    <div class="tabla-contenedor">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        ID
+                    </th>
+
+                    <th>
+                        PRODUCTO
+                    </th>
+
+                    <th style="text-align: center;">
+                        CANT.
+                    </th>
+
+                    <th>
+                        INICIO
+                    </th>
+
+                    <th>
+                        TIEMPO
+                    </th>
+
+                    <th>
+                        FIN ESTIMADO
+                    </th>
+
+                    <th>
+                        DESTINO
+                    </th>
+
+                    <th>
+                        PEDIDO
+                    </th>
+
+                    <th>
+                        ESTADO
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for produccion in producciones %}
+
+                    <tr>
+
+
+                        <!-- ID -->
+
+                        <td class="codigo">
+                            {{ produccion.codigo }}
+                        </td>
+
+
+                        <!-- PRODUCTO -->
+
+                        <td class="producto">
+
+                            {{ produccion.producto.codigo }}
+                            -
+                            {{ produccion.producto.nombre }}
+
+                        </td>
+
+
+                        <!-- CANTIDAD -->
+
+                        <td class="cantidad">
+                            {{ produccion.cantidad }}
+                        </td>
+
+
+                        <!-- INICIO -->
+
+                        <td class="fecha-hora">
+
+                            {% if produccion.inicio_impresion %}
+
+                                {{ produccion.inicio_impresion|date:"d/m/Y H:i" }}
+
+                            {% else %}
+
+                                —
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- TIEMPO -->
+
+                        <td>
+
+                            {{ produccion.tiempo_impresion_formateado }}
+
+                        </td>
+
+
+                        <!-- FIN -->
+
+                        <td class="fin-estimado">
+
+                            {% if produccion.fin_estimado %}
+
+                                {{ produccion.fin_estimado|date:"d/m/Y H:i" }}
+
+                            {% else %}
+
+                                —
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- DESTINO -->
+
+                        <td>
+
+                            {% if produccion.destino == "STOCK" %}
+
+                                <span class="destino destino-stock">
+                                    STOCK
+                                </span>
+
+                            {% else %}
+
+                                <span class="destino destino-pedido">
+                                    PEDIDO
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- PEDIDO -->
+
+                        <td>
+
+                            {% if produccion.pedido %}
+
+                                {{ produccion.pedido.codigo }}
+                                -
+                                {{ produccion.pedido.cliente.nombre }}
+
+                            {% else %}
+
+                                —
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- ESTADO -->
+
+                        <td>
+
+                            <form
+                                method="post"
+                                class="estado-form"
+                                action="{% url 'produccion:cambiar_estado' produccion.id %}"
+                            >
+
+                                {% csrf_token %}
+
+                                <select
+                                    name="estado"
+                                    class="estado-select estado-{{ produccion.estado }}"
+                                    onchange="this.form.submit()"
+                                >
+
+
+                                    {% if produccion.estado == "PENDIENTE" %}
+                                        <option value="PENDIENTE" selected>
+                                            PENDIENTE
+                                        </option>
+                                    {% else %}
+                                        <option value="PENDIENTE">
+                                            PENDIENTE
+                                        </option>
+                                    {% endif %}
+
+
+                                    {% if produccion.estado == "IMPRIMIENDO" %}
+                                        <option value="IMPRIMIENDO" selected>
+                                            IMPRIMIENDO
+                                        </option>
+                                    {% else %}
+                                        <option value="IMPRIMIENDO">
+                                            IMPRIMIENDO
+                                        </option>
+                                    {% endif %}
+
+
+                                    {% if produccion.estado == "LISTO" %}
+                                        <option value="LISTO" selected>
+                                            LISTO
+                                        </option>
+                                    {% else %}
+                                        <option value="LISTO">
+                                            LISTO
+                                        </option>
+                                    {% endif %}
+
+
+                                    {% if produccion.estado == "CANCELADO" %}
+                                        <option value="CANCELADO" selected>
+                                            CANCELADO
+                                        </option>
+                                    {% else %}
+                                        <option value="CANCELADO">
+                                            CANCELADO
+                                        </option>
+                                    {% endif %}
+
+
+                                </select>
+
+                            </form>
+
+                        </td>
+
+                    </tr>
+
+
+                {% empty %}
+
+                    <tr>
+
+                        <td
+                            colspan="9"
+                            class="sin-datos"
+                        >
+                            Todavía no hay producciones registradas.
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+</div>
+
+
+<!-- =========================================
+     JAVASCRIPT
+========================================== -->
+
+<script>
+
+    const producto =
+        document.getElementById("producto");
+
+    const cantidad =
+        document.getElementById("cantidad");
+
+    const inicio =
+        document.getElementById("inicio_impresion");
+
+    const destino =
+        document.getElementById("destino");
+
+    const campoPedido =
+        document.getElementById("campo-pedido");
+
+    const pedido =
+        document.getElementById("pedido");
+
+    const horas =
+        document.getElementById("horas");
+
+    const minutos =
+        document.getElementById("minutos");
+
+    const tiempoAutomatico =
+        document.getElementById("tiempo-automatico");
+
+    const tiempoManual =
+        document.getElementById("tiempo-manual");
+
+    const textoTiempoAutomatico =
+        document.getElementById("texto-tiempo-automatico");
+
+    const finAutomatico =
+        document.getElementById("fin-automatico");
+
+    const finEstimadoAutomatico =
+        document.getElementById("fin-estimado-automatico");
+
+    const finEstimadoManual =
+        document.getElementById("fin-estimado-manual");
+
+
+    /* =========================================
+       DESTINO
+    ========================================= */
+
+    function actualizarDestino() {
+
+        if (destino.value === "PEDIDO") {
+
+            campoPedido.style.display = "block";
+            pedido.required = true;
+
+        } else {
+
+            campoPedido.style.display = "none";
+            pedido.required = false;
+            pedido.value = "";
+
+        }
+
+    }
+
+
+    /* =========================================
+       TIEMPO DEL PRODUCTO
+    ========================================= */
+
+    function obtenerTiempoProducto() {
+
+        const opcion =
+            producto.options[producto.selectedIndex];
+
+        if (!opcion || !opcion.value) {
+            return 0;
+        }
+
+        const horasProducto =
+            parseInt(opcion.dataset.horas || "0");
+
+        const minutosProducto =
+            parseInt(opcion.dataset.minutos || "0");
+
+        return (
+            horasProducto * 60
+            +
+            minutosProducto
+        );
+
+    }
+
+
+    /* =========================================
+       FORMATEAR DURACIÓN
+    ========================================= */
+
+    function formatearDuracion(totalMinutos) {
+
+        if (totalMinutos <= 0) {
+            return "—";
+        }
+
+        const h =
+            Math.floor(totalMinutos / 60);
+
+        const m =
+            totalMinutos % 60;
+
+        if (h > 0 && m > 0) {
+            return h + " h " + m + " min";
+        }
+
+        if (h > 0) {
+            return h + " h";
+        }
+
+        return m + " min";
+
+    }
+
+
+    /* =========================================
+       ACTUALIZAR TIPO DE TIEMPO
+    ========================================= */
+
+    function actualizarTiempo() {
+
+        const cantidadActual =
+            parseInt(cantidad.value || "0");
+
+
+        if (cantidadActual === 1) {
+
+            /* AUTOMÁTICO */
+
+            tiempoAutomatico.classList.add("activo");
+
+            tiempoManual.classList.remove("activo");
+
+            finAutomatico.style.display = "flex";
+
+            horas.required = false;
+            minutos.required = false;
+
+            const totalMinutos =
+                obtenerTiempoProducto();
+
+            if (totalMinutos > 0) {
+
+                textoTiempoAutomatico.textContent =
+                    formatearDuracion(totalMinutos);
+
+            } else {
+
+                textoTiempoAutomatico.textContent =
+                    "sin tiempo configurado";
+
+            }
+
+
+        } else if (cantidadActual > 1) {
+
+            /* MANUAL */
+
+            tiempoAutomatico.classList.remove("activo");
+
+            tiempoManual.classList.add("activo");
+
+            finAutomatico.style.display = "none";
+
+            horas.required = true;
+            minutos.required = true;
+
+
+        } else {
+
+            tiempoAutomatico.classList.remove("activo");
+
+            tiempoManual.classList.remove("activo");
+
+            finAutomatico.style.display = "none";
+
+        }
+
+
+        calcularFin();
+
+    }
+
+
+    /* =========================================
+       CALCULAR FINALIZACIÓN
+    ========================================= */
+
+    function calcularFin() {
+
+        const cantidadActual =
+            parseInt(cantidad.value || "0");
+
+        let totalMinutos = 0;
+
+
+        if (cantidadActual === 1) {
+
+            totalMinutos =
+                obtenerTiempoProducto();
+
+        } else if (cantidadActual > 1) {
+
+            const h =
+                parseInt(horas.value || "0");
+
+            const m =
+                parseInt(minutos.value || "0");
+
+            totalMinutos =
+                h * 60 + m;
+
+        }
+
+
+        if (
+            !inicio.value
+            ||
+            totalMinutos <= 0
+        ) {
+
+            finEstimadoAutomatico.textContent = "—";
+            finEstimadoManual.textContent = "—";
+
+            return;
+
+        }
+
+
+        const fechaInicio =
+            new Date(inicio.value);
+
+
+        const fechaFin =
+            new Date(
+                fechaInicio.getTime()
+                +
+                totalMinutos * 60000
+            );
+
+
+        const dia =
+            String(fechaFin.getDate())
+            .padStart(2, "0");
+
+        const mes =
+            String(fechaFin.getMonth() + 1)
+            .padStart(2, "0");
+
+        const anio =
+            fechaFin.getFullYear();
+
+        const hora =
+            String(fechaFin.getHours())
+            .padStart(2, "0");
+
+        const minuto =
+            String(fechaFin.getMinutes())
+            .padStart(2, "0");
+
+
+        const resultado =
+            dia
+            + "/"
+            + mes
+            + "/"
+            + anio
+            + " "
+            + hora
+            + ":"
+            + minuto;
+
+
+        finEstimadoAutomatico.textContent =
+            resultado;
+
+        finEstimadoManual.textContent =
+            resultado;
+
+    }
+
+
+    /* =========================================
+       EVENTOS
+    ========================================= */
+
+    destino.addEventListener(
+        "change",
+        actualizarDestino
+    );
+
+
+    producto.addEventListener(
+        "change",
+        actualizarTiempo
+    );
+
+
+    cantidad.addEventListener(
+        "input",
+        actualizarTiempo
+    );
+
+
+    inicio.addEventListener(
+        "change",
+        calcularFin
+    );
+
+
+    inicio.addEventListener(
+        "input",
+        calcularFin
+    );
+
+
+    horas.addEventListener(
+        "input",
+        calcularFin
+    );
+
+
+    minutos.addEventListener(
+        "input",
+        calcularFin
+    );
+
+
+    /* =========================================
+       INICIALIZAR
+    ========================================= */
+
+    actualizarDestino();
+
+    actualizarTiempo();
+
+    calcularFin();
+
+</script>
+
+
+</body>
+
+</html>

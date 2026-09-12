@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Impresiones por producto | Doble V 3D
+    </title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            color: #333333;
+        }
+
+        .contenedor {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        h1 {
+            margin-top: 0;
+            margin-bottom: 8px;
+        }
+
+        .subtitulo {
+            color: #777777;
+            margin-bottom: 25px;
+        }
+
+
+        /* =========================================
+           TABLA
+        ========================================= */
+
+        .tabla-contenedor {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, .08);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #eeeeee;
+        }
+
+        th {
+            text-align: left;
+            padding: 14px 18px;
+            font-size: 12px;
+            color: #666666;
+            border-bottom: 1px solid #dddddd;
+        }
+
+        td {
+            padding: 15px 18px;
+            border-bottom: 1px solid #eeeeee;
+            vertical-align: middle;
+        }
+
+        tbody tr:hover {
+            background: #fafafa;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+
+        /* =========================================
+           PRODUCTO
+        ========================================= */
+
+        .producto {
+            font-weight: 500;
+        }
+
+        .codigo {
+            color: #888888;
+            font-size: 12px;
+            margin-right: 6px;
+        }
+
+
+        /* =========================================
+           COLUMNAS NUMÉRICAS
+        ========================================= */
+
+        .numero {
+            width: 140px;
+            text-align: center;
+        }
+
+        .cantidad {
+            font-size: 17px;
+            font-weight: bold;
+        }
+
+        .imprimir {
+            font-size: 19px;
+            font-weight: bold;
+        }
+
+        .sin-impresion {
+            color: #999999;
+        }
+
+
+        /* =========================================
+           PRIORIDAD
+        ========================================= */
+
+        .columna-prioridad {
+            width: 180px;
+            text-align: center;
+        }
+
+        .prioridad {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            gap: 7px;
+
+            min-width: 125px;
+
+            padding: 7px 11px;
+
+            border-radius: 20px;
+
+            font-size: 11px;
+            font-weight: bold;
+
+            white-space: nowrap;
+        }
+
+
+        /* CÍRCULO DEL SEMÁFORO */
+
+        .semaforo {
+            width: 11px;
+            height: 11px;
+
+            border-radius: 50%;
+
+            display: inline-block;
+
+            flex-shrink: 0;
+        }
+
+
+        /* ALTA */
+
+        .prioridad-alta {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .prioridad-alta .semaforo {
+            background: #dc3545;
+
+            box-shadow:
+                0 0 0 3px rgba(220, 53, 69, .15);
+        }
+
+
+        /* MEDIA */
+
+        .prioridad-media {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .prioridad-media .semaforo {
+            background: #ffc107;
+
+            box-shadow:
+                0 0 0 3px rgba(255, 193, 7, .18);
+        }
+
+
+        /* BAJA */
+
+        .prioridad-baja {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .prioridad-baja .semaforo {
+            background: #28a745;
+
+            box-shadow:
+                0 0 0 3px rgba(40, 167, 69, .15);
+        }
+
+
+        /* SIN NECESIDAD */
+
+        .prioridad-cero {
+            background: #eeeeee;
+            color: #666666;
+        }
+
+        .prioridad-cero .semaforo {
+            background: #999999;
+        }
+
+
+        /* =========================================
+           FILAS SEGÚN PRIORIDAD
+        ========================================= */
+
+        .fila-alta {
+            background: #fffafa;
+        }
+
+        .fila-media {
+            background: #fffdf7;
+        }
+
+        .fila-baja {
+            background: #fbfefb;
+        }
+
+
+        /* =========================================
+           SIN DATOS
+        ========================================= */
+
+        .sin-datos {
+            background: white;
+
+            padding: 30px;
+
+            border-radius: 12px;
+
+            text-align: center;
+
+            color: #777777;
+
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, .08);
+        }
+
+
+        /* =========================================
+           RESPONSIVE
+        ========================================= */
+
+        @media (max-width: 800px) {
+
+            body {
+                padding: 10px;
+            }
+
+            .tabla-contenedor {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 800px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="contenedor">
+
+
+    <!-- =========================================
+         TÍTULO
+    ========================================== -->
+
+    <h1>
+        Impresiones por producto
+    </h1>
+
+    <div class="subtitulo">
+        Productos necesarios para los pedidos activos
+    </div>
+
+
+    <!-- =========================================
+         TABLA
+    ========================================== -->
+
+    {% if productos %}
+
+    <div class="tabla-contenedor">
+
+        <table>
+
+
+            <!-- ENCABEZADO -->
+
+            <thead>
+
+            <tr>
+
+                <th>
+                    PRODUCTO
+                </th>
+
+                <th class="numero">
+                    PEDIDO
+                </th>
+
+                <th class="numero">
+                    STOCK
+                </th>
+
+                <th class="numero">
+                    A IMPRIMIR
+                </th>
+
+                <th class="columna-prioridad">
+                    PRIORIDAD
+                </th>
+
+            </tr>
+
+            </thead>
+
+
+            <!-- PRODUCTOS -->
+
+            <tbody>
+
+            {% for item in productos %}
+
+            <tr>
+
+
+                <!-- PRODUCTO -->
+
+                <td class="producto">
+
+                                <span class="codigo">
+
+                                    {{ item.producto.codigo }}
+
+                                </span>
+
+                    {{ item.producto.nombre }}
+
+                </td>
+
+
+                <!-- CANTIDAD PEDIDA -->
+
+                <td class="numero cantidad">
+
+                    {{ item.cantidad_pedida }}
+
+                </td>
+
+
+                <!-- STOCK ACTUAL -->
+
+                <td class="numero">
+
+                    {{ item.stock }}
+
+                </td>
+
+
+                <!-- CANTIDAD A IMPRIMIR -->
+
+                <td
+                        class="
+                                    numero
+                                    imprimir
+
+                                    {% if item.a_imprimir == 0 %}
+                                        sin-impresion
+                                    {% endif %}
+                                "
+                >
+
+                    {{ item.a_imprimir }}
+
+                </td>
+
+
+                <!-- PRIORIDAD -->
+
+                <td class="columna-prioridad">
+
+                                <span
+                                        class="
+                                        prioridad
+                                        {{ item.prioridad_clase }}
+                                    "
+                                >
+
+                                    <span class="semaforo"></span>
+
+                                    {{ item.prioridad }}
+
+                                </span>
+
+                </td>
+
+
+            </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    {% else %}
+
+
+    <div class="sin-datos">
+
+        No hay productos pendientes de impresión.
+
+    </div>
+
+
+    {% endif %}
+
+
+</div>
+
+</body>
+
+</html>

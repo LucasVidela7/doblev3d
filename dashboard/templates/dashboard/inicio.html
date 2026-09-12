@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Doble V 3D
+    </title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+            background:
+                #f4f5f7;
+
+            color:
+                #333333;
+        }
+
+        .contenedor {
+            max-width: 1200px;
+            margin: auto;
+            padding: 30px 20px;
+        }
+
+
+        /* =========================================
+           ENCABEZADO
+        ========================================= */
+
+        .encabezado {
+            margin-bottom: 30px;
+        }
+
+        .titulo {
+            margin: 0;
+            font-size: 30px;
+        }
+
+        .subtitulo {
+            margin-top: 5px;
+            color: #777777;
+        }
+
+
+        /* =========================================
+           RESUMEN
+        ========================================= */
+
+        .resumen {
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 16px;
+
+            margin-bottom: 35px;
+        }
+
+        .indicador {
+            background: white;
+
+            border-radius: 12px;
+
+            padding: 20px;
+
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, .07);
+        }
+
+        .indicador-titulo {
+            font-size: 11px;
+
+            font-weight: bold;
+
+            color: #777777;
+
+            margin-bottom: 8px;
+        }
+
+        .indicador-numero {
+            font-size: 30px;
+
+            font-weight: bold;
+        }
+
+
+        /* =========================================
+           ACCESOS RÁPIDOS
+        ========================================= */
+
+        .seccion-titulo {
+            font-size: 18px;
+
+            font-weight: bold;
+
+            margin-bottom: 15px;
+        }
+
+        .accesos {
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, 1fr);
+
+            gap: 18px;
+        }
+
+        .tarjeta {
+            display: block;
+
+            text-decoration: none;
+
+            background: white;
+
+            border-radius: 14px;
+
+            padding: 25px;
+
+            color: #333333;
+
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, .07);
+
+            transition:
+                transform .15s ease,
+                box-shadow .15s ease;
+        }
+
+        .tarjeta:hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 5px 14px rgba(0, 0, 0, .11);
+        }
+
+
+        /* =========================================
+           ICONOS
+        ========================================= */
+
+        .icono {
+            width: 44px;
+            height: 44px;
+
+            border-radius: 10px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            font-size: 21px;
+
+            margin-bottom: 14px;
+
+            background: #eeeeee;
+        }
+
+
+        /* =========================================
+           TEXTO DE TARJETAS
+        ========================================= */
+
+        .tarjeta-titulo {
+            font-size: 18px;
+
+            font-weight: bold;
+
+            margin-bottom: 7px;
+        }
+
+        .tarjeta-texto {
+            color: #777777;
+
+            font-size: 14px;
+
+            line-height: 1.45;
+        }
+
+
+        /* =========================================
+           COLORES DE CADA MÓDULO
+        ========================================= */
+
+        .nuevo .icono {
+            background: #d4edda;
+        }
+
+        .pedido .icono {
+            background: #d1ecf1;
+        }
+
+        .producto-impresion .icono {
+            background: #fff3cd;
+        }
+
+        .produccion .icono {
+            background: #eadcf8;
+        }
+
+        .productos .icono {
+            background: #fce5cd;
+        }
+
+
+        /* =========================================
+           RESPONSIVE
+        ========================================= */
+
+        @media (max-width: 900px) {
+
+            .resumen {
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+        }
+
+        @media (max-width: 650px) {
+
+            .contenedor {
+                padding: 20px 12px;
+            }
+
+            .resumen {
+                grid-template-columns:
+                    1fr;
+            }
+
+            .accesos {
+                grid-template-columns:
+                    1fr;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="contenedor">
+
+
+    <!-- =========================================
+         ENCABEZADO
+    ========================================== -->
+
+    <div class="encabezado">
+
+        <h1 class="titulo">
+            Doble V 3D
+        </h1>
+
+        <div class="subtitulo">
+            Gestión de pedidos, productos, impresiones y producción
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         RESUMEN
+    ========================================== -->
+
+    <div class="resumen">
+
+
+        <!-- PEDIDOS ACTIVOS -->
+
+        <div class="indicador">
+
+            <div class="indicador-titulo">
+                PEDIDOS ACTIVOS
+            </div>
+
+            <div class="indicador-numero">
+                {{ pedidos_activos }}
+            </div>
+
+        </div>
+
+
+        <!-- PEDIDOS LISTOS -->
+
+        <div class="indicador">
+
+            <div class="indicador-titulo">
+                PEDIDOS LISTOS
+            </div>
+
+            <div class="indicador-numero">
+                {{ pedidos_listos }}
+            </div>
+
+        </div>
+
+
+        <!-- PRODUCCIONES PENDIENTES -->
+
+        <div class="indicador">
+
+            <div class="indicador-titulo">
+                PRODUCCIONES PENDIENTES
+            </div>
+
+            <div class="indicador-numero">
+                {{ producciones_pendientes }}
+            </div>
+
+        </div>
+
+
+        <!-- IMPRIMIENDO -->
+
+        <div class="indicador">
+
+            <div class="indicador-titulo">
+                IMPRIMIENDO
+            </div>
+
+            <div class="indicador-numero">
+                {{ producciones_imprimiendo }}
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- =========================================
+         ACCESOS RÁPIDOS
+    ========================================== -->
+
+    <div class="seccion-titulo">
+        Accesos rápidos
+    </div>
+
+
+    <div class="accesos">
+
+
+        <!-- =====================================
+             NUEVO PEDIDO
+        ====================================== -->
+
+        <a
+            href="{% url 'pedidos:nuevo' %}"
+            class="tarjeta nuevo"
+        >
+
+            <div class="icono">
+                +
+            </div>
+
+            <div class="tarjeta-titulo">
+                Nuevo Pedido
+            </div>
+
+            <div class="tarjeta-texto">
+                Crear un nuevo pedido para un cliente.
+            </div>
+
+        </a>
+
+
+        <!-- =====================================
+             IMPRESIONES POR PEDIDO
+        ====================================== -->
+
+        <a
+            href="{% url 'pedidos:impresiones' %}"
+            class="tarjeta pedido"
+        >
+
+            <div class="icono">
+                📦
+            </div>
+
+            <div class="tarjeta-titulo">
+                Pedidos
+            </div>
+
+            <div class="tarjeta-texto">
+                Ver cada pedido, preparar sus productos
+                y marcar cuáles ya están listos.
+            </div>
+
+        </a>
+
+
+        <!-- =====================================
+             IMPRESIONES POR PRODUCTO
+        ====================================== -->
+
+        <a
+            href="{% url 'pedidos:impresiones_por_producto' %}"
+            class="tarjeta producto-impresion"
+        >
+
+            <div class="icono">
+                🖨
+            </div>
+
+            <div class="tarjeta-titulo">
+                Impresiones por Producto
+            </div>
+
+            <div class="tarjeta-texto">
+                Consultar los productos que necesitan
+                impresión, cantidades y prioridades.
+            </div>
+
+        </a>
+
+
+        <!-- =====================================
+             PRODUCCIÓN
+        ====================================== -->
+
+        <a
+            href="{% url 'produccion:lista' %}"
+            class="tarjeta produccion"
+        >
+
+            <div class="icono">
+                ⚙
+            </div>
+
+            <div class="tarjeta-titulo">
+                Producción
+            </div>
+
+            <div class="tarjeta-texto">
+                Gestionar impresiones en curso,
+                tiempos, destinos y finalización estimada.
+            </div>
+
+        </a>
+
+
+        <!-- =====================================
+             PRODUCTOS
+        ====================================== -->
+
+        <a
+            href="{% url 'productos:lista' %}"
+            class="tarjeta productos"
+        >
+
+            <div class="icono">
+                📋
+            </div>
+
+            <div class="tarjeta-titulo">
+                Productos
+            </div>
+
+            <div class="tarjeta-texto">
+                Consultar el catálogo, buscar productos,
+                ver stock, precios y tiempos de impresión.
+            </div>
+
+        </a>
+
+
+    </div>
+
+
+</div>
+
+</body>
+
+</html>
