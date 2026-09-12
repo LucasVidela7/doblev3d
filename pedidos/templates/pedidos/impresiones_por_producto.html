@@ -6,19 +6,19 @@
     <meta charset="UTF-8">
 
     <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1.0"
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
     >
 
-    <title>
-        Impresiones por producto | Doble V 3D
-    </title>
+    <title>Impresiones por producto | Doble V 3D</title>
+
 
     <style>
 
         * {
             box-sizing: border-box;
         }
+
 
         body {
             font-family: Arial, sans-serif;
@@ -28,20 +28,93 @@
             color: #333333;
         }
 
+
         .contenedor {
             max-width: 1100px;
             margin: auto;
         }
 
-        h1 {
-            margin-top: 0;
-            margin-bottom: 8px;
+
+        /* =========================================
+           ENCABEZADO
+        ========================================= */
+
+        .encabezado {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 25px;
         }
+
+
+        h1 {
+            margin: 0 0 5px 0;
+        }
+
 
         .subtitulo {
             color: #777777;
-            margin-bottom: 25px;
         }
+
+
+        .acciones-encabezado {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+
+        .boton-volver,
+        .boton-inicio {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            height: 42px;
+            padding: 0 16px;
+
+            border-radius: 8px;
+
+            font-size: 12px;
+            font-weight: bold;
+
+            cursor: pointer;
+
+            text-decoration: none;
+        }
+
+
+        .boton-volver {
+            background: white;
+
+            border: 1px solid #dddddd;
+
+            color: #333333;
+
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, .07);
+        }
+
+
+        .boton-volver:hover {
+            background: #eeeeee;
+        }
+
+
+        .boton-inicio {
+            background: #333333;
+
+            border: none;
+
+            color: white;
+        }
+
+
+        .boton-inicio:hover {
+            background: #111111;
+        }
+
 
 
         /* =========================================
@@ -50,43 +123,61 @@
 
         .tabla-contenedor {
             background: white;
+
             border-radius: 12px;
+
             overflow: hidden;
 
             box-shadow:
                 0 2px 8px rgba(0, 0, 0, .08);
         }
 
+
         table {
             width: 100%;
+
             border-collapse: collapse;
         }
+
 
         thead {
             background: #eeeeee;
         }
 
+
         th {
             text-align: left;
+
             padding: 14px 18px;
+
             font-size: 12px;
+
             color: #666666;
-            border-bottom: 1px solid #dddddd;
+
+            border-bottom:
+                1px solid #dddddd;
         }
+
 
         td {
             padding: 15px 18px;
-            border-bottom: 1px solid #eeeeee;
+
+            border-bottom:
+                1px solid #eeeeee;
+
             vertical-align: middle;
         }
+
 
         tbody tr:hover {
             background: #fafafa;
         }
 
+
         tbody tr:last-child td {
             border-bottom: none;
         }
+
 
 
         /* =========================================
@@ -97,11 +188,15 @@
             font-weight: 500;
         }
 
+
         .codigo {
             color: #888888;
+
             font-size: 12px;
+
             margin-right: 6px;
         }
+
 
 
         /* =========================================
@@ -110,22 +205,29 @@
 
         .numero {
             width: 140px;
+
             text-align: center;
         }
 
+
         .cantidad {
             font-size: 17px;
+
             font-weight: bold;
         }
 
+
         .imprimir {
             font-size: 19px;
+
             font-weight: bold;
         }
+
 
         .sin-impresion {
             color: #999999;
         }
+
 
 
         /* =========================================
@@ -134,11 +236,14 @@
 
         .columna-prioridad {
             width: 180px;
+
             text-align: center;
         }
 
+
         .prioridad {
             display: inline-flex;
+
             align-items: center;
             justify-content: center;
 
@@ -157,8 +262,6 @@
         }
 
 
-        /* CÍRCULO DEL SEMÁFORO */
-
         .semaforo {
             width: 11px;
             height: 11px;
@@ -171,12 +274,17 @@
         }
 
 
-        /* ALTA */
+
+        /* =========================================
+           PRIORIDAD ALTA
+        ========================================= */
 
         .prioridad-alta {
             background: #f8d7da;
+
             color: #721c24;
         }
+
 
         .prioridad-alta .semaforo {
             background: #dc3545;
@@ -186,12 +294,17 @@
         }
 
 
-        /* MEDIA */
+
+        /* =========================================
+           PRIORIDAD MEDIA
+        ========================================= */
 
         .prioridad-media {
             background: #fff3cd;
+
             color: #856404;
         }
+
 
         .prioridad-media .semaforo {
             background: #ffc107;
@@ -201,12 +314,17 @@
         }
 
 
-        /* BAJA */
+
+        /* =========================================
+           PRIORIDAD BAJA
+        ========================================= */
 
         .prioridad-baja {
             background: #d4edda;
+
             color: #155724;
         }
+
 
         .prioridad-baja .semaforo {
             background: #28a745;
@@ -216,16 +334,22 @@
         }
 
 
-        /* SIN NECESIDAD */
+
+        /* =========================================
+           SIN NECESIDAD
+        ========================================= */
 
         .prioridad-cero {
             background: #eeeeee;
+
             color: #666666;
         }
+
 
         .prioridad-cero .semaforo {
             background: #999999;
         }
+
 
 
         /* =========================================
@@ -236,13 +360,16 @@
             background: #fffafa;
         }
 
+
         .fila-media {
             background: #fffdf7;
         }
 
+
         .fila-baja {
             background: #fbfefb;
         }
+
 
 
         /* =========================================
@@ -265,6 +392,7 @@
         }
 
 
+
         /* =========================================
            RESPONSIVE
         ========================================= */
@@ -275,15 +403,36 @@
                 padding: 10px;
             }
 
+
+            .encabezado {
+                flex-direction: column;
+
+                align-items: flex-start;
+            }
+
+
+            .acciones-encabezado {
+                width: 100%;
+            }
+
+
+            .boton-volver,
+            .boton-inicio {
+                flex: 1;
+            }
+
+
             .tabla-contenedor {
                 overflow-x: auto;
             }
+
 
             table {
                 min-width: 800px;
             }
 
         }
+
 
     </style>
 
@@ -292,20 +441,57 @@
 
 <body>
 
+
 <div class="contenedor">
 
 
     <!-- =========================================
-         TÍTULO
+         ENCABEZADO
     ========================================== -->
 
-    <h1>
-        Impresiones por producto
-    </h1>
+    <div class="encabezado">
 
-    <div class="subtitulo">
-        Productos necesarios para los pedidos activos
+
+        <div>
+
+            <h1>
+                Impresiones por producto
+            </h1>
+
+
+            <div class="subtitulo">
+                Productos necesarios para los pedidos activos
+            </div>
+
+        </div>
+
+
+
+        <div class="acciones-encabezado">
+
+
+            <button
+                type="button"
+                class="boton-volver"
+                onclick="volverPagina()"
+            >
+                ← VOLVER
+            </button>
+
+
+            <a
+                href="{% url 'dashboard:inicio' %}"
+                class="boton-inicio"
+            >
+                INICIO
+            </a>
+
+
+        </div>
+
+
     </div>
+
 
 
     <!-- =========================================
@@ -314,88 +500,112 @@
 
     {% if productos %}
 
-    <div class="tabla-contenedor">
 
-        <table>
-
-
-            <!-- ENCABEZADO -->
-
-            <thead>
-
-            <tr>
-
-                <th>
-                    PRODUCTO
-                </th>
-
-                <th class="numero">
-                    PEDIDO
-                </th>
-
-                <th class="numero">
-                    STOCK
-                </th>
-
-                <th class="numero">
-                    A IMPRIMIR
-                </th>
-
-                <th class="columna-prioridad">
-                    PRIORIDAD
-                </th>
-
-            </tr>
-
-            </thead>
+        <div class="tabla-contenedor">
 
 
-            <!-- PRODUCTOS -->
-
-            <tbody>
-
-            {% for item in productos %}
-
-            <tr>
+            <table>
 
 
-                <!-- PRODUCTO -->
+                <!-- =================================
+                     ENCABEZADO TABLA
+                ================================== -->
 
-                <td class="producto">
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            PRODUCTO
+                        </th>
+
+
+                        <th class="numero">
+                            PEDIDO
+                        </th>
+
+
+                        <th class="numero">
+                            STOCK
+                        </th>
+
+
+                        <th class="numero">
+                            A IMPRIMIR
+                        </th>
+
+
+                        <th class="columna-prioridad">
+                            PRIORIDAD
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+
+                <!-- =================================
+                     PRODUCTOS
+                ================================== -->
+
+                <tbody>
+
+
+                    {% for item in productos %}
+
+
+                        <tr
+                            class="
+                                {% if item.prioridad == 'ALTA' %}
+                                    fila-alta
+                                {% elif item.prioridad == 'MEDIA' %}
+                                    fila-media
+                                {% elif item.prioridad == 'BAJA' %}
+                                    fila-baja
+                                {% endif %}
+                            "
+                        >
+
+
+                            <!-- PRODUCTO -->
+
+                            <td class="producto">
 
                                 <span class="codigo">
-
                                     {{ item.producto.codigo }}
-
                                 </span>
 
-                    {{ item.producto.nombre }}
+                                {{ item.producto.nombre }}
 
-                </td>
-
-
-                <!-- CANTIDAD PEDIDA -->
-
-                <td class="numero cantidad">
-
-                    {{ item.cantidad_pedida }}
-
-                </td>
+                            </td>
 
 
-                <!-- STOCK ACTUAL -->
 
-                <td class="numero">
+                            <!-- CANTIDAD PEDIDA -->
 
-                    {{ item.stock }}
+                            <td class="numero cantidad">
 
-                </td>
+                                {{ item.cantidad_pedida }}
+
+                            </td>
 
 
-                <!-- CANTIDAD A IMPRIMIR -->
 
-                <td
-                        class="
+                            <!-- STOCK -->
+
+                            <td class="numero">
+
+                                {{ item.stock }}
+
+                            </td>
+
+
+
+                            <!-- A IMPRIMIR -->
+
+                            <td
+                                class="
                                     numero
                                     imprimir
 
@@ -403,19 +613,21 @@
                                         sin-impresion
                                     {% endif %}
                                 "
-                >
+                            >
 
-                    {{ item.a_imprimir }}
+                                {{ item.a_imprimir }}
 
-                </td>
+                            </td>
 
 
-                <!-- PRIORIDAD -->
 
-                <td class="columna-prioridad">
+                            <!-- PRIORIDAD -->
+
+                            <td class="columna-prioridad">
+
 
                                 <span
-                                        class="
+                                    class="
                                         prioridad
                                         {{ item.prioridad_clase }}
                                     "
@@ -427,34 +639,79 @@
 
                                 </span>
 
-                </td>
+
+                            </td>
 
 
-            </tr>
+                        </tr>
 
-            {% endfor %}
 
-            </tbody>
+                    {% endfor %}
 
-        </table>
 
-    </div>
+                </tbody>
+
+
+            </table>
+
+
+        </div>
 
 
     {% else %}
 
 
-    <div class="sin-datos">
+        <!-- =========================================
+             SIN PRODUCTOS
+        ========================================== -->
 
-        No hay productos pendientes de impresión.
+        <div class="sin-datos">
 
-    </div>
+            No hay productos pendientes de impresión.
+
+        </div>
 
 
     {% endif %}
 
 
 </div>
+
+
+
+<!-- =========================================
+     JAVASCRIPT
+========================================== -->
+
+<script>
+
+    function volverPagina() {
+
+        /*
+         * Si existe una página anterior,
+         * volvemos a ella.
+         */
+
+        if (window.history.length > 1) {
+
+            window.history.back();
+
+        } else {
+
+            /*
+             * Si se abrió directamente esta página,
+             * volvemos al inicio.
+             */
+
+            window.location.href =
+                "{% url 'dashboard:inicio' %}";
+
+        }
+
+    }
+
+</script>
+
 
 </body>
 

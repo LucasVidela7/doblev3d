@@ -1,24 +1,21 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Impresiones por pedido | Doble V 3D</title>
+    <title>Impresiones por Pedido | Doble V 3D</title>
 
     <style>
-
         * {
             box-sizing: border-box;
         }
 
         body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
             margin: 0;
             padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f4f5f7;
             color: #333333;
         }
 
@@ -27,85 +24,195 @@
             margin: auto;
         }
 
-        h1 {
-            margin-top: 0;
+        /* =========================================
+           ENCABEZADO
+        ========================================= */
+
+        .encabezado {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
             margin-bottom: 25px;
         }
 
+        h1 {
+            margin: 0 0 5px 0;
+        }
 
-        /* PEDIDO */
+        .subtitulo {
+            color: #777777;
+            font-size: 14px;
+        }
 
-        .pedido {
+        .acciones-encabezado {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .boton-volver,
+        .boton-inicio {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 42px;
+            padding: 0 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .boton-volver {
             background: white;
-            margin-bottom: 22px;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+            color: #333333;
+            border: 1px solid #dddddd;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .07);
         }
 
-
-        /* CABECERA */
-
-        .cabecera-pedido {
-            display: grid;
-            grid-template-columns:
-                160px
-                180px
-                1fr
-                160px;
-            gap: 20px;
+        .boton-volver:hover {
             background: #eeeeee;
-            padding: 15px 20px;
-            font-size: 12px;
-            font-weight: bold;
-            color: #666666;
         }
 
-        .dato {
-            margin-top: 6px;
-            font-size: 15px;
-            font-weight: normal;
-            color: #222222;
+        .boton-inicio {
+            background: #333333;
+            color: white;
+            border: none;
         }
 
+        .boton-inicio:hover {
+            background: #111111;
+        }
 
-        /* ESTADOS */
+        /* =========================================
+           MENSAJES
+        ========================================= */
 
-        .badge-estado {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
+        .mensajes {
+            margin-bottom: 20px;
+        }
+
+        .mensaje {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            font-size: 13px;
             font-weight: bold;
         }
 
-        .estado-pendiente {
-            background: #eeeeee;
-            color: #444444;
-        }
-
-        .estado-preparando {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .estado-listo {
+        .mensaje.success {
             background: #d4edda;
             color: #155724;
         }
 
-        .estado-entregado {
-            background: #d1ecf1;
-            color: #0c5460;
-        }
-
-        .estado-cancelado {
+        .mensaje.error {
             background: #f8d7da;
             color: #721c24;
         }
 
+        .mensaje.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
 
-        /* TABLA */
+        .mensaje.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        /* =========================================
+           PEDIDO
+        ========================================= */
+
+        .pedido {
+            background: white;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .07);
+        }
+
+        .pedido-cabecera {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            padding: 18px 20px;
+            background: #fafafa;
+            border-bottom: 1px solid #eeeeee;
+        }
+
+        .pedido-info-principal {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .pedido-codigo {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .pedido-cliente {
+            color: #555555;
+            font-size: 14px;
+        }
+
+        .pedido-fecha {
+            color: #777777;
+            font-size: 12px;
+        }
+
+        /* =========================================
+           ESTADO DEL PEDIDO
+        ========================================= */
+
+        .estado-pedido {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .estado-PENDIENTE {
+            background: #eeeeee;
+            color: #555555;
+        }
+
+        .estado-PREPARANDO {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .estado-LISTO {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .estado-ENTREGADO {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .estado-CANCELADO {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* =========================================
+           TABLA
+        ========================================= */
+
+        .tabla-contenedor {
+            width: 100%;
+            overflow-x: auto;
+        }
 
         table {
             width: 100%;
@@ -113,371 +220,628 @@
         }
 
         thead {
-            background: #fafafa;
+            background: #ffffff;
         }
 
         th {
+            padding: 12px 20px;
             text-align: left;
-            padding: 13px 15px;
-            font-size: 12px;
-            color: #666666;
-            border-bottom: 1px solid #dddddd;
+            color: #777777;
+            font-size: 10px;
+            font-weight: bold;
+            border-bottom: 1px solid #eeeeee;
         }
 
         td {
-            padding: 14px 15px;
+            padding: 14px 20px;
             border-bottom: 1px solid #eeeeee;
-            vertical-align: middle;
+            font-size: 13px;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
         }
 
         tbody tr:hover {
             background: #fafafa;
         }
 
-        .producto {
-            font-weight: 500;
+        .col-cantidad,
+        .col-listo {
+            width: 140px;
+            text-align: center;
         }
 
-        .codigo-producto {
-            color: #888888;
-            font-size: 12px;
-            margin-right: 5px;
+        .producto-nombre {
+            font-weight: bold;
+        }
+
+        .producto-codigo {
+            margin-top: 3px;
+            color: #999999;
+            font-size: 11px;
         }
 
         .cantidad {
-            width: 180px;
-            text-align: center;
-            font-size: 17px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 36px;
+            height: 30px;
+            padding: 0 10px;
+            border-radius: 6px;
+            background: #eeeeee;
             font-weight: bold;
         }
 
+        /* =========================================
+           CHECK LISTO
+        ========================================= */
 
-        /* CHECKBOX */
+        .check-contenedor {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-        .columna-listo {
-            width: 200px;
+        .check-listo {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 26px;
+        }
+
+        .check-listo input {
+            width: 0;
+            height: 0;
+            opacity: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: #cccccc;
+            border-radius: 30px;
+            transition: .2s;
+        }
+
+        .slider::before {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            left: 3px;
+            top: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: .2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+        }
+
+        .check-listo input:checked + .slider {
+            background: #28a745;
+        }
+
+        .check-listo input:checked + .slider::before {
+            transform: translateX(22px);
+        }
+
+        /* Deshabilitado por stock insuficiente */
+        .check-listo input:disabled + .slider {
+            background: #dddddd;
+            cursor: not-allowed;
+            opacity: .55;
+        }
+
+        .check-listo input:disabled + .slider::before {
+            background: #f7f7f7;
+        }
+
+        .stock-insuficiente {
+            margin-top: 6px;
+            color: #b02a37;
+            font-size: 10px;
+            font-weight: bold;
             text-align: center;
         }
 
-        .form-listo {
+        tr.producto-listo {
+            background: #f5fff7;
+        }
+
+        tr.producto-listo .producto-nombre {
+            color: #198754;
+        }
+
+        /* =========================================
+           ACCIONES DEL PEDIDO
+        ========================================= */
+
+        .pedido-acciones {
             display: flex;
-            justify-content: center;
+            justify-content: flex-end;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 15px 20px;
+            background: #fafafa;
+            border-top: 1px solid #eeeeee;
+        }
+
+        .pedido-acciones form {
             margin: 0;
         }
 
-        .checkbox-listo {
-            width: 22px;
-            height: 22px;
+        .btn-entregar,
+        .btn-cancelar,
+        .btn-eliminar {
+            min-height: 38px;
+            padding: 0 15px;
+            border-radius: 7px;
+            font-size: 11px;
+            font-weight: bold;
             cursor: pointer;
+            transition: .2s;
         }
 
-        .texto-pendiente {
-            font-size: 12px;
+        .btn-entregar {
+            border: 1px solid #198754;
+            background: #198754;
+            color: white;
+        }
+
+        .btn-entregar:hover {
+            background: #146c43;
+        }
+
+        .btn-cancelar {
+            border: 1px solid #ffc107;
+            background: white;
+            color: #856404;
+        }
+
+        .btn-cancelar:hover {
+            background: #fff3cd;
+        }
+
+        .btn-eliminar {
+            border: 1px solid #dc3545;
+            background: white;
+            color: #dc3545;
+        }
+
+        .btn-eliminar:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        /* =========================================
+           SIN PEDIDOS
+        ========================================= */
+
+        .sin-pedidos {
+            padding: 50px 20px;
+            background: white;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .07);
+        }
+
+        .sin-pedidos-titulo {
+            margin-bottom: 8px;
+            font-size: 18px;
             font-weight: bold;
+        }
+
+        .sin-pedidos-texto {
             color: #777777;
+            font-size: 14px;
         }
 
-        .texto-listo {
-            font-size: 12px;
-            font-weight: bold;
-            color: #155724;
-        }
+        /* =========================================
+           RESPONSIVE
+        ========================================= */
 
-
-        /* FILA LISTA */
-
-        tr.fila-lista {
-            background: #f3faf5;
-        }
-
-        tr.fila-lista:hover {
-            background: #edf7ef;
-        }
-
-
-        /* RESPONSIVE */
-
-        @media (max-width: 800px) {
-
+        @media (max-width: 750px) {
             body {
                 padding: 10px;
             }
 
-            .cabecera-pedido {
-                grid-template-columns: 1fr 1fr;
+            .encabezado {
+                flex-direction: column;
+                align-items: flex-start;
             }
 
-            .pedido {
-                overflow-x: auto;
+            .acciones-encabezado {
+                width: 100%;
             }
 
-            table {
-                min-width: 600px;
+            .boton-volver,
+            .boton-inicio {
+                flex: 1;
             }
 
+            .pedido-cabecera {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .pedido-acciones {
+                justify-content: stretch;
+            }
+
+            .pedido-acciones form {
+                flex: 1;
+            }
+
+            .btn-entregar,
+            .btn-cancelar,
+            .btn-eliminar {
+                width: 100%;
+            }
+
+            th,
+            td {
+                padding: 12px 10px;
+            }
+
+            .col-cantidad,
+            .col-listo {
+                width: 90px;
+            }
         }
-
     </style>
-
 </head>
-
 
 <body>
 
 <div class="contenedor">
 
-    <h1>Impresiones por pedido</h1>
+    <!-- =========================================
+         ENCABEZADO
+    ========================================== -->
 
+    <div class="encabezado">
+        <div>
+            <h1>Resumen Pedidos</h1>
+            <div class="subtitulo">
+                Preparación y entrega de pedidos
+            </div>
+        </div>
 
-    {% for grupo in pedidos_impresion %}
+        <div class="acciones-encabezado">
+            <button
+                type="button"
+                class="boton-volver"
+                onclick="volverPagina()"
+            >
+                ← VOLVER
+            </button>
 
-    <div class="pedido">
+            <a
+                href="{% url 'dashboard:inicio' %}"
+                class="boton-inicio"
+            >
+                INICIO
+            </a>
+        </div>
+    </div>
 
+    <!-- =========================================
+         MENSAJES
+    ========================================== -->
 
-        <!-- CABECERA -->
+    {% if messages %}
+        <div class="mensajes">
+            {% for message in messages %}
+                <div class="mensaje {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 
-        <div class="cabecera-pedido">
+    <!-- =========================================
+         PEDIDOS
+    ========================================== -->
 
-            <div>
+    {% if pedidos_impresion %}
 
-                FECHA ENTREGA
+        {% for item_pedido in pedidos_impresion %}
 
-                <div class="dato">
+            <div class="pedido">
 
-                    {% if grupo.pedido.fecha_entrega %}
+                <!-- CABECERA DEL PEDIDO -->
 
-                    {{ grupo.pedido.fecha_entrega|date:"d/m/Y" }}
+                <div class="pedido-cabecera">
 
-                    {% else %}
+                    <div class="pedido-info-principal">
 
-                    Sin fecha
+                        <div class="pedido-codigo">
+                            {{ item_pedido.pedido.codigo }}
+                        </div>
+
+                        <div class="pedido-cliente">
+                            {{ item_pedido.pedido.cliente.nombre }}
+                        </div>
+
+                        {% if item_pedido.pedido.fecha_entrega %}
+                            <div class="pedido-fecha">
+                                Entrega:
+                                {{ item_pedido.pedido.fecha_entrega|date:"d/m/Y" }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                    <div>
+                        <span class="estado-pedido estado-{{ item_pedido.pedido.estado }}">
+                            {{ item_pedido.pedido.get_estado_display }}
+                        </span>
+                    </div>
+
+                </div>
+
+                <!-- PRODUCTOS -->
+
+                <div class="tabla-contenedor">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>PRODUCTO</th>
+                                <th class="col-cantidad">CANTIDAD</th>
+                                <th class="col-listo">LISTO</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for item in item_pedido.productos %}
+
+                                <tr
+                                    {% if item.listo %}
+                                        class="producto-listo"
+                                    {% endif %}
+                                >
+
+                                    <td>
+                                        <div class="producto-nombre">
+                                            {{ item.producto.nombre }}
+                                        </div>
+
+                                        <div class="producto-codigo">
+                                            {{ item.producto.codigo }}
+                                        </div>
+                                    </td>
+
+                                    <td class="col-cantidad">
+                                        <span class="cantidad">
+                                            {{ item.cantidad }}
+                                        </span>
+                                    </td>
+
+                                    <td class="col-listo">
+
+                                        <form
+                                            method="post"
+                                            action="{% url 'pedidos:cambiar_listo' %}"
+                                            class="form-listo"
+                                        >
+                                            {% csrf_token %}
+
+                                            <input
+                                                type="hidden"
+                                                name="estado_id"
+                                                value="{{ item.estado_id }}"
+                                            >
+
+                                            <input
+                                                type="hidden"
+                                                name="stock_usado"
+                                                value="{{ item.stock_usado }}"
+                                            >
+
+                                            <input
+                                                type="hidden"
+                                                name="listo"
+                                                value="{% if item.listo %}1{% else %}0{% endif %}"
+                                                class="valor-listo"
+                                            >
+
+                                            <div class="check-contenedor">
+
+                                                <label class="check-listo">
+
+                                                    <input
+                                                        type="checkbox"
+
+                                                        {% if item.listo %}
+                                                            checked
+                                                        {% endif %}
+
+                                                        {% if not item.listo and not item.puede_marcar_listo %}
+                                                            disabled
+                                                            title="Stock insuficiente"
+                                                        {% endif %}
+
+                                                        onchange="cambiarListo(this)"
+                                                    >
+
+                                                    <span class="slider"></span>
+
+                                                </label>
+
+                                            </div>
+
+                                            {% if not item.listo and not item.puede_marcar_listo %}
+                                                <div class="stock-insuficiente">
+                                                    STOCK INSUFICIENTE
+                                                </div>
+                                            {% endif %}
+
+                                        </form>
+
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <!-- ACCIONES DEL PEDIDO -->
+
+                <div class="pedido-acciones">
+
+                    {% if item_pedido.pedido.estado == "LISTO" %}
+
+                        <form
+                            method="post"
+                            action="{% url 'pedidos:entregar' item_pedido.pedido.id %}"
+                            onsubmit="return confirmarEntrega();"
+                        >
+                            {% csrf_token %}
+
+                            <button
+                                type="submit"
+                                class="btn-entregar"
+                            >
+                                ✓ ENTREGAR
+                            </button>
+                        </form>
 
                     {% endif %}
 
-                </div>
+                    {% if item_pedido.pedido.estado != "ENTREGADO" %}
 
-            </div>
-
-
-            <div>
-
-                ID PEDIDO
-
-                <div class="dato">
-                    {{ grupo.pedido.codigo }}
-                </div>
-
-            </div>
-
-
-            <div>
-
-                CLIENTE
-
-                <div class="dato">
-                    {{ grupo.pedido.cliente.nombre }}
-                </div>
-
-            </div>
-
-
-            <div>
-
-                ESTADO
-
-                <div class="dato">
-
-                        <span
-                                class="
-                                badge-estado
-
-                                {% if grupo.pedido.estado == 'PENDIENTE' %}
-                                    estado-pendiente
-
-                                {% elif grupo.pedido.estado == 'PREPARANDO' %}
-                                    estado-preparando
-
-                                {% elif grupo.pedido.estado == 'LISTO' %}
-                                    estado-listo
-
-                                {% elif grupo.pedido.estado == 'ENTREGADO' %}
-                                    estado-entregado
-
-                                {% elif grupo.pedido.estado == 'CANCELADO' %}
-                                    estado-cancelado
-                                {% endif %}
-                            "
+                        <form
+                            method="post"
+                            action="{% url 'pedidos:cancelar' item_pedido.pedido.id %}"
+                            onsubmit="return confirmarCancelacion();"
                         >
+                            {% csrf_token %}
 
-                            {{ grupo.pedido.get_estado_display }}
+                            <button
+                                type="submit"
+                                class="btn-cancelar"
+                            >
+                                CANCELAR
+                            </button>
+                        </form>
 
-                        </span>
+                    {% endif %}
+
+                    <form
+                        method="post"
+                        action="{% url 'pedidos:eliminar' item_pedido.pedido.id %}"
+                        onsubmit="return confirmarEliminacion();"
+                    >
+                        {% csrf_token %}
+
+                        <button
+                            type="submit"
+                            class="btn-eliminar"
+                        >
+                            ELIMINAR
+                        </button>
+                    </form>
 
                 </div>
 
+            </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <div class="sin-pedidos">
+
+            <div class="sin-pedidos-titulo">
+                No hay pedidos pendientes
+            </div>
+
+            <div class="sin-pedidos-texto">
+                No existen pedidos que requieran preparación.
             </div>
 
         </div>
 
-
-        <!-- PRODUCTOS -->
-
-        <table>
-
-            <thead>
-
-            <tr>
-
-                <th>
-                    PRODUCTO
-                </th>
-
-                <th class="cantidad">
-                    CANTIDAD
-                </th>
-
-                <th class="columna-listo">
-                    LISTO
-                </th>
-
-            </tr>
-
-            </thead>
-
-
-            <tbody>
-
-            {% for item in grupo.productos %}
-
-            <tr
-                    {% if item.listo %}
-                    class="fila-lista"
-                    {% endif %}
-            >
-
-
-                <!-- PRODUCTO -->
-
-                <td class="producto">
-
-                                <span class="codigo-producto">
-                                    {{ item.producto.codigo }}
-                                </span>
-
-                    {{ item.producto.nombre }}
-
-                </td>
-
-
-                <!-- CANTIDAD -->
-
-                <td class="cantidad">
-
-                    {{ item.cantidad_pedido }}
-
-                </td>
-
-
-                <!-- LISTO -->
-
-                <td class="columna-listo">
-
-                    <form
-                            class="form-listo"
-                            method="post"
-                            action="{% url 'pedidos:cambiar_listo_impresion' %}"
-                    >
-
-                        {% csrf_token %}
-
-                        <input
-                                type="hidden"
-                                name="estado_id"
-                                value="{{ item.estado_id }}"
-                        >
-
-                        <!--
-                            No mostramos el stock,
-                            pero lo seguimos enviando
-                            para realizar el descuento.
-                        -->
-
-                        <input
-                                type="hidden"
-                                name="stock_usado"
-                                value="{{ item.stock_usado }}"
-                        >
-
-
-                        {% if item.listo %}
-
-                        <input
-                                type="hidden"
-                                name="listo"
-                                value="0"
-                        >
-
-                        <input
-                                class="checkbox-listo"
-                                type="checkbox"
-                                checked
-                                onchange="this.form.submit()"
-                        >
-
-                        <span class="texto-listo">
-                                            LISTO
-                                        </span>
-
-
-                        {% else %}
-
-                        <input
-                                type="hidden"
-                                name="listo"
-                                value="1"
-                        >
-
-                        <input
-                                class="checkbox-listo"
-                                type="checkbox"
-                                onchange="this.form.submit()"
-                        >
-
-                        <span class="texto-pendiente">
-                                            PENDIENTE
-                                        </span>
-
-                        {% endif %}
-
-                    </form>
-
-                </td>
-
-            </tr>
-
-            {% endfor %}
-
-            </tbody>
-
-        </table>
-
-    </div>
-
-
-    {% empty %}
-
-    <div class="sin-datos">
-
-        No hay pedidos para preparar.
-
-    </div>
-
-    {% endfor %}
+    {% endif %}
 
 </div>
 
-</body>
+<script>
 
+    function volverPagina() {
+
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.location.href = "{% url 'dashboard:inicio' %}";
+        }
+
+    }
+
+
+    function cambiarListo(checkbox) {
+
+        const formulario = checkbox.closest(".form-listo");
+
+        if (!formulario) {
+            return;
+        }
+
+        const inputListo = formulario.querySelector(".valor-listo");
+
+        if (!inputListo) {
+            return;
+        }
+
+        inputListo.value = checkbox.checked ? "1" : "0";
+
+        checkbox.disabled = true;
+
+        formulario.submit();
+    }
+
+
+    function confirmarEntrega() {
+
+        return confirm(
+            "¿Confirmás que el pedido fue entregado al cliente?"
+        );
+
+    }
+
+
+    function confirmarCancelacion() {
+
+        return confirm(
+            "¿Seguro que querés CANCELAR este pedido?\n\n" +
+            "Las unidades tomadas del stock serán devueltas."
+        );
+
+    }
+
+
+    function confirmarEliminacion() {
+
+        return confirm(
+            "¿Seguro que querés ELIMINAR este pedido?\n\n" +
+            "Usá esta opción solamente si el pedido fue cargado por error.\n\n" +
+            "Esta acción es permanente y no se puede deshacer."
+        );
+
+    }
+
+</script>
+
+</body>
 </html>
