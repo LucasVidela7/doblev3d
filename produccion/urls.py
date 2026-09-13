@@ -1,9 +1,8 @@
 from django.urls import path
+
 from . import views
 
-
 app_name = "produccion"
-
 
 urlpatterns = [
 
@@ -23,6 +22,12 @@ urlpatterns = [
         "<int:produccion_id>/estado/",
         views.cambiar_estado,
         name="cambiar_estado",
+    ),
+
+    path(
+        "api/tiempo-recomendado/",
+        views.tiempo_recomendado,
+        name="tiempo_recomendado",
     ),
 
 ]

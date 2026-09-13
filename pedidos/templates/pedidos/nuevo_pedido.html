@@ -6,8 +6,8 @@
     <meta charset="UTF-8">
 
     <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
     >
 
     <title>
@@ -410,6 +410,45 @@
 
 
         /* =========================================
+           PERSONALIZADO
+        ========================================= */
+
+        .selector-personalizado {
+            display: none;
+            margin-top: 16px;
+            padding: 16px;
+            background: #ffffff;
+            border: 1px solid #e1e1e1;
+            border-radius: 9px;
+        }
+
+        .selector-personalizado.activo {
+            display: block;
+        }
+
+        .personalizado-grid {
+            display: grid;
+            grid-template-columns:
+                minmax(220px, 1.5fr)
+                120px
+                minmax(160px, 1fr);
+            gap: 12px;
+            align-items: end;
+        }
+
+        .personalizado-detalle {
+            margin-top: 12px;
+        }
+
+        .ayuda-personalizado {
+            margin-top: 8px;
+            color: #777777;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+
+        /* =========================================
            BOTONES
         ========================================= */
 
@@ -526,6 +565,10 @@
                 grid-template-columns: 1fr;
             }
 
+            .personalizado-grid {
+                grid-template-columns: 1fr;
+            }
+
         }
 
     </style>
@@ -551,7 +594,7 @@
             </h1>
 
             <div class="subtitulo">
-                Cargar productos y kits para un cliente
+                Cargar productos, kits y trabajos personalizados para un cliente
             </div>
 
         </div>
@@ -560,17 +603,17 @@
         <div class="acciones-encabezado">
 
             <button
-                type="button"
-                class="boton-volver"
-                onclick="volverPagina()"
+                    type="button"
+                    class="boton-volver"
+                    onclick="volverPagina()"
             >
                 ← VOLVER
             </button>
 
 
             <a
-                href="{% url 'dashboard:inicio' %}"
-                class="boton-inicio"
+                    href="{% url 'dashboard:inicio' %}"
+                    class="boton-inicio"
             >
                 INICIO
             </a>
@@ -586,13 +629,13 @@
 
     {% if messages %}
 
-        {% for message in messages %}
+    {% for message in messages %}
 
-            <div class="mensaje {{ message.tags }}">
-                {{ message }}
-            </div>
+    <div class="mensaje {{ message.tags }}">
+        {{ message }}
+    </div>
 
-        {% endfor %}
+    {% endfor %}
 
     {% endif %}
 
@@ -629,10 +672,10 @@
                     </label>
 
                     <select
-                        name="cliente"
-                        id="cliente"
-                        required
-                        onchange="actualizarCliente()"
+                            name="cliente"
+                            id="cliente"
+                            required
+                            onchange="actualizarCliente()"
                     >
 
                         <option value="">
@@ -642,9 +685,9 @@
 
                         {% for cliente in clientes %}
 
-                            <option value="{{ cliente.id }}">
-                                {{ cliente.nombre }}
-                            </option>
+                        <option value="{{ cliente.id }}">
+                            {{ cliente.nombre }}
+                        </option>
 
                         {% endfor %}
 
@@ -667,8 +710,8 @@
                     </label>
 
                     <input
-                        type="date"
-                        name="fecha_entrega"
+                            type="date"
+                            name="fecha_entrega"
                     >
 
                 </div>
@@ -681,8 +724,8 @@
             ================================== -->
 
             <div
-                class="nuevo-cliente"
-                id="nuevo-cliente"
+                    class="nuevo-cliente"
+                    id="nuevo-cliente"
             >
 
                 <div class="nuevo-cliente-titulo">
@@ -700,10 +743,10 @@
                         </label>
 
                         <input
-                            type="text"
-                            name="nuevo_cliente_nombre"
-                            id="nuevo_cliente_nombre"
-                            placeholder="Nombre del cliente"
+                                type="text"
+                                name="nuevo_cliente_nombre"
+                                id="nuevo_cliente_nombre"
+                                placeholder="Nombre del cliente"
                         >
 
                     </div>
@@ -716,9 +759,9 @@
                         </label>
 
                         <input
-                            type="text"
-                            name="nuevo_cliente_telefono"
-                            placeholder="Teléfono"
+                                type="text"
+                                name="nuevo_cliente_telefono"
+                                placeholder="Teléfono"
                         >
 
                     </div>
@@ -731,9 +774,9 @@
                         </label>
 
                         <input
-                            type="email"
-                            name="nuevo_cliente_email"
-                            placeholder="Email"
+                                type="email"
+                                name="nuevo_cliente_email"
+                                placeholder="Email"
                         >
 
                     </div>
@@ -747,8 +790,8 @@
             <!-- OBSERVACIONES -->
 
             <div
-                class="campo"
-                style="margin-top: 18px;"
+                    class="campo"
+                    style="margin-top: 18px;"
             >
 
                 <label>
@@ -756,8 +799,8 @@
                 </label>
 
                 <textarea
-                    name="observaciones"
-                    placeholder="Observaciones del pedido..."
+                        name="observaciones"
+                        placeholder="Observaciones del pedido..."
                 ></textarea>
 
             </div>
@@ -781,11 +824,11 @@
 
 
             <button
-                type="button"
-                class="boton boton-agregar"
-                onclick="agregarItem()"
+                    type="button"
+                    class="boton boton-agregar"
+                    onclick="agregarItem()"
             >
-                + AGREGAR PRODUCTO O KIT
+                + AGREGAR ITEM
             </button>
 
         </div>
@@ -798,8 +841,8 @@
         <div class="acciones">
 
             <button
-                type="submit"
-                class="boton boton-guardar"
+                    type="submit"
+                    class="boton boton-guardar"
             >
                 GUARDAR PEDIDO
             </button>
@@ -814,527 +857,172 @@
 
 <script>
 
-let contadorItems = 0;
+    let contadorItems = 0;
 
 
-/* =========================================
-   VOLVER
-========================================= */
+    /* =========================================
+       VOLVER
+    ========================================= */
 
-function volverPagina() {
+    function volverPagina() {
 
-    if (window.history.length > 1) {
+        if (window.history.length > 1) {
 
-        window.history.back();
+            window.history.back();
 
-    } else {
+        } else {
 
-        window.location.href =
-            "{% url 'dashboard:inicio' %}";
-
-    }
-
-}
-
-
-/* =========================================
-   NUEVO CLIENTE
-========================================= */
-
-function actualizarCliente() {
-
-    const cliente =
-        document.getElementById(
-            "cliente"
-        );
-
-    const bloque =
-        document.getElementById(
-            "nuevo-cliente"
-        );
-
-    const nombre =
-        document.getElementById(
-            "nuevo_cliente_nombre"
-        );
-
-
-    if (cliente.value === "NUEVO") {
-
-        bloque.classList.add(
-            "activo"
-        );
-
-        nombre.required = true;
-
-    } else {
-
-        bloque.classList.remove(
-            "activo"
-        );
-
-        nombre.required = false;
-
-    }
-
-}
-
-
-/* =========================================
-   AGREGAR ITEM
-========================================= */
-
-function agregarItem() {
-
-    contadorItems++;
-
-    const indice =
-        contadorItems;
-
-    const contenedor =
-        document.getElementById(
-            "items"
-        );
-
-
-    const item =
-        document.createElement(
-            "div"
-        );
-
-    item.className =
-        "item";
-
-    item.id =
-        `item-${indice}`;
-
-
-    item.innerHTML = `
-
-        <input
-            type="hidden"
-            name="item_indice"
-            value="${indice}"
-        >
-
-
-        <div class="item-encabezado">
-
-            <div class="item-numero">
-                ITEM ${indice}
-            </div>
-
-            <button
-                type="button"
-                class="boton boton-eliminar"
-                onclick="eliminarItem(${indice})"
-            >
-                ELIMINAR
-            </button>
-
-        </div>
-
-
-        <div class="item-grid">
-
-
-            <div class="campo">
-
-                <label>
-                    TIPO
-                </label>
-
-                <select
-                    name="tipo_item_${indice}"
-                    id="tipo_item_${indice}"
-                    onchange="cambiarTipo(${indice})"
-                    required
-                >
-
-                    <option value="PRODUCTO">
-                        Producto
-                    </option>
-
-                    <option value="KIT">
-                        Kit
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <div
-                class="campo selector-producto-normal"
-                id="bloque_producto_${indice}"
-            >
-
-                <label>
-                    PRODUCTO
-                </label>
-
-                <select
-                    name="producto_${indice}"
-                    id="producto_${indice}"
-                    required
-                >
-
-                    <option value="">
-                        Seleccionar producto...
-                    </option>
-
-                    {% for producto in productos %}
-
-                        <option value="{{ producto.id }}">
-                            {{ producto.codigo }} - {{ producto.nombre }}
-                        </option>
-
-                    {% endfor %}
-
-                </select>
-
-            </div>
-
-
-            <div
-                class="campo selector-kit"
-                id="bloque_kit_${indice}"
-            >
-
-                <label>
-                    KIT
-                </label>
-
-                <select
-                    name="kit_${indice}"
-                    id="kit_${indice}"
-                    onchange="cargarProductosKit(${indice})"
-                >
-
-                    <option value="">
-                        Seleccionar kit...
-                    </option>
-
-                    {% for kit in kits %}
-
-                        <option value="{{ kit.id }}">
-                            {{ kit.codigo }} - {{ kit.nombre }}
-                        </option>
-
-                    {% endfor %}
-
-                </select>
-
-            </div>
-
-
-            <div class="campo">
-
-                <label>
-                    CANTIDAD
-                </label>
-
-                <input
-                    type="number"
-                    name="cantidad_${indice}"
-                    id="cantidad_${indice}"
-                    min="1"
-                    value="1"
-                    required
-                >
-
-            </div>
-
-
-        </div>
-
-
-        <div
-            class="componentes-kit"
-            id="componentes_kit_${indice}"
-        >
-
-            <div class="componentes-titulo">
-                PRODUCTOS DEL KIT
-            </div>
-
-            <div class="componentes-ayuda">
-                Seleccioná los productos que contiene un kit.
-                La cantidad indicada arriba multiplicará
-                automáticamente estos productos.
-            </div>
-
-            <div
-                class="componentes-grid"
-                id="componentes_grid_${indice}"
-            >
-            </div>
-
-        </div>
-
-    `;
-
-
-    contenedor.appendChild(
-        item
-    );
-
-
-    actualizarBotonesEliminar();
-
-}
-
-
-/* =========================================
-   ELIMINAR ITEM
-========================================= */
-
-function eliminarItem(indice) {
-
-    const item =
-        document.getElementById(
-            `item-${indice}`
-        );
-
-    if (item) {
-        item.remove();
-    }
-
-    actualizarBotonesEliminar();
-
-}
-
-
-/* =========================================
-   BOTONES ELIMINAR
-========================================= */
-
-function actualizarBotonesEliminar() {
-
-    const items =
-        document.querySelectorAll(
-            ".item"
-        );
-
-    const botones =
-        document.querySelectorAll(
-            ".boton-eliminar"
-        );
-
-
-    botones.forEach(
-        boton => {
-
-            boton.style.display =
-                items.length > 1
-                    ? "inline-block"
-                    : "none";
-
-        }
-    );
-
-}
-
-
-/* =========================================
-   CAMBIO PRODUCTO / KIT
-========================================= */
-
-function cambiarTipo(indice) {
-
-    const tipo =
-        document.getElementById(
-            `tipo_item_${indice}`
-        ).value;
-
-
-    const bloqueProducto =
-        document.getElementById(
-            `bloque_producto_${indice}`
-        );
-
-    const bloqueKit =
-        document.getElementById(
-            `bloque_kit_${indice}`
-        );
-
-    const producto =
-        document.getElementById(
-            `producto_${indice}`
-        );
-
-    const kit =
-        document.getElementById(
-            `kit_${indice}`
-        );
-
-    const componentes =
-        document.getElementById(
-            `componentes_kit_${indice}`
-        );
-
-    const componentesGrid =
-        document.getElementById(
-            `componentes_grid_${indice}`
-        );
-
-
-    if (tipo === "KIT") {
-
-        bloqueProducto.style.display =
-            "none";
-
-        bloqueKit.style.display =
-            "block";
-
-
-        producto.required =
-            false;
-
-        producto.value =
-            "";
-
-
-        kit.required =
-            true;
-
-
-    } else {
-
-        bloqueProducto.style.display =
-            "block";
-
-        bloqueKit.style.display =
-            "none";
-
-
-        producto.required =
-            true;
-
-        kit.required =
-            false;
-
-        kit.value =
-            "";
-
-
-        componentes.classList.remove(
-            "activo"
-        );
-
-        componentesGrid.innerHTML =
-            "";
-
-    }
-
-}
-
-
-/* =========================================
-   CARGAR PRODUCTOS DEL KIT
-========================================= */
-
-async function cargarProductosKit(
-    indice
-) {
-
-    const kitSelect =
-        document.getElementById(
-            `kit_${indice}`
-        );
-
-    const kitId =
-        kitSelect.value;
-
-
-    const bloque =
-        document.getElementById(
-            `componentes_kit_${indice}`
-        );
-
-    const grid =
-        document.getElementById(
-            `componentes_grid_${indice}`
-        );
-
-
-    grid.innerHTML =
-        "";
-
-    bloque.classList.remove(
-        "activo"
-    );
-
-
-    if (!kitId) {
-        return;
-    }
-
-
-    try {
-
-        const respuesta =
-            await fetch(
-                `/pedidos/api/kit/${kitId}/productos/`
-            );
-
-
-        if (!respuesta.ok) {
-
-            throw new Error(
-                "No se pudieron cargar los productos del kit."
-            );
+            window.location.href =
+                "{% url 'dashboard:inicio' %}";
 
         }
 
-
-        const data =
-            await respuesta.json();
+    }
 
 
-        const cantidadProductos =
-            data.kit.cantidad_productos;
+    /* =========================================
+       NUEVO CLIENTE
+    ========================================= */
+
+    function actualizarCliente() {
+
+        const cliente =
+            document.getElementById(
+                "cliente"
+            );
+
+        const bloque =
+            document.getElementById(
+                "nuevo-cliente"
+            );
+
+        const nombre =
+            document.getElementById(
+                "nuevo_cliente_nombre"
+            );
 
 
-        for (
-            let posicion = 1;
-            posicion <= cantidadProductos;
-            posicion++
-        ) {
+        if (cliente.value === "NUEVO") {
 
-            const campo =
-                document.createElement(
-                    "div"
-                );
+            bloque.classList.add(
+                "activo"
+            );
 
-            campo.className =
-                "componente-kit";
+            nombre.required = true;
 
+        } else {
 
-            const opciones =
-                data.productos
-                .map(
-                    producto => `
+            bloque.classList.remove(
+                "activo"
+            );
 
-                        <option value="${producto.id}">
-                            ${producto.codigo} - ${producto.nombre}
-                        </option>
+            nombre.required = false;
 
-                    `
-                )
-                .join("");
+        }
+
+    }
 
 
-            campo.innerHTML = `
+    /* =========================================
+       AGREGAR ITEM
+    ========================================= */
+
+    function agregarItem() {
+
+        contadorItems++;
+
+        const indice =
+            contadorItems;
+
+        const contenedor =
+            document.getElementById(
+                "items"
+            );
+
+
+        const item =
+            document.createElement(
+                "div"
+            );
+
+        item.className =
+            "item";
+
+        item.id =
+            `item-${indice}`;
+
+
+        item.innerHTML = `
+
+            <input
+                type="hidden"
+                name="item_indice"
+                value="${indice}"
+            >
+
+
+            <div class="item-encabezado">
+
+                <div class="item-numero">
+                    ITEM ${indice}
+                </div>
+
+                <button
+                    type="button"
+                    class="boton boton-eliminar"
+                    onclick="eliminarItem(${indice})"
+                >
+                    ELIMINAR
+                </button>
+
+            </div>
+
+
+            <div class="item-grid">
+
 
                 <div class="campo">
 
                     <label>
-                        PRODUCTO ${posicion}
+                        TIPO
                     </label>
 
                     <select
-                        name="productos_kit_${indice}"
+                        name="tipo_item_${indice}"
+                        id="tipo_item_${indice}"
+                        onchange="cambiarTipo(${indice})"
+                        required
+                    >
+
+                        <option value="PRODUCTO">
+                            Producto
+                        </option>
+
+                        <option value="KIT">
+                            Kit
+                        </option>
+
+                        <option value="PERSONALIZADO">
+                            Personalizado
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div
+                    class="campo selector-producto-normal"
+                    id="bloque_producto_${indice}"
+                >
+
+                    <label>
+                        PRODUCTO
+                    </label>
+
+                    <select
+                        name="producto_${indice}"
+                        id="producto_${indice}"
                         required
                     >
 
@@ -1342,56 +1030,523 @@ async function cargarProductosKit(
                             Seleccionar producto...
                         </option>
 
-                        ${opciones}
+                        {% for producto in productos %}
+
+                            <option value="{{ producto.id }}">
+                                {{ producto.codigo }} - {{ producto.nombre }}
+                            </option>
+
+                        {% endfor %}
 
                     </select>
 
                 </div>
 
-            `;
+
+                <div
+                    class="campo selector-kit"
+                    id="bloque_kit_${indice}"
+                >
+
+                    <label>
+                        KIT
+                    </label>
+
+                    <select
+                        name="kit_${indice}"
+                        id="kit_${indice}"
+                        onchange="cargarProductosKit(${indice})"
+                    >
+
+                        <option value="">
+                            Seleccionar kit...
+                        </option>
+
+                        {% for kit in kits %}
+
+                            <option value="{{ kit.id }}">
+                                {{ kit.codigo }} - {{ kit.nombre }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
 
 
-            grid.appendChild(
-                campo
+                <div class="campo">
+
+                    <label>
+                        CANTIDAD
+                    </label>
+
+                    <input
+                        type="number"
+                        name="cantidad_${indice}"
+                        id="cantidad_${indice}"
+                        min="1"
+                        value="1"
+                        required
+                    >
+
+                </div>
+
+
+            </div>
+
+
+            <div
+                class="selector-personalizado"
+                id="bloque_personalizado_${indice}"
+            >
+
+                <div class="componentes-titulo">
+                    TRABAJO PERSONALIZADO
+                </div>
+
+                <div class="componentes-ayuda">
+                    Elegí un producto base, indicá el trabajo a realizar
+                    y el precio total acordado con el cliente.
+                </div>
+
+                <div class="personalizado-grid">
+
+                    <div class="campo">
+                        <label>
+                            PRODUCTO BASE
+                        </label>
+
+                        <select
+                            name="producto_personalizado_${indice}"
+                            id="producto_personalizado_${indice}"
+                        >
+                            <option value="">
+                                Seleccionar producto base...
+                            </option>
+
+                            {% for producto in productos %}
+                                <option value="{{ producto.id }}">
+                                    {{ producto.codigo }} - {{ producto.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="campo">
+                        <label>
+                            COLOR
+                        </label>
+
+                        <input
+                            type="text"
+                            name="color_personalizacion_${indice}"
+                            id="color_personalizacion_${indice}"
+                            placeholder="Opcional"
+                        >
+                    </div>
+
+                    <div class="campo">
+                        <label>
+                            PRECIO TOTAL
+                        </label>
+
+                        <input
+                            type="number"
+                            name="precio_total_personalizado_${indice}"
+                            id="precio_total_personalizado_${indice}"
+                            min="0"
+                            step="0.01"
+                            placeholder="Ej: 60000"
+                        >
+                    </div>
+
+                </div>
+
+                <div class="campo personalizado-detalle">
+                    <label>
+                        DETALLE DE PERSONALIZACIÓN
+                    </label>
+
+                    <textarea
+                        name="detalle_personalizacion_${indice}"
+                        id="detalle_personalizacion_${indice}"
+                        placeholder="Ej: 20 llaveros con logo de Empresa X, logo en frente y texto atrás..."
+                    ></textarea>
+                </div>
+
+                <div class="ayuda-personalizado">
+                    Este trabajo quedará asociado al pedido y no descontará
+                    stock general automáticamente.
+                </div>
+
+            </div>
+
+
+            <div
+                class="componentes-kit"
+                id="componentes_kit_${indice}"
+            >
+
+                <div class="componentes-titulo">
+                    PRODUCTOS DEL KIT
+                </div>
+
+                <div class="componentes-ayuda">
+                    Seleccioná los productos que contiene un kit.
+                    La cantidad indicada arriba multiplicará
+                    automáticamente estos productos.
+                </div>
+
+                <div
+                    class="componentes-grid"
+                    id="componentes_grid_${indice}"
+                >
+                </div>
+
+            </div>
+
+        `;
+
+
+        contenedor.appendChild(
+            item
+        );
+
+
+        actualizarBotonesEliminar();
+
+    }
+
+
+    /* =========================================
+       ELIMINAR ITEM
+    ========================================= */
+
+    function eliminarItem(indice) {
+
+        const item =
+            document.getElementById(
+                `item-${indice}`
             );
 
+        if (item) {
+            item.remove();
         }
 
+        actualizarBotonesEliminar();
 
-        bloque.classList.add(
+    }
+
+
+    /* =========================================
+       BOTONES ELIMINAR
+    ========================================= */
+
+    function actualizarBotonesEliminar() {
+
+        const items =
+            document.querySelectorAll(
+                ".item"
+            );
+
+        const botones =
+            document.querySelectorAll(
+                ".boton-eliminar"
+            );
+
+
+        botones.forEach(
+            boton => {
+
+                boton.style.display =
+                    items.length > 1
+                        ? "inline-block"
+                        : "none";
+
+            }
+        );
+
+    }
+
+
+    /* =========================================
+       CAMBIO PRODUCTO / KIT
+    ========================================= */
+
+    function cambiarTipo(indice) {
+
+        const tipo =
+            document.getElementById(
+                `tipo_item_${indice}`
+            ).value;
+
+        const bloqueProducto =
+            document.getElementById(
+                `bloque_producto_${indice}`
+            );
+
+        const bloqueKit =
+            document.getElementById(
+                `bloque_kit_${indice}`
+            );
+
+        const bloquePersonalizado =
+            document.getElementById(
+                `bloque_personalizado_${indice}`
+            );
+
+        const producto =
+            document.getElementById(
+                `producto_${indice}`
+            );
+
+        const kit =
+            document.getElementById(
+                `kit_${indice}`
+            );
+
+        const productoPersonalizado =
+            document.getElementById(
+                `producto_personalizado_${indice}`
+            );
+
+        const precioPersonalizado =
+            document.getElementById(
+                `precio_total_personalizado_${indice}`
+            );
+
+        const detallePersonalizado =
+            document.getElementById(
+                `detalle_personalizacion_${indice}`
+            );
+
+        const componentes =
+            document.getElementById(
+                `componentes_kit_${indice}`
+            );
+
+        const componentesGrid =
+            document.getElementById(
+                `componentes_grid_${indice}`
+            );
+
+
+        /* LIMPIAR ESTADO GENERAL */
+
+        bloqueProducto.style.display = "none";
+        bloqueKit.style.display = "none";
+        bloquePersonalizado.classList.remove("activo");
+
+        producto.required = false;
+        kit.required = false;
+        productoPersonalizado.required = false;
+        precioPersonalizado.required = false;
+        detallePersonalizado.required = false;
+
+        componentes.classList.remove("activo");
+        componentesGrid.innerHTML = "";
+
+
+        if (tipo === "PRODUCTO") {
+
+            bloqueProducto.style.display = "block";
+
+            producto.required = true;
+
+            kit.value = "";
+            productoPersonalizado.value = "";
+            precioPersonalizado.value = "";
+            detallePersonalizado.value = "";
+
+        } else if (tipo === "KIT") {
+
+            bloqueKit.style.display = "block";
+
+            kit.required = true;
+
+            producto.value = "";
+            productoPersonalizado.value = "";
+            precioPersonalizado.value = "";
+            detallePersonalizado.value = "";
+
+        } else if (tipo === "PERSONALIZADO") {
+
+            bloquePersonalizado.classList.add("activo");
+
+            productoPersonalizado.required = true;
+            precioPersonalizado.required = true;
+            detallePersonalizado.required = true;
+
+            producto.value = "";
+            kit.value = "";
+        }
+
+    }
+
+
+    /* =========================================
+       CARGAR PRODUCTOS DEL KIT
+    ========================================= */
+
+    async function cargarProductosKit(
+        indice
+    ) {
+
+        const kitSelect =
+            document.getElementById(
+                `kit_${indice}`
+            );
+
+        const kitId =
+            kitSelect.value;
+
+
+        const bloque =
+            document.getElementById(
+                `componentes_kit_${indice}`
+            );
+
+        const grid =
+            document.getElementById(
+                `componentes_grid_${indice}`
+            );
+
+
+        grid.innerHTML =
+            "";
+
+        bloque.classList.remove(
             "activo"
         );
 
 
-    } catch (error) {
+        if (!kitId) {
+            return;
+        }
 
-        console.error(
-            error
-        );
 
-        alert(
-            "No se pudieron cargar los productos del kit."
-        );
+        try {
+
+            const respuesta =
+                await fetch(
+                    `/pedidos/api/kit/${kitId}/productos/`
+                );
+
+
+            if (!respuesta.ok) {
+
+                throw new Error(
+                    "No se pudieron cargar los productos del kit."
+                );
+
+            }
+
+
+            const data =
+                await respuesta.json();
+
+
+            const cantidadProductos =
+                data.kit.cantidad_productos;
+
+
+            for (
+                let posicion = 1;
+                posicion <= cantidadProductos;
+                posicion++
+            ) {
+
+                const campo =
+                    document.createElement(
+                        "div"
+                    );
+
+                campo.className =
+                    "componente-kit";
+
+
+                const opciones =
+                    data.productos
+                    .map(
+                        producto => `
+
+                            <option value="${producto.id}">
+                                ${producto.codigo} - ${producto.nombre}
+                            </option>
+
+                        `
+                    )
+                    .join("");
+
+
+                campo.innerHTML = `
+
+                    <div class="campo">
+
+                        <label>
+                            PRODUCTO ${posicion}
+                        </label>
+
+                        <select
+                            name="productos_kit_${indice}"
+                            required
+                        >
+
+                            <option value="">
+                                Seleccionar producto...
+                            </option>
+
+                            ${opciones}
+
+                        </select>
+
+                    </div>
+
+                `;
+
+
+                grid.appendChild(
+                    campo
+                );
+
+            }
+
+
+            bloque.classList.add(
+                "activo"
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                error
+            );
+
+            alert(
+                "No se pudieron cargar los productos del kit."
+            );
+
+        }
 
     }
 
-}
 
+    /* =========================================
+       INICIAR
+    ========================================= */
 
-/* =========================================
-   INICIAR
-========================================= */
+    document.addEventListener(
+        "DOMContentLoaded",
+        function() {
 
-document.addEventListener(
-    "DOMContentLoaded",
-    function() {
+            agregarItem();
 
-        agregarItem();
+            actualizarCliente();
 
-        actualizarCliente();
-
-    }
-);
+        }
+    );
 
 </script>
 

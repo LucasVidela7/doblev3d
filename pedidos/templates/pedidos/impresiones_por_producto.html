@@ -229,6 +229,30 @@
         }
 
 
+        .personalizado {
+            font-size: 17px;
+            font-weight: bold;
+        }
+
+        .personalizado-cero {
+            color: #aaaaaa;
+            font-weight: normal;
+        }
+
+        .marca-personalizado {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 7px;
+            padding: 3px 7px;
+            border-radius: 12px;
+            background: #e7f1ff;
+            color: #084298;
+            font-size: 9px;
+            font-weight: bold;
+            vertical-align: middle;
+        }
+
+
 
         /* =========================================
            PRIORIDAD
@@ -428,7 +452,7 @@
 
 
             table {
-                min-width: 800px;
+                min-width: 940px;
             }
 
         }
@@ -460,7 +484,7 @@
 
 
             <div class="subtitulo">
-                Productos necesarios para los pedidos activos
+                Productos y personalizados pendientes de fabricación
             </div>
 
         </div>
@@ -531,6 +555,11 @@
 
 
                         <th class="numero">
+                            PERSONALIZADO
+                        </th>
+
+
+                        <th class="numero">
                             A IMPRIMIR
                         </th>
 
@@ -578,6 +607,12 @@
 
                                 {{ item.producto.nombre }}
 
+                                {% if item.cantidad_personalizada > 0 %}
+                                    <span class="marca-personalizado">
+                                        PERSONALIZADO
+                                    </span>
+                                {% endif %}
+
                             </td>
 
 
@@ -597,6 +632,25 @@
                             <td class="numero">
 
                                 {{ item.stock }}
+
+                            </td>
+
+
+
+                            <!-- PERSONALIZADOS -->
+
+                            <td
+                                class="
+                                    numero
+                                    personalizado
+
+                                    {% if item.cantidad_personalizada == 0 %}
+                                        personalizado-cero
+                                    {% endif %}
+                                "
+                            >
+
+                                {{ item.cantidad_personalizada }}
 
                             </td>
 

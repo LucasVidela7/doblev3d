@@ -62,6 +62,7 @@ class DetallePedido(models.Model):
     TIPOS_ITEM = [
         ("PRODUCTO", "Producto"),
         ("KIT", "Kit"),
+        ("PERSONALIZADO", "Personalizado"),
     ]
 
     ESTADOS = [
@@ -122,8 +123,26 @@ class DetallePedido(models.Model):
         blank=True
     )
 
+    color_personalizacion = models.CharField(
+        max_length=100,
+        blank=True
+    )
+
+    precio_total_personalizado = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+
     @property
     def subtotal(self):
+        if (
+            self.tipo_item == "PERSONALIZADO"
+            and self.precio_total_personalizado is not None
+        ):
+            return self.precio_total_personalizado
+
         return self.precio_unitario * self.cantidad
 
     def save(self, *args, **kwargs):
@@ -145,6 +164,12 @@ class DetallePedido(models.Model):
 
         if self.tipo_item == "KIT" and self.kit:
             return f"{self.pedido.codigo} - {self.kit.nombre}"
+
+        if self.tipo_item == "PERSONALIZADO" and self.producto:
+            return (
+                f"{self.pedido.codigo} - "
+                f"{self.producto.nombre} personalizado"
+            )
 
         return self.pedido.codigo
 

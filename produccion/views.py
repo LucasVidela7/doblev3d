@@ -2,6 +2,7 @@ from datetime import datetime
 
 from django.contrib import messages
 from django.db import transaction
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -60,7 +61,15 @@ def lista_produccion(request):
         )
     )
 
+    producto_seleccionado = request.GET.get(
+        "producto",
+        ""
+    )
 
+    cantidad_seleccionada = request.GET.get(
+        "cantidad",
+        "1"
+    )
 
     return render(
         request,
@@ -69,6 +78,8 @@ def lista_produccion(request):
             "producciones": producciones,
             "productos": productos,
             "pedidos": pedidos,
+            "producto_seleccionado": producto_seleccionado,
+            "cantidad_seleccionada": cantidad_seleccionada,
         }
     )
 
@@ -337,16 +348,34 @@ def nueva_produccion(request):
                 + minutos
         )
 
+        # Si no llegó un tiempo manual válido,
+        # intentamos recuperar el último registrado
+        # para el mismo producto y la misma cantidad.
         if tiempo_total <= 0:
-            messages.error(
-                request,
-                "Para producir más de una unidad "
-                "debés ingresar el tiempo de impresión."
+
+            tiempo_recomendado = obtener_tiempo_recomendado(
+                producto,
+                cantidad,
             )
 
-            return redirect(
-                "produccion:lista"
-            )
+            if tiempo_recomendado:
+
+                tiempo_total = tiempo_recomendado
+
+            else:
+
+                messages.error(
+                    request,
+                    (
+                        "No existe un tiempo anterior para "
+                        f"{producto.nombre} x{cantidad}. "
+                        "Debés ingresar el tiempo manualmente."
+                    )
+                )
+
+                return redirect(
+                    "produccion:lista"
+                )
 
     # --------------------------------------------------------
     # CREAR PRODUCCIÓN
@@ -542,4 +571,160 @@ def cambiar_estado(
 
     return redirect(
         "produccion:lista"
+    )
+
+
+# ============================================================
+# TIEMPO RECOMENDADO
+# ============================================================
+
+def obtener_tiempo_recomendado(producto, cantidad):
+    """
+    Devuelve el tiempo recomendado en minutos.
+
+    Cantidad = 1:
+        usa horas/minutos configurados en Producto.
+
+    Cantidad > 1:
+        usa la última producción NO CANCELADA del mismo
+        producto y la misma cantidad que tenga un tiempo válido.
+
+    Si no existe referencia:
+        devuelve None.
+    """
+
+    if cantidad == 1:
+        tiempo_producto = (
+                int(producto.horas or 0) * 60
+                + int(producto.minutos or 0)
+        )
+
+        return (
+            tiempo_producto
+            if tiempo_producto > 0
+            else None
+        )
+
+    ultima_produccion = (
+        Produccion.objects
+        .filter(
+            producto=producto,
+            cantidad=cantidad,
+            tiempo_impresion_minutos__gt=0,
+        )
+        .exclude(
+            estado="CANCELADO"
+        )
+        .order_by(
+            "-fecha",
+            "-id",
+        )
+        .first()
+    )
+
+    if ultima_produccion:
+        return (
+            ultima_produccion
+            .tiempo_impresion_minutos
+        )
+
+    return None
+
+
+# ============================================================
+# API - TIEMPO RECOMENDADO
+# ============================================================
+
+def tiempo_recomendado(request):
+    if request.method != "GET":
+        return JsonResponse(
+            {
+                "ok": False,
+                "mensaje": "Método no permitido.",
+            },
+            status=405,
+        )
+
+    producto_id = request.GET.get(
+        "producto"
+    )
+
+    cantidad_texto = request.GET.get(
+        "cantidad"
+    )
+
+    try:
+
+        cantidad = int(
+            cantidad_texto
+        )
+
+    except (TypeError, ValueError):
+
+        cantidad = 0
+
+    if not producto_id or cantidad <= 0:
+        return JsonResponse(
+            {
+                "ok": False,
+                "encontrado": False,
+                "horas": 0,
+                "minutos": 0,
+                "total_minutos": 0,
+                "origen": "SIN_DATOS",
+                "mensaje": (
+                    "Seleccioná un producto y una cantidad válida."
+                ),
+            }
+        )
+
+    producto = get_object_or_404(
+        Producto,
+        id=producto_id,
+        activo=True,
+        requiere_impresion=True,
+    )
+
+    tiempo_total = obtener_tiempo_recomendado(
+        producto,
+        cantidad,
+    )
+
+    if not tiempo_total:
+        return JsonResponse(
+            {
+                "ok": True,
+                "encontrado": False,
+                "horas": 0,
+                "minutos": 0,
+                "total_minutos": 0,
+                "origen": "MANUAL",
+                "mensaje": (
+                    "No hay un tiempo anterior registrado "
+                    "para este producto y esta cantidad."
+                ),
+            }
+        )
+
+    horas = tiempo_total // 60
+    minutos = tiempo_total % 60
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "encontrado": True,
+            "horas": horas,
+            "minutos": minutos,
+            "total_minutos": tiempo_total,
+            "origen": (
+                "PRODUCTO"
+                if cantidad == 1
+                else "HISTORIAL"
+            ),
+            "mensaje": (
+                "Tiempo configurado en el producto."
+                if cantidad == 1
+                else "Último tiempo registrado para esta cantidad."
+            ),
+        }
     )

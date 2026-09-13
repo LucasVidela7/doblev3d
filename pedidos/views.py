@@ -1,3 +1,5 @@
+from decimal import Decimal, InvalidOperation
+
 from django.contrib import messages
 from django.db import transaction
 from django.http import JsonResponse
@@ -42,9 +44,12 @@ def impresiones_por_pedido(request):
 
     # Stock físico actual.
     #
-    # Se irá reservando virtualmente siguiendo
+    # Se reserva virtualmente siguiendo
     # fecha de entrega + ID para impedir que una
     # misma unidad se asigne a dos pedidos.
+    #
+    # Los PERSONALIZADOS no consumen stock general:
+    # fueron fabricados específicamente para su pedido.
     stock_disponible = {}
 
     for pedido in pedidos:
@@ -58,9 +63,15 @@ def impresiones_por_pedido(request):
                 "a_imprimir": 0,
                 "listo": False,
                 "estado_id": None,
+                "detalle_personalizado_id": None,
                 "puede_marcar_listo": False,
+                "es_personalizado": False,
+                "detalle_personalizacion": "",
+                "color_personalizacion": "",
             }
         )
+
+        personalizados = []
 
         # ==================================================
         # 1. AGRUPAR PRODUCTOS DEL PEDIDO
@@ -68,6 +79,55 @@ def impresiones_por_pedido(request):
 
         for detalle in pedido.detalles.all():
 
+            # ----------------------------------------------
+            # PERSONALIZADO
+            # ----------------------------------------------
+            #
+            # Se muestra como una fila independiente.
+            # No se agrupa con productos normales aunque use
+            # el mismo producto base.
+            #
+            # Tampoco depende del stock general.
+            # ----------------------------------------------
+
+            if (
+                detalle.tipo_item == "PERSONALIZADO"
+                and detalle.producto
+                and detalle.producto.requiere_impresion
+                and detalle.estado in ["PENDIENTE", "LISTO"]
+            ):
+
+                esta_listo = (
+                    detalle.estado == "LISTO"
+                )
+
+                personalizados.append(
+                    {
+                        "producto": detalle.producto,
+                        "cantidad_pedido": detalle.cantidad,
+                        "cantidad": detalle.cantidad,
+                        "stock_usado": 0,
+                        "a_imprimir": (
+                            0
+                            if esta_listo
+                            else detalle.cantidad
+                        ),
+                        "listo": esta_listo,
+                        "estado_id": None,
+                        "detalle_personalizado_id": detalle.id,
+                        "puede_marcar_listo": True,
+                        "es_personalizado": True,
+                        "detalle_personalizacion":
+                            detalle.detalle_personalizacion,
+                        "color_personalizacion":
+                            detalle.color_personalizacion,
+                    }
+                )
+
+                continue
+
+            # Los productos y kits normales siguen usando
+            # el flujo existente de stock.
             if detalle.estado != "PENDIENTE":
                 continue
 
@@ -76,9 +136,9 @@ def impresiones_por_pedido(request):
             # ----------------------------------------------
 
             if (
-                    detalle.tipo_item == "PRODUCTO"
-                    and detalle.producto
-                    and detalle.producto.requiere_impresion
+                detalle.tipo_item == "PRODUCTO"
+                and detalle.producto
+                and detalle.producto.requiere_impresion
             ):
 
                 producto = detalle.producto
@@ -96,8 +156,8 @@ def impresiones_por_pedido(request):
             # ----------------------------------------------
 
             elif (
-                    detalle.tipo_item == "KIT"
-                    and detalle.kit
+                detalle.tipo_item == "KIT"
+                and detalle.kit
             ):
 
                 for componente in detalle.productos_kit.all():
@@ -130,6 +190,7 @@ def impresiones_por_pedido(request):
             cantidad = item["cantidad_pedido"]
 
             item["cantidad"] = cantidad
+            item["es_personalizado"] = False
 
             # ----------------------------------------------
             # ESTADO DEL PRODUCTO DENTRO DEL PEDIDO
@@ -153,20 +214,17 @@ def impresiones_por_pedido(request):
             # ==================================================
             #
             # El stock utilizado ya fue descontado físicamente.
-            #
-            # Por eso NO debemos volver a consumir stock virtual.
-            #
-            # El checkbox queda habilitado porque necesitamos
-            # permitir desmarcarlo.
+            # No debemos volver a consumir stock virtual.
+            # ==================================================
 
             if estado_impresion.listo:
+
                 item["stock_usado"] = (
                     estado_impresion
                     .cantidad_stock_descontada
                 )
 
                 item["a_imprimir"] = 0
-
                 item["puede_marcar_listo"] = True
 
                 lista_productos.append(item)
@@ -178,6 +236,7 @@ def impresiones_por_pedido(request):
             # ==================================================
 
             if producto.id not in stock_disponible:
+
                 stock_disponible[
                     producto.id
                 ] = producto.stock
@@ -185,9 +244,6 @@ def impresiones_por_pedido(request):
             disponible = stock_disponible[
                 producto.id
             ]
-
-            # Cantidad de este pedido que puede cubrirse
-            # con el stock que todavía no fue reservado.
 
             stock_usado = min(
                 cantidad,
@@ -200,49 +256,39 @@ def impresiones_por_pedido(request):
             )
 
             item["stock_usado"] = stock_usado
-
             item["a_imprimir"] = a_imprimir
 
-            # ==================================================
-            # ¿SE PUEDE MARCAR LISTO?
-            # ==================================================
-            #
-            # Solamente si TODO lo necesario para este pedido
-            # está disponible.
-            #
-            # Ejemplo:
-            #
-            # Pedido necesita 3
-            # Stock reservado disponible = 2
-            #
-            # -> NO se puede marcar listo.
-
+            # Para productos normales sólo se permite marcar
+            # LISTO cuando todo el pedido puede cubrirse
+            # con stock general.
             item["puede_marcar_listo"] = (
-                    stock_usado >= cantidad
+                stock_usado >= cantidad
             )
 
-            # Reservamos virtualmente ese stock para que
-            # los pedidos siguientes no puedan utilizarlo.
-
+            # Reservar virtualmente para pedidos posteriores.
             stock_disponible[
                 producto.id
             ] = (
-                    disponible - stock_usado
+                disponible - stock_usado
             )
 
             lista_productos.append(item)
+
+        # Los personalizados se agregan como filas propias.
+        lista_productos.extend(
+            personalizados
+        )
 
         # ==================================================
         # 3. AGREGAR PEDIDO
         # ==================================================
 
         if lista_productos:
+
             pedidos_impresion.append(
                 {
                     "pedido": pedido,
-
                     "productos": lista_productos,
-
                     "total_a_imprimir": sum(
                         item["a_imprimir"]
                         for item in lista_productos
@@ -441,7 +487,7 @@ def nuevo_pedido(request):
         if not indices:
             messages.error(
                 request,
-                "El pedido debe tener al menos un producto o kit."
+                "El pedido debe tener al menos un producto, kit o personalizado."
             )
 
             transaction.set_rollback(True)
@@ -610,6 +656,106 @@ def nuevo_pedido(request):
                     )
 
 
+            # =====================================
+            # PERSONALIZADO
+            # =====================================
+
+            elif tipo_item == "PERSONALIZADO":
+
+                producto_id = request.POST.get(
+                    f"producto_personalizado_{indice}"
+                )
+
+                detalle_personalizacion = request.POST.get(
+                    f"detalle_personalizacion_{indice}",
+                    ""
+                ).strip()
+
+                color_personalizacion = request.POST.get(
+                    f"color_personalizacion_{indice}",
+                    ""
+                ).strip()
+
+                precio_total_texto = request.POST.get(
+                    f"precio_total_personalizado_{indice}",
+                    ""
+                ).strip()
+
+                if not producto_id:
+                    messages.error(
+                        request,
+                        "Debés seleccionar un producto base para el personalizado."
+                    )
+
+                    transaction.set_rollback(True)
+
+                    return redirect(
+                        "pedidos:nuevo"
+                    )
+
+                if not detalle_personalizacion:
+                    messages.error(
+                        request,
+                        "Debés ingresar el detalle de la personalización."
+                    )
+
+                    transaction.set_rollback(True)
+
+                    return redirect(
+                        "pedidos:nuevo"
+                    )
+
+                try:
+                    precio_total = Decimal(
+                        precio_total_texto
+                    )
+
+                except (
+                    InvalidOperation,
+                    TypeError,
+                    ValueError,
+                ):
+                    precio_total = Decimal("0")
+
+                if precio_total <= 0:
+                    messages.error(
+                        request,
+                        "El precio total del personalizado debe ser mayor a cero."
+                    )
+
+                    transaction.set_rollback(True)
+
+                    return redirect(
+                        "pedidos:nuevo"
+                    )
+
+                producto = get_object_or_404(
+                    Producto,
+                    id=producto_id,
+                    activo=True,
+                )
+
+                precio_unitario = (
+                    precio_total
+                    / Decimal(cantidad)
+                ).quantize(
+                    Decimal("0.01")
+                )
+
+                DetallePedido.objects.create(
+                    pedido=pedido,
+                    tipo_item="PERSONALIZADO",
+                    producto=producto,
+                    cantidad=cantidad,
+                    precio_unitario=precio_unitario,
+                    precio_total_personalizado=precio_total,
+                    estado="PENDIENTE",
+                    personalizado=True,
+                    detalle_personalizacion=detalle_personalizacion,
+                    color_personalizacion=color_personalizacion,
+                )
+
+
             else:
 
                 messages.error(
@@ -652,8 +798,8 @@ def _cantidad_producto_en_pedido(pedido, producto_id):
             continue
 
         if (
-                detalle.tipo_item == "PRODUCTO"
-                and detalle.producto_id == producto_id
+            detalle.tipo_item == "PRODUCTO"
+            and detalle.producto_id == producto_id
         ):
             cantidad += detalle.cantidad
 
@@ -716,66 +862,284 @@ def _stock_disponible_para_pedido(pedido, producto):
     return 0
 
 
+def _actualizar_estado_general_pedido(pedido):
+    """
+    Actualiza el estado general considerando:
+
+    - productos normales / kits:
+      EstadoImpresionPedido
+
+    - personalizados:
+      DetallePedido.estado
+
+    Los personalizados no consumen stock general.
+    """
+
+    estados_normales = (
+        EstadoImpresionPedido.objects
+        .filter(
+            pedido=pedido
+        )
+    )
+
+    cantidad_normales = (
+        estados_normales.count()
+    )
+
+    normales_listos = (
+        estados_normales
+        .filter(
+            listo=True
+        )
+        .count()
+    )
+
+    personalizados = (
+        DetallePedido.objects
+        .filter(
+            pedido=pedido,
+            tipo_item="PERSONALIZADO",
+            producto__requiere_impresion=True,
+            estado__in=[
+                "PENDIENTE",
+                "LISTO",
+            ],
+        )
+    )
+
+    cantidad_personalizados = (
+        personalizados.count()
+    )
+
+    personalizados_listos = (
+        personalizados
+        .filter(
+            estado="LISTO"
+        )
+        .count()
+    )
+
+    cantidad_total = (
+        cantidad_normales
+        + cantidad_personalizados
+    )
+
+    cantidad_listos = (
+        normales_listos
+        + personalizados_listos
+    )
+
+    if pedido.estado in [
+        "ENTREGADO",
+        "CANCELADO",
+    ]:
+        return
+
+    if (
+        cantidad_total > 0
+        and cantidad_total == cantidad_listos
+    ):
+        pedido.estado = "LISTO"
+
+    elif cantidad_listos > 0:
+        pedido.estado = "PREPARANDO"
+
+    else:
+        pedido.estado = "PENDIENTE"
+
+    pedido.save(
+        update_fields=[
+            "estado"
+        ]
+    )
+
+
 @transaction.atomic
 def cambiar_listo_impresion(request):
     if request.method != "POST":
-        return redirect("pedidos:impresiones")
+        return redirect(
+            "pedidos:impresiones"
+        )
 
-    estado_id = request.POST.get("estado_id")
+    marcar_listo = (
+        request.POST.get("listo")
+        == "1"
+    )
+
+    detalle_personalizado_id = (
+        request.POST.get(
+            "detalle_personalizado_id"
+        )
+    )
+
+    # ==================================================
+    # PERSONALIZADO
+    # ==================================================
+    #
+    # No modifica Producto.stock.
+    # El estado se guarda directamente en DetallePedido.
+    # ==================================================
+
+    if detalle_personalizado_id:
+
+        detalle = get_object_or_404(
+            DetallePedido.objects
+            .select_for_update()
+            .select_related(
+                "pedido",
+                "producto",
+            ),
+            id=detalle_personalizado_id,
+            tipo_item="PERSONALIZADO",
+        )
+
+        pedido = (
+            Pedido.objects
+            .select_for_update()
+            .get(
+                id=detalle.pedido_id
+            )
+        )
+
+        if pedido.estado in [
+            "ENTREGADO",
+            "CANCELADO",
+        ]:
+            messages.error(
+                request,
+                (
+                    "No se puede modificar un pedido "
+                    "entregado o cancelado."
+                ),
+            )
+
+            return redirect(
+                "pedidos:impresiones"
+            )
+
+        detalle.estado = (
+            "LISTO"
+            if marcar_listo
+            else "PENDIENTE"
+        )
+
+        detalle.save(
+            update_fields=[
+                "estado"
+            ]
+        )
+
+        _actualizar_estado_general_pedido(
+            pedido
+        )
+
+        return redirect(
+            "pedidos:impresiones"
+        )
+
+    # ==================================================
+    # PRODUCTO NORMAL / KIT
+    # ==================================================
+
+    estado_id = request.POST.get(
+        "estado_id"
+    )
 
     estado_impresion = get_object_or_404(
-        EstadoImpresionPedido.objects.select_for_update(),
+        EstadoImpresionPedido.objects
+        .select_for_update(),
         id=estado_id,
     )
 
-    pedido = Pedido.objects.select_for_update().get(
-        id=estado_impresion.pedido_id,
+    pedido = (
+        Pedido.objects
+        .select_for_update()
+        .get(
+            id=estado_impresion.pedido_id,
+        )
     )
 
-    producto = Producto.objects.select_for_update().get(
-        id=estado_impresion.producto_id,
+    producto = (
+        Producto.objects
+        .select_for_update()
+        .get(
+            id=estado_impresion.producto_id,
+        )
     )
-
-    marcar_listo = request.POST.get("listo") == "1"
 
     # ==================================================
     # MARCAR COMO LISTO
     # ==================================================
-    if marcar_listo and not estado_impresion.listo:
-        cantidad_necesaria = _cantidad_producto_en_pedido(
-            pedido,
-            producto.id,
+
+    if (
+        marcar_listo
+        and not estado_impresion.listo
+    ):
+
+        cantidad_necesaria = (
+            _cantidad_producto_en_pedido(
+                pedido,
+                producto.id,
+            )
         )
 
-        stock_disponible = _stock_disponible_para_pedido(
-            pedido,
-            producto,
+        stock_disponible = (
+            _stock_disponible_para_pedido(
+                pedido,
+                producto,
+            )
         )
 
         if cantidad_necesaria <= 0:
+
             messages.error(
                 request,
-                f"No se encontró demanda pendiente para {producto.nombre}.",
+                (
+                    "No se encontró demanda pendiente "
+                    f"para {producto.nombre}."
+                ),
             )
-            return redirect("pedidos:impresiones")
 
-        if stock_disponible < cantidad_necesaria:
+            return redirect(
+                "pedidos:impresiones"
+            )
+
+        if (
+            stock_disponible
+            < cantidad_necesaria
+        ):
+
             messages.error(
                 request,
                 (
                     f"No hay stock suficiente de {producto.nombre}. "
                     f"Este pedido necesita {cantidad_necesaria} y "
-                    f"solo tiene {stock_disponible} disponible según prioridad."
+                    f"solo tiene {stock_disponible} disponible "
+                    "según prioridad."
                 ),
             )
-            return redirect("pedidos:impresiones")
 
-        producto.stock -= cantidad_necesaria
-        producto.save(update_fields=["stock"])
+            return redirect(
+                "pedidos:impresiones"
+            )
 
-        estado_impresion.cantidad_stock_descontada = cantidad_necesaria
+        producto.stock -= (
+            cantidad_necesaria
+        )
+
+        producto.save(
+            update_fields=[
+                "stock"
+            ]
+        )
+
+        estado_impresion.cantidad_stock_descontada = (
+            cantidad_necesaria
+        )
+
         estado_impresion.stock_descontado = True
         estado_impresion.listo = True
+
         estado_impresion.save(
             update_fields=[
                 "cantidad_stock_descontada",
@@ -787,14 +1151,29 @@ def cambiar_listo_impresion(request):
     # ==================================================
     # VOLVER A PENDIENTE
     # ==================================================
-    elif not marcar_listo and estado_impresion.listo:
+
+    elif (
+        not marcar_listo
+        and estado_impresion.listo
+    ):
+
         if estado_impresion.stock_descontado:
-            producto.stock += estado_impresion.cantidad_stock_descontada
-            producto.save(update_fields=["stock"])
+
+            producto.stock += (
+                estado_impresion
+                .cantidad_stock_descontada
+            )
+
+            producto.save(
+                update_fields=[
+                    "stock"
+                ]
+            )
 
         estado_impresion.listo = False
         estado_impresion.stock_descontado = False
         estado_impresion.cantidad_stock_descontada = 0
+
         estado_impresion.save(
             update_fields=[
                 "listo",
@@ -803,24 +1182,13 @@ def cambiar_listo_impresion(request):
             ]
         )
 
-    # ==================================================
-    # ACTUALIZAR ESTADO GENERAL DEL PEDIDO
-    # ==================================================
-    estados = EstadoImpresionPedido.objects.filter(pedido=pedido)
-    cantidad_total = estados.count()
-    cantidad_listos = estados.filter(listo=True).count()
+    _actualizar_estado_general_pedido(
+        pedido
+    )
 
-    if pedido.estado not in ["ENTREGADO", "CANCELADO"]:
-        if cantidad_total > 0 and cantidad_total == cantidad_listos:
-            pedido.estado = "LISTO"
-        elif cantidad_listos > 0:
-            pedido.estado = "PREPARANDO"
-        else:
-            pedido.estado = "PENDIENTE"
-
-        pedido.save(update_fields=["estado"])
-
-    return redirect("pedidos:impresiones")
+    return redirect(
+        "pedidos:impresiones"
+    )
 
 
 def impresiones_por_producto(request):
@@ -836,6 +1204,7 @@ def impresiones_por_producto(request):
             "detalles__producto",
             "detalles__kit",
             "detalles__productos_kit__producto",
+            "estados_impresion",
         )
         .order_by(
             "fecha_entrega",
@@ -847,66 +1216,169 @@ def impresiones_por_producto(request):
         lambda: {
             "producto": None,
             "cantidad_pedida": 0,
+            "cantidad_normal": 0,
+            "cantidad_personalizada": 0,
             "stock": 0,
             "a_imprimir": 0,
         }
     )
 
     # ==========================================
-    # 1. AGRUPAR TODA LA DEMANDA
+    # 1. AGRUPAR DEMANDA PENDIENTE
+    # ==========================================
+    #
+    # PRODUCTOS / KITS:
+    # - sí pueden cubrirse con stock general.
+    #
+    # PERSONALIZADOS:
+    # - siempre deben fabricarse para su pedido.
+    # - NO se descuentan del stock general.
+    #
+    # Los productos ya marcados LISTO en
+    # "Impresiones por pedido" tampoco deben
+    # volver a aparecer como demanda pendiente.
     # ==========================================
 
     for pedido in pedidos:
 
+        productos_normales_listos = {
+            estado.producto_id
+            for estado in pedido.estados_impresion.all()
+            if estado.listo
+        }
+
         for detalle in pedido.detalles.all():
 
-            if detalle.estado == "CANCELADO":
+            if detalle.estado in [
+                "CANCELADO",
+                "ENTREGADO",
+            ]:
                 continue
 
-            # PRODUCTO INDIVIDUAL
+            # --------------------------------------
+            # PERSONALIZADO
+            # --------------------------------------
+
             if (
-                    detalle.tipo_item == "PRODUCTO"
-                    and detalle.producto
-                    and detalle.producto.requiere_impresion
+                detalle.tipo_item == "PERSONALIZADO"
+                and detalle.producto
+                and detalle.producto.requiere_impresion
+            ):
+
+                # Si ya fue marcado LISTO desde
+                # Impresiones por pedido, no queda
+                # pendiente de fabricación.
+                if detalle.estado == "LISTO":
+                    continue
+
+                producto = detalle.producto
+
+                item = productos_agrupados[
+                    producto.id
+                ]
+
+                item["producto"] = producto
+
+                item["cantidad_personalizada"] += (
+                    detalle.cantidad
+                )
+
+                item["cantidad_pedida"] += (
+                    detalle.cantidad
+                )
+
+                continue
+
+            # --------------------------------------
+            # PRODUCTO INDIVIDUAL NORMAL
+            # --------------------------------------
+
+            if (
+                detalle.tipo_item == "PRODUCTO"
+                and detalle.producto
+                and detalle.producto.requiere_impresion
             ):
 
                 producto = detalle.producto
 
-                productos_agrupados[
+                # Ya está preparado para este pedido.
+                if (
                     producto.id
-                ]["producto"] = producto
+                    in productos_normales_listos
+                ):
+                    continue
 
-                productos_agrupados[
+                item = productos_agrupados[
                     producto.id
-                ]["cantidad_pedida"] += (
+                ]
+
+                item["producto"] = producto
+
+                item["cantidad_normal"] += (
                     detalle.cantidad
                 )
 
+                item["cantidad_pedida"] += (
+                    detalle.cantidad
+                )
+
+            # --------------------------------------
             # PRODUCTOS DE KIT
+            # --------------------------------------
+
             elif (
-                    detalle.tipo_item == "KIT"
-                    and detalle.kit
+                detalle.tipo_item == "KIT"
+                and detalle.kit
             ):
 
-                for componente in detalle.productos_kit.all():
+                for componente in (
+                    detalle.productos_kit.all()
+                ):
 
                     producto = componente.producto
 
                     if not producto.requiere_impresion:
                         continue
 
-                    productos_agrupados[
+                    # Ya está preparado para este pedido.
+                    if (
                         producto.id
-                    ]["producto"] = producto
+                        in productos_normales_listos
+                    ):
+                        continue
 
-                    productos_agrupados[
+                    item = productos_agrupados[
                         producto.id
-                    ]["cantidad_pedida"] += (
+                    ]
+
+                    item["producto"] = producto
+
+                    item["cantidad_normal"] += (
+                        componente.cantidad
+                    )
+
+                    item["cantidad_pedida"] += (
                         componente.cantidad
                     )
 
     # ==========================================
-    # 2. RESTAR STOCK
+    # 2. CALCULAR A IMPRIMIR
+    # ==========================================
+    #
+    # Sólo la demanda NORMAL puede cubrirse
+    # con stock general.
+    #
+    # Los PERSONALIZADOS se suman completos
+    # a "A IMPRIMIR".
+    #
+    # Ejemplo:
+    #
+    # Normal pendiente:       5
+    # Stock:                  3
+    # Personalizado:         20
+    #
+    # Falta normal:           2
+    # A imprimir total:      22
     # ==========================================
 
     lista_productos = []
@@ -915,12 +1387,24 @@ def impresiones_por_producto(request):
 
         producto = item["producto"]
 
-        cantidad = item["cantidad_pedida"]
+        cantidad_normal = (
+            item["cantidad_normal"]
+        )
+
+        cantidad_personalizada = (
+            item["cantidad_personalizada"]
+        )
+
         stock = producto.stock
 
-        a_imprimir = max(
-            cantidad - stock,
-            0
+        falta_normal = max(
+            cantidad_normal - stock,
+            0,
+        )
+
+        a_imprimir = (
+            falta_normal
+            + cantidad_personalizada
         )
 
         item["stock"] = stock
@@ -928,21 +1412,33 @@ def impresiones_por_producto(request):
 
         if a_imprimir >= 6:
             item["prioridad"] = "ALTA"
-            item["prioridad_clase"] = "prioridad-alta"
+            item["prioridad_clase"] = (
+                "prioridad-alta"
+            )
 
         elif a_imprimir >= 3:
             item["prioridad"] = "MEDIA"
-            item["prioridad_clase"] = "prioridad-media"
+            item["prioridad_clase"] = (
+                "prioridad-media"
+            )
 
         elif a_imprimir >= 1:
             item["prioridad"] = "BAJA"
-            item["prioridad_clase"] = "prioridad-baja"
+            item["prioridad_clase"] = (
+                "prioridad-baja"
+            )
 
         else:
-            item["prioridad"] = "SIN NECESIDAD"
-            item["prioridad_clase"] = "prioridad-cero"
+            item["prioridad"] = (
+                "SIN NECESIDAD"
+            )
+            item["prioridad_clase"] = (
+                "prioridad-cero"
+            )
 
-        lista_productos.append(item)
+        lista_productos.append(
+            item
+        )
 
     # ==========================================
     # 3. ORDENAR

@@ -262,6 +262,33 @@
             font-size: 11px;
         }
 
+
+        .etiqueta-personalizado {
+            display: inline-flex;
+            align-items: center;
+            margin-top: 7px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            background: #e7f1ff;
+            color: #084298;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .detalle-personalizado {
+            margin-top: 7px;
+            max-width: 650px;
+            color: #555555;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .color-personalizado {
+            margin-top: 4px;
+            color: #777777;
+            font-size: 11px;
+        }
+
         .cantidad {
             display: inline-flex;
             align-items: center;
@@ -504,7 +531,7 @@
 
     <div class="encabezado">
         <div>
-            <h1>Resumen Pedidos</h1>
+            <h1>Impresiones por Pedido</h1>
             <div class="subtitulo">
                 Preparación y entrega de pedidos
             </div>
@@ -615,6 +642,27 @@
                                         <div class="producto-codigo">
                                             {{ item.producto.codigo }}
                                         </div>
+
+                                        {% if item.es_personalizado %}
+
+                                            <div class="etiqueta-personalizado">
+                                                PERSONALIZADO
+                                            </div>
+
+                                            {% if item.detalle_personalizacion %}
+                                                <div class="detalle-personalizado">
+                                                    {{ item.detalle_personalizacion }}
+                                                </div>
+                                            {% endif %}
+
+                                            {% if item.color_personalizacion %}
+                                                <div class="color-personalizado">
+                                                    Color:
+                                                    {{ item.color_personalizacion }}
+                                                </div>
+                                            {% endif %}
+
+                                        {% endif %}
                                     </td>
 
                                     <td class="col-cantidad">
@@ -632,17 +680,29 @@
                                         >
                                             {% csrf_token %}
 
-                                            <input
-                                                type="hidden"
-                                                name="estado_id"
-                                                value="{{ item.estado_id }}"
-                                            >
+                                            {% if item.es_personalizado %}
 
-                                            <input
-                                                type="hidden"
-                                                name="stock_usado"
-                                                value="{{ item.stock_usado }}"
-                                            >
+                                                <input
+                                                    type="hidden"
+                                                    name="detalle_personalizado_id"
+                                                    value="{{ item.detalle_personalizado_id }}"
+                                                >
+
+                                            {% else %}
+
+                                                <input
+                                                    type="hidden"
+                                                    name="estado_id"
+                                                    value="{{ item.estado_id }}"
+                                                >
+
+                                                <input
+                                                    type="hidden"
+                                                    name="stock_usado"
+                                                    value="{{ item.stock_usado }}"
+                                                >
+
+                                            {% endif %}
 
                                             <input
                                                 type="hidden"
@@ -662,7 +722,7 @@
                                                             checked
                                                         {% endif %}
 
-                                                        {% if not item.listo and not item.puede_marcar_listo %}
+                                                        {% if not item.es_personalizado and not item.listo and not item.puede_marcar_listo %}
                                                             disabled
                                                             title="Stock insuficiente"
                                                         {% endif %}
@@ -676,7 +736,7 @@
 
                                             </div>
 
-                                            {% if not item.listo and not item.puede_marcar_listo %}
+                                            {% if not item.es_personalizado and not item.listo and not item.puede_marcar_listo %}
                                                 <div class="stock-insuficiente">
                                                     STOCK INSUFICIENTE
                                                 </div>

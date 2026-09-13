@@ -42,6 +42,64 @@
         }
 
 
+
+        /* =========================================
+           ENCABEZADO / NAVEGACIÓN
+        ========================================= */
+
+        .encabezado-pagina {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .encabezado-pagina .subtitulo {
+            margin-bottom: 0;
+        }
+
+        .acciones-encabezado {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .boton-volver,
+        .boton-inicio {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            padding: 0 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .boton-volver {
+            border: 1px solid #dddddd;
+            background: white;
+            color: #333333;
+        }
+
+        .boton-volver:hover {
+            background: #eeeeee;
+        }
+
+        .boton-inicio {
+            border: 1px solid #333333;
+            background: #333333;
+            color: white;
+        }
+
+        .boton-inicio:hover {
+            background: #111111;
+        }
+
+
         /* =========================================
            MENSAJES
         ========================================= */
@@ -201,6 +259,31 @@
         .tiempo-automatico strong {
             margin-left: 5px;
             font-size: 15px;
+        }
+
+
+
+        .recomendacion-tiempo {
+            display: none;
+            grid-column: 1 / -1;
+            padding: 11px 13px;
+            border-radius: 8px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .recomendacion-tiempo.activa {
+            display: block;
+        }
+
+        .recomendacion-tiempo.encontrada {
+            background: #e8f5e9;
+            color: #1b5e20;
+        }
+
+        .recomendacion-tiempo.manual {
+            background: #fff3cd;
+            color: #856404;
         }
 
 
@@ -419,6 +502,20 @@
                 padding: 10px;
             }
 
+            .encabezado-pagina {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .acciones-encabezado {
+                width: 100%;
+            }
+
+            .boton-volver,
+            .boton-inicio {
+                flex: 1;
+            }
+
             .campos {
                 grid-template-columns: 1fr;
             }
@@ -444,15 +541,42 @@
 
 
     <!-- =========================================
-         TÍTULO
+         TÍTULO / NAVEGACIÓN
     ========================================== -->
 
-    <h1>
-        Producción
-    </h1>
+    <div class="encabezado-pagina">
 
-    <div class="subtitulo">
-        Gestión de impresiones y fabricación
+        <div>
+
+            <h1>
+                Producción
+            </h1>
+
+            <div class="subtitulo">
+                Gestión de impresiones y fabricación
+            </div>
+
+        </div>
+
+        <div class="acciones-encabezado">
+
+            <button
+                type="button"
+                class="boton-volver"
+                onclick="volverPagina()"
+            >
+                ← VOLVER
+            </button>
+
+            <a
+                href="{% url 'dashboard:inicio' %}"
+                class="boton-inicio"
+            >
+                INICIO
+            </a>
+
+        </div>
+
     </div>
 
 
@@ -521,6 +645,9 @@
                                 value="{{ producto.id }}"
                                 data-horas="{{ producto.horas }}"
                                 data-minutos="{{ producto.minutos }}"
+                                {% if producto_seleccionado == producto.id|stringformat:"s" %}
+                                    selected
+                                {% endif %}
                             >
                                 {{ producto.codigo }} - {{ producto.nombre }}
                             </option>
@@ -545,7 +672,7 @@
                         name="cantidad"
                         id="cantidad"
                         min="1"
-                        value="1"
+                        value="{{ cantidad_seleccionada|default:'1' }}"
                         required
                     >
 
@@ -733,6 +860,13 @@
 
                         </div>
 
+                    </div>
+
+
+                    <div
+                        class="recomendacion-tiempo"
+                        id="recomendacion-tiempo"
+                    >
                     </div>
 
 
@@ -1068,6 +1202,18 @@
 
 <script>
 
+    function volverPagina() {
+
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.location.href =
+                "{% url 'dashboard:inicio' %}";
+        }
+
+    }
+
+
     const producto =
         document.getElementById("producto");
 
@@ -1109,6 +1255,11 @@
 
     const finEstimadoManual =
         document.getElementById("fin-estimado-manual");
+
+    const recomendacionTiempo =
+        document.getElementById("recomendacion-tiempo");
+
+    let solicitudTiempoActual = 0;
 
 
     /* =========================================
@@ -1191,24 +1342,131 @@
 
 
     /* =========================================
+       MOSTRAR RECOMENDACIÓN
+    ========================================= */
+
+    function mostrarRecomendacion(texto, tipo) {
+
+        recomendacionTiempo.textContent = texto;
+
+        recomendacionTiempo.classList.remove(
+            "activa",
+            "encontrada",
+            "manual"
+        );
+
+        if (!texto) {
+            return;
+        }
+
+        recomendacionTiempo.classList.add(
+            "activa",
+            tipo
+        );
+
+    }
+
+
+    /* =========================================
+       CONSULTAR TIEMPO RECOMENDADO
+    ========================================= */
+
+    async function consultarTiempoRecomendado() {
+
+        const productoId =
+            producto.value;
+
+        const cantidadActual =
+            parseInt(
+                cantidad.value || "0"
+            );
+
+        if (
+            !productoId
+            || cantidadActual <= 1
+        ) {
+            return null;
+        }
+
+        const numeroSolicitud =
+            ++solicitudTiempoActual;
+
+        try {
+
+            const url =
+                "{% url 'produccion:tiempo_recomendado' %}"
+                + "?producto="
+                + encodeURIComponent(productoId)
+                + "&cantidad="
+                + encodeURIComponent(cantidadActual);
+
+            const respuesta =
+                await fetch(url);
+
+            if (!respuesta.ok) {
+                throw new Error(
+                    "No se pudo consultar el tiempo recomendado."
+                );
+            }
+
+            const data =
+                await respuesta.json();
+
+            if (
+                numeroSolicitud
+                !== solicitudTiempoActual
+            ) {
+                return null;
+            }
+
+            return data;
+
+        } catch (error) {
+
+            console.error(error);
+
+            mostrarRecomendacion(
+                "No se pudo consultar el historial. Podés ingresar el tiempo manualmente.",
+                "manual"
+            );
+
+            return null;
+        }
+
+    }
+
+
+    /* =========================================
        ACTUALIZAR TIPO DE TIEMPO
     ========================================= */
 
-    function actualizarTiempo() {
+    async function actualizarTiempo() {
 
         const cantidadActual =
-            parseInt(cantidad.value || "0");
+            parseInt(
+                cantidad.value || "0"
+            );
+
+        mostrarRecomendacion(
+            "",
+            "manual"
+        );
 
 
         if (cantidadActual === 1) {
 
-            /* AUTOMÁTICO */
+            solicitudTiempoActual++;
 
-            tiempoAutomatico.classList.add("activo");
+            tiempoAutomatico.classList.add(
+                "activo"
+            );
 
-            tiempoManual.classList.remove("activo");
+            tiempoManual.classList.remove(
+                "activo"
+            );
 
-            finAutomatico.style.display = "flex";
+            finAutomatico.style.display =
+                "flex";
 
             horas.required = false;
             minutos.required = false;
@@ -1219,7 +1477,9 @@
             if (totalMinutos > 0) {
 
                 textoTiempoAutomatico.textContent =
-                    formatearDuracion(totalMinutos);
+                    formatearDuracion(
+                        totalMinutos
+                    );
 
             } else {
 
@@ -1228,31 +1488,88 @@
 
             }
 
+            calcularFin();
 
-        } else if (cantidadActual > 1) {
+            return;
+        }
 
-            /* MANUAL */
 
-            tiempoAutomatico.classList.remove("activo");
+        if (cantidadActual > 1) {
 
-            tiempoManual.classList.add("activo");
+            tiempoAutomatico.classList.remove(
+                "activo"
+            );
 
-            finAutomatico.style.display = "none";
+            tiempoManual.classList.add(
+                "activo"
+            );
+
+            finAutomatico.style.display =
+                "none";
 
             horas.required = true;
             minutos.required = true;
 
+            horas.value = "";
+            minutos.value = "";
 
-        } else {
+            calcularFin();
 
-            tiempoAutomatico.classList.remove("activo");
+            const data =
+                await consultarTiempoRecomendado();
 
-            tiempoManual.classList.remove("activo");
+            if (!data) {
+                return;
+            }
 
-            finAutomatico.style.display = "none";
+            if (data.encontrado) {
 
+                horas.value =
+                    data.horas;
+
+                minutos.value =
+                    data.minutos;
+
+                mostrarRecomendacion(
+                    "Tiempo recomendado según la última producción de "
+                    + cantidadActual
+                    + " unidades: "
+                    + formatearDuracion(
+                        data.total_minutos
+                    )
+                    + ". Podés modificarlo si esta tanda necesita otro tiempo.",
+                    "encontrada"
+                );
+
+            } else {
+
+                mostrarRecomendacion(
+                    "No hay una producción anterior de "
+                    + cantidadActual
+                    + " unidades. Ingresá el tiempo manualmente.",
+                    "manual"
+                );
+
+            }
+
+            calcularFin();
+
+            return;
         }
 
+
+        solicitudTiempoActual++;
+
+        tiempoAutomatico.classList.remove(
+            "activo"
+        );
+
+        tiempoManual.classList.remove(
+            "activo"
+        );
+
+        finAutomatico.style.display =
+            "none";
 
         calcularFin();
 
