@@ -1020,26 +1020,113 @@
             : "⌃";
     }
 
+    /*
+     * Mantiene la posición vertical después de marcar/desmarcar LISTO.
+     * Guardamos la posición antes de enviar el formulario y la restauramos
+     * apenas vuelve a cargar la página.
+     */
+    const claveScrollImpresiones =
+        "impresiones_por_pedido_scroll_y";
+
+
+    function guardarPosicionPagina() {
+
+        sessionStorage.setItem(
+            claveScrollImpresiones,
+            String(window.scrollY)
+        );
+
+    }
+
+
+    function restaurarPosicionPagina() {
+
+        const posicionGuardada =
+            sessionStorage.getItem(
+                claveScrollImpresiones
+            );
+
+        if (posicionGuardada === null) {
+            return;
+        }
+
+        /*
+         * La eliminamos para que una entrada normal a esta pantalla
+         * siga comenzando arriba.
+         */
+        sessionStorage.removeItem(
+            claveScrollImpresiones
+        );
+
+        const posicion =
+            parseInt(
+                posicionGuardada,
+                10
+            );
+
+        if (Number.isNaN(posicion)) {
+            return;
+        }
+
+        /*
+         * Esperamos un frame para asegurarnos de que el navegador
+         * ya calculó el alto completo de la página.
+         */
+        requestAnimationFrame(
+            function() {
+
+                window.scrollTo({
+                    top: posicion,
+                    left: 0,
+                    behavior: "auto"
+                });
+
+            }
+        );
+
+    }
+
+
     function cambiarListo(checkbox) {
 
-        const formulario = checkbox.closest(".form-listo");
+        const formulario =
+            checkbox.closest(
+                ".form-listo"
+            );
 
         if (!formulario) {
             return;
         }
 
-        const inputListo = formulario.querySelector(".valor-listo");
+        const inputListo =
+            formulario.querySelector(
+                ".valor-listo"
+            );
 
         if (!inputListo) {
             return;
         }
 
-        inputListo.value = checkbox.checked ? "1" : "0";
+        inputListo.value =
+            checkbox.checked
+                ? "1"
+                : "0";
+
+        /*
+         * Guardamos la posición exacta antes del refresh.
+         */
+        guardarPosicionPagina();
 
         checkbox.disabled = true;
 
         formulario.submit();
     }
+
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        restaurarPosicionPagina
+    );
 
 
     function confirmarEntrega() {
