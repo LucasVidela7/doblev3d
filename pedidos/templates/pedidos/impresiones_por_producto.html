@@ -1,469 +1,478 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     >
-
     <title>Impresiones por producto | Doble V 3D</title>
 
+<style>
+    :root {
+        --fondo: #f4f5f7;
+        --tarjeta: #ffffff;
+        --texto: #24272b;
+        --muted: #73777f;
+        --borde: #e5e7eb;
+        --oscuro: #24272b;
+        --verde: #dff4e5;
+        --verde-texto: #24633a;
+        --azul: #e3efff;
+        --azul-texto: #245a9b;
+        --amarillo: #fff2c7;
+        --amarillo-texto: #765b00;
+        --rojo: #fde5e5;
+        --rojo-texto: #9a3030;
+        --sombra: 0 4px 18px rgba(20,25,35,.07);
+    }
 
-    <style>
+    * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+    }
 
-        * {
-            box-sizing: border-box;
-        }
+    html { scroll-behavior: smooth; }
 
+    body {
+        margin: 0;
+        padding: 0 0 calc(94px + env(safe-area-inset-bottom));
+        font-family: Arial, sans-serif;
+        background: var(--fondo);
+        color: var(--texto);
+    }
 
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-            margin: 0;
-            padding: 20px;
-            color: #333333;
-        }
+    a, button { touch-action: manipulation; }
 
+    .contenedor {
+        width: min(1180px, 100%);
+        margin: auto;
+        padding: 22px 18px 34px;
+    }
 
+    /* ENCABEZADO */
+
+    .encabezado {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        margin-bottom: 20px;
+    }
+
+    h1 {
+        margin: 0 0 5px;
+        font-size: clamp(25px, 4vw, 34px);
+    }
+
+    .subtitulo {
+        color: var(--muted);
+        font-size: 13px;
+    }
+
+    .acciones-encabezado {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .boton-volver,
+    .boton-inicio {
+        min-height: 50px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 18px;
+        border-radius: 14px;
+        font-size: 11px;
+        font-weight: 900;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .boton-volver {
+        border: 1px solid var(--borde);
+        background: white;
+        color: var(--texto);
+    }
+
+    .boton-inicio {
+        border: 1px solid var(--oscuro);
+        background: var(--oscuro);
+        color: white;
+    }
+
+    /* TABLA */
+
+    .tabla-contenedor {
+        overflow: hidden;
+        border: 1px solid var(--borde);
+        border-radius: 20px;
+        background: var(--tarjeta);
+        box-shadow: var(--sombra);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    thead {
+        background: #f1f2f4;
+    }
+
+    th {
+        padding: 14px 14px;
+        text-align: left;
+        color: var(--muted);
+        font-size: 9px;
+        font-weight: 900;
+        letter-spacing: .35px;
+        border-bottom: 1px solid var(--borde);
+    }
+
+    td {
+        padding: 17px 14px;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--borde);
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+
+    .producto {
+        min-width: 230px;
+        font-size: 14px;
+        font-weight: 900;
+    }
+
+    .codigo {
+        display: block;
+        margin: 0 0 5px;
+        color: #999da4;
+        font-size: 10px;
+        font-weight: normal;
+    }
+
+    .numero {
+        width: 125px;
+        text-align: center;
+    }
+
+    .cantidad,
+    .personalizado,
+    .imprimir {
+        font-weight: 900;
+    }
+
+    .cantidad {
+        font-size: 16px;
+    }
+
+    .personalizado {
+        font-size: 16px;
+    }
+
+    .imprimir {
+        font-size: 21px;
+    }
+
+    .sin-impresion,
+    .personalizado-cero {
+        color: #a6a9af;
+        font-weight: normal;
+    }
+
+    .marca-personalizado {
+        display: inline-flex;
+        align-items: center;
+        margin-top: 6px;
+        margin-left: 0;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: var(--azul);
+        color: var(--azul-texto);
+        font-size: 8px;
+        font-weight: 900;
+        vertical-align: middle;
+    }
+
+    /* PRIORIDAD */
+
+    .columna-prioridad {
+        width: 155px;
+        text-align: center;
+    }
+
+    .prioridad {
+        min-width: 112px;
+        min-height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 0 10px;
+        border-radius: 999px;
+        font-size: 9px;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .semaforo {
+        width: 9px;
+        height: 9px;
+        flex: 0 0 auto;
+        border-radius: 50%;
+    }
+
+    .prioridad-alta {
+        background: var(--rojo);
+        color: var(--rojo-texto);
+    }
+
+    .prioridad-alta .semaforo { background: #c64a4a; }
+
+    .prioridad-media {
+        background: var(--amarillo);
+        color: var(--amarillo-texto);
+    }
+
+    .prioridad-media .semaforo { background: #d8aa31; }
+
+    .prioridad-baja {
+        background: var(--verde);
+        color: var(--verde-texto);
+    }
+
+    .prioridad-baja .semaforo { background: #4b9c60; }
+
+    .prioridad-cero {
+        background: #eceef1;
+        color: #70747b;
+    }
+
+    .prioridad-cero .semaforo { background: #9da1a7; }
+
+    .fila-alta { background: #fffafa; }
+    .fila-media { background: #fffdf8; }
+    .fila-baja { background: #fbfefb; }
+
+    .sin-datos {
+        padding: 55px 20px;
+        border: 1px solid var(--borde);
+        border-radius: 20px;
+        background: white;
+        text-align: center;
+        color: var(--muted);
+        box-shadow: var(--sombra);
+    }
+
+    /* BARRA INFERIOR */
+
+    .nav-inferior {
+        position: fixed;
+        z-index: 50;
+        left: 50%;
+        bottom: max(10px, env(safe-area-inset-bottom));
+        transform: translateX(-50%);
+        width: min(720px, calc(100% - 20px));
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 4px;
+        padding: 7px;
+        border-radius: 20px;
+        background: rgba(35,38,43,.96);
+        box-shadow: 0 12px 35px rgba(0,0,0,.22);
+        backdrop-filter: blur(14px);
+    }
+
+    .nav-item {
+        min-height: 58px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        border-radius: 14px;
+        color: #d9dbe0;
+        text-decoration: none;
+        font-size: 9px;
+        font-weight: bold;
+    }
+
+    .nav-item span:first-child { font-size: 19px; }
+
+    .nav-item.activo {
+        background: white;
+        color: var(--oscuro);
+    }
+
+    .nav-item.nuevo-nav {
+        background: white;
+        color: var(--oscuro);
+    }
+
+    /* TABLET */
+
+    @media (min-width: 760px) and (max-width: 1100px) {
         .contenedor {
-            max-width: 1100px;
-            margin: auto;
+            padding: 20px 16px 32px;
         }
 
+        .tabla-contenedor {
+            overflow-x: auto;
+        }
 
-        /* =========================================
-           ENCABEZADO
-        ========================================= */
+        table {
+            min-width: 850px;
+        }
+
+        td {
+            padding-top: 18px;
+            padding-bottom: 18px;
+        }
+    }
+
+    /* MÓVIL / TABLET VERTICAL ESTRECHA:
+       cada producto se transforma en tarjeta */
+
+    @media (max-width: 720px) {
+        .contenedor {
+            padding: 16px 11px 28px;
+        }
 
         .encabezado {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 25px;
+            flex-direction: column;
+            align-items: flex-start;
         }
-
-
-        h1 {
-            margin: 0 0 5px 0;
-        }
-
-
-        .subtitulo {
-            color: #777777;
-        }
-
 
         .acciones-encabezado {
-            display: flex;
-            gap: 10px;
-            align-items: center;
+            width: 100%;
         }
-
 
         .boton-volver,
         .boton-inicio {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-
-            height: 42px;
-            padding: 0 16px;
-
-            border-radius: 8px;
-
-            font-size: 12px;
-            font-weight: bold;
-
-            cursor: pointer;
-
-            text-decoration: none;
+            flex: 1;
         }
-
-
-        .boton-volver {
-            background: white;
-
-            border: 1px solid #dddddd;
-
-            color: #333333;
-
-            box-shadow:
-                0 2px 8px rgba(0, 0, 0, .07);
-        }
-
-
-        .boton-volver:hover {
-            background: #eeeeee;
-        }
-
-
-        .boton-inicio {
-            background: #333333;
-
-            border: none;
-
-            color: white;
-        }
-
-
-        .boton-inicio:hover {
-            background: #111111;
-        }
-
-
-
-        /* =========================================
-           TABLA
-        ========================================= */
 
         .tabla-contenedor {
-            background: white;
-
-            border-radius: 12px;
-
-            overflow: hidden;
-
-            box-shadow:
-                0 2px 8px rgba(0, 0, 0, .08);
+            overflow: visible;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
         }
 
-
-        table {
+        table, tbody, tr, td {
+            display: block;
             width: 100%;
-
-            border-collapse: collapse;
         }
 
+        thead { display: none; }
 
-        thead {
-            background: #eeeeee;
+        tbody {
+            display: grid;
+            gap: 11px;
         }
 
-
-        th {
-            text-align: left;
-
-            padding: 14px 18px;
-
-            font-size: 12px;
-
-            color: #666666;
-
-            border-bottom:
-                1px solid #dddddd;
+        tbody tr {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            overflow: hidden;
+            border: 1px solid var(--borde);
+            border-radius: 18px;
+            background: white;
+            box-shadow: var(--sombra);
         }
-
 
         td {
-            padding: 15px 18px;
-
-            border-bottom:
-                1px solid #eeeeee;
-
-            vertical-align: middle;
+            border: none !important;
+            padding: 12px 8px;
         }
 
-
-        tbody tr:hover {
-            background: #fafafa;
+        td.producto {
+            grid-column: 1 / -1;
+            min-width: 0;
+            padding: 15px;
+            border-bottom: 1px solid var(--borde) !important;
         }
 
-
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-
-
-        /* =========================================
-           PRODUCTO
-        ========================================= */
-
-        .producto {
-            font-weight: 500;
-        }
-
-
-        .codigo {
-            color: #888888;
-
-            font-size: 12px;
-
-            margin-right: 6px;
-        }
-
-
-
-        /* =========================================
-           COLUMNAS NUMÉRICAS
-        ========================================= */
-
-        .numero {
-            width: 140px;
-
+        td.numero {
+            width: auto;
             text-align: center;
         }
 
-
-        .cantidad {
-            font-size: 17px;
-
-            font-weight: bold;
+        td.numero::before,
+        td.columna-prioridad::before {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--muted);
+            font-size: 7px;
+            font-weight: 900;
+            letter-spacing: .25px;
         }
 
+        td:nth-child(2)::before { content: "PEDIDO"; }
+        td:nth-child(3)::before { content: "STOCK"; }
+        td:nth-child(4)::before { content: "PERSONALIZADO"; }
+        td:nth-child(5)::before { content: "A IMPRIMIR"; }
+
+        td:nth-child(2),
+        td:nth-child(3),
+        td:nth-child(4),
+        td:nth-child(5) {
+            grid-column: span 1;
+            border-right: 1px solid var(--borde) !important;
+        }
+
+        td:nth-child(5) {
+            border-right: none !important;
+        }
+
+        td.columna-prioridad {
+            grid-column: 1 / -1;
+            width: auto;
+            padding: 10px 12px 13px;
+            border-top: 1px solid var(--borde) !important;
+            text-align: left;
+        }
+
+        td.columna-prioridad::before {
+            content: "PRIORIDAD";
+        }
+
+        .prioridad {
+            min-height: 31px;
+        }
+
+        .cantidad,
+        .personalizado {
+            font-size: 15px;
+        }
 
         .imprimir {
             font-size: 19px;
-
-            font-weight: bold;
         }
 
+        .nav-inferior {
+            width: calc(100% - 12px);
+            bottom: max(6px, env(safe-area-inset-bottom));
+        }
+    }
 
-        .sin-impresion {
-            color: #999999;
+    @media (hover: hover) {
+        tbody tr:hover {
+            filter: brightness(.985);
         }
 
-
-        .personalizado {
-            font-size: 17px;
-            font-weight: bold;
+        .boton-volver:hover {
+            background: #f0f1f3;
         }
-
-        .personalizado-cero {
-            color: #aaaaaa;
-            font-weight: normal;
-        }
-
-        .marca-personalizado {
-            display: inline-flex;
-            align-items: center;
-            margin-left: 7px;
-            padding: 3px 7px;
-            border-radius: 12px;
-            background: #e7f1ff;
-            color: #084298;
-            font-size: 9px;
-            font-weight: bold;
-            vertical-align: middle;
-        }
-
-
-
-        /* =========================================
-           PRIORIDAD
-        ========================================= */
-
-        .columna-prioridad {
-            width: 180px;
-
-            text-align: center;
-        }
-
-
-        .prioridad {
-            display: inline-flex;
-
-            align-items: center;
-            justify-content: center;
-
-            gap: 7px;
-
-            min-width: 125px;
-
-            padding: 7px 11px;
-
-            border-radius: 20px;
-
-            font-size: 11px;
-            font-weight: bold;
-
-            white-space: nowrap;
-        }
-
-
-        .semaforo {
-            width: 11px;
-            height: 11px;
-
-            border-radius: 50%;
-
-            display: inline-block;
-
-            flex-shrink: 0;
-        }
-
-
-
-        /* =========================================
-           PRIORIDAD ALTA
-        ========================================= */
-
-        .prioridad-alta {
-            background: #f8d7da;
-
-            color: #721c24;
-        }
-
-
-        .prioridad-alta .semaforo {
-            background: #dc3545;
-
-            box-shadow:
-                0 0 0 3px rgba(220, 53, 69, .15);
-        }
-
-
-
-        /* =========================================
-           PRIORIDAD MEDIA
-        ========================================= */
-
-        .prioridad-media {
-            background: #fff3cd;
-
-            color: #856404;
-        }
-
-
-        .prioridad-media .semaforo {
-            background: #ffc107;
-
-            box-shadow:
-                0 0 0 3px rgba(255, 193, 7, .18);
-        }
-
-
-
-        /* =========================================
-           PRIORIDAD BAJA
-        ========================================= */
-
-        .prioridad-baja {
-            background: #d4edda;
-
-            color: #155724;
-        }
-
-
-        .prioridad-baja .semaforo {
-            background: #28a745;
-
-            box-shadow:
-                0 0 0 3px rgba(40, 167, 69, .15);
-        }
-
-
-
-        /* =========================================
-           SIN NECESIDAD
-        ========================================= */
-
-        .prioridad-cero {
-            background: #eeeeee;
-
-            color: #666666;
-        }
-
-
-        .prioridad-cero .semaforo {
-            background: #999999;
-        }
-
-
-
-        /* =========================================
-           FILAS SEGÚN PRIORIDAD
-        ========================================= */
-
-        .fila-alta {
-            background: #fffafa;
-        }
-
-
-        .fila-media {
-            background: #fffdf7;
-        }
-
-
-        .fila-baja {
-            background: #fbfefb;
-        }
-
-
-
-        /* =========================================
-           SIN DATOS
-        ========================================= */
-
-        .sin-datos {
-            background: white;
-
-            padding: 30px;
-
-            border-radius: 12px;
-
-            text-align: center;
-
-            color: #777777;
-
-            box-shadow:
-                0 2px 8px rgba(0, 0, 0, .08);
-        }
-
-
-
-        /* =========================================
-           RESPONSIVE
-        ========================================= */
-
-        @media (max-width: 800px) {
-
-            body {
-                padding: 10px;
-            }
-
-
-            .encabezado {
-                flex-direction: column;
-
-                align-items: flex-start;
-            }
-
-
-            .acciones-encabezado {
-                width: 100%;
-            }
-
-
-            .boton-volver,
-            .boton-inicio {
-                flex: 1;
-            }
-
-
-            .tabla-contenedor {
-                overflow-x: auto;
-            }
-
-
-            table {
-                min-width: 940px;
-            }
-
-        }
-
-
-    </style>
+    }
+</style>
 
 </head>
-
-
 <body>
+
 
 
 <div class="contenedor">
@@ -737,6 +746,35 @@
      JAVASCRIPT
 ========================================== -->
 
+
+
+<nav class="nav-inferior" aria-label="Navegación principal">
+    <a href="{% url 'dashboard:inicio' %}" class="nav-item">
+        <span>⌂</span>
+        <span>INICIO</span>
+    </a>
+
+    <a href="{% url 'pedidos:impresiones' %}" class="nav-item">
+        <span>📦</span>
+        <span>PEDIDOS</span>
+    </a>
+
+    <a href="{% url 'pedidos:nuevo' %}" class="nav-item nuevo-nav">
+        <span>＋</span>
+        <span>NUEVO</span>
+    </a>
+
+    <a href="{% url 'produccion:lista' %}" class="nav-item">
+        <span>⚙</span>
+        <span>PRODUCCIÓN</span>
+    </a>
+
+    <a href="{% url 'productos:lista' %}" class="nav-item">
+        <span>▦</span>
+        <span>PRODUCTOS</span>
+    </a>
+</nav>
+
 <script>
 
     function volverPagina() {
@@ -767,6 +805,6 @@
 </script>
 
 
-</body>
 
+</body>
 </html>

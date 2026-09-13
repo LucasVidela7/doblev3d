@@ -1,406 +1,180 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Productos | Doble V 3D</title>
-
-
-    <style>
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            padding: 20px;
-
-            font-family:
-                Arial,
-                sans-serif;
-
-            background:
-                #f5f5f5;
-
-            color:
-                #333333;
-        }
-
-        .contenedor {
-            max-width: 1300px;
-            margin: auto;
-        }
-
-
-        /* =========================================
-           ENCABEZADO
-        ========================================= */
-
-        .encabezado {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 20px;
-
-            margin-bottom: 25px;
-        }
-
-        h1 {
-            margin: 0 0 5px 0;
-        }
-
-        .subtitulo {
-            color: #777777;
-        }
-
-        .volver {
-            display: inline-block;
-
-            padding: 10px 15px;
-
-            background: white;
-
-            border-radius: 8px;
-
-            text-decoration: none;
-
-            color: #333333;
-
-            font-size: 13px;
-
-            font-weight: bold;
-
-            box-shadow:
-                0 2px 8px rgba(0,0,0,.07);
-        }
-
-        .volver:hover {
-            background: #eeeeee;
-        }
-
-
-        /* =========================================
-           BUSCADOR
-        ========================================= */
-
-        .buscador {
-            background: white;
-
-            border-radius: 12px;
-
-            padding: 18px;
-
-            margin-bottom: 20px;
-
-            box-shadow:
-                0 2px 8px rgba(0,0,0,.07);
-        }
-
-        .buscador-form {
-            display: grid;
-
-            grid-template-columns:
-                minmax(250px, 1fr)
-                240px
-                auto
-                auto;
-
-            gap: 12px;
-
-            align-items: end;
-        }
-
-        .campo label {
-            display: block;
-
-            margin-bottom: 6px;
-
-            font-size: 11px;
-
-            font-weight: bold;
-
-            color: #666666;
-        }
-
-        input,
-        select {
-            width: 100%;
-
-            height: 42px;
-
-            padding: 9px 11px;
-
-            border:
-                1px solid #cccccc;
-
-            border-radius: 7px;
-
-            background: white;
-
-            font-size: 14px;
-        }
-
-        input:focus,
-        select:focus {
-            outline: none;
-            border-color: #666666;
-        }
-
-
-        /* =========================================
-           BOTONES
-        ========================================= */
-
-        .boton {
-            height: 42px;
-
-            padding: 0 18px;
-
-            border: none;
-
-            border-radius: 7px;
-
-            cursor: pointer;
-
-            font-weight: bold;
-
-            font-size: 12px;
-
-            text-decoration: none;
-
-            display: inline-flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            white-space: nowrap;
-        }
-
-        .boton-buscar {
-            background: #333333;
-            color: white;
-        }
-
-        .boton-buscar:hover {
-            background: #111111;
-        }
-
-        .boton-limpiar {
-            background: #eeeeee;
-            color: #444444;
-        }
-
-        .boton-limpiar:hover {
-            background: #dddddd;
-        }
-
-
-        /* =========================================
-           RESULTADOS
-        ========================================= */
-
-        .resumen-resultados {
-            margin-bottom: 12px;
-
-            color: #777777;
-
-            font-size: 13px;
-        }
-
-
-        /* =========================================
-           TABLA
-        ========================================= */
-
-        .tabla-contenedor {
-            background: white;
-
-            border-radius: 12px;
-
-            overflow: hidden;
-
-            box-shadow:
-                0 2px 8px rgba(0,0,0,.07);
-        }
-
-        table {
-            width: 100%;
-
-            border-collapse: collapse;
-        }
-
-        thead {
-            background: #eeeeee;
-        }
-
-        th {
-            padding: 13px 14px;
-
-            text-align: left;
-
-            font-size: 11px;
-
-            color: #666666;
-
-            white-space: nowrap;
-        }
-
-        td {
-            padding: 14px;
-
-            border-bottom:
-                1px solid #eeeeee;
-
-            vertical-align: middle;
-        }
-
-        tbody tr:hover {
-            background: #fafafa;
-        }
-
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-
-        /* =========================================
-           COLUMNAS
-        ========================================= */
-
-        .codigo {
-            font-weight: bold;
-            white-space: nowrap;
-        }
-
-        .nombre {
-            font-weight: 600;
-        }
-
-        .numero {
-            text-align: center;
-        }
-
-        .stock {
-            text-align: center;
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        .precio {
-            font-weight: bold;
-            white-space: nowrap;
-        }
-
-
-        /* =========================================
-           BADGES
-        ========================================= */
-
-        .badge {
-            display: inline-block;
-
-            padding: 5px 9px;
-
-            border-radius: 15px;
-
-            font-size: 11px;
-
-            font-weight: bold;
-
-            white-space: nowrap;
-        }
-
-        .badge-tipo {
-            background: #e7f1ff;
-            color: #084298;
-        }
-
-        .badge-activo {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .badge-inactivo {
-            background: #e2e3e5;
-            color: #666666;
-        }
-
-        .badge-si {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .badge-no {
-            background: #eeeeee;
-            color: #777777;
-        }
-
-
-        /* =========================================
-           SIN DATOS
-        ========================================= */
-
-        .sin-datos {
-            padding: 35px !important;
-
-            text-align: center;
-
-            color: #777777;
-        }
-
-
-        /* =========================================
-           RESPONSIVE
-        ========================================= */
-
-        @media (max-width: 900px) {
-
-            body {
-                padding: 10px;
-            }
-
-            .encabezado {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
-            .buscador-form {
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .tabla-contenedor {
-                overflow-x: auto;
-            }
-
-            table {
-                min-width: 1000px;
-            }
-
-        }
-
-        @media (max-width: 600px) {
-
-            .buscador-form {
-                grid-template-columns: 1fr;
-            }
-
-        }
-
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Productos | Doble V 3D</title>
+
+<style>
+:root{
+    --fondo:#f4f5f7;--tarjeta:#fff;--texto:#24272b;--muted:#73777f;
+    --borde:#e5e7eb;--oscuro:#24272b;--verde:#dff4e5;--verde-t:#24633a;
+    --azul:#e3efff;--azul-t:#245a9b;--amarillo:#fff2c7;--amarillo-t:#765b00;
+    --rojo:#fde5e5;--rojo-t:#9a3030;--sombra:0 4px 18px rgba(20,25,35,.07)
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+    margin:0;padding:0 0 calc(94px + env(safe-area-inset-bottom));
+    font-family:Arial,sans-serif;background:var(--fondo);color:var(--texto)
+}
+button,a,input,select{touch-action:manipulation}
+.contenedor{width:min(1300px,100%);margin:auto;padding:22px 18px 34px}
+
+/* HEADER */
+.encabezado{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:20px}
+h1{margin:0 0 5px;font-size:clamp(25px,4vw,34px)}
+.subtitulo{color:var(--muted);font-size:13px}
+.acciones-encabezado{display:flex;gap:9px}
+.boton-volver,.boton-inicio{
+    min-height:50px;display:inline-flex;align-items:center;justify-content:center;
+    padding:0 18px;border-radius:14px;font-size:11px;font-weight:900;
+    text-decoration:none;cursor:pointer
+}
+.boton-volver{border:1px solid var(--borde);background:white;color:var(--texto)}
+.boton-inicio{border:1px solid var(--oscuro);background:var(--oscuro);color:white}
+
+/* SEARCH */
+.buscador{
+    background:white;border:1px solid var(--borde);border-radius:20px;
+    padding:17px;margin-bottom:16px;box-shadow:var(--sombra)
+}
+.buscador-form{
+    display:grid;grid-template-columns:minmax(250px,1fr) 240px auto auto;
+    gap:11px;align-items:end
+}
+.campo label{
+    display:block;margin-bottom:6px;color:var(--muted);
+    font-size:9px;font-weight:900;letter-spacing:.3px
+}
+input,select{
+    width:100%;min-height:50px;padding:9px 12px;border:1px solid #d4d7dc;
+    border-radius:12px;background:white;font-size:14px
+}
+input:focus,select:focus{outline:2px solid #cbd8e8;border-color:#9db2cc}
+.boton{
+    min-height:50px;padding:0 18px;border:none;border-radius:12px;cursor:pointer;
+    font-weight:900;font-size:10px;text-decoration:none;display:inline-flex;
+    align-items:center;justify-content:center;white-space:nowrap
+}
+.boton-buscar{background:var(--oscuro);color:white}
+.boton-limpiar{background:#eceef1;color:#555b63}
+.resumen-resultados{margin:0 2px 11px;color:var(--muted);font-size:11px}
+
+/* TABLE */
+.tabla-contenedor{
+    overflow:hidden;background:white;border:1px solid var(--borde);
+    border-radius:20px;box-shadow:var(--sombra)
+}
+table{width:100%;border-collapse:collapse}
+thead{background:#f1f2f4}
+th{
+    padding:12px 10px;text-align:left;color:var(--muted);font-size:8px;
+    font-weight:900;letter-spacing:.25px;white-space:nowrap
+}
+td{
+    padding:14px 10px;border-bottom:1px solid var(--borde);
+    vertical-align:middle;font-size:12px
+}
+tbody tr:last-child td{border-bottom:none}
+.codigo{font-weight:900;white-space:nowrap;color:#62666d}
+.nombre{font-weight:900;font-size:13px}
+.numero{text-align:center}
+.stock{text-align:center;font-weight:900;font-size:17px}
+.precio{font-weight:900;white-space:nowrap;font-size:13px}
+.badge{
+    display:inline-flex;align-items:center;justify-content:center;min-height:27px;
+    padding:0 9px;border-radius:999px;font-size:8px;font-weight:900;white-space:nowrap
+}
+.badge-tipo{background:var(--azul);color:var(--azul-t)}
+.badge-activo{background:var(--verde);color:var(--verde-t)}
+.badge-inactivo{background:#eceef1;color:#666}
+.badge-si{background:var(--amarillo);color:var(--amarillo-t)}
+.badge-no{background:#eceef1;color:#777}
+.sin-datos{padding:45px!important;text-align:center;color:var(--muted)}
+
+/* NAV */
+.nav-inferior{
+    position:fixed;z-index:50;left:50%;bottom:max(10px,env(safe-area-inset-bottom));
+    transform:translateX(-50%);width:min(720px,calc(100% - 20px));
+    display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:7px;
+    border-radius:20px;background:rgba(35,38,43,.96);
+    box-shadow:0 12px 35px rgba(0,0,0,.22);backdrop-filter:blur(14px)
+}
+.nav-item{
+    min-height:58px;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:4px;border-radius:14px;color:#d9dbe0;
+    text-decoration:none;font-size:9px;font-weight:bold
+}
+.nav-item span:first-child{font-size:19px}
+.nav-item.activo,.nav-item.nuevo-nav{background:white;color:var(--oscuro)}
+
+@media(min-width:760px) and (max-width:1100px){
+    .contenedor{padding:20px 16px 32px}
+    .tabla-contenedor{overflow-x:auto}
+    table{min-width:1000px}
+}
+@media(max-width:720px){
+    .contenedor{padding:16px 11px 28px}
+    .encabezado{flex-direction:column;align-items:flex-start}
+    .acciones-encabezado{width:100%}
+    .boton-volver,.boton-inicio{flex:1}
+    .buscador{padding:14px;border-radius:18px}
+    .buscador-form{grid-template-columns:1fr 1fr}
+    .campo:first-child{grid-column:1/-1}
+    .campo:nth-child(2){grid-column:1/-1}
+
+    .tabla-contenedor{overflow:visible;border:none;background:transparent;box-shadow:none}
+    table,tbody,tr,td{display:block;width:100%}
+    thead{display:none}
+    tbody{display:grid;gap:11px}
+    tbody tr{
+        display:grid;grid-template-columns:repeat(3,1fr);overflow:hidden;
+        border:1px solid var(--borde);border-radius:18px;background:white;
+        box-shadow:var(--sombra)
+    }
+    td{border:none!important;padding:10px 9px;text-align:center}
+    td.codigo{
+        grid-column:1/-1;text-align:left;padding:13px 14px 3px;
+        color:#9a9da3;font-size:9px
+    }
+    td.nombre{
+        grid-column:1/-1;text-align:left;padding:3px 14px 13px;
+        border-bottom:1px solid var(--borde)!important;font-size:15px
+    }
+    td::before{
+        display:block;margin-bottom:5px;color:var(--muted);
+        font-size:7px;font-weight:900;letter-spacing:.2px
+    }
+    td:nth-child(3)::before{content:"TIPO"}
+    td:nth-child(4)::before{content:"CATEGORÍA"}
+    td:nth-child(5)::before{content:"TIEMPO"}
+    td:nth-child(6)::before{content:"PESO"}
+    td:nth-child(7)::before{content:"STOCK"}
+    td:nth-child(8)::before{content:"PRECIO"}
+    td:nth-child(9)::before{content:"IMPRESIÓN"}
+    td:nth-child(10)::before{content:"ESTADO"}
+    td:nth-child(3),td:nth-child(4),td:nth-child(5),
+    td:nth-child(6),td:nth-child(7),td:nth-child(8),
+    td:nth-child(9),td:nth-child(10){
+        border-top:1px solid #f0f1f3!important
+    }
+    td:nth-child(10){grid-column:span 2}
+    .nav-inferior{width:calc(100% - 12px);bottom:max(6px,env(safe-area-inset-bottom))}
+}
+@media(max-width:460px){
+    .buscador-form{grid-template-columns:1fr}
+    .campo:first-child,.campo:nth-child(2){grid-column:auto}
+}
+@media(hover:hover){
+    tbody tr:hover{filter:brightness(.985)}
+    .boton-volver:hover,.boton-limpiar:hover{background:#f0f1f3}
+}
+</style>
 
 </head>
-
-
 <body>
+
 
 <div class="contenedor">
 
@@ -424,12 +198,22 @@
         </div>
 
 
-        <a
-            href="{% url 'dashboard:inicio' %}"
-            class="volver"
-        >
-            ← Inicio
-        </a>
+        <div class="acciones-encabezado">
+            <button
+                type="button"
+                class="boton-volver"
+                onclick="volverPagina()"
+            >
+                ← VOLVER
+            </button>
+
+            <a
+                href="{% url 'dashboard:inicio' %}"
+                class="boton-inicio"
+            >
+                INICIO
+            </a>
+        </div>
 
     </div>
 
@@ -750,6 +534,36 @@
 
 </div>
 
-</body>
 
+
+<nav class="nav-inferior" aria-label="Navegación principal">
+    <a href="{% url 'dashboard:inicio' %}" class="nav-item">
+        <span>⌂</span><span>INICIO</span>
+    </a>
+    <a href="{% url 'pedidos:impresiones' %}" class="nav-item">
+        <span>📦</span><span>PEDIDOS</span>
+    </a>
+    <a href="{% url 'pedidos:nuevo' %}" class="nav-item nuevo-nav">
+        <span>＋</span><span>NUEVO</span>
+    </a>
+    <a href="{% url 'produccion:lista' %}" class="nav-item">
+        <span>⚙</span><span>PRODUCCIÓN</span>
+    </a>
+    <a href="{% url 'productos:lista' %}" class="nav-item activo">
+        <span>▦</span><span>PRODUCTOS</span>
+    </a>
+</nav>
+
+
+<script>
+function volverPagina(){
+    if(window.history.length > 1){
+        window.history.back();
+    }else{
+        window.location.href = "{% url 'dashboard:inicio' %}";
+    }
+}
+</script>
+
+</body>
 </html>

@@ -1,499 +1,1007 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     >
-
-    <title>
-        Doble V 3D
-    </title>
-
+    <title>Doble V 3D | Inicio</title>
 
     <style>
+        :root {
+            --fondo: #f4f5f7;
+            --tarjeta: #ffffff;
+            --texto: #24272b;
+            --muted: #73777f;
+            --borde: #e5e7eb;
+            --oscuro: #24272b;
+            --verde: #dff4e5;
+            --verde-texto: #24633a;
+            --azul: #e3efff;
+            --azul-texto: #245a9b;
+            --amarillo: #fff2c7;
+            --amarillo-texto: #765b00;
+            --violeta: #eee4fb;
+            --violeta-texto: #63408c;
+            --rojo: #fde5e5;
+            --rojo-texto: #9a3030;
+            --naranja: #ffead7;
+            --naranja-texto: #8a4b13;
+            --sombra: 0 4px 18px rgba(20, 25, 35, .07);
+        }
 
         * {
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            scroll-behavior: smooth;
         }
 
         body {
             margin: 0;
-            padding: 0;
+            font-family: Arial, sans-serif;
+            background: var(--fondo);
+            color: var(--texto);
+            padding-bottom: calc(92px + env(safe-area-inset-bottom));
+        }
 
-            font-family:
-                Arial,
-                sans-serif;
-
-            background:
-                #f4f5f7;
-
-            color:
-                #333333;
+        a, button {
+            touch-action: manipulation;
         }
 
         .contenedor {
-            max-width: 1200px;
-            margin: auto;
-            padding: 30px 20px;
+            width: min(1180px, 100%);
+            margin: 0 auto;
+            padding: 24px 18px 34px;
         }
 
-
-        /* =========================================
-           ENCABEZADO
-        ========================================= */
+        /* CABECERA */
 
         .encabezado {
-            margin-bottom: 30px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 22px;
+        }
+
+        .marca {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-texto {
+            width: 52px;
+            height: 52px;
+            display: grid;
+            place-items: center;
+            border-radius: 16px;
+            background: var(--oscuro);
+            color: white;
+            font-weight: 900;
+            font-size: 18px;
+            letter-spacing: -1px;
         }
 
         .titulo {
             margin: 0;
-            font-size: 30px;
+            font-size: clamp(25px, 4vw, 34px);
+            line-height: 1;
         }
 
         .subtitulo {
-            margin-top: 5px;
-            color: #777777;
+            margin-top: 7px;
+            color: var(--muted);
+            font-size: 14px;
         }
 
+        .fecha {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
 
-        /* =========================================
-           RESUMEN
-        ========================================= */
+        /* INDICADORES DESLIZABLES */
 
-        .resumen {
+        .metricas {
             display: grid;
-
-            grid-template-columns:
-                repeat(4, 1fr);
-
-            gap: 16px;
-
-            margin-bottom: 35px;
+            grid-auto-flow: column;
+            grid-auto-columns: minmax(190px, 1fr);
+            grid-template-rows: 1fr;
+            gap: 12px;
+            overflow-x: auto;
+            overscroll-behavior-inline: contain;
+            scroll-snap-type: inline mandatory;
+            scrollbar-width: none;
+            padding: 2px 2px 12px;
+            margin: 0 -2px 16px;
         }
 
-        .indicador {
-            background: white;
-
-            border-radius: 12px;
-
-            padding: 20px;
-
-            box-shadow:
-                0 2px 8px rgba(0, 0, 0, .07);
+        .metricas::-webkit-scrollbar {
+            display: none;
         }
 
-        .indicador-titulo {
+        .metrica {
+            min-height: 126px;
+            scroll-snap-align: start;
+            background: var(--tarjeta);
+            border: 1px solid var(--borde);
+            border-radius: 18px;
+            padding: 17px;
+            box-shadow: var(--sombra);
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .metrica:active,
+        .accion:active,
+        .nav-item:active {
+            transform: scale(.98);
+        }
+
+        .metrica-cabecera {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .metrica-titulo {
+            color: var(--muted);
             font-size: 11px;
-
-            font-weight: bold;
-
-            color: #777777;
-
-            margin-bottom: 8px;
+            font-weight: 800;
+            letter-spacing: .35px;
         }
 
-        .indicador-numero {
-            font-size: 30px;
-
-            font-weight: bold;
+        .metrica-icono {
+            width: 34px;
+            height: 34px;
+            display: grid;
+            place-items: center;
+            border-radius: 11px;
+            font-size: 17px;
         }
 
+        .metrica-numero {
+            font-size: 34px;
+            font-weight: 900;
+            line-height: 1;
+        }
 
-        /* =========================================
-           ACCESOS RÁPIDOS
-        ========================================= */
+        .metrica-ayuda {
+            margin-top: 5px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .m-pedidos .metrica-icono { background: var(--azul); }
+        .m-imprimir .metrica-icono { background: var(--amarillo); }
+        .m-produccion .metrica-icono { background: var(--violeta); }
+        .m-listos .metrica-icono { background: var(--verde); }
+        .m-atrasados .metrica-icono { background: var(--rojo); }
+
+        .m-atrasados.alerta {
+            border-color: #efb5b5;
+        }
+
+        /* ACCIONES */
+
+        .seccion {
+            margin-top: 24px;
+        }
+
+        .seccion-cabecera {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
 
         .seccion-titulo {
+            margin: 0;
             font-size: 18px;
-
-            font-weight: bold;
-
-            margin-bottom: 15px;
         }
 
-        .accesos {
+        .seccion-ayuda {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .acciones {
             display: grid;
-
-            grid-template-columns:
-                repeat(2, 1fr);
-
-            gap: 18px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
         }
 
-        .tarjeta {
-            display: block;
-
-            text-decoration: none;
-
-            background: white;
-
-            border-radius: 14px;
-
-            padding: 25px;
-
-            color: #333333;
-
-            box-shadow:
-                0 2px 8px rgba(0, 0, 0, .07);
-
-            transition:
-                transform .15s ease,
-                box-shadow .15s ease;
-        }
-
-        .tarjeta:hover {
-            transform: translateY(-2px);
-
-            box-shadow:
-                0 5px 14px rgba(0, 0, 0, .11);
-        }
-
-
-        /* =========================================
-           ICONOS
-        ========================================= */
-
-        .icono {
-            width: 44px;
-            height: 44px;
-
-            border-radius: 10px;
-
+        .accion {
+            min-height: 132px;
             display: flex;
-
             align-items: center;
-
-            justify-content: center;
-
-            font-size: 21px;
-
-            margin-bottom: 14px;
-
-            background: #eeeeee;
+            gap: 16px;
+            padding: 19px;
+            border: 1px solid var(--borde);
+            border-radius: 18px;
+            background: var(--tarjeta);
+            color: inherit;
+            text-decoration: none;
+            box-shadow: var(--sombra);
+            transition: transform .12s ease;
         }
 
+        .accion-principal {
+            background: var(--oscuro);
+            color: white;
+            border-color: var(--oscuro);
+        }
 
-        /* =========================================
-           TEXTO DE TARJETAS
-        ========================================= */
+        .accion-icono {
+            flex: 0 0 52px;
+            width: 52px;
+            height: 52px;
+            display: grid;
+            place-items: center;
+            border-radius: 15px;
+            background: #eef0f3;
+            font-size: 24px;
+        }
 
-        .tarjeta-titulo {
-            font-size: 18px;
+        .accion-principal .accion-icono {
+            background: rgba(255,255,255,.14);
+        }
 
-            font-weight: bold;
+        .accion-titulo {
+            font-size: 16px;
+            font-weight: 900;
+            margin-bottom: 5px;
+        }
 
+        .accion-texto {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .accion-principal .accion-texto {
+            color: #d7d9dd;
+        }
+
+        /* BLOQUE OPERATIVO */
+
+        .paneles {
+            display: grid;
+            grid-template-columns: 1.08fr .92fr;
+            gap: 14px;
+        }
+
+        .panel {
+            background: var(--tarjeta);
+            border: 1px solid var(--borde);
+            border-radius: 18px;
+            padding: 18px;
+            box-shadow: var(--sombra);
+            min-width: 0;
+        }
+
+        .panel-titulo {
+            margin: 0 0 4px;
+            font-size: 17px;
+        }
+
+        .panel-subtitulo {
+            margin-bottom: 17px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        /* BARRAS */
+
+        .barra-item + .barra-item {
+            margin-top: 15px;
+        }
+
+        .barra-cabecera {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: baseline;
             margin-bottom: 7px;
         }
 
-        .tarjeta-texto {
-            color: #777777;
-
-            font-size: 14px;
-
-            line-height: 1.45;
+        .barra-producto {
+            min-width: 0;
+            font-size: 13px;
+            font-weight: bold;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
-
-        /* =========================================
-           COLORES DE CADA MÓDULO
-        ========================================= */
-
-        .nuevo .icono {
-            background: #d4edda;
+        .barra-cantidad {
+            flex: 0 0 auto;
+            font-size: 13px;
+            font-weight: 900;
         }
 
-        .pedido .icono {
-            background: #d1ecf1;
+        .barra-fondo {
+            height: 10px;
+            border-radius: 999px;
+            background: #eceef1;
+            overflow: hidden;
         }
 
-        .producto-impresion .icono {
-            background: #fff3cd;
+        .barra-valor {
+            height: 100%;
+            min-width: 6px;
+            border-radius: inherit;
+            background: var(--oscuro);
         }
 
-        .produccion .icono {
-            background: #eadcf8;
+        .barra-nota {
+            margin-top: 5px;
+            color: var(--muted);
+            font-size: 10px;
         }
 
-        .productos .icono {
-            background: #fce5cd;
+        /* PEDIDOS POR ESTADO */
+
+        .estado-resumen {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 9px;
+            margin-bottom: 18px;
         }
 
-
-        /* =========================================
-           RESPONSIVE
-        ========================================= */
-
-        @media (max-width: 900px) {
-
-            .resumen {
-                grid-template-columns:
-                    repeat(2, 1fr);
-            }
-
+        .estado {
+            padding: 13px 8px;
+            text-align: center;
+            border-radius: 14px;
         }
 
-        @media (max-width: 650px) {
+        .estado strong {
+            display: block;
+            font-size: 23px;
+        }
 
+        .estado span {
+            display: block;
+            margin-top: 4px;
+            font-size: 9px;
+            font-weight: bold;
+        }
+
+        .estado-pendiente { background: var(--amarillo); color: var(--amarillo-texto); }
+        .estado-preparando { background: var(--azul); color: var(--azul-texto); }
+        .estado-listo { background: var(--verde); color: var(--verde-texto); }
+
+        .estado-barra {
+            display: flex;
+            width: 100%;
+            height: 14px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: #eceef1;
+        }
+
+        .estado-barra > div {
+            min-width: 0;
+            height: 100%;
+        }
+
+        .seg-pendiente { background: #e4b83f; }
+        .seg-preparando { background: #5b91d5; }
+        .seg-listo { background: #58a66c; }
+
+        /* ENTREGAS */
+
+        .entregas {
+            display: grid;
+            gap: 9px;
+        }
+
+        .entrega {
+            display: grid;
+            grid-template-columns: 86px 1fr auto;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid var(--borde);
+            border-radius: 14px;
+            background: #fafafa;
+        }
+
+        .entrega-fecha {
+            font-size: 11px;
+            font-weight: 900;
+        }
+
+        .entrega-fecha.atrasada {
+            color: var(--rojo-texto);
+        }
+
+        .entrega-cliente {
+            min-width: 0;
+        }
+
+        .entrega-cliente strong {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 13px;
+        }
+
+        .entrega-cliente span {
+            display: block;
+            margin-top: 3px;
+            color: var(--muted);
+            font-size: 10px;
+        }
+
+        .badge {
+            display: inline-flex;
+            padding: 6px 9px;
+            border-radius: 999px;
+            font-size: 9px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .badge-PENDIENTE { background: var(--amarillo); color: var(--amarillo-texto); }
+        .badge-PREPARANDO { background: var(--azul); color: var(--azul-texto); }
+        .badge-LISTO { background: var(--verde); color: var(--verde-texto); }
+
+        .sin-datos {
+            padding: 20px 10px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        /* NAVEGACIÓN INFERIOR */
+
+        .nav-inferior {
+            position: fixed;
+            z-index: 50;
+            left: 50%;
+            bottom: max(10px, env(safe-area-inset-bottom));
+            transform: translateX(-50%);
+            width: min(720px, calc(100% - 20px));
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+            padding: 7px;
+            border: 1px solid rgba(255,255,255,.5);
+            border-radius: 20px;
+            background: rgba(35, 38, 43, .96);
+            box-shadow: 0 12px 35px rgba(0,0,0,.22);
+            backdrop-filter: blur(14px);
+        }
+
+        .nav-item {
+            min-height: 58px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            border-radius: 14px;
+            color: #d9dbe0;
+            text-decoration: none;
+            font-size: 9px;
+            font-weight: bold;
+        }
+
+        .nav-item span:first-child {
+            font-size: 19px;
+        }
+
+        .nav-item.activo {
+            background: white;
+            color: var(--oscuro);
+        }
+
+        .nav-item.nuevo-nav {
+            background: #ffffff;
+            color: var(--oscuro);
+        }
+
+        /* TABLET */
+
+        @media (min-width: 760px) and (max-width: 1100px) {
             .contenedor {
-                padding: 20px 12px;
+                padding: 22px 18px 34px;
             }
 
-            .resumen {
-                grid-template-columns:
-                    1fr;
+            .metricas {
+                grid-auto-columns: minmax(205px, 29%);
             }
 
-            .accesos {
-                grid-template-columns:
-                    1fr;
+            .acciones {
+                grid-template-columns: repeat(2, 1fr);
             }
 
+            .accion {
+                min-height: 118px;
+            }
         }
 
+        /* TELÉFONO */
+
+        @media (max-width: 720px) {
+            .contenedor {
+                padding: 17px 12px 25px;
+            }
+
+            .encabezado {
+                align-items: center;
+            }
+
+            .fecha {
+                display: none;
+            }
+
+            .logo-texto {
+                width: 46px;
+                height: 46px;
+                border-radius: 14px;
+            }
+
+            .subtitulo {
+                font-size: 12px;
+            }
+
+            .metricas {
+                grid-auto-columns: 78%;
+            }
+
+            .acciones {
+                display: flex;
+                overflow-x: auto;
+                scroll-snap-type: x mandatory;
+                scrollbar-width: none;
+                margin: 0 -12px;
+                padding: 0 12px 10px;
+            }
+
+            .acciones::-webkit-scrollbar {
+                display: none;
+            }
+
+            .accion {
+                flex: 0 0 82%;
+                min-height: 118px;
+                scroll-snap-align: center;
+            }
+
+            .paneles {
+                grid-template-columns: 1fr;
+            }
+
+            .entrega {
+                grid-template-columns: 72px 1fr;
+            }
+
+            .entrega .badge {
+                grid-column: 2;
+                justify-self: start;
+            }
+
+            .nav-inferior {
+                width: calc(100% - 12px);
+                bottom: max(6px, env(safe-area-inset-bottom));
+                border-radius: 18px;
+            }
+
+            .nav-item {
+                min-height: 56px;
+            }
+        }
+
+        @media (hover: hover) {
+            .metrica:hover,
+            .accion:hover {
+                transform: translateY(-2px);
+            }
+        }
     </style>
-
 </head>
-
 
 <body>
 
 <div class="contenedor">
 
+    <header class="encabezado">
+        <div class="marca">
+            <div class="logo-texto">DV</div>
 
-    <!-- =========================================
-         ENCABEZADO
-    ========================================== -->
-
-    <div class="encabezado">
-
-        <h1 class="titulo">
-            Doble V 3D
-        </h1>
-
-        <div class="subtitulo">
-            Gestión de pedidos, productos, impresiones y producción
+            <div>
+                <h1 class="titulo">Doble V 3D</h1>
+                <div class="subtitulo">
+                    Taller · pedidos · producción
+                </div>
+            </div>
         </div>
 
-    </div>
-
-
-    <!-- =========================================
-         RESUMEN
-    ========================================== -->
-
-    <div class="resumen">
-
-
-        <!-- PEDIDOS ACTIVOS -->
-
-        <div class="indicador">
-
-            <div class="indicador-titulo">
-                PEDIDOS ACTIVOS
-            </div>
-
-            <div class="indicador-numero">
-                {{ pedidos_activos }}
-            </div>
-
+        <div class="fecha">
+            {{ hoy|date:"d M Y"|upper }}
         </div>
+    </header>
 
+    <!-- MÉTRICAS DESLIZABLES -->
 
-        <!-- PEDIDOS LISTOS -->
-
-        <div class="indicador">
-
-            <div class="indicador-titulo">
-                PEDIDOS LISTOS
-            </div>
-
-            <div class="indicador-numero">
-                {{ pedidos_listos }}
-            </div>
-
-        </div>
-
-
-        <!-- PRODUCCIONES PENDIENTES -->
-
-        <div class="indicador">
-
-            <div class="indicador-titulo">
-                PRODUCCIONES PENDIENTES
-            </div>
-
-            <div class="indicador-numero">
-                {{ producciones_pendientes }}
-            </div>
-
-        </div>
-
-
-        <!-- IMPRIMIENDO -->
-
-        <div class="indicador">
-
-            <div class="indicador-titulo">
-                IMPRIMIENDO
-            </div>
-
-            <div class="indicador-numero">
-                {{ producciones_imprimiendo }}
-            </div>
-
-        </div>
-
-
-    </div>
-
-
-    <!-- =========================================
-         ACCESOS RÁPIDOS
-    ========================================== -->
-
-    <div class="seccion-titulo">
-        Accesos rápidos
-    </div>
-
-
-    <div class="accesos">
-
-
-        <!-- =====================================
-             NUEVO PEDIDO
-        ====================================== -->
-
-        <a
-            href="{% url 'pedidos:nuevo' %}"
-            class="tarjeta nuevo"
-        >
-
-            <div class="icono">
-                +
-            </div>
-
-            <div class="tarjeta-titulo">
-                Nuevo Pedido
-            </div>
-
-            <div class="tarjeta-texto">
-                Crear un nuevo pedido para un cliente.
-            </div>
-
-        </a>
-
-
-        <!-- =====================================
-             IMPRESIONES POR PEDIDO
-        ====================================== -->
-
+    <section
+        class="metricas"
+        aria-label="Resumen del taller"
+    >
         <a
             href="{% url 'pedidos:impresiones' %}"
-            class="tarjeta pedido"
+            class="metrica m-pedidos"
         >
-
-            <div class="icono">
-                📦
+            <div class="metrica-cabecera">
+                <div class="metrica-titulo">PEDIDOS ACTIVOS</div>
+                <div class="metrica-icono">📦</div>
             </div>
 
-            <div class="tarjeta-titulo">
-                Pedidos
+            <div>
+                <div class="metrica-numero">{{ pedidos_activos }}</div>
+                <div class="metrica-ayuda">
+                    {{ pedidos_hoy }} con entrega hoy
+                </div>
             </div>
-
-            <div class="tarjeta-texto">
-                Ver cada pedido, preparar sus productos
-                y marcar cuáles ya están listos.
-            </div>
-
         </a>
-
-
-        <!-- =====================================
-             IMPRESIONES POR PRODUCTO
-        ====================================== -->
 
         <a
             href="{% url 'pedidos:impresiones_productos' %}"
-            class="tarjeta producto-impresion"
+            class="metrica m-imprimir"
         >
-
-            <div class="icono">
-                🖨
+            <div class="metrica-cabecera">
+                <div class="metrica-titulo">A IMPRIMIR</div>
+                <div class="metrica-icono">🖨</div>
             </div>
 
-            <div class="tarjeta-titulo">
-                Impresiones por Producto
+            <div>
+                <div class="metrica-numero">{{ total_a_imprimir }}</div>
+                <div class="metrica-ayuda">
+                    unidades pendientes
+                </div>
             </div>
-
-            <div class="tarjeta-texto">
-                Consultar los productos que necesitan
-                impresión, cantidades y prioridades.
-            </div>
-
         </a>
-
-
-        <!-- =====================================
-             PRODUCCIÓN
-        ====================================== -->
 
         <a
             href="{% url 'produccion:lista' %}"
-            class="tarjeta produccion"
+            class="metrica m-produccion"
         >
-
-            <div class="icono">
-                ⚙
+            <div class="metrica-cabecera">
+                <div class="metrica-titulo">IMPRIMIENDO</div>
+                <div class="metrica-icono">⚙</div>
             </div>
 
-            <div class="tarjeta-titulo">
-                Producción
+            <div>
+                <div class="metrica-numero">{{ producciones_imprimiendo }}</div>
+                <div class="metrica-ayuda">
+                    {{ unidades_en_produccion }} unidades en cola / curso
+                </div>
             </div>
-
-            <div class="tarjeta-texto">
-                Gestionar impresiones en curso,
-                tiempos, destinos y finalización estimada.
-            </div>
-
         </a>
-
-
-        <!-- =====================================
-             PRODUCTOS
-        ====================================== -->
 
         <a
-            href="{% url 'productos:lista' %}"
-            class="tarjeta productos"
+            href="{% url 'pedidos:impresiones' %}"
+            class="metrica m-listos"
         >
-
-            <div class="icono">
-                📋
+            <div class="metrica-cabecera">
+                <div class="metrica-titulo">LISTOS</div>
+                <div class="metrica-icono">✓</div>
             </div>
 
-            <div class="tarjeta-titulo">
-                Productos
+            <div>
+                <div class="metrica-numero">{{ pedidos_listos }}</div>
+                <div class="metrica-ayuda">
+                    pedidos para entregar
+                </div>
             </div>
-
-            <div class="tarjeta-texto">
-                Consultar el catálogo, buscar productos,
-                ver stock, precios y tiempos de impresión.
-            </div>
-
         </a>
 
+        <a
+            href="#entregas"
+            class="metrica m-atrasados {% if pedidos_atrasados %}alerta{% endif %}"
+        >
+            <div class="metrica-cabecera">
+                <div class="metrica-titulo">ATRASADOS</div>
+                <div class="metrica-icono">!</div>
+            </div>
 
-    </div>
+            <div>
+                <div class="metrica-numero">{{ pedidos_atrasados }}</div>
+                <div class="metrica-ayuda">
+                    requieren atención
+                </div>
+            </div>
+        </a>
+    </section>
 
+    <!-- ACCIONES RÁPIDAS -->
+
+    <section class="seccion">
+        <div class="seccion-cabecera">
+            <h2 class="seccion-titulo">Acciones rápidas</h2>
+            <div class="seccion-ayuda">Tocá para ingresar</div>
+        </div>
+
+        <div class="acciones">
+            <a
+                href="{% url 'pedidos:nuevo' %}"
+                class="accion accion-principal"
+            >
+                <div class="accion-icono">＋</div>
+                <div>
+                    <div class="accion-titulo">Nuevo pedido</div>
+                    <div class="accion-texto">
+                        Cargar producto, kit o personalizado.
+                    </div>
+                </div>
+            </a>
+
+            <a
+                href="{% url 'pedidos:impresiones' %}"
+                class="accion"
+            >
+                <div class="accion-icono">📦</div>
+                <div>
+                    <div class="accion-titulo">Preparar pedidos</div>
+                    <div class="accion-texto">
+                        Ver pedidos y marcar productos listos.
+                    </div>
+                </div>
+            </a>
+
+            <a
+                href="{% url 'pedidos:impresiones_productos' %}"
+                class="accion"
+            >
+                <div class="accion-icono">🖨</div>
+                <div>
+                    <div class="accion-titulo">Qué imprimir</div>
+                    <div class="accion-texto">
+                        Cantidades pendientes y prioridades.
+                    </div>
+                </div>
+            </a>
+
+            <a
+                href="{% url 'produccion:lista' %}"
+                class="accion"
+            >
+                <div class="accion-icono">⚙</div>
+                <div>
+                    <div class="accion-titulo">Producción</div>
+                    <div class="accion-texto">
+                        Cola, impresiones en curso y tiempos.
+                    </div>
+                </div>
+            </a>
+
+            <a
+                href="{% url 'productos:lista' %}"
+                class="accion"
+            >
+                <div class="accion-icono">▦</div>
+                <div>
+                    <div class="accion-titulo">Productos</div>
+                    <div class="accion-texto">
+                        Catálogo, stock, precios y tiempos.
+                    </div>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <!-- INFORMACIÓN OPERATIVA -->
+
+    <section class="seccion">
+        <div class="seccion-cabecera">
+            <h2 class="seccion-titulo">Estado del taller</h2>
+            <div class="seccion-ayuda">
+                Información operativa actual
+            </div>
+        </div>
+
+        <div class="paneles">
+            <div class="panel">
+                <h3 class="panel-titulo">Necesidad de impresión</h3>
+                <div class="panel-subtitulo">
+                    Productos con más unidades pendientes
+                </div>
+
+                {% if top_impresion %}
+                    {% for item in top_impresion %}
+                        <div class="barra-item">
+                            <div class="barra-cabecera">
+                                <div class="barra-producto">
+                                    {{ item.producto.nombre }}
+                                </div>
+
+                                <div class="barra-cantidad">
+                                    {{ item.cantidad }}
+                                </div>
+                            </div>
+
+                            <div class="barra-fondo">
+                                <div
+                                    class="barra-valor"
+                                    style="width: {{ item.porcentaje }}%;"
+                                ></div>
+                            </div>
+
+                            {% if item.personalizada %}
+                                <div class="barra-nota">
+                                    {{ item.personalizada }} personalizadas
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="sin-datos">
+                        No hay productos pendientes de impresión.
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="panel">
+                <h3 class="panel-titulo">Pedidos por estado</h3>
+                <div class="panel-subtitulo">
+                    Distribución de los pedidos activos
+                </div>
+
+                <div class="estado-resumen">
+                    <div class="estado estado-pendiente">
+                        <strong>{{ pedidos_pendientes }}</strong>
+                        <span>PENDIENTES</span>
+                    </div>
+
+                    <div class="estado estado-preparando">
+                        <strong>{{ pedidos_preparando }}</strong>
+                        <span>PREPARANDO</span>
+                    </div>
+
+                    <div class="estado estado-listo">
+                        <strong>{{ pedidos_listos }}</strong>
+                        <span>LISTOS</span>
+                    </div>
+                </div>
+
+                {% if pedidos_activos %}
+                    <div
+                        class="estado-barra"
+                        aria-label="Distribución de pedidos"
+                    >
+                        <div
+                            class="seg-pendiente"
+                            style="width: {% widthratio pedidos_pendientes pedidos_activos 100 %}%;"
+                        ></div>
+                        <div
+                            class="seg-preparando"
+                            style="width: {% widthratio pedidos_preparando pedidos_activos 100 %}%;"
+                        ></div>
+                        <div
+                            class="seg-listo"
+                            style="width: {% widthratio pedidos_listos pedidos_activos 100 %}%;"
+                        ></div>
+                    </div>
+                {% else %}
+                    <div class="sin-datos">
+                        No hay pedidos activos.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- ENTREGAS -->
+
+    <section
+        class="seccion"
+        id="entregas"
+    >
+        <div class="seccion-cabecera">
+            <h2 class="seccion-titulo">Próximas entregas</h2>
+            <div class="seccion-ayuda">
+                Atrasadas + próximos 7 días
+            </div>
+        </div>
+
+        <div class="panel">
+            {% if proximas_entregas %}
+                <div class="entregas">
+                    {% for pedido in proximas_entregas %}
+                        <div class="entrega">
+                            <div
+                                class="entrega-fecha {% if pedido.fecha_entrega < hoy %}atrasada{% endif %}"
+                            >
+                                {% if pedido.fecha_entrega == hoy %}
+                                    HOY
+                                {% elif pedido.fecha_entrega < hoy %}
+                                    ATRASADO
+                                {% else %}
+                                    {{ pedido.fecha_entrega|date:"d/m" }}
+                                {% endif %}
+                            </div>
+
+                            <div class="entrega-cliente">
+                                <strong>{{ pedido.cliente.nombre }}</strong>
+                                <span>{{ pedido.codigo }}</span>
+                            </div>
+
+                            <span class="badge badge-{{ pedido.estado }}">
+                                {{ pedido.get_estado_display|upper }}
+                            </span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="sin-datos">
+                    No hay entregas programadas para los próximos 7 días.
+                </div>
+            {% endif %}
+        </div>
+    </section>
 
 </div>
 
-</body>
+<!-- NAVEGACIÓN TÁCTIL FIJA -->
 
+<nav
+    class="nav-inferior"
+    aria-label="Navegación principal"
+>
+    <a
+        href="{% url 'dashboard:inicio' %}"
+        class="nav-item activo"
+    >
+        <span>⌂</span>
+        <span>INICIO</span>
+    </a>
+
+    <a
+        href="{% url 'pedidos:impresiones' %}"
+        class="nav-item"
+    >
+        <span>📦</span>
+        <span>PEDIDOS</span>
+    </a>
+
+    <a
+        href="{% url 'pedidos:nuevo' %}"
+        class="nav-item nuevo-nav"
+    >
+        <span>＋</span>
+        <span>NUEVO</span>
+    </a>
+
+    <a
+        href="{% url 'produccion:lista' %}"
+        class="nav-item"
+    >
+        <span>⚙</span>
+        <span>PRODUCCIÓN</span>
+    </a>
+
+    <a
+        href="{% url 'productos:lista' %}"
+        class="nav-item"
+    >
+        <span>▦</span>
+        <span>PRODUCTOS</span>
+    </a>
+</nav>
+
+</body>
 </html>
