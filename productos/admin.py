@@ -1,22 +1,20 @@
 from django.contrib import admin
 
-from .models import Producto, TipoProducto
+from .models import Producto, ProductoComponente, TipoProducto
 
 
 @admin.register(TipoProducto)
 class TipoProductoAdmin(admin.ModelAdmin):
-    list_display = (
-        "nombre",
-        "activo",
-    )
+    list_display = ("nombre", "activo")
+    search_fields = ("nombre",)
+    list_filter = ("activo",)
 
-    search_fields = (
-        "nombre",
-    )
 
-    list_filter = (
-        "activo",
-    )
+class ProductoComponenteInline(admin.TabularInline):
+    model = ProductoComponente
+    fk_name = "producto"
+    extra = 1
+    autocomplete_fields = ("componente",)
 
 
 @admin.register(Producto)
@@ -26,6 +24,8 @@ class ProductoAdmin(admin.ModelAdmin):
         "nombre",
         "categoria",
         "tipo",
+        "tipo_fabricacion",
+        "solo_produccion",
         "horas",
         "minutos",
         "peso_gramos",
@@ -38,17 +38,16 @@ class ProductoAdmin(admin.ModelAdmin):
         "mostrar_ganancia",
         "mostrar_subtotal",
     )
-
-    search_fields = (
-        "nombre",
-    )
-
+    search_fields = ("nombre",)
     list_filter = (
         "categoria",
+        "tipo_fabricacion",
+        "solo_produccion",
         "requiere_impresion",
         "personalizable",
         "activo",
     )
+    inlines = (ProductoComponenteInline,)
 
     @admin.display(description="COSTO")
     def mostrar_costo(self, obj):
@@ -66,9 +65,6 @@ class ProductoAdmin(admin.ModelAdmin):
     def mostrar_subtotal(self, obj):
         return f"${obj.subtotal:,.0f}"
 
-    @admin.display(
-        description="ID PRODUCTO",
-        ordering="id"
-    )
+    @admin.display(description="ID PRODUCTO", ordering="id")
     def mostrar_codigo(self, obj):
         return obj.codigo
