@@ -102,23 +102,89 @@ def _piezas_disponibles(producto=None):
 
 
 def _leer_componentes_post(request):
-    componentes = {}
-    errores = []
-
+    """Lee piezas existentes y nuevas sin crear nada todavía."""
+    modos = request.POST.getlist("componente_modo")
     ids = request.POST.getlist("componente_id")
+    nombres = request.POST.getlist("componente_nombre")
+    horas_lista = request.POST.getlist("componente_horas")
+    minutos_lista = request.POST.getlist("componente_minutos")
+    pesos = request.POST.getlist("componente_peso")
     cantidades = request.POST.getlist("componente_cantidad")
 
-    for indice, componente_id in enumerate(ids):
-        componente_id = (componente_id or "").strip()
-        if not componente_id:
-            continue
+    total_filas = max(
+        len(modos), len(ids), len(nombres), len(horas_lista),
+        len(minutos_lista), len(pesos), len(cantidades), 0,
+    )
 
+    componentes = []
+    errores = []
+    ids_existentes = set()
+    nombres_nuevos = set()
+
+    for indice in range(total_filas):
+        modo = (modos[indice] if indice < len(modos) else "EXISTENTE").strip().upper()
         cantidad = _entero(
             cantidades[indice] if indice < len(cantidades) else 0,
             0,
         )
+
         if cantidad <= 0:
-            errores.append("La cantidad de cada pieza debe ser mayor a cero.")
+            errores.append(f"La cantidad de la pieza {indice + 1} debe ser mayor a cero.")
+            continue
+
+        if modo == "NUEVA":
+            nombre = (nombres[indice] if indice < len(nombres) else "").strip()
+            horas = max(_entero(horas_lista[indice] if indice < len(horas_lista) else 0, 0), 0)
+            minutos = max(_entero(minutos_lista[indice] if indice < len(minutos_lista) else 0, 0), 0)
+            peso = max(_decimal(pesos[indice] if indice < len(pesos) else 0), Decimal("0"))
+
+            if minutos >= 60:
+                horas += minutos // 60
+                minutos %= 60
+
+            if not nombre:
+                errores.append(f"Ingresá el nombre de la pieza nueva {indice + 1}.")
+                continue
+            if horas == 0 and minutos == 0:
+                errores.append(f"La pieza nueva '{nombre}' debe tener un tiempo mayor a 0.")
+                continue
+            if peso <= 0:
+                errores.append(f"La pieza nueva '{nombre}' debe tener un peso mayor a 0.")
+                continue
+
+            clave_nombre = nombre.casefold()
+            if clave_nombre in nombres_nuevos:
+                errores.append(f"La pieza nueva '{nombre}' está repetida en la composición.")
+                continue
+
+            existente_mismo_nombre = Producto.objects.filter(
+                nombre__iexact=nombre,
+                tipo_fabricacion="SIMPLE",
+                activo=True,
+            ).first()
+            if existente_mismo_nombre:
+                errores.append(
+                    f"Ya existe la pieza '{existente_mismo_nombre.nombre}' "
+                    f"({existente_mismo_nombre.codigo}). Seleccionala como pieza existente."
+                )
+                continue
+
+            nombres_nuevos.add(clave_nombre)
+            componentes.append(
+                {
+                    "modo": "NUEVA",
+                    "nombre": nombre,
+                    "horas": horas,
+                    "minutos": minutos,
+                    "peso": peso,
+                    "cantidad": cantidad,
+                }
+            )
+            continue
+
+        componente_id = (ids[indice] if indice < len(ids) else "").strip()
+        if not componente_id:
+            errores.append(f"Seleccioná una pieza existente en la fila {indice + 1}.")
             continue
 
         pieza = Producto.objects.filter(
@@ -132,12 +198,39 @@ def _leer_componentes_post(request):
             errores.append("Una de las piezas seleccionadas no es válida.")
             continue
 
-        componentes[pieza.id] = {
-            "producto": pieza,
-            "cantidad": componentes.get(pieza.id, {}).get("cantidad", 0) + cantidad,
-        }
+        if pieza.id in ids_existentes:
+            errores.append(f"La pieza '{pieza.nombre}' está repetida en la composición.")
+            continue
 
-    return list(componentes.values()), errores
+        ids_existentes.add(pieza.id)
+        componentes.append(
+            {
+                "modo": "EXISTENTE",
+                "producto": pieza,
+                "cantidad": cantidad,
+            }
+        )
+
+    return componentes, errores
+
+
+def _crear_pieza_interna(item, tipo, margen_ganancia):
+    """Crea una pieza simple interna con los datos mínimos de fabricación."""
+    return Producto.objects.create(
+        nombre=item["nombre"],
+        categoria="PRODUCTO",
+        tipo=tipo,
+        horas=item["horas"],
+        minutos=item["minutos"],
+        peso_gramos=item["peso"],
+        margen_ganancia=margen_ganancia,
+        requiere_impresion=True,
+        personalizable=False,
+        stock=0,
+        activo=True,
+        tipo_fabricacion="SIMPLE",
+        solo_produccion=True,
+    )
 
 
 @transaction.atomic
@@ -188,7 +281,10 @@ def _guardar_producto_desde_post(request, producto=None):
         errores.extend(errores_componentes)
         if not componentes:
             errores.append("Un producto compuesto debe tener al menos una pieza.")
-        if producto and any(item["producto"].id == producto.id for item in componentes):
+        if producto and any(
+            item.get("producto") and item["producto"].id == producto.id
+            for item in componentes
+        ):
             errores.append("Un producto no puede contenerse a sí mismo.")
     elif requiere_impresion:
         if horas == 0 and minutos == 0:
@@ -231,12 +327,23 @@ def _guardar_producto_desde_post(request, producto=None):
 
     if tipo_fabricacion == "COMPUESTO":
         ProductoComponente.objects.filter(producto=producto).delete()
+
         for item in componentes:
+            if item["modo"] == "NUEVA":
+                pieza = _crear_pieza_interna(
+                    item,
+                    tipo=tipo,
+                    margen_ganancia=margen_ganancia,
+                )
+            else:
+                pieza = item["producto"]
+
             ProductoComponente.objects.create(
                 producto=producto,
-                componente=item["producto"],
+                componente=pieza,
                 cantidad=item["cantidad"],
             )
+
         producto.refresh_from_db()
         producto.recalcular_desde_componentes()
     else:
