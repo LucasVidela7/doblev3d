@@ -482,7 +482,18 @@
         .btn-secundario{border-color:#b9c7e8;color:#3556a8;background:#f6f8ff}
         details summary{background:#f7f8fb}
         @media(max-width:600px){.selector-estrategia{grid-template-columns:1fr}.comparador{min-width:610px}}
-    </style>
+    
+        .nota-margen-dinamico{
+            margin:8px 0 14px;
+            padding:10px 12px;
+            border-radius:10px;
+            background:#eef7ff;
+            color:#24415f;
+            font-size:13px;
+            font-weight:700;
+        }
+        </style>
+
 </head>
 <body>
 
@@ -846,7 +857,7 @@
 
                 {% if resultado_existente.advertencia_margen %}
                     <div class="advertencia">
-                        Atención: el margen elegido está debajo del piso de advertencia de
+                        Atención: el margen elegido está debajo del piso mayorista de
                         {{ margen_minimo|floatformat:1 }}%.
                     </div>
                 {% endif %}

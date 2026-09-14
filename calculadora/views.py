@@ -7,7 +7,8 @@ from costos.models import ConfiguracionCostos
 from productos.models import Producto
 
 
-MARGEN_MINIMO_ADVERTENCIA = Decimal("20")
+MARGEN_MINIMO_ADVERTENCIA = Decimal("22.5")
+CANTIDAD_PISO_MARGEN = Decimal("1500")
 CANTIDADES_LISTA_DEFAULT = "10,20,50,100"
 
 ESCALAS_MAYORISTAS = (
@@ -52,30 +53,55 @@ def _redondear_arriba(valor, multiplo=Decimal("100")):
     )
 
 
-def _margen_sugerido(cantidad):
+def _margen_sugerido(cantidad, margen_tope):
     """
-    Margen progresivo por volumen.
+    Margen dinámico según:
+    - cantidad
+    - margen propio del producto
 
-    En lugar de usar escalones fijos (que hacían que x10 y x20
-    terminaran con el mismo precio), el margen baja de manera
-    continua a medida que aumenta la cantidad.
+    El margen del producto es el TOPE.
+    El piso mayorista es 22,5%.
 
-    Fórmula base:
-        margen = 60 - 12 * log10(cantidad)
+    La curva baja de forma logarítmica desde el margen del producto
+    hasta 22,5% al llegar a 1500 unidades.
 
-    Se aplica un piso de 20%. Así cada cantidad puede producir
-    una cotización diferente sin saltos bruscos entre rangos.
+    Ejemplo:
+        producto con margen 75% -> parte de 75%
+        producto con margen 60% -> parte de 60%
+
+    Así dos productos con distinta rentabilidad minorista no usan
+    exactamente la misma curva mayorista.
     """
     cantidad = max(int(cantidad or 1), 1)
 
-    margen = Decimal("60") - (
-        Decimal("12")
-        * Decimal(str(log10(cantidad)))
+    margen_tope = Decimal(margen_tope)
+    margen_tope = max(
+        margen_tope,
+        MARGEN_MINIMO_ADVERTENCIA,
     )
 
+    if cantidad <= 1:
+        return margen_tope.quantize(Decimal("0.1"))
+
+    if Decimal(cantidad) >= CANTIDAD_PISO_MARGEN:
+        return MARGEN_MINIMO_ADVERTENCIA
+
+    progreso = (
+        Decimal(str(log10(cantidad)))
+        / Decimal(str(log10(float(CANTIDAD_PISO_MARGEN))))
+    )
+
+    margen = (
+        margen_tope
+        - (
+            (margen_tope - MARGEN_MINIMO_ADVERTENCIA)
+            * progreso
+        )
+    )
+
+    margen = min(margen, margen_tope)
     margen = max(margen, MARGEN_MINIMO_ADVERTENCIA)
 
-    # Redondeamos el margen a una décima para que sea fácil de leer.
     return margen.quantize(Decimal("0.1"))
 
 
@@ -181,11 +207,17 @@ def _parsear_cantidades(texto):
     return sorted(cantidades)[:12]
 
 
-def _fila_precio(costo_productivo, cantidad, margen=None, precio_forzado=None):
+def _fila_precio(
+    costo_productivo,
+    cantidad,
+    margen=None,
+    precio_forzado=None,
+    margen_tope=Decimal("60"),
+):
     margen_objetivo = (
         Decimal(margen)
         if margen is not None
-        else _margen_sugerido(cantidad)
+        else _margen_sugerido(cantidad, margen_tope)
     )
 
     if precio_forzado is not None:
@@ -230,18 +262,22 @@ def _fila_precio(costo_productivo, cantidad, margen=None, precio_forzado=None):
     }
 
 
-def _lista_precios(costo_productivo, cantidades):
+def _lista_precios(costo_productivo, cantidades, margen_tope):
     return [
-        _fila_precio(costo_productivo, cantidad)
+        _fila_precio(
+            costo_productivo,
+            cantidad,
+            margen_tope=margen_tope,
+        )
         for cantidad in cantidades
     ]
 
 
-def _margenes_escenario(cantidad):
-    recomendado = _margen_sugerido(cantidad)
+def _margenes_escenario(cantidad, margen_tope):
+    recomendado = _margen_sugerido(cantidad, margen_tope)
     conservador = min(
         recomendado + Decimal("4"),
-        Decimal("60"),
+        Decimal(margen_tope),
     )
     agresivo = max(
         recomendado - Decimal("4"),
@@ -255,11 +291,11 @@ def _margenes_escenario(cantidad):
     }
 
 
-def _lista_precios_escenarios(costo_productivo, cantidades):
+def _lista_precios_escenarios(costo_productivo, cantidades, margen_tope):
     filas = []
 
     for cantidad in cantidades:
-        margenes = _margenes_escenario(cantidad)
+        margenes = _margenes_escenario(cantidad, margen_tope)
         filas.append(
             {
                 "cantidad": cantidad,
@@ -342,10 +378,10 @@ def _mensaje_cliente(nombre, filas, estrategia=None):
     return "\n".join(lineas)
 
 
-def _escenarios(costo_productivo, cantidad, margen_recomendado):
+def _escenarios(costo_productivo, cantidad, margen_recomendado, margen_tope):
     margen_conservador = min(
         margen_recomendado + Decimal("4"),
-        Decimal("60"),
+        Decimal(margen_tope),
     )
     margen_agresivo = max(
         margen_recomendado - Decimal("4"),
@@ -463,7 +499,10 @@ def calculadora_precios(request):
                 desglose = _desglose_producto(producto_temporal)
                 costo_productivo = desglose["costo_productivo"]
                 precio_lista = producto_temporal.subtotal
-                margen_cantidad = _margen_sugerido(cantidad)
+                margen_cantidad = _margen_sugerido(
+                    cantidad,
+                    margen_minorista,
+                )
                 fila_cantidad = _fila_precio(
                     costo_productivo,
                     cantidad,
@@ -475,6 +514,7 @@ def calculadora_precios(request):
                 lista_escenarios = _lista_precios_escenarios(
                     costo_productivo,
                     cantidades_lista,
+                    margen_minorista,
                 )
                 lista = _filas_de_estrategia(
                     lista_escenarios,
@@ -487,6 +527,8 @@ def calculadora_precios(request):
                     "minutos": minutos,
                     "peso": peso,
                     "margen_minorista": margen_minorista,
+                    "margen_tope": margen_minorista,
+                    "margen_piso": MARGEN_MINIMO_ADVERTENCIA,
                     "cantidad": cantidad,
                     "desglose": desglose,
                     "precio_lista": precio_lista,
@@ -550,7 +592,14 @@ def calculadora_precios(request):
             if not errores:
                 desglose = _desglose_producto(producto)
                 costo_productivo = desglose["costo_productivo"]
-                recomendado = _margen_sugerido(cantidad)
+                margen_tope = max(
+                    Decimal(producto.margen_ganancia),
+                    MARGEN_MINIMO_ADVERTENCIA,
+                )
+                recomendado = _margen_sugerido(
+                    cantidad,
+                    margen_tope,
+                )
 
                 margen_ingresado = (
                     request.POST.get("margen_mayorista", "")
@@ -562,6 +611,9 @@ def calculadora_precios(request):
                     if margen_ingresado
                     else recomendado
                 )
+
+                if margen_usado > margen_tope:
+                    margen_usado = margen_tope
 
                 if margen_usado < 0 or margen_usado >= 100:
                     errores.append(
@@ -582,6 +634,7 @@ def calculadora_precios(request):
                     lista_escenarios = _lista_precios_escenarios(
                         costo_productivo,
                         cantidades_lista,
+                        margen_tope,
                     )
                     lista = _filas_de_estrategia(
                         lista_escenarios,
@@ -594,6 +647,8 @@ def calculadora_precios(request):
                         "desglose": desglose,
                         "precio_lista": producto.subtotal,
                         "margen_recomendado": recomendado,
+                        "margen_tope": margen_tope,
+                        "margen_piso": MARGEN_MINIMO_ADVERTENCIA,
                         "margen_usado": margen_usado,
                         "fila_cantidad": fila_cantidad,
                         "advertencia_margen": (
@@ -604,6 +659,7 @@ def calculadora_precios(request):
                             costo_productivo,
                             cantidad,
                             recomendado,
+                            margen_tope,
                         ),
                         "lista_precios": lista,
                         "lista_escenarios": lista_escenarios,
