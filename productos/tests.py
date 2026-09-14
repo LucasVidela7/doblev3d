@@ -1,6 +1,9 @@
+from datetime import date
 from decimal import Decimal
 
 from django.test import TestCase
+
+from costos.models import ConfiguracionCostos
 
 from .models import Producto, ProductoComponente, TipoProducto
 
@@ -72,3 +75,53 @@ class ProductoCompuestoTests(TestCase):
         self.assertEqual(producto.horas, 3)
         self.assertEqual(producto.minutos, 0)
         self.assertEqual(producto.peso_gramos, Decimal("50.00"))
+
+    def test_precio_compuesto_se_calcula_desde_piezas_aunque_resumen_este_desactualizado(self):
+        ConfiguracionCostos.objects.create(
+            nombre="Test",
+            coste_plastico_kg=Decimal("20000"),
+            tasa_fallos=Decimal("10"),
+            coste_luz_hora=Decimal("100"),
+            coste_amortizacion_hora=Decimal("200"),
+            fecha_desde=date(2026, 1, 1),
+            activa=True,
+        )
+
+        cuerpo = self.pieza("Cuerpo", 1, 30, 80)
+        tapa = self.pieza("Tapa", 0, 20, 15)
+        producto = Producto.objects.create(
+            nombre="Compuesto con piezas nuevas",
+            categoria="PRODUCTO",
+            tipo=self.tipo,
+            margen_ganancia=Decimal("60"),
+            requiere_impresion=True,
+            tipo_fabricacion="COMPUESTO",
+        )
+        ProductoComponente.objects.create(
+            producto=producto,
+            componente=cuerpo,
+            cantidad=1,
+        )
+        ProductoComponente.objects.create(
+            producto=producto,
+            componente=tapa,
+            cantidad=2,
+        )
+
+        costo_esperado = cuerpo.costo + tapa.costo * Decimal("2")
+        seguro_esperado = cuerpo.seguro + tapa.seguro * Decimal("2")
+        horas_esperadas = cuerpo.horas_totales + tapa.horas_totales * Decimal("2")
+
+        # Simula un resumen agregado viejo o incompleto: el precio debe seguir
+        # saliendo de la composición real y no de estos campos cacheados.
+        Producto.objects.filter(pk=producto.pk).update(
+            horas=0,
+            minutos=0,
+            peso_gramos=Decimal("0"),
+        )
+        producto.refresh_from_db()
+
+        self.assertEqual(producto.horas_totales, horas_esperadas)
+        self.assertEqual(producto.costo, costo_esperado)
+        self.assertEqual(producto.seguro, seguro_esperado)
+        self.assertGreater(producto.subtotal, Decimal("0"))
