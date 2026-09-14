@@ -1,8 +1,9 @@
 from decimal import Decimal
 
-from django.test import TestCase
+from django.test import RequestFactory, TestCase
 
 from .models import Producto, ProductoComponente, TipoProducto
+from .views import _guardar_producto_desde_post
 
 
 class ProductoCompuestoTests(TestCase):
@@ -72,3 +73,74 @@ class ProductoCompuestoTests(TestCase):
         self.assertEqual(producto.horas, 3)
         self.assertEqual(producto.minutos, 0)
         self.assertEqual(producto.peso_gramos, Decimal("50.00"))
+
+    def test_crear_piezas_inline_desde_compuesto(self):
+        request = RequestFactory().post(
+            "/productos/nuevo/",
+            data={
+                "nombre": "Kit carcasa",
+                "categoria": "PRODUCTO",
+                "tipo": str(self.tipo.id),
+                "margen_ganancia": "60",
+                "tipo_fabricacion": "COMPUESTO",
+                "stock": "0",
+                "requiere_impresion": "1",
+                "activo": "1",
+                "componente_modo": ["NUEVA", "NUEVA"],
+                "componente_id": ["", ""],
+                "componente_nombre": ["Cuerpo carcasa", "Tapa carcasa"],
+                "componente_horas": ["2", "0"],
+                "componente_minutos": ["30", "20"],
+                "componente_peso": ["100", "12.5"],
+                "componente_cantidad": ["1", "3"],
+            },
+        )
+
+        producto, errores = _guardar_producto_desde_post(request)
+
+        self.assertEqual(errores, [])
+        self.assertIsNotNone(producto)
+
+        piezas = Producto.objects.filter(solo_produccion=True).order_by("nombre")
+        self.assertEqual(piezas.count(), 2)
+        self.assertTrue(all(p.tipo_fabricacion == "SIMPLE" for p in piezas))
+        self.assertTrue(all(p.requiere_impresion for p in piezas))
+
+        producto.refresh_from_db()
+        self.assertEqual(producto.componentes.count(), 2)
+        self.assertEqual(producto.horas, 3)
+        self.assertEqual(producto.minutos, 30)
+        self.assertEqual(producto.peso_gramos, Decimal("137.50"))
+
+    def test_pieza_inline_hereda_tipo_y_margen(self):
+        request = RequestFactory().post(
+            "/productos/nuevo/",
+            data={
+                "nombre": "Producto padre",
+                "categoria": "PRODUCTO",
+                "tipo": str(self.tipo.id),
+                "margen_ganancia": "55",
+                "tipo_fabricacion": "COMPUESTO",
+                "stock": "0",
+                "requiere_impresion": "1",
+                "activo": "1",
+                "componente_modo": ["NUEVA"],
+                "componente_id": [""],
+                "componente_nombre": ["Pieza hija"],
+                "componente_horas": ["1"],
+                "componente_minutos": ["15"],
+                "componente_peso": ["20"],
+                "componente_cantidad": ["1"],
+            },
+        )
+
+        producto, errores = _guardar_producto_desde_post(request)
+        self.assertEqual(errores, [])
+
+        pieza = Producto.objects.get(nombre="Pieza hija")
+        self.assertEqual(pieza.tipo_id, self.tipo.id)
+        self.assertEqual(pieza.margen_ganancia, Decimal("55"))
+        self.assertTrue(pieza.solo_produccion)
+        self.assertEqual(pieza.stock, 0)
+        self.assertFalse(pieza.personalizable)
+        self.assertEqual(producto.componentes.get().componente_id, pieza.id)
