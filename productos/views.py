@@ -30,6 +30,7 @@ def _decimal(valor, default=Decimal("0")):
 def lista(request):
     busqueda = request.GET.get("q", "").strip()
     tipo_seleccionado = request.GET.get("tipo", "").strip()
+    mostrar_piezas = request.GET.get("piezas", "") == "1"
 
     productos = (
         Producto.objects
@@ -38,6 +39,9 @@ def lista(request):
         .all()
         .order_by("-activo", "nombre")
     )
+
+    if not mostrar_piezas:
+        productos = productos.filter(solo_produccion=False)
 
     if busqueda:
         filtros = Q(nombre__icontains=busqueda)
@@ -51,6 +55,17 @@ def lista(request):
 
     tipos = TipoProducto.objects.filter(activo=True).order_by("nombre")
 
+    parametros_toggle = request.GET.copy()
+    if mostrar_piezas:
+        parametros_toggle.pop("piezas", None)
+    else:
+        parametros_toggle["piezas"] = "1"
+
+    piezas_toggle_url = request.path
+    query_toggle = parametros_toggle.urlencode()
+    if query_toggle:
+        piezas_toggle_url = f"{piezas_toggle_url}?{query_toggle}"
+
     return render(
         request,
         "productos/lista.html",
@@ -59,6 +74,8 @@ def lista(request):
             "tipos": tipos,
             "busqueda": busqueda,
             "tipo_seleccionado": tipo_seleccionado,
+            "mostrar_piezas": mostrar_piezas,
+            "piezas_toggle_url": piezas_toggle_url,
         },
     )
 
