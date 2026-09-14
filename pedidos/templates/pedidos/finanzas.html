@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finanzas | Doble V 3D</title>
+
+    <style>
+        :root{
+            --fondo:#f3f4f6;
+            --panel:#fff;
+            --texto:#17191c;
+            --muted:#70757d;
+            --borde:#e2e5e9;
+            --verde:#1f7a45;
+            --verde-bg:#e8f5ed;
+            --rojo:#aa2633;
+            --amarillo:#806400;
+            --amarillo-bg:#fff6cf;
+            --sombra:0 8px 24px rgba(0,0,0,.06);
+        }
+
+        *{box-sizing:border-box}
+
+        body{
+            margin:0;
+            padding:18px 18px 92px;
+            background:var(--fondo);
+            color:var(--texto);
+            font-family:Arial,Helvetica,sans-serif;
+        }
+
+        .contenedor{
+            width:min(1180px,100%);
+            margin:0 auto;
+        }
+
+        .encabezado{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:16px;
+            margin-bottom:18px;
+        }
+
+        h1{margin:0;font-size:28px}
+
+        .subtitulo{
+            margin-top:5px;
+            color:var(--muted);
+            font-size:12px;
+        }
+
+        .acciones{display:flex;gap:8px}
+
+        .boton{
+            min-height:44px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            padding:0 15px;
+            border:1px solid var(--borde);
+            border-radius:12px;
+            background:var(--panel);
+            color:var(--texto);
+            text-decoration:none;
+            font-size:10px;
+            font-weight:900;
+            cursor:pointer;
+        }
+
+        .filtros{
+            display:flex;
+            align-items:end;
+            gap:10px;
+            padding:14px;
+            margin-bottom:16px;
+            border:1px solid var(--borde);
+            border-radius:16px;
+            background:var(--panel);
+            box-shadow:var(--sombra);
+        }
+
+        .campo label{
+            display:block;
+            margin-bottom:6px;
+            color:var(--muted);
+            font-size:9px;
+            font-weight:900;
+        }
+
+        input[type="month"]{
+            min-height:44px;
+            padding:0 12px;
+            border:1px solid var(--borde);
+            border-radius:10px;
+            background:white;
+            font-size:14px;
+        }
+
+        .metricas{
+            display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:12px;
+            margin-bottom:16px;
+        }
+
+        .metrica{
+            min-height:122px;
+            display:flex;
+            flex-direction:column;
+            justify-content:space-between;
+            padding:16px;
+            border:1px solid var(--borde);
+            border-radius:16px;
+            background:var(--panel);
+            box-shadow:var(--sombra);
+        }
+
+        .metrica-titulo{
+            color:var(--muted);
+            font-size:9px;
+            font-weight:900;
+        }
+
+        .metrica-numero{
+            margin-top:14px;
+            font-size:26px;
+            font-weight:900;
+        }
+
+        .metrica-ayuda{
+            margin-top:5px;
+            color:var(--muted);
+            font-size:9px;
+        }
+
+        .positivo .metrica-numero{color:var(--verde)}
+        .negativo .metrica-numero{color:var(--rojo)}
+
+        .alerta{
+            margin-bottom:16px;
+            padding:13px 15px;
+            border:1px solid #ead98b;
+            border-radius:14px;
+            background:var(--amarillo-bg);
+            color:#625000;
+            font-size:10px;
+            line-height:1.5;
+        }
+
+        .panel{
+            overflow:hidden;
+            border:1px solid var(--borde);
+            border-radius:16px;
+            background:var(--panel);
+            box-shadow:var(--sombra);
+        }
+
+        .panel-titulo{
+            padding:16px;
+            border-bottom:1px solid var(--borde);
+            font-size:11px;
+            font-weight:900;
+        }
+
+        table{width:100%;border-collapse:collapse}
+
+        th{
+            padding:10px 11px;
+            border-bottom:1px solid var(--borde);
+            background:#f8f9fa;
+            color:var(--muted);
+            font-size:8px;
+            text-align:left;
+            white-space:nowrap;
+        }
+
+        td{
+            padding:12px 11px;
+            border-bottom:1px solid var(--borde);
+            font-size:10px;
+            vertical-align:middle;
+        }
+
+        tr:last-child td{border-bottom:0}
+        .numero{text-align:right;white-space:nowrap}
+        .codigo,.cliente{font-weight:900}
+        .ganancia-positiva{color:var(--verde);font-weight:900}
+        .ganancia-negativa{color:var(--rojo);font-weight:900}
+
+        .badge{
+            min-height:24px;
+            display:inline-flex;
+            align-items:center;
+            padding:0 8px;
+            border-radius:999px;
+            font-size:8px;
+            font-weight:900;
+            white-space:nowrap;
+        }
+
+        .badge-historico{
+            background:var(--verde-bg);
+            color:var(--verde);
+        }
+
+        .badge-estimado{
+            background:var(--amarillo-bg);
+            color:var(--amarillo);
+        }
+
+        .vacio{
+            padding:38px 16px;
+            color:var(--muted);
+            font-size:11px;
+            text-align:center;
+        }
+
+        /* NAV INFERIOR - mismo estilo que el resto del sistema */
+        .nav-inferior{
+            position:fixed;
+            z-index:100;
+            left:50%;
+            bottom:max(10px,env(safe-area-inset-bottom));
+            transform:translateX(-50%);
+            width:min(720px,calc(100% - 20px));
+            display:grid;
+            grid-template-columns:repeat(5,1fr);
+            gap:4px;
+            padding:7px;
+            border-radius:20px;
+            background:rgba(35,38,43,.96);
+            box-shadow:0 12px 35px rgba(0,0,0,.22);
+            backdrop-filter:blur(14px);
+        }
+
+        .nav-item{
+            min-height:58px;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            gap:4px;
+            border-radius:14px;
+            color:#d9dbe0;
+            text-decoration:none;
+            font-size:9px;
+            font-weight:bold;
+        }
+
+        .nav-item span:first-child{
+            font-size:19px;
+            line-height:1;
+        }
+
+        .nav-item.nuevo-nav{
+            background:white;
+            color:#23262b;
+        }
+
+        @media(max-width:900px){
+            .metricas{grid-template-columns:repeat(2,1fr)}
+            .panel{
+                overflow:visible;
+                border:0;
+                background:transparent;
+                box-shadow:none;
+            }
+            .panel-titulo{
+                margin-bottom:10px;
+                border:1px solid var(--borde);
+                border-radius:14px;
+                background:var(--panel);
+            }
+            table,thead,tbody,tr,td{display:block}
+            thead{display:none}
+            tr{
+                margin-bottom:10px;
+                padding:12px;
+                border:1px solid var(--borde);
+                border-radius:14px;
+                background:var(--panel);
+                box-shadow:var(--sombra);
+            }
+            td{
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                gap:14px;
+                padding:7px 0;
+                border:0;
+                text-align:right!important;
+            }
+            td::before{
+                content:attr(data-label);
+                flex:0 0 40%;
+                color:var(--muted);
+                font-size:8px;
+                font-weight:900;
+                text-align:left;
+            }
+        }
+
+        @media(max-width:620px){
+            body{padding:12px 12px 88px}
+            .encabezado{flex-direction:column;align-items:stretch}
+            .acciones{width:100%}
+            .acciones .boton{flex:1}
+            .filtros{flex-direction:column;align-items:stretch}
+            input[type="month"],.filtros .boton{width:100%}
+            .metricas{
+                display:flex;
+                overflow-x:auto;
+                scroll-snap-type:x mandatory;
+                padding-bottom:4px;
+            }
+            .metrica{
+                min-width:78%;
+                scroll-snap-align:start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="contenedor">
+
+    <div class="encabezado">
+        <div>
+            <h1>Finanzas y rentabilidad</h1>
+            <div class="subtitulo">
+                Ventas, costos productivos, ganancia bruta y cobranza
+            </div>
+        </div>
+
+        <div class="acciones">
+            <button type="button" class="boton" onclick="volverPagina()">
+                ← VOLVER
+            </button>
+
+            <a href="{% url 'dashboard:inicio' %}" class="boton">
+                INICIO
+            </a>
+        </div>
+    </div>
+
+    <form method="get" class="filtros">
+        <div class="campo">
+            <label>PERÍODO</label>
+            <input type="month" name="periodo" value="{{ periodo }}">
+        </div>
+
+        <button type="submit" class="boton">
+            VER PERÍODO
+        </button>
+    </form>
+
+    {% if detalles_sin_snapshot %}
+        <div class="alerta">
+            <strong>PEDIDOS ANTERIORES:</strong>
+            Hay {{ detalles_sin_snapshot }}
+            detalle{{ detalles_sin_snapshot|pluralize }}
+            sin costo histórico guardado.
+            Para esos ítems se utiliza el
+            <strong>costo actual estimado</strong>
+            y se los identifica en la tabla.
+            Los pedidos nuevos conservarán el costo del momento de la venta.
+        </div>
+    {% endif %}
+
+    <div class="metricas">
+
+        <div class="metrica">
+            <div class="metrica-titulo">VENTAS</div>
+            <div>
+                <div class="metrica-numero">${{ ventas|floatformat:0 }}</div>
+                <div class="metrica-ayuda">
+                    {{ cantidad_pedidos }} pedidos no cancelados
+                </div>
+            </div>
+        </div>
+
+        <div class="metrica">
+            <div class="metrica-titulo">COSTOS PRODUCTIVOS</div>
+            <div>
+                <div class="metrica-numero">${{ costos|floatformat:0 }}</div>
+                <div class="metrica-ayuda">
+                    según el cálculo de costos del producto
+                </div>
+            </div>
+        </div>
+
+        <div class="metrica {% if ganancia >= 0 %}positivo{% else %}negativo{% endif %}">
+            <div class="metrica-titulo">GANANCIA BRUTA</div>
+            <div>
+                <div class="metrica-numero">${{ ganancia|floatformat:0 }}</div>
+                <div class="metrica-ayuda">
+                    margen {{ margen|floatformat:1 }}%
+                </div>
+            </div>
+        </div>
+
+        <div class="metrica">
+            <div class="metrica-titulo">COBRADO EN EL MES</div>
+            <div>
+                <div class="metrica-numero">${{ cobrado_periodo|floatformat:0 }}</div>
+                <div class="metrica-ayuda">
+                    pagos realmente recibidos durante el período
+                </div>
+            </div>
+        </div>
+
+        <div class="metrica">
+            <div class="metrica-titulo">COBRADO DE ESTOS PEDIDOS</div>
+            <div>
+                <div class="metrica-numero">${{ cobrado_pedidos|floatformat:0 }}</div>
+                <div class="metrica-ayuda">
+                    aunque el pago haya ingresado en otro mes
+                </div>
+            </div>
+        </div>
+
+        <div class="metrica">
+            <div class="metrica-titulo">SALDO PENDIENTE</div>
+            <div>
+                <div class="metrica-numero">${{ saldo|floatformat:0 }}</div>
+                <div class="metrica-ayuda">
+                    de los pedidos creados en este período
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="panel">
+        <div class="panel-titulo">
+            DETALLE POR PEDIDO
+        </div>
+
+        {% if pedidos_finanzas %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>PEDIDO</th>
+                        <th>CLIENTE</th>
+                        <th>ESTADO</th>
+                        <th class="numero">VENTA</th>
+                        <th class="numero">COSTO</th>
+                        <th class="numero">GANANCIA</th>
+                        <th class="numero">MARGEN</th>
+                        <th class="numero">PAGADO</th>
+                        <th class="numero">SALDO</th>
+                        <th>COSTO</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for item in pedidos_finanzas %}
+                        <tr>
+                            <td data-label="PEDIDO" class="codigo">
+                                {{ item.pedido.codigo }}
+                            </td>
+
+                            <td data-label="CLIENTE" class="cliente">
+                                {{ item.pedido.cliente.nombre }}
+                            </td>
+
+                            <td data-label="ESTADO">
+                                {{ item.pedido.get_estado_display }}
+                            </td>
+
+                            <td data-label="VENTA" class="numero">
+                                ${{ item.venta|floatformat:0 }}
+                            </td>
+
+                            <td data-label="COSTO" class="numero">
+                                ${{ item.costo|floatformat:0 }}
+                            </td>
+
+                            <td
+                                data-label="GANANCIA"
+                                class="numero {% if item.ganancia >= 0 %}ganancia-positiva{% else %}ganancia-negativa{% endif %}"
+                            >
+                                ${{ item.ganancia|floatformat:0 }}
+                            </td>
+
+                            <td data-label="MARGEN" class="numero">
+                                {{ item.margen|floatformat:1 }}%
+                            </td>
+
+                            <td data-label="PAGADO" class="numero">
+                                ${{ item.pagado|floatformat:0 }}
+                            </td>
+
+                            <td data-label="SALDO" class="numero">
+                                ${{ item.saldo|floatformat:0 }}
+                            </td>
+
+                            <td data-label="TIPO DE COSTO">
+                                {% if item.usa_estimacion_actual %}
+                                    <span class="badge badge-estimado">
+                                        ESTIMADO ACTUAL
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-historico">
+                                        HISTÓRICO
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="vacio">
+                No hay pedidos para este período.
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<nav class="nav-inferior" aria-label="Navegación principal">
+    <a href="{% url 'dashboard:inicio' %}" class="nav-item">
+        <span>⌂</span><span>INICIO</span>
+    </a>
+
+    <a href="{% url 'pedidos:impresiones' %}" class="nav-item">
+        <span>📦</span><span>PEDIDOS</span>
+    </a>
+
+    <a href="{% url 'pedidos:nuevo' %}" class="nav-item nuevo-nav">
+        <span>＋</span><span>NUEVO</span>
+    </a>
+
+    <a href="{% url 'produccion:lista' %}" class="nav-item">
+        <span>⚙</span><span>PRODUCCIÓN</span>
+    </a>
+
+    <a href="{% url 'productos:lista' %}" class="nav-item">
+        <span>▦</span><span>PRODUCTOS</span>
+    </a>
+</nav>
+
+<script>
+    function volverPagina() {
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.location.href =
+                "{% url 'dashboard:inicio' %}";
+        }
+    }
+</script>
+</body>
+</html>

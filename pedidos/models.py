@@ -140,6 +140,15 @@ class DetallePedido(models.Model):
         default=0
     )
 
+    # Snapshot del costo por unidad al momento de la venta.
+    # NULL = detalle anterior al módulo de rentabilidad.
+    costo_unitario = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+
     estado = models.CharField(
         max_length=20,
         choices=ESTADOS,
@@ -175,6 +184,19 @@ class DetallePedido(models.Model):
             return self.precio_total_personalizado
 
         return self.precio_unitario * self.cantidad
+
+    @property
+    def costo_total_historico(self):
+        if self.costo_unitario is None:
+            return None
+        return self.costo_unitario * self.cantidad
+
+    @property
+    def ganancia_bruta_historica(self):
+        costo = self.costo_total_historico
+        if costo is None:
+            return None
+        return self.subtotal - costo
 
     def save(self, *args, **kwargs):
 

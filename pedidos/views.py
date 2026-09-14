@@ -22,6 +22,116 @@ from .models import (
 )
 
 
+# ==========================================================
+# COSTOS / RENTABILIDAD
+# ==========================================================
+
+def _decimal_seguro(valor):
+    if callable(valor):
+        valor = valor()
+
+    if valor is None:
+        return None
+
+    try:
+        return Decimal(str(valor))
+    except (InvalidOperation, TypeError, ValueError):
+        return None
+
+
+def _costo_actual_producto(producto):
+    """
+    Usa el cálculo ya existente en Producto y evita duplicar
+    la fórmula de costos dentro de Pedidos.
+    """
+    costo = _decimal_seguro(
+        getattr(producto, "costo", None)
+    )
+    seguro = _decimal_seguro(
+        getattr(producto, "seguro", None)
+    )
+
+    if costo is not None:
+        if seguro is not None:
+            return max(costo + seguro, Decimal("0"))
+        return max(costo, Decimal("0"))
+
+    for nombre in ("costo_total", "costo_estimado"):
+        valor = _decimal_seguro(
+            getattr(producto, nombre, None)
+        )
+        if valor is not None:
+            return max(valor, Decimal("0"))
+
+    subtotal = _decimal_seguro(
+        getattr(producto, "subtotal", None)
+    )
+    ganancia = _decimal_seguro(
+        getattr(producto, "ganancia", None)
+    )
+
+    if subtotal is not None and ganancia is not None:
+        return max(
+            subtotal - ganancia,
+            Decimal("0"),
+        )
+
+    return Decimal("0")
+
+
+def _costo_actual_detalle(detalle):
+    """
+    Respaldo para pedidos viejos sin costo histórico.
+    Se muestra expresamente como ESTIMADO ACTUAL.
+    """
+    if detalle.tipo_item in ["PRODUCTO", "PERSONALIZADO"]:
+        if not detalle.producto:
+            return Decimal("0")
+
+        return (
+            _costo_actual_producto(detalle.producto)
+            * detalle.cantidad
+        )
+
+    if detalle.tipo_item == "KIT":
+        total = Decimal("0")
+
+        for componente in detalle.productos_kit.all():
+            total += (
+                _costo_actual_producto(componente.producto)
+                * componente.cantidad
+            )
+
+        return total
+
+    return Decimal("0")
+
+
+def _guardar_costo_kit(detalle):
+    """
+    Los componentes guardan cantidades reales totales.
+    Se calcula el costo total y luego el costo por kit vendido.
+    """
+    if detalle.tipo_item != "KIT" or detalle.cantidad <= 0:
+        return
+
+    costo_total = Decimal("0")
+
+    for componente in detalle.productos_kit.all():
+        costo_total += (
+            _costo_actual_producto(componente.producto)
+            * componente.cantidad
+        )
+
+    detalle.costo_unitario = (
+        costo_total / Decimal(detalle.cantidad)
+    ).quantize(Decimal("0.01"))
+
+    detalle.save(
+        update_fields=["costo_unitario"]
+    )
+
+
 def impresiones_por_pedido(request):
     pedidos = (
         Pedido.objects
@@ -572,6 +682,7 @@ def nuevo_pedido(request):
                     producto=producto,
                     cantidad=cantidad,
                     precio_unitario=precio_unitario,
+                    costo_unitario=_costo_actual_producto(producto),
                     estado="PENDIENTE",
                 )
 
@@ -648,6 +759,7 @@ def nuevo_pedido(request):
                     kit=kit,
                     cantidad=cantidad,
                     precio_unitario=kit.precio,
+                    costo_unitario=None,
                     estado="PENDIENTE",
                 )
 
@@ -694,6 +806,8 @@ def nuevo_pedido(request):
                         producto=item["producto"],
                         cantidad=item["cantidad"],
                     )
+
+                _guardar_costo_kit(detalle)
 
 
             # =====================================
@@ -788,6 +902,7 @@ def nuevo_pedido(request):
                     producto=producto,
                     cantidad=cantidad,
                     precio_unitario=precio_unitario,
+                    costo_unitario=_costo_actual_producto(producto),
                     precio_total_personalizado=precio_total,
                     estado="PENDIENTE",
                     personalizado=True,
@@ -1655,7 +1770,7 @@ def registrar_pago(request, pedido_id):
         observaciones=observaciones,
     )
 
-    nuevo_saldo = pedido.saldo_pendiente
+    nuevo_saldo = max(saldo - monto, Decimal("0"))
 
     if nuevo_saldo <= 0:
         messages.success(
@@ -2032,28 +2147,62 @@ def editar_pedido(request, pedido_id):
 
     for item in nuevos_items:
         if item["tipo_item"] == "PRODUCTO":
+            producto = item["producto"]
+            precio_unitario = producto.subtotal
+
+            if precio_unitario is None or precio_unitario <= 0:
+                messages.error(
+                    request,
+                    f"El producto {producto.nombre} no tiene un precio válido."
+                )
+                transaction.set_rollback(True)
+                return redirect(
+                    "pedidos:editar",
+                    pedido_id=pedido.id,
+                )
+
             DetallePedido.objects.create(
                 pedido=pedido,
                 tipo_item="PRODUCTO",
-                producto=item["producto"],
+                producto=producto,
                 cantidad=item["cantidad"],
+                precio_unitario=precio_unitario,
+                costo_unitario=_costo_actual_producto(producto),
                 estado="PENDIENTE",
             )
 
         elif item["tipo_item"] == "KIT":
+            kit = item["kit"]
+
+            if kit.precio is None or kit.precio <= 0:
+                messages.error(
+                    request,
+                    f"El kit {kit.nombre} no tiene un precio válido."
+                )
+                transaction.set_rollback(True)
+                return redirect(
+                    "pedidos:editar",
+                    pedido_id=pedido.id,
+                )
+
             detalle = DetallePedido.objects.create(
                 pedido=pedido,
                 tipo_item="KIT",
-                kit=item["kit"],
+                kit=kit,
                 cantidad=item["cantidad"],
+                precio_unitario=kit.precio,
+                costo_unitario=None,
                 estado="PENDIENTE",
             )
+
             for producto_id, cantidad in item["componentes"].items():
                 DetalleKitProducto.objects.create(
                     detalle=detalle,
                     producto_id=producto_id,
                     cantidad=cantidad,
                 )
+
+            _guardar_costo_kit(detalle)
 
         else:
             anterior = personalizados_anteriores.get(
@@ -2079,6 +2228,7 @@ def editar_pedido(request, pedido_id):
                 producto=item["producto"],
                 cantidad=item["cantidad"],
                 precio_unitario=precio_unitario,
+                costo_unitario=_costo_actual_producto(item["producto"]),
                 precio_total_personalizado=item["precio_total"],
                 estado="LISTO" if conservar_listo else "PENDIENTE",
                 personalizado=True,
@@ -2100,6 +2250,149 @@ def editar_pedido(request, pedido_id):
         f"{pedido.codigo} actualizado correctamente."
     )
     return redirect("pedidos:impresiones")
+
+# ==========================================================
+# FINANZAS / RENTABILIDAD
+# ==========================================================
+
+def finanzas(request):
+    hoy = timezone.localdate()
+
+    periodo = request.GET.get(
+        "periodo",
+        hoy.strftime("%Y-%m"),
+    ).strip()
+
+    try:
+        anio_texto, mes_texto = periodo.split("-", 1)
+        anio = int(anio_texto)
+        mes = int(mes_texto)
+
+        if mes < 1 or mes > 12:
+            raise ValueError
+
+    except (TypeError, ValueError):
+        anio = hoy.year
+        mes = hoy.month
+        periodo = hoy.strftime("%Y-%m")
+
+    pedidos = (
+        Pedido.objects
+        .filter(
+            fecha__year=anio,
+            fecha__month=mes,
+        )
+        .exclude(estado="CANCELADO")
+        .select_related("cliente")
+        .prefetch_related(
+            "detalles__producto",
+            "detalles__kit",
+            "detalles__productos_kit__producto",
+            "pagos",
+        )
+        .order_by("-fecha", "-id")
+    )
+
+    ventas = Decimal("0")
+    costos = Decimal("0")
+    cobrado_pedidos = Decimal("0")
+    saldo = Decimal("0")
+    detalles_sin_snapshot = 0
+    filas = []
+
+    for pedido in pedidos:
+        venta_pedido = pedido.total
+        costo_pedido = Decimal("0")
+        usa_estimacion_actual = False
+
+        for detalle in pedido.detalles.all():
+            if detalle.estado == "CANCELADO":
+                continue
+
+            if detalle.costo_unitario is not None:
+                costo_detalle = (
+                    detalle.costo_unitario
+                    * detalle.cantidad
+                )
+            else:
+                costo_detalle = _costo_actual_detalle(detalle)
+                detalles_sin_snapshot += 1
+                usa_estimacion_actual = True
+
+            costo_pedido += costo_detalle
+
+        ganancia_pedido = venta_pedido - costo_pedido
+
+        if venta_pedido > 0:
+            margen_pedido = (
+                ganancia_pedido
+                * Decimal("100")
+                / venta_pedido
+            )
+        else:
+            margen_pedido = Decimal("0")
+
+        pagado_pedido = pedido.total_pagado
+        saldo_pedido = pedido.saldo_pendiente
+
+        ventas += venta_pedido
+        costos += costo_pedido
+        cobrado_pedidos += pagado_pedido
+        saldo += saldo_pedido
+
+        filas.append(
+            {
+                "pedido": pedido,
+                "venta": venta_pedido,
+                "costo": costo_pedido,
+                "ganancia": ganancia_pedido,
+                "margen": margen_pedido,
+                "pagado": pagado_pedido,
+                "saldo": saldo_pedido,
+                "usa_estimacion_actual": usa_estimacion_actual,
+            }
+        )
+
+    ganancia = ventas - costos
+
+    if ventas > 0:
+        margen = (
+            ganancia
+            * Decimal("100")
+            / ventas
+        )
+    else:
+        margen = Decimal("0")
+
+    cobrado_periodo = (
+        Pago.objects
+        .filter(
+            fecha__year=anio,
+            fecha__month=mes,
+        )
+        .aggregate(total=Sum("monto"))
+        .get("total")
+        or Decimal("0")
+    )
+
+    return render(
+        request,
+        "pedidos/finanzas.html",
+        {
+            "periodo": periodo,
+            "pedidos_finanzas": filas,
+            "ventas": ventas,
+            "costos": costos,
+            "ganancia": ganancia,
+            "margen": margen,
+            "cobrado_periodo": cobrado_periodo,
+            "cobrado_pedidos": cobrado_pedidos,
+            "saldo": saldo,
+            "cantidad_pedidos": len(filas),
+            "detalles_sin_snapshot": detalles_sin_snapshot,
+        },
+    )
+
 
 # ==========================================================
 # ENTREGAR PEDIDO

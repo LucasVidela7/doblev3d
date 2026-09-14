@@ -33,6 +33,12 @@ urlpatterns = [
     ),
 
     path(
+        "finanzas/",
+        views.finanzas,
+        name="finanzas",
+    ),
+
+    path(
         "impresiones/listo/",
         views.cambiar_listo_impresion,
         name="cambiar_listo",
