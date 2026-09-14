@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Kits | Doble V 3D</title>
+<style>
+*{box-sizing:border-box}
+:root{--oscuro:#25282d;--borde:#e3e5e8;--muted:#747981;--fondo:#f4f5f7}
+body{margin:0;background:var(--fondo);color:#272a2f;font-family:Arial,sans-serif;padding-bottom:95px}
+.contenedor{width:min(1000px,100%);margin:auto;padding:20px 14px 36px}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px}
+.acciones{display:flex;gap:8px;flex-wrap:wrap}
+.btn{min-height:46px;display:inline-flex;align-items:center;justify-content:center;padding:0 14px;border:1px solid var(--borde);border-radius:12px;background:#fff;color:#292c31;text-decoration:none;font-weight:900;font-size:10px}
+.btn.principal{background:var(--oscuro);color:#fff;border-color:var(--oscuro)}
+.grid{display:grid;gap:11px}
+.card{background:#fff;border:1px solid var(--borde);border-radius:17px;padding:15px;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+.card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.nombre{font-size:17px;font-weight:900}.meta{margin-top:4px;color:var(--muted);font-size:10px}
+.badge{display:inline-flex;padding:6px 9px;border-radius:999px;background:#eef0f3;font-size:9px;font-weight:900}
+.composicion{margin-top:11px;padding:10px;border-radius:12px;background:#f7f8fa}
+.fila{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:10px}
+.resumen{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:11px}
+.dato{padding:9px;border-radius:10px;background:#fafafa;border:1px solid #eceef1}
+.dato b{display:block;font-size:8px;color:var(--muted);margin-bottom:4px}.dato span{font-size:13px;font-weight:900}
+.vacio{text-align:center;padding:40px 15px;color:var(--muted)}
+.nav{position:fixed;z-index:30;bottom:8px;left:50%;transform:translateX(-50%);width:min(720px,calc(100% - 16px));display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:#25282d;padding:7px;border-radius:19px}
+.nav a{min-height:57px;color:#ddd;text-decoration:none;font-size:9px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:13px}.nav b{font-size:18px}
+@media(max-width:700px){.header{align-items:flex-start;flex-direction:column}.acciones{width:100%}.btn{flex:1}.resumen{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="contenedor">
+    <div class="header">
+        <div>
+            <h1>Kits</h1>
+            <div class="sub">Kits libres por categoría y kits de composición fija.</div>
+        </div>
+        <div class="acciones">
+            <a class="btn" href="{% url 'dashboard:inicio' %}">← VOLVER</a>
+            <a class="btn" href="{% url 'dashboard:inicio' %}">INICIO</a>
+            <a class="btn principal" href="{% url 'kits:nuevo' %}">+ NUEVO KIT</a>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="card">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="grid">
+        {% for kit in kits %}
+            <div class="card">
+                <div class="card-head">
+                    <div>
+                        <div class="nombre">{{ kit.nombre }}</div>
+                        <div class="meta">{{ kit.codigo }} · {{ kit.get_modalidad_display }}</div>
+                    </div>
+                    <a class="btn" href="{% url 'kits:editar' kit.id %}">EDITAR</a>
+                </div>
+
+                {% if kit.modalidad == "FIJO" %}
+                    <div class="composicion">
+                        {% for componente in kit.componentes.all %}
+                            <div class="fila">
+                                <span>{{ componente.producto.nombre }}</span>
+                                <strong>x {{ componente.cantidad }}</strong>
+                            </div>
+                        {% empty %}
+                            <div class="fila">Sin componentes configurados.</div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="composicion">
+                        <div class="fila">
+                            <span>Categoría / tipo</span>
+                            <strong>{{ kit.tipo_producto|default:"—" }}</strong>
+                        </div>
+                        <div class="fila">
+                            <span>El cliente elige</span>
+                            <strong>{{ kit.cantidad_productos }} productos</strong>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="resumen">
+                    <div class="dato">
+                        <b>PRECIO</b>
+                        <span>${{ kit.precio|floatformat:"0g" }}</span>
+                    </div>
+                    <div class="dato">
+                        <b>PIEZAS</b>
+                        <span>{{ kit.cantidad_productos }}</span>
+                    </div>
+                    <div class="dato">
+                        <b>ESTADO</b>
+                        <span>{% if kit.activo %}ACTIVO{% else %}INACTIVO{% endif %}</span>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="card vacio">Todavía no hay kits.</div>
+        {% endfor %}
+    </div>
+</div>
+
+<nav class="nav" aria-label="Navegación principal">
+    <a href="{% url 'dashboard:inicio' %}"><b>⌂</b>INICIO</a>
+    <a href="{% url 'pedidos:impresiones' %}"><b>📦</b>PEDIDOS</a>
+    <a href="{% url 'pedidos:nuevo' %}"><b>＋</b>NUEVO</a>
+    <a href="{% url 'produccion:lista' %}"><b>⚙</b>PRODUCCIÓN</a>
+    <a href="{% url 'productos:lista' %}"><b>▦</b>PRODUCTOS</a>
+</nav>
+</body>
+</html>

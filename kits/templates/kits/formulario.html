@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>{% if kit and kit.id %}Editar{% else %}Nuevo{% endif %} kit | Doble V 3D</title>
+<style>
+*{box-sizing:border-box}
+:root{--oscuro:#25282d;--borde:#e3e5e8;--muted:#747981;--fondo:#f4f5f7}
+body{margin:0;background:var(--fondo);color:#272a2f;font-family:Arial,sans-serif;padding-bottom:95px}
+.contenedor{width:min(900px,100%);margin:auto;padding:20px 14px 35px}
+.header{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px}
+h1{margin:0;font-size:27px}.sub{margin-top:4px;color:var(--muted);font-size:11px}
+.acciones{display:flex;gap:8px}.btn{min-height:46px;display:inline-flex;align-items:center;justify-content:center;padding:0 14px;border:1px solid var(--borde);border-radius:12px;background:#fff;color:#292c31;text-decoration:none;font-weight:900;font-size:10px}
+.card{background:#fff;border:1px solid var(--borde);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.full{grid-column:1/-1}
+label{display:block;margin-bottom:6px;color:var(--muted);font-size:9px;font-weight:900}
+input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:11px;padding:9px 11px;background:#fff;font-size:14px}
+.modalidades{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.opcion{border:1px solid var(--borde);border-radius:13px;padding:12px;cursor:pointer}.opcion input{width:auto;min-height:auto}.opcion b{font-size:11px}.opcion span{display:block;margin-top:4px;color:var(--muted);font-size:9px;line-height:1.35}
+.componente{display:grid;grid-template-columns:1fr 110px 42px;gap:8px;align-items:end;margin-bottom:8px}
+.eliminar{min-height:49px;border:0;border-radius:10px;background:#f8dddd;color:#8a2929;font-weight:900}
+.agregar{width:100%;min-height:46px;border:2px dashed #c9cdd2;border-radius:12px;background:#fff;font-weight:900}
+.ayuda{font-size:9px;color:var(--muted);line-height:1.45;margin-top:7px}
+.guardar{width:100%;min-height:54px;border:0;border-radius:14px;background:var(--oscuro);color:#fff;font-weight:900}
+.oculto{display:none!important}
+.nav{position:fixed;z-index:30;bottom:8px;left:50%;transform:translateX(-50%);width:min(720px,calc(100% - 16px));display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:#25282d;padding:7px;border-radius:19px}.nav a{min-height:57px;color:#ddd;text-decoration:none;font-size:9px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:13px}.nav b{font-size:18px}
+@media(max-width:700px){.header{align-items:flex-start;flex-direction:column}.acciones{width:100%}.btn{flex:1}.grid,.modalidades{grid-template-columns:1fr}.full{grid-column:auto}.componente{grid-template-columns:1fr 90px 42px}}
+</style>
+</head>
+<body>
+<div class="contenedor">
+    <div class="header">
+        <div>
+            <h1>{% if kit and kit.id %}Editar kit{% else %}Nuevo kit{% endif %}</h1>
+            <div class="sub">Conservá los kits libres actuales o armá una receta fija.</div>
+        </div>
+        <div class="acciones">
+            <a class="btn" href="{% url 'kits:lista' %}">← VOLVER</a>
+            <a class="btn" href="{% url 'dashboard:inicio' %}">INICIO</a>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="card">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="card grid">
+            <div class="full">
+                <label>NOMBRE</label>
+                <input name="nombre" required value="{{ kit.nombre|default:'' }}">
+            </div>
+
+            <div>
+                <label>PRECIO</label>
+                <input type="number" min="0.01" step="0.01" name="precio" required value="{{ kit.precio|default:'' }}">
+            </div>
+
+            <div>
+                <label>ESTADO</label>
+                <select name="activo">
+                    <option value="1" {% if not kit or kit.activo %}selected{% endif %}>ACTIVO</option>
+                    <option value="0" {% if kit and not kit.activo %}selected{% endif %}>INACTIVO</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card">
+            <label>MODALIDAD</label>
+            <div class="modalidades">
+                <label class="opcion">
+                    <input
+                        type="radio"
+                        name="modalidad"
+                        value="LIBRE_CATEGORIA"
+                        onchange="actualizarModalidad()"
+                        {% if not kit or kit.modalidad == "LIBRE_CATEGORIA" %}checked{% endif %}
+                    >
+                    <b>Libre por categoría</b>
+                    <span>El cliente elige una cantidad de productos dentro de una categoría/tipo.</span>
+                </label>
+
+                <label class="opcion">
+                    <input
+                        type="radio"
+                        name="modalidad"
+                        value="FIJO"
+                        onchange="actualizarModalidad()"
+                        {% if kit and kit.modalidad == "FIJO" %}checked{% endif %}
+                    >
+                    <b>Composición fija</b>
+                    <span>El kit tiene una receta definida, por ejemplo 4 esquineros 90°, 2 de 45° y 2 de 30°.</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="card" id="bloque_libre">
+            <div class="grid">
+                <div>
+                    <label>CATEGORÍA / TIPO DE PRODUCTO</label>
+                    <select name="tipo_producto" id="tipo_producto">
+                        <option value="">Seleccionar...</option>
+                        {% for tipo in tipos %}
+                            <option
+                                value="{{ tipo.id }}"
+                                {% if kit and kit.tipo_producto_id == tipo.id %}selected{% endif %}
+                            >
+                                {{ tipo.nombre }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label>CANTIDAD QUE ELIGE EL CLIENTE</label>
+                    <input
+                        type="number"
+                        min="1"
+                        name="cantidad_productos"
+                        id="cantidad_productos"
+                        value="{{ kit.cantidad_productos|default:'1' }}"
+                    >
+                </div>
+            </div>
+            <div class="ayuda">
+                Esta modalidad mantiene exactamente el funcionamiento actual: el usuario elige productos de la categoría configurada.
+            </div>
+        </div>
+
+        <div class="card" id="bloque_fijo">
+            <label>COMPOSICIÓN FIJA</label>
+            <div id="componentes"></div>
+            <button type="button" class="agregar" onclick="agregarComponente()">+ AGREGAR COMPONENTE</button>
+            <div class="ayuda" id="total_piezas">Total piezas: 0</div>
+        </div>
+
+        <button type="submit" class="guardar">GUARDAR KIT</button>
+    </form>
+</div>
+
+<nav class="nav" aria-label="Navegación principal">
+    <a href="{% url 'dashboard:inicio' %}"><b>⌂</b>INICIO</a>
+    <a href="{% url 'pedidos:impresiones' %}"><b>📦</b>PEDIDOS</a>
+    <a href="{% url 'pedidos:nuevo' %}"><b>＋</b>NUEVO</a>
+    <a href="{% url 'produccion:lista' %}"><b>⚙</b>PRODUCCIÓN</a>
+    <a href="{% url 'productos:lista' %}"><b>▦</b>PRODUCTOS</a>
+</nav>
+
+{{ componentes_iniciales|json_script:"componentes-iniciales" }}
+
+<script>
+const productos = [
+{% for producto in productos %}
+    {
+        id: "{{ producto.id }}",
+        nombre: "{{ producto.codigo|escapejs }} · {{ producto.nombre|escapejs }}"
+    },
+{% endfor %}
+];
+
+const iniciales = JSON.parse(
+    document.getElementById(
+        "componentes-iniciales"
+    ).textContent
+);
+
+function modalidadActual(){
+    return document.querySelector(
+        '[name="modalidad"]:checked'
+    )?.value || "LIBRE_CATEGORIA";
+}
+
+function actualizarModalidad(){
+    const fijo =
+        modalidadActual() === "FIJO";
+
+    document
+        .getElementById("bloque_libre")
+        .classList.toggle("oculto", fijo);
+
+    document
+        .getElementById("bloque_fijo")
+        .classList.toggle("oculto", !fijo);
+
+    document.getElementById(
+        "tipo_producto"
+    ).required = !fijo;
+
+    document.getElementById(
+        "cantidad_productos"
+    ).required = !fijo;
+
+    if (
+        fijo
+        && document.querySelectorAll(
+            ".componente"
+        ).length === 0
+    ) {
+        agregarComponente();
+    }
+}
+
+function opcionesProductos(
+    seleccionado = ""
+){
+    return `
+        <option value="">Seleccionar producto...</option>
+        ${productos.map(p => `
+            <option
+                value="${p.id}"
+                ${
+                    String(p.id)
+                    === String(seleccionado)
+                    ? "selected"
+                    : ""
+                }
+            >
+                ${p.nombre}
+            </option>
+        `).join("")}
+    `;
+}
+
+function agregarComponente(
+    productoId = "",
+    cantidad = 1
+){
+    const fila =
+        document.createElement("div");
+
+    fila.className = "componente";
+
+    fila.innerHTML = `
+        <div>
+            <label>PRODUCTO</label>
+            <select name="componente_producto">
+                ${opcionesProductos(productoId)}
+            </select>
+        </div>
+
+        <div>
+            <label>CANTIDAD</label>
+            <input
+                type="number"
+                min="1"
+                name="componente_cantidad"
+                value="${cantidad}"
+                oninput="actualizarTotal()"
+            >
+        </div>
+
+        <button
+            type="button"
+            class="eliminar"
+            onclick="
+                this.parentElement.remove();
+                actualizarTotal();
+            "
+        >
+            ×
+        </button>
+    `;
+
+    document
+        .getElementById("componentes")
+        .appendChild(fila);
+
+    actualizarTotal();
+}
+
+function actualizarTotal(){
+    let total = 0;
+
+    document
+        .querySelectorAll(
+            '[name="componente_cantidad"]'
+        )
+        .forEach(input => {
+            total += Number(input.value || 0);
+        });
+
+    document.getElementById(
+        "total_piezas"
+    ).textContent =
+        `Total piezas: ${total}`;
+}
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+        if (iniciales.length) {
+            iniciales.forEach(
+                item => agregarComponente(
+                    item.producto_id,
+                    item.cantidad
+                )
+            );
+        }
+
+        actualizarModalidad();
+        actualizarTotal();
+    }
+);
+</script>
+</body>
+</html>

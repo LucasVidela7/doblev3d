@@ -1887,9 +1887,7 @@ button{font-family:Arial,sans-serif}
                 `kit_${indice}`
             );
 
-        const kitId =
-            kitSelect.value;
-
+        const kitId = kitSelect.value;
 
         const bloque =
             document.getElementById(
@@ -1901,19 +1899,12 @@ button{font-family:Arial,sans-serif}
                 `componentes_grid_${indice}`
             );
 
-
-        grid.innerHTML =
-            "";
-
-        bloque.classList.remove(
-            "activo"
-        );
-
+        grid.innerHTML = "";
+        bloque.classList.remove("activo");
 
         if (!kitId) {
             return;
         }
-
 
         try {
 
@@ -1922,23 +1913,70 @@ button{font-family:Arial,sans-serif}
                     `/pedidos/api/kit/${kitId}/productos/`
                 );
 
-
             if (!respuesta.ok) {
-
                 throw new Error(
                     "No se pudieron cargar los productos del kit."
                 );
-
             }
-
 
             const data =
                 await respuesta.json();
 
+            if (
+                data.kit.modalidad === "FIJO"
+            ) {
+
+                grid.innerHTML = `
+                    <div
+                        style="
+                            grid-column:1/-1;
+                            padding:10px 12px;
+                            border-radius:12px;
+                            background:#f0f2f5;
+                            font-size:10px;
+                            font-weight:900;
+                        "
+                    >
+                        COMPOSICIÓN FIJA
+                    </div>
+
+                    ${data.componentes.map(
+                        componente => `
+                            <div class="componente-kit">
+                                <div
+                                    style="
+                                        display:flex;
+                                        justify-content:space-between;
+                                        gap:10px;
+                                        padding:10px 12px;
+                                        border:1px solid #e0e3e7;
+                                        border-radius:11px;
+                                        background:#fff;
+                                    "
+                                >
+                                    <span>
+                                        ${componente.codigo}
+                                        ·
+                                        ${componente.nombre}
+                                    </span>
+                                    <strong>
+                                        x ${componente.cantidad}
+                                    </strong>
+                                </div>
+                            </div>
+                        `
+                    ).join("")}
+                `;
+
+                bloque.classList.add(
+                    "activo"
+                );
+
+                return;
+            }
 
             const cantidadProductos =
                 data.kit.cantidad_productos;
-
 
             for (
                 let posicion = 1;
@@ -1954,25 +1992,19 @@ button{font-family:Arial,sans-serif}
                 campo.className =
                     "componente-kit";
 
-
                 const opciones =
                     data.productos
                     .map(
                         producto => `
-
                             <option value="${producto.id}">
                                 ${producto.codigo} - ${producto.nombre}
                             </option>
-
                         `
                     )
                     .join("");
 
-
                 campo.innerHTML = `
-
                     <div class="campo">
-
                         <label>
                             PRODUCTO ${posicion}
                         </label>
@@ -1981,44 +2013,32 @@ button{font-family:Arial,sans-serif}
                             name="productos_kit_${indice}"
                             required
                         >
-
                             <option value="">
                                 Seleccionar producto...
                             </option>
 
                             ${opciones}
-
                         </select>
-
                     </div>
-
                 `;
-
 
                 grid.appendChild(
                     campo
                 );
-
             }
-
 
             bloque.classList.add(
                 "activo"
             );
 
-
         } catch (error) {
 
-            console.error(
-                error
-            );
+            console.error(error);
 
             alert(
                 "No se pudieron cargar los productos del kit."
             );
-
         }
-
     }
 
 

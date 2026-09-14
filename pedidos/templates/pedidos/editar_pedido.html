@@ -958,6 +958,54 @@ async function cargarKit(
     const data =
         await r.json();
 
+    if (
+        data.kit.modalidad === "FIJO"
+    ) {
+
+        caja.innerHTML = `
+            <div
+                style="
+                    grid-column:1/-1;
+                    padding:10px;
+                    border-radius:10px;
+                    background:#eef1f4;
+                    font-size:9px;
+                    font-weight:900;
+                "
+            >
+                COMPOSICIÓN FIJA
+            </div>
+
+            ${data.componentes.map(
+                componente => `
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:space-between;
+                            gap:10px;
+                            padding:10px;
+                            border:1px solid #e1e4e8;
+                            border-radius:10px;
+                            background:#fff;
+                            font-size:10px;
+                        "
+                    >
+                        <span>
+                            ${componente.codigo}
+                            ·
+                            ${componente.nombre}
+                        </span>
+                        <strong>
+                            x ${componente.cantidad}
+                        </strong>
+                    </div>
+                `
+            ).join("")}
+        `;
+
+        return;
+    }
+
     for (
         let n = 0;
         n < data.kit.cantidad_productos;

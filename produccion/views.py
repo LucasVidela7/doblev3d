@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.contrib import messages
 from django.db import transaction
@@ -13,32 +13,196 @@ from .models import Impresora, Produccion
 
 
 # ============================================================
+# HELPERS
+# ============================================================
+
+def _parsear_datetime_local(texto):
+    if not texto:
+        return None
+
+    try:
+        fecha = datetime.strptime(
+            texto,
+            "%Y-%m-%dT%H:%M",
+        )
+    except ValueError:
+        return None
+
+    if timezone.is_naive(fecha):
+        fecha = timezone.make_aware(
+            fecha,
+            timezone.get_current_timezone(),
+        )
+
+    return fecha
+
+
+def _conflicto_planificacion(
+    impresora,
+    inicio,
+    tiempo_minutos,
+    excluir_id=None,
+):
+    """
+    Busca superposición con trabajos PENDIENTES o IMPRIMIENDO
+    de la misma impresora.
+
+    Regla de superposición:
+        inicio_nuevo < fin_existente
+        y
+        fin_nuevo > inicio_existente
+    """
+    if not impresora or not inicio or tiempo_minutos <= 0:
+        return None
+
+    fin = inicio + timedelta(
+        minutes=tiempo_minutos
+    )
+
+    qs = (
+        Produccion.objects
+        .filter(
+            impresora=impresora,
+            estado__in=[
+                "PENDIENTE",
+                "IMPRIMIENDO",
+            ],
+            inicio_impresion__isnull=False,
+        )
+        .select_related(
+            "producto",
+            "impresora",
+        )
+        .order_by(
+            "inicio_impresion",
+            "id",
+        )
+    )
+
+    if excluir_id:
+        qs = qs.exclude(
+            id=excluir_id
+        )
+
+    for existente in qs:
+        if not existente.fin_estimado:
+            continue
+
+        if (
+            inicio < existente.fin_estimado
+            and fin > existente.inicio_impresion
+        ):
+            return existente
+
+    return None
+
+
+def _impresora_ocupada(
+    impresora,
+    excluir_id=None,
+):
+    if not impresora:
+        return None
+
+    qs = (
+        Produccion.objects
+        .filter(
+            impresora=impresora,
+            estado="IMPRIMIENDO",
+        )
+        .select_related(
+            "producto",
+            "impresora",
+        )
+        .order_by("id")
+    )
+
+    if excluir_id:
+        qs = qs.exclude(
+            id=excluir_id
+        )
+
+    return qs.first()
+
+
+# ============================================================
 # LISTA DE PRODUCCIÓN
 # ============================================================
 
 def lista_produccion(request):
-    producciones = (
+    producciones = list(
         Produccion.objects
         .select_related(
             "producto",
+            "impresora",
             "pedido",
             "pedido__cliente",
-            "impresora",
         )
         .exclude(
             estado="CANCELADO"
         )
-        .order_by(
-            "-fecha",
-            "-id",
-        )
     )
+
+    ahora = timezone.now()
+
+    # Orden operativo:
+    # 1. Lo que está IMPRIMIENDO.
+    # 2. Lo PLANIFICADO/PENDIENTE, por horario más próximo.
+    # 3. Lo LISTO, dejando lo más reciente arriba.
+    def clave_orden(produccion):
+        if produccion.estado == "IMPRIMIENDO":
+            return (
+                0,
+                produccion.inicio_impresion
+                or ahora,
+                produccion.id,
+            )
+
+        if produccion.estado == "PENDIENTE":
+            return (
+                1,
+                produccion.inicio_impresion
+                or ahora,
+                produccion.id,
+            )
+
+        fecha = (
+            produccion.inicio_impresion
+            or ahora
+        )
+
+        return (
+            2,
+            -fecha.timestamp(),
+            -produccion.id,
+        )
+
+    producciones.sort(
+        key=clave_orden
+    )
+
+    for produccion in producciones:
+        produccion.es_planificada_futura = (
+            produccion.estado == "PENDIENTE"
+            and produccion.inicio_impresion is not None
+            and produccion.inicio_impresion > ahora
+        )
 
     productos = (
         Producto.objects
         .filter(
             activo=True,
             requiere_impresion=True,
+        )
+        .order_by(
+            "nombre"
+        )
+    )
+
+    impresoras = (
+        Impresora.objects
+        .filter(
+            activa=True,
         )
         .order_by(
             "nombre"
@@ -62,21 +226,28 @@ def lista_produccion(request):
         )
     )
 
-    impresoras = (
-        Impresora.objects
-        .filter(activa=True)
-        .order_by("nombre")
+    producto_seleccionado = (
+        request.GET.get(
+            "producto",
+            "",
+        ).strip()
     )
 
-    producto_seleccionado = request.GET.get(
-        "producto",
-        ""
+    cantidad_seleccionada = (
+        request.GET.get(
+            "cantidad",
+            "1",
+        ).strip()
     )
 
-    cantidad_seleccionada = request.GET.get(
-        "cantidad",
-        "1"
-    )
+    producto_seleccionado_obj = None
+
+    if producto_seleccionado:
+        producto_seleccionado_obj = (
+            productos.filter(
+                id=producto_seleccionado
+            ).first()
+        )
 
     return render(
         request,
@@ -84,16 +255,20 @@ def lista_produccion(request):
         {
             "producciones": producciones,
             "productos": productos,
-            "pedidos": pedidos,
             "impresoras": impresoras,
-            "producto_seleccionado": producto_seleccionado,
-            "cantidad_seleccionada": cantidad_seleccionada,
-        }
+            "pedidos": pedidos,
+            "producto_seleccionado":
+                producto_seleccionado,
+            "producto_seleccionado_obj":
+                producto_seleccionado_obj,
+            "cantidad_seleccionada":
+                cantidad_seleccionada,
+        },
     )
 
 
 # ============================================================
-# NUEVA PRODUCCIÓN
+# NUEVA PRODUCCIÓN / PLANIFICACIÓN
 # ============================================================
 
 @transaction.atomic
@@ -103,59 +278,84 @@ def nueva_produccion(request):
             "produccion:lista"
         )
 
-    # --------------------------------------------------------
-    # DATOS GENERALES
-    # --------------------------------------------------------
-
-    producto_id = request.POST.get(
-        "producto"
+    producto_id = (
+        request.POST.get(
+            "producto",
+            "",
+        ).strip()
     )
 
-    cantidad_texto = request.POST.get(
-        "cantidad"
+    cantidad_texto = (
+        request.POST.get(
+            "cantidad",
+            "",
+        ).strip()
     )
 
-    destino = request.POST.get(
-        "destino"
+    impresora_id = (
+        request.POST.get(
+            "impresora",
+            "",
+        ).strip()
     )
 
-    impresora_id = request.POST.get(
-        "impresora",
-        "",
-    ).strip()
-
-    nueva_impresora_nombre = request.POST.get(
-        "nueva_impresora_nombre",
-        "",
-    ).strip()
-
-    pedido_id = request.POST.get(
-        "pedido"
+    nueva_impresora_nombre = (
+        request.POST.get(
+            "nueva_impresora_nombre",
+            "",
+        ).strip()
     )
 
-    inicio_texto = request.POST.get(
-        "inicio_impresion",
-        ""
-    ).strip()
-
-    horas_texto = request.POST.get(
-        "horas",
-        "0"
+    destino = (
+        request.POST.get(
+            "destino",
+            "",
+        ).strip()
     )
 
-    minutos_texto = request.POST.get(
-        "minutos",
-        "0"
+    pedido_id = (
+        request.POST.get(
+            "pedido",
+            "",
+        ).strip()
     )
 
-    observaciones = request.POST.get(
-        "observaciones",
-        ""
-    ).strip()
+    inicio_texto = (
+        request.POST.get(
+            "inicio_impresion",
+            "",
+        ).strip()
+    )
+
+    horas_texto = (
+        request.POST.get(
+            "horas",
+            "0",
+        ).strip()
+    )
+
+    minutos_texto = (
+        request.POST.get(
+            "minutos",
+            "0",
+        ).strip()
+    )
 
     # --------------------------------------------------------
     # PRODUCTO
     # --------------------------------------------------------
+
+    if not producto_id:
+        messages.error(
+            request,
+            (
+                "Buscá un producto y seleccioná "
+                "una opción válida."
+            ),
+        )
+        return redirect(
+            "produccion:lista"
+        )
 
     producto = get_object_or_404(
         Producto,
@@ -172,41 +372,41 @@ def nueva_produccion(request):
         cantidad = int(
             cantidad_texto
         )
-
-    except (TypeError, ValueError):
-
+    except (
+        TypeError,
+        ValueError,
+    ):
         cantidad = 0
 
     if cantidad <= 0:
         messages.error(
             request,
-            "La cantidad debe ser mayor a 0."
+            "La cantidad debe ser mayor a 0.",
         )
-
         return redirect(
             "produccion:lista"
         )
-
 
     # --------------------------------------------------------
     # IMPRESORA
     # --------------------------------------------------------
 
-    impresora = None
-
     if impresora_id == "NUEVA":
         if not nueva_impresora_nombre:
             messages.error(
                 request,
-                "Ingresá el nombre de la nueva impresora."
+                (
+                    "Ingresá el nombre de la "
+                    "nueva impresora."
+                ),
             )
-
             return redirect(
                 "produccion:lista"
             )
 
         impresora, _ = (
-            Impresora.objects.get_or_create(
+            Impresora.objects
+            .get_or_create(
                 nombre=nueva_impresora_nombre,
                 defaults={
                     "activa": True,
@@ -217,28 +417,29 @@ def nueva_produccion(request):
         if not impresora.activa:
             impresora.activa = True
             impresora.save(
-                update_fields=["activa"]
+                update_fields=[
+                    "activa",
+                ]
             )
 
-    elif impresora_id:
+    else:
+        if not impresora_id:
+            messages.error(
+                request,
+                "Seleccioná una impresora.",
+            )
+            return redirect(
+                "produccion:lista"
+            )
+
         impresora = get_object_or_404(
             Impresora,
             id=impresora_id,
             activa=True,
         )
 
-    else:
-        messages.error(
-            request,
-            "Debés seleccionar una impresora."
-        )
-
-        return redirect(
-            "produccion:lista"
-        )
-
     # --------------------------------------------------------
-    # DESTINO
+    # DESTINO / PEDIDO
     # --------------------------------------------------------
 
     if destino not in [
@@ -247,27 +448,20 @@ def nueva_produccion(request):
     ]:
         messages.error(
             request,
-            "El destino seleccionado no es válido."
+            "El destino seleccionado no es válido.",
         )
-
         return redirect(
             "produccion:lista"
         )
 
-    # --------------------------------------------------------
-    # PEDIDO
-    # --------------------------------------------------------
-
     pedido = None
 
     if destino == "PEDIDO":
-
         if not pedido_id:
             messages.error(
                 request,
-                "Debés seleccionar un pedido."
+                "Debés seleccionar un pedido.",
             )
-
             return redirect(
                 "produccion:lista"
             )
@@ -283,130 +477,98 @@ def nueva_produccion(request):
         ]:
             messages.error(
                 request,
-                "No se puede producir para un pedido "
-                "entregado o cancelado."
+                (
+                    "No se puede producir para un "
+                    "pedido entregado o cancelado."
+                ),
             )
-
             return redirect(
                 "produccion:lista"
             )
 
     # --------------------------------------------------------
-    # INICIO DE IMPRESIÓN
+    # HORARIO PLANIFICADO
     # --------------------------------------------------------
 
-    if not inicio_texto:
+    inicio_impresion = (
+        _parsear_datetime_local(
+            inicio_texto
+        )
+    )
+
+    if inicio_impresion is None:
         messages.error(
             request,
-            "Debés ingresar la fecha y hora "
-            "de inicio de impresión."
+            (
+                "Ingresá una fecha y hora "
+                "de inicio válida."
+            ),
         )
-
-        return redirect(
-            "produccion:lista"
-        )
-
-    try:
-
-        inicio_impresion = datetime.strptime(
-            inicio_texto,
-            "%Y-%m-%dT%H:%M"
-        )
-
-        if timezone.is_naive(
-                inicio_impresion
-        ):
-            inicio_impresion = (
-                timezone.make_aware(
-                    inicio_impresion,
-                    timezone.get_current_timezone()
-                )
-            )
-
-
-    except ValueError:
-
-        messages.error(
-            request,
-            "La fecha y hora de inicio "
-            "no tienen un formato válido."
-        )
-
         return redirect(
             "produccion:lista"
         )
 
     # --------------------------------------------------------
-    # TIEMPO DE IMPRESIÓN
-    # --------------------------------------------------------
-    #
-    # 1 unidad:
-    # toma automáticamente el tiempo del producto.
-    #
-    # Más de 1 unidad:
-    # tiempo ingresado manualmente.
+    # TIEMPO
     # --------------------------------------------------------
 
     if cantidad == 1:
-
         tiempo_total = (
-                int(producto.horas) * 60
-                + int(producto.minutos)
+            int(producto.horas or 0)
+            * 60
+            + int(producto.minutos or 0)
         )
 
         if tiempo_total <= 0:
             messages.error(
                 request,
-                "Este producto no tiene un tiempo "
-                "de impresión configurado."
+                (
+                    "Este producto no tiene un "
+                    "tiempo de impresión configurado."
+                ),
             )
-
             return redirect(
                 "produccion:lista"
             )
 
-
     else:
-
         try:
-
             horas = int(
                 horas_texto or 0
             )
-
             minutos = int(
                 minutos_texto or 0
             )
-
-        except (TypeError, ValueError):
-
-            messages.error(
-                request,
-                "El tiempo de impresión "
-                "no es válido."
-            )
-
-            return redirect(
-                "produccion:lista"
-            )
+        except (
+            TypeError,
+            ValueError,
+        ):
+            horas = -1
+            minutos = -1
 
         if horas < 0:
             messages.error(
                 request,
-                "Las horas no pueden ser negativas."
+                (
+                    "Las horas no pueden ser "
+                    "negativas."
+                ),
             )
-
             return redirect(
                 "produccion:lista"
             )
 
-        if minutos < 0 or minutos > 59:
+        if (
+            minutos < 0
+            or minutos > 59
+        ):
             messages.error(
                 request,
-                "Los minutos deben estar "
-                "entre 0 y 59."
+                (
+                    "Los minutos deben estar "
+                    "entre 0 y 59."
+                ),
             )
-
             return redirect(
                 "produccion:lista"
             )
@@ -416,68 +578,359 @@ def nueva_produccion(request):
             + minutos
         )
 
-        # Si no llegó un tiempo manual válido,
-        # intentamos recuperar el último registrado
-        # para el mismo producto y la misma cantidad.
         if tiempo_total <= 0:
-
-            tiempo_recomendado = obtener_tiempo_recomendado(
-                producto,
-                cantidad,
+            tiempo_recomendado = (
+                obtener_tiempo_recomendado(
+                    producto,
+                    cantidad,
+                )
             )
 
             if tiempo_recomendado:
-
-                tiempo_total = tiempo_recomendado
-
+                tiempo_total = (
+                    tiempo_recomendado
+                )
             else:
-
                 messages.error(
                     request,
                     (
-                        "No existe un tiempo anterior para "
-                        f"{producto.nombre} x{cantidad}. "
-                        "Debés ingresar el tiempo manualmente."
-                    )
+                        "No existe un tiempo anterior "
+                        f"para {producto.nombre} "
+                        f"x{cantidad}. Ingresalo "
+                        "manualmente."
+                    ),
                 )
-
                 return redirect(
                     "produccion:lista"
                 )
 
-
     # --------------------------------------------------------
-    # CREAR PRODUCCIÓN
+    # CONFLICTO DE AGENDA
     # --------------------------------------------------------
 
-    produccion = Produccion.objects.create(
-
-        producto=producto,
-
-        cantidad=cantidad,
-
-        destino=destino,
-
-        pedido=pedido,
-
+    conflicto = _conflicto_planificacion(
         impresora=impresora,
+        inicio=inicio_impresion,
+        tiempo_minutos=tiempo_total,
+    )
 
-        estado="PENDIENTE",
+    if conflicto:
+        inicio_conflicto = (
+            timezone.localtime(
+                conflicto.inicio_impresion
+            ).strftime(
+                "%d/%m %H:%M"
+            )
+        )
 
-        inicio_impresion=inicio_impresion,
+        fin_conflicto = (
+            timezone.localtime(
+                conflicto.fin_estimado
+            ).strftime(
+                "%d/%m %H:%M"
+            )
+        )
 
-        tiempo_impresion_minutos=tiempo_total,
+        messages.error(
+            request,
+            (
+                f"{impresora.nombre} ya tiene "
+                f"{conflicto.codigo} programada "
+                f"de {inicio_conflicto} a "
+                f"{fin_conflicto}."
+            ),
+        )
+        return redirect(
+            "produccion:lista"
+        )
 
-        observaciones=observaciones,
+    # --------------------------------------------------------
+    # CREAR PLANIFICACIÓN
+    # --------------------------------------------------------
+
+    produccion = (
+        Produccion.objects.create(
+            producto=producto,
+            cantidad=cantidad,
+            impresora=impresora,
+            destino=destino,
+            pedido=pedido,
+            estado="PENDIENTE",
+            inicio_impresion=
+                inicio_impresion,
+            tiempo_impresion_minutos=
+                tiempo_total,
+        )
+    )
+
+    inicio_local = timezone.localtime(
+        produccion.inicio_impresion
+    ).strftime(
+        "%d/%m/%Y %H:%M"
+    )
+
+    fin_local = timezone.localtime(
+        produccion.fin_estimado
+    ).strftime(
+        "%d/%m/%Y %H:%M"
     )
 
     messages.success(
         request,
         (
-            f"{produccion.codigo} creada correctamente. "
-            f"Finalización estimada: "
-            f"{timezone.localtime(produccion.fin_estimado).strftime('%d/%m/%Y %H:%M')}."
+            f"{produccion.codigo} planificada en "
+            f"{impresora.nombre} para "
+            f"{inicio_local}. "
+            f"Fin estimado: {fin_local}."
+        ),
+    )
+
+    return redirect(
+        "produccion:lista"
+    )
+
+
+# ============================================================
+# INICIAR PRODUCCIÓN PLANIFICADA
+# ============================================================
+
+@transaction.atomic
+def iniciar_produccion(
+    request,
+    produccion_id,
+):
+    if request.method != "POST":
+        return redirect(
+            "produccion:lista"
         )
+
+    produccion = get_object_or_404(
+        Produccion.objects
+        .select_for_update()
+        .select_related(
+            "impresora",
+            "producto",
+        ),
+        id=produccion_id,
+    )
+
+    if produccion.estado != "PENDIENTE":
+        messages.error(
+            request,
+            (
+                f"{produccion.codigo} ya no está "
+                "pendiente."
+            ),
+        )
+        return redirect(
+            "produccion:lista"
+        )
+
+    if not produccion.impresora:
+        messages.error(
+            request,
+            (
+                "La producción no tiene una "
+                "impresora asignada."
+            ),
+        )
+        return redirect(
+            "produccion:lista"
+        )
+
+    # Se puede adelantar una producción.
+    # Al mandarla a imprimir, el inicio real para esta
+    # versión pasa a ser AHORA.
+    inicio_actual = timezone.now()
+
+    ocupando = _impresora_ocupada(
+        impresora=produccion.impresora,
+        excluir_id=produccion.id,
+    )
+
+    if ocupando:
+        messages.error(
+            request,
+            (
+                f"{produccion.impresora.nombre} "
+                f"está ocupada por "
+                f"{ocupando.codigo} · "
+                f"{ocupando.producto.nombre}."
+            ),
+        )
+        return redirect(
+            "produccion:lista"
+        )
+
+    conflicto = _conflicto_planificacion(
+        impresora=produccion.impresora,
+        inicio=inicio_actual,
+        tiempo_minutos=(
+            produccion
+            .tiempo_impresion_minutos
+        ),
+        excluir_id=produccion.id,
+    )
+
+    if conflicto:
+        inicio_conflicto = (
+            timezone.localtime(
+                conflicto.inicio_impresion
+            ).strftime(
+                "%d/%m %H:%M"
+            )
+        )
+
+        messages.error(
+            request,
+            (
+                "No se puede adelantar porque "
+                f"se superpondría con "
+                f"{conflicto.codigo} desde "
+                f"{inicio_conflicto}."
+            ),
+        )
+        return redirect(
+            "produccion:lista"
+        )
+
+    produccion.inicio_impresion = (
+        inicio_actual
+    )
+    produccion.estado = "IMPRIMIENDO"
+
+    produccion.save(
+        update_fields=[
+            "inicio_impresion",
+            "estado",
+        ]
+    )
+
+    messages.success(
+        request,
+        (
+            f"{produccion.codigo} enviada a "
+            f"{produccion.impresora.nombre}. "
+            "Inicio actualizado al horario actual."
+        ),
+    )
+
+    return redirect(
+        "produccion:lista"
+    )
+
+
+# ============================================================
+# REPETIR PRODUCCIÓN TERMINADA
+# ============================================================
+
+@transaction.atomic
+def repetir_produccion(
+    request,
+    produccion_id,
+):
+    if request.method != "POST":
+        return redirect(
+            "produccion:lista"
+        )
+
+    original = get_object_or_404(
+        Produccion.objects
+        .select_for_update()
+        .select_related(
+            "producto",
+            "impresora",
+            "pedido",
+        ),
+        id=produccion_id,
+        estado="LISTO",
+    )
+
+    if not original.impresora:
+        messages.error(
+            request,
+            (
+                "La producción terminada no tiene "
+                "una impresora asignada."
+            ),
+        )
+        return redirect(
+            "produccion:lista"
+        )
+
+    ocupando = _impresora_ocupada(
+        impresora=original.impresora,
+    )
+
+    if ocupando:
+        messages.error(
+            request,
+            (
+                f"{original.impresora.nombre} "
+                f"está ocupada por "
+                f"{ocupando.codigo} · "
+                f"{ocupando.producto.nombre}."
+            ),
+        )
+        return redirect(
+            "produccion:lista"
+        )
+
+    inicio_actual = timezone.now()
+
+    conflicto = _conflicto_planificacion(
+        impresora=original.impresora,
+        inicio=inicio_actual,
+        tiempo_minutos=(
+            original
+            .tiempo_impresion_minutos
+        ),
+    )
+
+    if conflicto:
+        inicio_conflicto = (
+            timezone.localtime(
+                conflicto.inicio_impresion
+            ).strftime(
+                "%d/%m %H:%M"
+            )
+        )
+
+        messages.error(
+            request,
+            (
+                "No se puede repetir ahora porque "
+                f"se superpondría con "
+                f"{conflicto.codigo} desde "
+                f"{inicio_conflicto}."
+            ),
+        )
+        return redirect(
+            "produccion:lista"
+        )
+
+    nueva = Produccion.objects.create(
+        producto=original.producto,
+        cantidad=original.cantidad,
+        impresora=original.impresora,
+        destino=original.destino,
+        pedido=original.pedido,
+        estado="IMPRIMIENDO",
+        inicio_impresion=inicio_actual,
+        tiempo_impresion_minutos=(
+            original
+            .tiempo_impresion_minutos
+        ),
+    )
+
+    messages.success(
+        request,
+        (
+            f"{nueva.codigo} creada repitiendo "
+            f"{original.codigo}. "
+            f"{original.impresora.nombre} quedó "
+            "en IMPRIMIENDO con horario actual."
+        ),
     )
 
     return redirect(
@@ -491,8 +944,8 @@ def nueva_produccion(request):
 
 @transaction.atomic
 def cambiar_estado(
-        request,
-        produccion_id
+    request,
+    produccion_id,
 ):
     if request.method != "POST":
         return redirect(
@@ -500,12 +953,20 @@ def cambiar_estado(
         )
 
     produccion = get_object_or_404(
-        Produccion.objects.select_for_update(),
+        Produccion.objects
+        .select_for_update()
+        .select_related(
+            "impresora",
+            "producto",
+        ),
         id=produccion_id,
     )
 
-    nuevo_estado = request.POST.get(
-        "estado"
+    nuevo_estado = (
+        request.POST.get(
+            "estado",
+            "",
+        ).strip()
     )
 
     if nuevo_estado not in [
@@ -516,84 +977,40 @@ def cambiar_estado(
     ]:
         messages.error(
             request,
-            "El estado seleccionado no es válido."
+            "El estado seleccionado no es válido.",
         )
-
         return redirect(
             "produccion:lista"
         )
 
-
-    # ========================================================
-    # PASAR A IMPRIMIENDO
-    # ========================================================
-
+    # La transición planificada a IMPRIMIENDO se hace
+    # por el botón específico, para validar horario y máquina.
     if (
         nuevo_estado == "IMPRIMIENDO"
-        and produccion.estado != "IMPRIMIENDO"
+        and produccion.estado == "PENDIENTE"
     ):
-        if not produccion.impresora_id:
-            messages.error(
-                request,
-                (
-                    f"{produccion.codigo} no tiene impresora asignada. "
-                    "Editá o recreá la producción asignando una impresora."
-                )
-            )
-
-            return redirect(
-                "produccion:lista"
-            )
-
-        ocupada = (
-            Produccion.objects
-            .select_for_update()
-            .filter(
-                impresora_id=produccion.impresora_id,
-                estado="IMPRIMIENDO",
-            )
-            .exclude(
-                id=produccion.id,
-            )
-            .select_related(
-                "producto",
-            )
-            .first()
+        messages.error(
+            request,
+            (
+                "Para iniciar una planificación usá "
+                "el botón MANDAR A IMPRIMIR."
+            ),
+        )
+        return redirect(
+            "produccion:lista"
         )
 
-        if ocupada:
-            messages.error(
-                request,
-                (
-                    f"{produccion.impresora.nombre} ya está imprimiendo "
-                    f"{ocupada.producto.nombre} "
-                    f"({ocupada.codigo})."
-                )
-            )
-
-            return redirect(
-                "produccion:lista"
-            )
-
-    # ========================================================
+    # --------------------------------------------------------
     # PASAR A LISTO
-    # ========================================================
+    # --------------------------------------------------------
 
     if (
-            nuevo_estado == "LISTO"
-            and produccion.estado != "LISTO"
+        nuevo_estado == "LISTO"
+        and produccion.estado != "LISTO"
     ):
-
-        # ----------------------------------------------------
-        # DESTINO STOCK
-        # ----------------------------------------------------
-        #
-        # Se suma stock únicamente una vez.
-        # ----------------------------------------------------
-
         if (
-                produccion.destino == "STOCK"
-                and not produccion.ingresado_stock
+            produccion.destino == "STOCK"
+            and not produccion.ingresado_stock
         ):
             producto = (
                 Producto.objects
@@ -609,32 +1026,21 @@ def cambiar_estado(
 
             producto.save(
                 update_fields=[
-                    "stock"
+                    "stock",
                 ]
             )
 
             produccion.ingresado_stock = True
 
-        # ----------------------------------------------------
-        # DESTINO PEDIDO
-        # ----------------------------------------------------
-        #
-        # No toca stock general.
-        # La impresión fue realizada específicamente
-        # para ese pedido.
-        # ----------------------------------------------------
-
-
-    # ========================================================
+    # --------------------------------------------------------
     # REVERTIR LISTO
-    # ========================================================
+    # --------------------------------------------------------
 
     elif (
-            produccion.estado == "LISTO"
-            and nuevo_estado != "LISTO"
-            and produccion.ingresado_stock
+        produccion.estado == "LISTO"
+        and nuevo_estado != "LISTO"
+        and produccion.ingresado_stock
     ):
-
         producto = (
             Producto.objects
             .select_for_update()
@@ -643,16 +1049,19 @@ def cambiar_estado(
             )
         )
 
-        if producto.stock < produccion.cantidad:
+        if (
+            producto.stock
+            < produccion.cantidad
+        ):
             messages.error(
                 request,
                 (
-                    "No se puede revertir esta producción "
-                    "porque el stock actual es menor que "
-                    "la cantidad que había ingresado."
-                )
+                    "No se puede revertir esta "
+                    "producción porque el stock "
+                    "actual es menor que la cantidad "
+                    "que había ingresado."
+                ),
             )
-
             return redirect(
                 "produccion:lista"
             )
@@ -663,19 +1072,13 @@ def cambiar_estado(
 
         producto.save(
             update_fields=[
-                "stock"
+                "stock",
             ]
         )
 
         produccion.ingresado_stock = False
 
-    # ========================================================
-    # GUARDAR NUEVO ESTADO
-    # ========================================================
-
-    produccion.estado = (
-        nuevo_estado
-    )
+    produccion.estado = nuevo_estado
 
     produccion.save(
         update_fields=[
@@ -689,7 +1092,7 @@ def cambiar_estado(
         (
             f"{produccion.codigo} actualizada a "
             f"{produccion.get_estado_display()}."
-        )
+        ),
     )
 
     return redirect(
@@ -697,30 +1100,18 @@ def cambiar_estado(
     )
 
 
-
 # ============================================================
 # TIEMPO RECOMENDADO
 # ============================================================
 
-def obtener_tiempo_recomendado(producto, cantidad):
-    """
-    Devuelve el tiempo recomendado en minutos.
-
-    Cantidad = 1:
-        usa horas/minutos configurados en Producto.
-
-    Cantidad > 1:
-        usa la última producción NO CANCELADA del mismo
-        producto y la misma cantidad que tenga un tiempo válido.
-
-    Si no existe referencia:
-        devuelve None.
-    """
-
+def obtener_tiempo_recomendado(
+    producto,
+    cantidad,
+):
     if cantidad == 1:
-
         tiempo_producto = (
-            int(producto.horas or 0) * 60
+            int(producto.horas or 0)
+            * 60
             + int(producto.minutos or 0)
         )
 
@@ -748,7 +1139,6 @@ def obtener_tiempo_recomendado(producto, cantidad):
     )
 
     if ultima_produccion:
-
         return (
             ultima_produccion
             .tiempo_impresion_minutos
@@ -762,13 +1152,12 @@ def obtener_tiempo_recomendado(producto, cantidad):
 # ============================================================
 
 def tiempo_recomendado(request):
-
     if request.method != "GET":
-
         return JsonResponse(
             {
                 "ok": False,
-                "mensaje": "Método no permitido.",
+                "mensaje":
+                    "Método no permitido.",
             },
             status=405,
         )
@@ -782,17 +1171,19 @@ def tiempo_recomendado(request):
     )
 
     try:
-
         cantidad = int(
             cantidad_texto
         )
-
-    except (TypeError, ValueError):
-
+    except (
+        TypeError,
+        ValueError,
+    ):
         cantidad = 0
 
-    if not producto_id or cantidad <= 0:
-
+    if (
+        not producto_id
+        or cantidad <= 0
+    ):
         return JsonResponse(
             {
                 "ok": False,
@@ -802,7 +1193,8 @@ def tiempo_recomendado(request):
                 "total_minutos": 0,
                 "origen": "SIN_DATOS",
                 "mensaje": (
-                    "Seleccioná un producto y una cantidad válida."
+                    "Seleccioná un producto "
+                    "y una cantidad válida."
                 ),
             }
         )
@@ -814,13 +1206,14 @@ def tiempo_recomendado(request):
         requiere_impresion=True,
     )
 
-    tiempo_total = obtener_tiempo_recomendado(
-        producto,
-        cantidad,
+    tiempo_total = (
+        obtener_tiempo_recomendado(
+            producto,
+            cantidad,
+        )
     )
 
     if not tiempo_total:
-
         return JsonResponse(
             {
                 "ok": True,
@@ -830,8 +1223,9 @@ def tiempo_recomendado(request):
                 "total_minutos": 0,
                 "origen": "MANUAL",
                 "mensaje": (
-                    "No hay un tiempo anterior registrado "
-                    "para este producto y esta cantidad."
+                    "No hay un tiempo anterior "
+                    "registrado para este producto "
+                    "y esta cantidad."
                 ),
             }
         )
@@ -854,7 +1248,10 @@ def tiempo_recomendado(request):
             "mensaje": (
                 "Tiempo configurado en el producto."
                 if cantidad == 1
-                else "Último tiempo registrado para esta cantidad."
+                else (
+                    "Último tiempo registrado "
+                    "para esta cantidad."
+                )
             ),
         }
     )

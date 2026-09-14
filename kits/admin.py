@@ -1,32 +1,33 @@
 from django.contrib import admin
 
-from .models import Kit
+from .models import Kit, KitComponente
+
+
+class KitComponenteInline(admin.TabularInline):
+    model = KitComponente
+    extra = 1
+    autocomplete_fields = ["producto"]
 
 
 @admin.register(Kit)
 class KitAdmin(admin.ModelAdmin):
-
-    list_display = (
-        "mostrar_codigo",
+    list_display = [
+        "codigo",
         "nombre",
+        "modalidad",
         "tipo_producto",
         "cantidad_productos",
         "precio",
         "activo",
-    )
-
-    search_fields = (
-        "nombre",
-    )
-
-    list_filter = (
-        "tipo_producto",
+    ]
+    list_filter = [
+        "modalidad",
         "activo",
-    )
-
-    @admin.display(
-        description="ID KIT",
-        ordering="id"
-    )
-    def mostrar_codigo(self, obj):
-        return obj.codigo
+        "tipo_producto",
+    ]
+    search_fields = [
+        "nombre",
+    ]
+    inlines = [
+        KitComponenteInline,
+    ]

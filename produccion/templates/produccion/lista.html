@@ -27,7 +27,7 @@ h1{margin:0 0 5px;font-size:clamp(25px,4vw,34px)}
 .formulario-subtitulo{margin:5px 0 18px;color:var(--muted);font-size:11px}
 .grupo-formulario{padding:15px;border:1px solid #eceef1;border-radius:16px;background:#fafbfc;margin-bottom:12px}
 .grupo-formulario-titulo{margin-bottom:12px;color:#555b63;font-size:9px;font-weight:900;letter-spacing:.45px}
-.campos{display:grid;grid-template-columns:minmax(260px,2fr) 110px minmax(190px,1fr);gap:12px;align-items:end}
+.campos{display:grid;grid-template-columns:minmax(260px,2fr) 110px minmax(190px,1fr);gap:12px;align-items:start}
 .campos-programacion{grid-template-columns:minmax(210px,1.2fr) 150px minmax(240px,1.4fr)}
 .campo label,.campo-tiempo label{display:block;margin-bottom:6px;color:var(--muted);font-size:9px;font-weight:900;letter-spacing:.3px}
 input,select{width:100%;min-height:50px;padding:10px 12px;border:1px solid #d4d7dc;border-radius:12px;background:white;font-size:14px}
@@ -72,6 +72,18 @@ td:nth-child(10){grid-column:1/-1;border-top:1px solid var(--borde)!important;pa
 .nav-inferior{width:calc(100% - 12px);bottom:max(6px,env(safe-area-inset-bottom))}
 }
 @media(hover:hover){tbody tr:hover{filter:brightness(.985)}.boton-volver:hover{background:#f0f1f3}}
+
+.producto-buscador{position:relative}
+.producto-buscador input{padding-right:38px}
+.producto-ayuda{margin-top:5px;min-height:11px;color:var(--muted);font-size:8px;line-height:1.35}
+.planificacion-estado{display:grid;gap:7px}
+.planificacion-horario{padding:7px 9px;border-radius:9px;background:var(--amarillo);color:var(--amarillo-t);font-size:8px;font-weight:900;line-height:1.35}
+.btn-iniciar{width:100%;min-height:44px;border:0;border-radius:10px;background:#236a3b;color:#fff;font-size:9px;font-weight:900;cursor:pointer}
+.btn-iniciar:disabled{background:#d9dde1;color:#7a7f86;cursor:not-allowed}
+.btn-cancelar-plan{width:100%;min-height:38px;border:1px solid #efcaca;border-radius:10px;background:#fff;color:#923434;font-size:8px;font-weight:900;cursor:pointer}
+.btn-repetir{width:100%;min-height:40px;border:1px solid #cbd8e8;border-radius:10px;background:#fff;color:#315f93;font-size:8px;font-weight:900;cursor:pointer}
+.estado-imprimiendo-fijo{min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--azul);color:var(--azul-t);font-size:9px;font-weight:900}
+
 </style>
 
 </head>
@@ -146,7 +158,7 @@ td:nth-child(10){grid-column:1/-1;border-top:1px solid var(--borde)!important;pa
 
         <h2>Nueva producción</h2>
         <div class="formulario-subtitulo">
-            Seleccioná qué imprimir, la máquina y cuándo comienza.
+            Planificá qué imprimir, en qué máquina y a qué hora. El trabajo queda pendiente hasta que lo inicies.
         </div>
 
         <form
@@ -163,31 +175,37 @@ td:nth-child(10){grid-column:1/-1;border-top:1px solid var(--borde)!important;pa
 
                 <div class="campos">
 
-                    <div class="campo">
+                    <div class="campo producto-buscador">
                         <label>PRODUCTO</label>
 
-                        <select
-                            name="producto"
-                            id="producto"
+                        <input
+                            type="text"
+                            id="producto_busqueda"
+                            list="productos_disponibles"
+                            autocomplete="off"
+                            placeholder="Escribí código o nombre..."
+                            value="{% if producto_seleccionado_obj %}{{ producto_seleccionado_obj.codigo }} - {{ producto_seleccionado_obj.nombre }}{% endif %}"
                             required
                         >
-                            <option value="">
-                                Seleccionar producto
-                            </option>
 
+                        <input
+                            type="hidden"
+                            name="producto"
+                            id="producto"
+                            value="{{ producto_seleccionado }}"
+                        >
+
+                        <datalist id="productos_disponibles">
                             {% for producto in productos %}
                                 <option
-                                    value="{{ producto.id }}"
-                                    data-horas="{{ producto.horas }}"
-                                    data-minutos="{{ producto.minutos }}"
-                                    {% if producto_seleccionado == producto.id|stringformat:"s" %}
-                                        selected
-                                    {% endif %}
-                                >
-                                    {{ producto.codigo }} - {{ producto.nombre }}
-                                </option>
+                                    value="{{ producto.codigo }} - {{ producto.nombre }}"
+                                ></option>
                             {% endfor %}
-                        </select>
+                        </datalist>
+
+                        <div class="producto-ayuda">
+                            Podés buscar por código o por nombre.
+                        </div>
                     </div>
 
                     <div class="campo">
@@ -392,7 +410,7 @@ td:nth-child(10){grid-column:1/-1;border-top:1px solid var(--borde)!important;pa
                     type="submit"
                     class="boton boton-principal"
                 >
-                    + CREAR PRODUCCIÓN
+                    + PLANIFICAR PRODUCCIÓN
                 </button>
             </div>
 
@@ -402,8 +420,19 @@ td:nth-child(10){grid-column:1/-1;border-top:1px solid var(--borde)!important;pa
 
 
     <!-- =========================================
-         LISTA DE PRODUCCIONES
+         PLANIFICACIÓN / PRODUCCIONES
     ========================================== -->
+
+    <div
+        style="
+            margin:0 0 9px;
+            color:var(--muted);
+            font-size:10px;
+            font-weight:800;
+        "
+    >
+        PENDIENTE = planificada · IMPRIMIENDO = máquina ocupada · LISTO = finalizada
+    </div>
 
     <div class="tabla-contenedor">
 
@@ -592,14 +621,77 @@ td:nth-child(10){grid-column:1/-1;border-top:1px solid var(--borde)!important;pa
 
                             {% if produccion.estado == "LISTO" %}
 
-                                <span
-                                    class="estado-fijo estado-LISTO"
-                                    title="Una producción lista queda bloqueada para evitar cambios accidentales."
-                                >
-                                    ✓ LISTO
-                                </span>
+                                <div class="planificacion-estado">
 
-                            {% else %}
+                                    <span
+                                        class="estado-fijo estado-LISTO"
+                                        title="Una producción lista queda bloqueada para evitar cambios accidentales."
+                                    >
+                                        ✓ LISTO
+                                    </span>
+
+                                    <form
+                                        method="post"
+                                        action="{% url 'produccion:repetir' produccion.id %}"
+                                    >
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="btn-repetir"
+                                        >
+                                            ↻ REPETIR IMPRESIÓN
+                                        </button>
+                                    </form>
+
+                                </div>
+
+                            {% elif produccion.estado == "PENDIENTE" %}
+
+                                <div class="planificacion-estado">
+
+                                    <div class="planificacion-horario">
+                                        PROGRAMADA
+                                        ·
+                                        {{ produccion.inicio_impresion|date:"d/m H:i" }}
+                                    </div>
+
+                                    <form
+                                        method="post"
+                                        action="{% url 'produccion:iniciar' produccion.id %}"
+                                    >
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="btn-iniciar js-btn-iniciar"
+                                            data-inicio="{{ produccion.inicio_impresion|date:'c' }}"
+                                        >
+                                            ▶ MANDAR A IMPRIMIR
+                                        </button>
+                                    </form>
+
+                                    <form
+                                        method="post"
+                                        action="{% url 'produccion:cambiar_estado' produccion.id %}"
+                                    >
+                                        {% csrf_token %}
+                                        <input
+                                            type="hidden"
+                                            name="estado"
+                                            value="CANCELADO"
+                                        >
+                                        <button
+                                            type="submit"
+                                            class="btn-cancelar-plan"
+                                        >
+                                            CANCELAR PLANIFICACIÓN
+                                        </button>
+                                    </form>
+
+                                </div>
+
+                            {% elif produccion.estado == "IMPRIMIENDO" %}
 
                                 <form
                                     method="post"
@@ -613,42 +705,28 @@ td:nth-child(10){grid-column:1/-1;border-top:1px solid var(--borde)!important;pa
                                         class="estado-select estado-{{ produccion.estado }}"
                                         onchange="this.form.submit()"
                                     >
-                                        {% if produccion.estado == "PENDIENTE" %}
-                                            <option value="PENDIENTE" selected>
-                                                PENDIENTE
-                                            </option>
-                                        {% else %}
-                                            <option value="PENDIENTE">
-                                                PENDIENTE
-                                            </option>
-                                        {% endif %}
-
-                                        {% if produccion.estado == "IMPRIMIENDO" %}
-                                            <option value="IMPRIMIENDO" selected>
-                                                IMPRIMIENDO
-                                            </option>
-                                        {% else %}
-                                            <option value="IMPRIMIENDO">
-                                                IMPRIMIENDO
-                                            </option>
-                                        {% endif %}
+                                        <option
+                                            value="IMPRIMIENDO"
+                                            selected
+                                        >
+                                            IMPRIMIENDO
+                                        </option>
 
                                         <option value="LISTO">
                                             LISTO
                                         </option>
 
-                                        {% if produccion.estado == "CANCELADO" %}
-                                            <option value="CANCELADO" selected>
-                                                CANCELADO
-                                            </option>
-                                        {% else %}
-                                            <option value="CANCELADO">
-                                                CANCELADO
-                                            </option>
-                                        {% endif %}
+                                        <option value="CANCELADO">
+                                            CANCELADO
+                                        </option>
                                     </select>
-
                                 </form>
+
+                            {% else %}
+
+                                <span class="estado-fijo">
+                                    {{ produccion.get_estado_display }}
+                                </span>
 
                             {% endif %}
 
@@ -712,6 +790,24 @@ td:nth-child(10){grid-column:1/-1;border-top:1px solid var(--borde)!important;pa
 
     const producto =
         document.getElementById("producto");
+
+    const productoBusqueda =
+        document.getElementById(
+            "producto_busqueda"
+        );
+
+    const productosData = [
+        {% for p in productos %}
+            {
+                id: "{{ p.id }}",
+                texto: "{{ p.codigo|escapejs }} - {{ p.nombre|escapejs }}",
+                horas: {{ p.horas|default:0 }},
+                minutos: {{ p.minutos|default:0 }}
+            },
+        {% endfor %}
+    ];
+
+    let productoActual = null;
 
     const cantidad =
         document.getElementById("cantidad");
@@ -818,27 +914,46 @@ td:nth-child(10){grid-column:1/-1;border-top:1px solid var(--borde)!important;pa
        TIEMPO DEL PRODUCTO
     ========================================= */
 
+    function sincronizarProducto() {
+
+        const texto =
+            (
+                productoBusqueda.value || ""
+            ).trim().toLowerCase();
+
+        productoActual =
+            productosData.find(
+                p =>
+                    p.texto.toLowerCase()
+                    === texto
+            ) || null;
+
+        producto.value =
+            productoActual
+            ? productoActual.id
+            : "";
+
+        return productoActual;
+    }
+
+
     function obtenerTiempoProducto() {
 
-        const opcion =
-            producto.options[producto.selectedIndex];
+        sincronizarProducto();
 
-        if (!opcion || !opcion.value) {
+        if (!productoActual) {
             return 0;
         }
 
-        const horasProducto =
-            parseInt(opcion.dataset.horas || "0");
-
-        const minutosProducto =
-            parseInt(opcion.dataset.minutos || "0");
-
         return (
-            horasProducto * 60
+            Number(
+                productoActual.horas || 0
+            ) * 60
             +
-            minutosProducto
+            Number(
+                productoActual.minutos || 0
+            )
         );
-
     }
 
 
@@ -1214,9 +1329,19 @@ td:nth-child(10){grid-column:1/-1;border-top:1px solid var(--borde)!important;pa
     );
 
 
-    producto.addEventListener(
+    productoBusqueda.addEventListener(
         "change",
-        actualizarTiempo
+        async function() {
+            sincronizarProducto();
+            await actualizarTiempo();
+        }
+    );
+
+    productoBusqueda.addEventListener(
+        "input",
+        function() {
+            sincronizarProducto();
+        }
     );
 
 
@@ -1251,9 +1376,34 @@ td:nth-child(10){grid-column:1/-1;border-top:1px solid var(--borde)!important;pa
 
 
     /* =========================================
+       VALIDAR PRODUCTO BUSCADO
+    ========================================= */
+
+    document
+        .getElementById("form-produccion")
+        .addEventListener(
+            "submit",
+            function(event) {
+                sincronizarProducto();
+
+                if (!producto.value) {
+                    event.preventDefault();
+
+                    alert(
+                        "Seleccioná un producto válido de la lista."
+                    );
+
+                    productoBusqueda.focus();
+                }
+            }
+        );
+
+
+    /* =========================================
        INICIALIZAR
     ========================================= */
 
+    sincronizarProducto();
     actualizarNuevaImpresora();
     actualizarDestino();
 

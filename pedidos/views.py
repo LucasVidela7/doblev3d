@@ -475,13 +475,54 @@ def cambiar_estado_impresion(request):
 
 
 def productos_por_kit(request, kit_id):
-    kit = get_object_or_404(Kit, id=kit_id, activo=True)
+    kit = get_object_or_404(
+        Kit.objects.prefetch_related(
+            "componentes__producto"
+        ),
+        id=kit_id,
+        activo=True,
+    )
+
+    if kit.modalidad == "FIJO":
+        componentes = list(
+            kit.componentes.all()
+        )
+
+        cantidad_productos = sum(
+            componente.cantidad
+            for componente in componentes
+        )
+
+        return JsonResponse({
+            "kit": {
+                "id": kit.id,
+                "nombre": kit.nombre,
+                "modalidad": kit.modalidad,
+                "cantidad_productos":
+                    cantidad_productos,
+                "tipo": "",
+            },
+            "productos": [],
+            "componentes": [
+                {
+                    "id":
+                        componente.producto.id,
+                    "codigo":
+                        componente.producto.codigo,
+                    "nombre":
+                        componente.producto.nombre,
+                    "cantidad":
+                        componente.cantidad,
+                }
+                for componente in componentes
+            ],
+        })
 
     productos = (
         Producto.objects
         .filter(
             tipo=kit.tipo_producto,
-            activo=True
+            activo=True,
         )
         .order_by("nombre")
     )
@@ -490,8 +531,14 @@ def productos_por_kit(request, kit_id):
         "kit": {
             "id": kit.id,
             "nombre": kit.nombre,
-            "cantidad_productos": kit.cantidad_productos,
-            "tipo": kit.tipo_producto.nombre,
+            "modalidad": kit.modalidad,
+            "cantidad_productos":
+                kit.cantidad_productos,
+            "tipo": (
+                kit.tipo_producto.nombre
+                if kit.tipo_producto
+                else ""
+            ),
         },
         "productos": [
             {
@@ -500,7 +547,8 @@ def productos_por_kit(request, kit_id):
                 "nombre": producto.nombre,
             }
             for producto in productos
-        ]
+        ],
+        "componentes": [],
     })
 
 
@@ -760,47 +808,17 @@ def nuevo_pedido(request):
                 )
 
                 kit = get_object_or_404(
-                    Kit,
+                    Kit.objects.prefetch_related(
+                        "componentes__producto"
+                    ),
                     id=kit_id,
                     activo=True,
                 )
 
-                # Los selectores corresponden solamente
-                # a los productos que contiene UN kit.
-                #
-                # Ejemplo:
-                # Kit de 2 productos x cantidad 3:
-                #
-                # Producto 1: PIÑA
-                # Producto 2: ESTRELLA
-                #
-                # Resultado:
-                # PIÑA x3
-                # ESTRELLA x3
-
-                productos_kit_ids = request.POST.getlist(
-                    f"productos_kit_{indice}"
-                )
-
                 if (
-                        len(productos_kit_ids)
-                        != kit.cantidad_productos
+                    kit.precio is None
+                    or kit.precio <= 0
                 ):
-                    messages.error(
-                        request,
-                        (
-                            f"El kit {kit.nombre} necesita "
-                            f"{kit.cantidad_productos} productos."
-                        )
-                    )
-
-                    transaction.set_rollback(True)
-
-                    return redirect(
-                        "pedidos:nuevo"
-                    )
-
-                if kit.precio is None or kit.precio <= 0:
                     messages.error(
                         request,
                         (
@@ -808,9 +826,7 @@ def nuevo_pedido(request):
                             "un precio de venta válido."
                         )
                     )
-
                     transaction.set_rollback(True)
-
                     return redirect(
                         "pedidos:nuevo"
                     )
@@ -825,49 +841,105 @@ def nuevo_pedido(request):
                     estado="PENDIENTE",
                 )
 
-                # =========================================
-                # AGRUPAR COMPONENTES
-                # =========================================
+                if kit.modalidad == "FIJO":
 
-                productos_seleccionados = {}
-
-                for producto_id in productos_kit_ids:
-
-                    producto = get_object_or_404(
-                        Producto,
-                        id=producto_id,
-                        activo=True,
-                        tipo=kit.tipo_producto,
+                    componentes_fijos = list(
+                        kit.componentes.all()
                     )
 
-                    if producto.id not in productos_seleccionados:
+                    if not componentes_fijos:
+                        messages.error(
+                            request,
+                            (
+                                f"El kit {kit.nombre} no tiene "
+                                "una composición fija configurada."
+                            )
+                        )
+                        transaction.set_rollback(True)
+                        return redirect(
+                            "pedidos:nuevo"
+                        )
+
+                    for componente in componentes_fijos:
+                        DetalleKitProducto.objects.create(
+                            detalle=detalle,
+                            producto=componente.producto,
+                            cantidad=(
+                                componente.cantidad
+                                * cantidad
+                            ),
+                        )
+
+                else:
+                    productos_kit_ids = (
+                        request.POST.getlist(
+                            f"productos_kit_{indice}"
+                        )
+                    )
+
+                    if (
+                        len(productos_kit_ids)
+                        != kit.cantidad_productos
+                    ):
+                        messages.error(
+                            request,
+                            (
+                                f"El kit {kit.nombre} necesita "
+                                f"{kit.cantidad_productos} productos."
+                            )
+                        )
+                        transaction.set_rollback(True)
+                        return redirect(
+                            "pedidos:nuevo"
+                        )
+
+                    if not kit.tipo_producto:
+                        messages.error(
+                            request,
+                            (
+                                f"El kit {kit.nombre} no tiene "
+                                "una categoría configurada."
+                            )
+                        )
+                        transaction.set_rollback(True)
+                        return redirect(
+                            "pedidos:nuevo"
+                        )
+
+                    productos_seleccionados = {}
+
+                    for producto_id in productos_kit_ids:
+                        producto = get_object_or_404(
+                            Producto,
+                            id=producto_id,
+                            activo=True,
+                            tipo=kit.tipo_producto,
+                        )
+
+                        if (
+                            producto.id
+                            not in productos_seleccionados
+                        ):
+                            productos_seleccionados[
+                                producto.id
+                            ] = {
+                                "producto": producto,
+                                "cantidad": 0,
+                            }
+
                         productos_seleccionados[
                             producto.id
-                        ] = {
-                            "producto": producto,
-                            "cantidad": 0,
-                        }
+                        ]["cantidad"] += cantidad
 
-                    # Cada producto seleccionado aparece
-                    # una vez dentro del kit.
-                    #
-                    # La cantidad del detalle determina
-                    # cuántas unidades reales necesitamos.
-
-                    productos_seleccionados[
-                        producto.id
-                    ]["cantidad"] += cantidad
-
-                # =========================================
-                # GUARDAR COMPONENTES
-                # =========================================
-
-                for item in productos_seleccionados.values():
-                    DetalleKitProducto.objects.create(
-                        detalle=detalle,
-                        producto=item["producto"],
-                        cantidad=item["cantidad"],
-                    )
+                    for item in (
+                        productos_seleccionados
+                        .values()
+                    ):
+                        DetalleKitProducto.objects.create(
+                            detalle=detalle,
+                            producto=item["producto"],
+                            cantidad=item["cantidad"],
+                        )
 
                 _guardar_costo_kit(detalle)
 
@@ -2338,39 +2410,102 @@ def editar_pedido(request, pedido_id):
 
         elif tipo_item == "KIT":
             kit = get_object_or_404(
-                Kit,
-                id=request.POST.get(f"kit_{indice}"),
+                Kit.objects.prefetch_related(
+                    "componentes__producto"
+                ),
+                id=request.POST.get(
+                    f"kit_{indice}"
+                ),
                 activo=True,
             )
-            productos_kit_ids = request.POST.getlist(
-                f"productos_kit_{indice}"
-            )
-
-            if len(productos_kit_ids) != kit.cantidad_productos:
-                messages.error(
-                    request,
-                    f"El kit {kit.nombre} necesita "
-                    f"{kit.cantidad_productos} productos."
-                )
-                transaction.set_rollback(True)
-                return redirect("pedidos:editar", pedido_id=pedido.id)
 
             componentes = defaultdict(int)
-            for producto_id in productos_kit_ids:
-                producto = get_object_or_404(
-                    Producto,
-                    id=producto_id,
-                    activo=True,
-                    tipo=kit.tipo_producto,
+
+            if kit.modalidad == "FIJO":
+
+                componentes_fijos = list(
+                    kit.componentes.all()
                 )
-                componentes[producto.id] += cantidad
+
+                if not componentes_fijos:
+                    messages.error(
+                        request,
+                        (
+                            f"El kit {kit.nombre} no tiene "
+                            "una composición fija configurada."
+                        )
+                    )
+                    transaction.set_rollback(True)
+                    return redirect(
+                        "pedidos:editar",
+                        pedido_id=pedido.id,
+                    )
+
+                for componente in componentes_fijos:
+                    componentes[
+                        componente.producto_id
+                    ] += (
+                        componente.cantidad
+                        * cantidad
+                    )
+
+            else:
+                productos_kit_ids = (
+                    request.POST.getlist(
+                        f"productos_kit_{indice}"
+                    )
+                )
+
+                if (
+                    len(productos_kit_ids)
+                    != kit.cantidad_productos
+                ):
+                    messages.error(
+                        request,
+                        f"El kit {kit.nombre} necesita "
+                        f"{kit.cantidad_productos} productos."
+                    )
+                    transaction.set_rollback(True)
+                    return redirect(
+                        "pedidos:editar",
+                        pedido_id=pedido.id,
+                    )
+
+                if not kit.tipo_producto:
+                    messages.error(
+                        request,
+                        (
+                            f"El kit {kit.nombre} no tiene "
+                            "una categoría configurada."
+                        )
+                    )
+                    transaction.set_rollback(True)
+                    return redirect(
+                        "pedidos:editar",
+                        pedido_id=pedido.id,
+                    )
+
+                for producto_id in (
+                    productos_kit_ids
+                ):
+                    producto = get_object_or_404(
+                        Producto,
+                        id=producto_id,
+                        activo=True,
+                        tipo=kit.tipo_producto,
+                    )
+                    componentes[
+                        producto.id
+                    ] += cantidad
 
             nuevos_items.append({
                 "detalle_id": detalle_id,
                 "tipo_item": "KIT",
                 "cantidad": cantidad,
                 "kit": kit,
-                "componentes": dict(componentes),
+                "componentes": dict(
+                    componentes
+                ),
             })
 
         elif tipo_item == "PERSONALIZADO":
