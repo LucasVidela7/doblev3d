@@ -294,7 +294,10 @@ button{font-family:Arial,sans-serif}
 
                         {% for cliente in clientes %}
 
-                        <option value="{{ cliente.id }}">
+                        <option
+                            value="{{ cliente.id }}"
+                            {% if cliente_inicial_id == cliente.id|stringformat:"s" %}selected{% endif %}
+                        >
                             {{ cliente.nombre }}
                         </option>
 

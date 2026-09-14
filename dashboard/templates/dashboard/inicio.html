@@ -187,6 +187,8 @@
         .m-produccion .metrica-icono { background: var(--violeta); }
         .m-listos .metrica-icono { background: var(--verde); }
         .m-atrasados .metrica-icono { background: var(--rojo); }
+        .m-cobrar .metrica-icono { background: var(--naranja); }
+        .m-cobrado .metrica-icono { background: var(--verde); }
 
         .m-atrasados.alerta {
             border-color: #efb5b5;
@@ -726,6 +728,44 @@
                 </div>
             </div>
         </a>
+
+        <a
+            href="{% url 'pedidos:pagos' %}"
+            class="metrica m-cobrar"
+        >
+            <div class="metrica-cabecera">
+                <div class="metrica-titulo">SALDO A COBRAR</div>
+                <div class="metrica-icono">$</div>
+            </div>
+
+            <div>
+                <div class="metrica-numero">
+                    ${{ saldo_a_cobrar|floatformat:0 }}
+                </div>
+                <div class="metrica-ayuda">
+                    {{ pedidos_con_saldo }} pedidos con saldo
+                </div>
+            </div>
+        </a>
+
+        <a
+            href="{% url 'pedidos:pagos' %}"
+            class="metrica m-cobrado"
+        >
+            <div class="metrica-cabecera">
+                <div class="metrica-titulo">COBRADO MES</div>
+                <div class="metrica-icono">✓</div>
+            </div>
+
+            <div>
+                <div class="metrica-numero">
+                    ${{ cobrado_mes|floatformat:0 }}
+                </div>
+                <div class="metrica-ayuda">
+                    pagos registrados este mes
+                </div>
+            </div>
+        </a>
     </section>
 
     <!-- ACCIONES RÁPIDAS -->
@@ -798,6 +838,32 @@
                     <div class="accion-titulo">Productos</div>
                     <div class="accion-texto">
                         Catálogo, stock, precios y tiempos.
+                    </div>
+                </div>
+            </a>
+
+            <a
+                href="{% url 'clientes:lista' %}"
+                class="accion"
+            >
+                <div class="accion-icono">👥</div>
+                <div>
+                    <div class="accion-titulo">Clientes</div>
+                    <div class="accion-texto">
+                        Contactos, historial de pedidos y saldos.
+                    </div>
+                </div>
+            </a>
+
+            <a
+                href="{% url 'pedidos:pagos' %}"
+                class="accion"
+            >
+                <div class="accion-icono">$</div>
+                <div>
+                    <div class="accion-titulo">Pagos</div>
+                    <div class="accion-texto">
+                        Cobros, saldos pendientes e historial.
                     </div>
                 </div>
             </a>

@@ -1,7 +1,9 @@
 from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
-from django.db import transaction
+from django.db import transaction, models
+from django.db.models import Sum
+from django.utils import timezone
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -389,6 +391,8 @@ def productos_por_kit(request, kit_id):
 
 @transaction.atomic
 def nuevo_pedido(request):
+    cliente_inicial_id = request.GET.get("cliente", "").strip()
+
     clientes = (
         Cliente.objects
         .filter(activo=True)
@@ -793,6 +797,7 @@ def nuevo_pedido(request):
             "clientes": clientes,
             "productos": productos,
             "kits": kits,
+            "cliente_inicial_id": cliente_inicial_id,
         }
     )
 
@@ -1470,12 +1475,133 @@ def impresiones_por_producto(request):
 
 
 
+
+# ==========================================================
+# PAGOS
+# ==========================================================
+
+def pagos(request):
+    hoy = timezone.localdate()
+    inicio_mes = hoy.replace(day=1)
+
+    filtro_estado = request.GET.get("estado", "TODOS").upper()
+    busqueda = request.GET.get("q", "").strip()
+
+    pedidos = (
+        Pedido.objects
+        .exclude(estado="CANCELADO")
+        .select_related("cliente")
+        .prefetch_related(
+            "detalles",
+            "pagos",
+        )
+        .order_by(
+            "fecha_entrega",
+            "id",
+        )
+    )
+
+    if busqueda:
+        pedidos = pedidos.filter(
+            models.Q(cliente__nombre__icontains=busqueda)
+            | models.Q(id__icontains=busqueda)
+        )
+
+    filas = []
+
+    saldo_total = Decimal("0")
+    pedidos_con_saldo = 0
+
+    for pedido in pedidos:
+        total = pedido.total
+        pagado = pedido.total_pagado
+        saldo = pedido.saldo_pendiente
+        estado_pago = pedido.estado_pago
+
+        if saldo > 0:
+            saldo_total += saldo
+            pedidos_con_saldo += 1
+
+        if (
+            filtro_estado != "TODOS"
+            and estado_pago != filtro_estado
+        ):
+            continue
+
+        filas.append(
+            {
+                "pedido": pedido,
+                "total": total,
+                "pagado": pagado,
+                "saldo": saldo,
+                "estado_pago": estado_pago,
+                "estado_pago_display": pedido.estado_pago_display,
+                "pagos": list(pedido.pagos.all()),
+            }
+        )
+
+    cobrado_hoy = (
+        Pago.objects
+        .filter(fecha__date=hoy)
+        .aggregate(total=Sum("monto"))
+        .get("total")
+        or Decimal("0")
+    )
+
+    cobrado_mes = (
+        Pago.objects
+        .filter(fecha__date__gte=inicio_mes)
+        .aggregate(total=Sum("monto"))
+        .get("total")
+        or Decimal("0")
+    )
+
+    ultimos_pagos = (
+        Pago.objects
+        .select_related(
+            "pedido",
+            "pedido__cliente",
+        )
+        .order_by("-fecha", "-id")[:8]
+    )
+
+    return render(
+        request,
+        "pedidos/pagos.html",
+        {
+            "filas": filas,
+            "filtro_estado": filtro_estado,
+            "busqueda": busqueda,
+            "cobrado_hoy": cobrado_hoy,
+            "cobrado_mes": cobrado_mes,
+            "saldo_total": saldo_total,
+            "pedidos_con_saldo": pedidos_con_saldo,
+            "ultimos_pagos": ultimos_pagos,
+        },
+    )
+
+
 # ==========================================================
 # REGISTRAR PAGO
 # ==========================================================
 
 @transaction.atomic
 def registrar_pago(request, pedido_id):
+    origen = request.POST.get("origen", "impresiones")
+    cliente_id = request.POST.get("cliente_id")
+
+    def volver():
+        if origen == "pagos":
+            return redirect("pedidos:pagos")
+
+        if origen == "cliente" and cliente_id:
+            return redirect(
+                "clientes:detalle",
+                cliente_id=cliente_id,
+            )
+
+        return redirect("pedidos:impresiones")
+
     if request.method != "POST":
         return redirect("pedidos:impresiones")
 
@@ -1491,7 +1617,7 @@ def registrar_pago(request, pedido_id):
             request,
             "No se pueden registrar pagos en un pedido cancelado."
         )
-        return redirect("pedidos:impresiones")
+        return volver()
 
     monto_texto = request.POST.get("monto", "").strip().replace(" ", "")
     if "," in monto_texto and "." not in monto_texto:
@@ -1509,11 +1635,11 @@ def registrar_pago(request, pedido_id):
 
     if monto <= 0:
         messages.error(request, "El monto del pago debe ser mayor a cero.")
-        return redirect("pedidos:impresiones")
+        return volver()
 
     if medio not in medios_validos:
         messages.error(request, "Seleccioná un medio de pago válido.")
-        return redirect("pedidos:impresiones")
+        return volver()
 
     saldo = pedido.saldo_pendiente
 
@@ -1522,7 +1648,7 @@ def registrar_pago(request, pedido_id):
             request,
             f"{pedido.codigo} ya se encuentra completamente pagado."
         )
-        return redirect("pedidos:impresiones")
+        return volver()
 
     if monto > saldo:
         messages.error(
@@ -1532,7 +1658,7 @@ def registrar_pago(request, pedido_id):
                 f"(${saldo:.2f})."
             )
         )
-        return redirect("pedidos:impresiones")
+        return volver()
 
     Pago.objects.create(
         pedido=pedido,
@@ -1557,7 +1683,7 @@ def registrar_pago(request, pedido_id):
             )
         )
 
-    return redirect("pedidos:impresiones")
+    return volver()
 
 
 # ==========================================================

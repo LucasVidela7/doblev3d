@@ -1,3 +1,4 @@
+from decimal import Decimal
 from collections import defaultdict
 from datetime import timedelta
 
@@ -5,7 +6,7 @@ from django.db.models import Sum
 from django.shortcuts import render
 from django.utils import timezone
 
-from pedidos.models import Pedido
+from pedidos.models import Pedido, Pago
 from produccion.models import Produccion
 from productos.models import Producto
 
@@ -253,6 +254,43 @@ def inicio(request):
         .count()
     )
 
+
+    # ==========================================================
+    # PAGOS
+    # ==========================================================
+
+    inicio_mes = hoy.replace(day=1)
+
+    saldo_a_cobrar = Decimal("0")
+
+    pedidos_con_saldo_qs = (
+        Pedido.objects
+        .exclude(estado="CANCELADO")
+        .prefetch_related(
+            "detalles",
+            "pagos",
+        )
+    )
+
+    pedidos_con_saldo = 0
+
+    for pedido in pedidos_con_saldo_qs:
+        saldo = pedido.saldo_pendiente
+
+        if saldo > 0:
+            saldo_a_cobrar += saldo
+            pedidos_con_saldo += 1
+
+    cobrado_mes = (
+        Pago.objects
+        .filter(
+            fecha__date__gte=inicio_mes,
+        )
+        .aggregate(total=Sum("monto"))
+        .get("total")
+        or Decimal("0")
+    )
+
     return render(
         request,
         "dashboard/inicio.html",
@@ -271,5 +309,8 @@ def inicio(request):
             "productos_sin_stock": productos_sin_stock,
             "proximas_entregas": proximas_entregas,
             "top_impresion": top_impresion,
+            "saldo_a_cobrar": saldo_a_cobrar,
+            "pedidos_con_saldo": pedidos_con_saldo,
+            "cobrado_mes": cobrado_mes,
         },
     )

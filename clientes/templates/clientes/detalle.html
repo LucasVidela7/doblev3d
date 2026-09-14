@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
+    <title>{{ cliente.nombre }} | Doble V 3D</title>
+
+    <style>
+        :root{
+            --fondo:#f4f5f7;
+            --tarjeta:#fff;
+            --texto:#24272b;
+            --muted:#73777f;
+            --borde:#e5e7eb;
+            --oscuro:#24272b;
+            --verde:#dff4e5;
+            --verde-texto:#24633a;
+            --amarillo:#fff2c7;
+            --amarillo-texto:#765b00;
+            --rojo:#fde5e5;
+            --rojo-texto:#9a3030;
+            --sombra:0 4px 18px rgba(20,25,35,.07);
+        }
+
+        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{
+            margin:0;
+            padding:0 0 calc(94px + env(safe-area-inset-bottom));
+            font-family:Arial,sans-serif;
+            background:var(--fondo);
+            color:var(--texto);
+        }
+        a,button,input,textarea{touch-action:manipulation}
+        .contenedor{
+            width:min(1050px,100%);
+            margin:auto;
+            padding:22px 18px 34px;
+        }
+        .encabezado{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:18px;
+            margin-bottom:18px;
+        }
+        h1{margin:0 0 5px;font-size:clamp(26px,4vw,34px)}
+        .subtitulo{color:var(--muted);font-size:13px}
+        .acciones-encabezado{display:flex;gap:9px}
+        .boton-volver,.boton-inicio{
+            min-height:50px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            padding:0 18px;
+            border-radius:14px;
+            font-size:11px;
+            font-weight:900;
+            text-decoration:none;
+            cursor:pointer;
+        }
+        .boton-volver{border:1px solid var(--borde);background:#fff;color:var(--texto)}
+        .boton-inicio{border:1px solid var(--oscuro);background:var(--oscuro);color:#fff}
+
+        .mensajes{margin-bottom:15px}
+        .mensaje{
+            padding:14px 16px;
+            margin-bottom:8px;
+            border-radius:14px;
+            font-size:12px;
+            font-weight:800;
+        }
+        .mensaje.success{background:var(--verde);color:var(--verde-texto)}
+        .mensaje.error{background:var(--rojo);color:var(--rojo-texto)}
+
+        .metricas{
+            display:grid;
+            grid-template-columns:repeat(4,1fr);
+            gap:10px;
+            margin-bottom:16px;
+        }
+        .metrica{
+            padding:14px;
+            border:1px solid var(--borde);
+            border-radius:16px;
+            background:#fff;
+            box-shadow:var(--sombra);
+        }
+        .metrica-label{
+            color:var(--muted);
+            font-size:8px;
+            font-weight:900;
+        }
+        .metrica-valor{
+            margin-top:6px;
+            font-size:20px;
+            font-weight:900;
+        }
+
+        .grid{
+            display:grid;
+            grid-template-columns:360px minmax(0,1fr);
+            gap:15px;
+            align-items:start;
+        }
+        .panel{
+            border:1px solid var(--borde);
+            border-radius:18px;
+            background:#fff;
+            box-shadow:var(--sombra);
+            overflow:hidden;
+        }
+        .panel-titulo{
+            padding:15px 17px;
+            border-bottom:1px solid var(--borde);
+            background:#fbfbfc;
+            font-size:12px;
+            font-weight:900;
+        }
+        .panel-cuerpo{padding:16px}
+
+        .campo{margin-bottom:13px}
+        .campo label{
+            display:block;
+            margin-bottom:6px;
+            color:var(--muted);
+            font-size:9px;
+            font-weight:900;
+        }
+        .campo input,.campo textarea{
+            width:100%;
+            min-height:48px;
+            padding:10px 12px;
+            border:1px solid var(--borde);
+            border-radius:12px;
+            font:inherit;
+            font-size:14px;
+        }
+        .campo textarea{
+            min-height:92px;
+            resize:vertical;
+        }
+        .btn-guardar,.btn-nuevo-pedido{
+            width:100%;
+            min-height:48px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            border-radius:12px;
+            font-size:10px;
+            font-weight:900;
+            text-decoration:none;
+            cursor:pointer;
+        }
+        .btn-guardar{
+            border:1px solid var(--oscuro);
+            background:var(--oscuro);
+            color:#fff;
+        }
+        .btn-nuevo-pedido{
+            margin-top:8px;
+            border:1px solid var(--borde);
+            background:#fff;
+            color:var(--texto);
+        }
+
+        .pedido{
+            padding:14px 16px;
+            border-bottom:1px solid var(--borde);
+        }
+        .pedido:last-child{border-bottom:0}
+        .pedido-arriba{
+            display:flex;
+            justify-content:space-between;
+            gap:12px;
+            align-items:flex-start;
+        }
+        .pedido-codigo{font-size:14px;font-weight:900}
+        .pedido-meta{
+            margin-top:4px;
+            color:var(--muted);
+            font-size:9px;
+        }
+        .estado-pago{
+            min-height:28px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            padding:0 9px;
+            border-radius:999px;
+            font-size:8px;
+            font-weight:900;
+            white-space:nowrap;
+        }
+        .estado-SIN_PAGAR{background:var(--rojo);color:var(--rojo-texto)}
+        .estado-PARCIAL{background:var(--amarillo);color:var(--amarillo-texto)}
+        .estado-PAGADO{background:var(--verde);color:var(--verde-texto)}
+        .pedido-numeros{
+            display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:7px;
+            margin-top:11px;
+        }
+        .numero{
+            padding:8px;
+            border-radius:10px;
+            background:#f6f7f8;
+        }
+        .numero-label{
+            color:var(--muted);
+            font-size:7px;
+            font-weight:900;
+        }
+        .numero-valor{
+            margin-top:3px;
+            font-size:12px;
+            font-weight:900;
+        }
+        .pedido-accion{
+            margin-top:10px;
+        }
+
+        .btn-pagar{
+            width:100%;
+            min-height:42px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            padding:0 12px;
+            border:1px solid var(--oscuro);
+            border-radius:11px;
+            background:var(--oscuro);
+            color:#fff;
+            font-size:9px;
+            font-weight:900;
+            cursor:pointer;
+        }
+
+        .modal-fondo{
+            display:none;
+            position:fixed;
+            inset:0;
+            z-index:1000;
+            padding:18px;
+            background:rgba(20,22,26,.55);
+            align-items:center;
+            justify-content:center;
+        }
+
+        .modal-fondo.abierto{display:flex}
+
+        .modal{
+            width:min(560px,100%);
+            max-height:calc(100vh - 36px);
+            overflow:auto;
+            border-radius:22px;
+            background:#fff;
+            box-shadow:0 24px 70px rgba(0,0,0,.28);
+        }
+
+        .modal-cabecera{
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap:12px;
+            padding:20px;
+            border-bottom:1px solid var(--borde);
+        }
+
+        .modal-titulo{font-size:20px;font-weight:900}
+        .modal-subtitulo{margin-top:4px;color:var(--muted);font-size:11px}
+
+        .cerrar{
+            width:44px;
+            height:44px;
+            border:1px solid var(--borde);
+            border-radius:12px;
+            background:#fff;
+            font-size:22px;
+            cursor:pointer;
+        }
+
+        .modal-cuerpo{padding:20px}
+
+        .saldo-modal{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:10px;
+            margin-bottom:17px;
+            padding:14px;
+            border-radius:14px;
+            background:#f4f5f7;
+        }
+
+        .saldo-modal span{
+            color:var(--muted);
+            font-size:11px;
+            font-weight:800;
+        }
+
+        .saldo-modal strong{font-size:21px}
+
+        .campo-pago{margin-bottom:14px}
+
+        .campo-pago label{
+            display:block;
+            margin-bottom:6px;
+            color:#555;
+            font-size:10px;
+            font-weight:900;
+        }
+
+        .campo-pago input,
+        .campo-pago select,
+        .campo-pago textarea{
+            width:100%;
+            min-height:50px;
+            padding:10px 12px;
+            border:1px solid #d8dbe0;
+            border-radius:12px;
+            background:#fff;
+            font:inherit;
+            font-size:15px;
+        }
+
+        .campo-pago textarea{
+            min-height:78px;
+            resize:vertical;
+        }
+
+        .acciones-modal{
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:10px;
+            margin-top:18px;
+        }
+
+        .acciones-modal button{
+            min-height:50px;
+            border-radius:13px;
+            font-size:10px;
+            font-weight:900;
+            cursor:pointer;
+        }
+
+        .cancelar-modal{
+            border:1px solid var(--borde);
+            background:#fff;
+        }
+
+        .guardar-modal{
+            border:1px solid #438d56;
+            background:#438d56;
+            color:#fff;
+        }
+
+        .resumen-pedido{
+            margin-top:11px;
+            border:1px solid var(--borde);
+            border-radius:12px;
+            background:#fafafa;
+            overflow:hidden;
+        }
+
+        .resumen-pedido summary{
+            min-height:44px;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+            padding:0 12px;
+            list-style:none;
+            cursor:pointer;
+            user-select:none;
+            font-size:9px;
+            font-weight:900;
+        }
+
+        .resumen-pedido summary::-webkit-details-marker{
+            display:none;
+        }
+
+        .resumen-pedido summary::after{
+            content:"＋";
+            flex:0 0 auto;
+            font-size:16px;
+            line-height:1;
+        }
+
+        .resumen-pedido[open] summary::after{
+            content:"−";
+        }
+
+        .resumen-contenido{
+            padding:0 12px 12px;
+            border-top:1px solid var(--borde);
+        }
+
+        .item-resumen{
+            padding:11px 0;
+            border-bottom:1px solid var(--borde);
+        }
+
+        .item-resumen:last-child{
+            border-bottom:0;
+        }
+
+        .item-resumen-arriba{
+            display:flex;
+            justify-content:space-between;
+            gap:12px;
+            align-items:flex-start;
+        }
+
+        .item-resumen-nombre{
+            min-width:0;
+            font-size:11px;
+            font-weight:900;
+        }
+
+        .item-resumen-subtotal{
+            flex:0 0 auto;
+            font-size:11px;
+            font-weight:900;
+        }
+
+        .item-resumen-meta{
+            margin-top:4px;
+            color:var(--muted);
+            font-size:9px;
+            line-height:1.45;
+        }
+
+        .kit-componentes{
+            margin-top:7px;
+            padding:8px 10px;
+            border-radius:10px;
+            background:#f0f1f3;
+        }
+
+        .kit-componentes-titulo{
+            margin-bottom:5px;
+            color:var(--muted);
+            font-size:8px;
+            font-weight:900;
+        }
+
+        .kit-componente{
+            display:flex;
+            justify-content:space-between;
+            gap:10px;
+            padding:3px 0;
+            font-size:9px;
+        }
+
+        .personalizacion{
+            margin-top:7px;
+            padding:8px 10px;
+            border-radius:10px;
+            background:#fff2c7;
+            color:#765b00;
+            font-size:9px;
+            line-height:1.45;
+        }
+
+        .resumen-total{
+            display:flex;
+            justify-content:space-between;
+            gap:12px;
+            padding-top:11px;
+            margin-top:2px;
+            border-top:1px solid var(--borde);
+            font-size:11px;
+            font-weight:900;
+        }
+
+        .vacio{
+            padding:35px 16px;
+            color:var(--muted);
+            font-size:11px;
+            text-align:center;
+        }
+
+        .nav-inferior{
+            position:fixed;
+            z-index:50;
+            left:50%;
+            bottom:max(10px,env(safe-area-inset-bottom));
+            transform:translateX(-50%);
+            width:min(720px,calc(100% - 20px));
+            display:grid;
+            grid-template-columns:repeat(5,1fr);
+            gap:4px;
+            padding:7px;
+            border-radius:20px;
+            background:rgba(35,38,43,.96);
+            box-shadow:0 12px 35px rgba(0,0,0,.22);
+            backdrop-filter:blur(14px);
+        }
+        .nav-item{
+            min-height:58px;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            gap:4px;
+            border-radius:14px;
+            color:#d9dbe0;
+            text-decoration:none;
+            font-size:9px;
+            font-weight:bold;
+        }
+        .nav-item span:first-child{font-size:19px}
+        .nav-item.nuevo-nav{background:#fff;color:var(--oscuro)}
+
+        @media(max-width:780px){
+            .contenedor{padding:16px 11px 28px}
+            .encabezado{
+                align-items:flex-start;
+                flex-direction:column;
+            }
+            .acciones-encabezado{width:100%}
+            .boton-volver,.boton-inicio{flex:1}
+            .metricas{
+                display:flex;
+                overflow-x:auto;
+                gap:8px;
+            }
+            .metrica{
+                min-width:165px;
+            }
+            .grid{
+                grid-template-columns:1fr;
+            }
+            .pedido-numeros{
+                grid-template-columns:repeat(3,1fr);
+            }
+            .modal-fondo{
+                padding:8px;
+                align-items:flex-end;
+            }
+
+            .modal{
+                max-height:92vh;
+                border-radius:20px 20px 10px 10px;
+            }
+
+            .modal-cabecera,
+            .modal-cuerpo{
+                padding:16px;
+            }
+
+            .nav-inferior{
+                width:calc(100% - 12px);
+                bottom:max(6px,env(safe-area-inset-bottom));
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="contenedor">
+    <div class="encabezado">
+        <div>
+            <h1>{{ cliente.nombre }}</h1>
+            <div class="subtitulo">
+                Ficha del cliente e historial de pedidos
+            </div>
+        </div>
+
+        <div class="acciones-encabezado">
+            <button
+                type="button"
+                class="boton-volver"
+                onclick="history.back()"
+            >
+                ← VOLVER
+            </button>
+
+            <a
+                href="{% url 'dashboard:inicio' %}"
+                class="boton-inicio"
+            >
+                INICIO
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+        <div class="mensajes">
+            {% for message in messages %}
+                <div class="mensaje {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="metricas">
+        <div class="metrica">
+            <div class="metrica-label">PEDIDOS</div>
+            <div class="metrica-valor">{{ cantidad_pedidos }}</div>
+        </div>
+
+        <div class="metrica">
+            <div class="metrica-label">TOTAL COMPRADO</div>
+            <div class="metrica-valor">${{ total_comprado|floatformat:0 }}</div>
+        </div>
+
+        <div class="metrica">
+            <div class="metrica-label">TOTAL PAGADO</div>
+            <div class="metrica-valor">${{ total_pagado|floatformat:0 }}</div>
+        </div>
+
+        <div class="metrica">
+            <div class="metrica-label">SALDO PENDIENTE</div>
+            <div class="metrica-valor">${{ saldo_pendiente|floatformat:0 }}</div>
+        </div>
+    </div>
+
+    <div class="grid">
+        <section class="panel">
+            <div class="panel-titulo">
+                DATOS DEL CLIENTE
+            </div>
+
+            <div class="panel-cuerpo">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="campo">
+                        <label for="nombre">NOMBRE</label>
+                        <input
+                            id="nombre"
+                            name="nombre"
+                            type="text"
+                            value="{{ cliente.nombre }}"
+                            required
+                        >
+                    </div>
+
+                    <div class="campo">
+                        <label for="telefono">TELÉFONO</label>
+                        <input
+                            id="telefono"
+                            name="telefono"
+                            type="text"
+                            value="{{ cliente.telefono }}"
+                        >
+                    </div>
+
+                    <div class="campo">
+                        <label for="email">EMAIL</label>
+                        <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            value="{{ cliente.email }}"
+                        >
+                    </div>
+
+                    <div class="campo">
+                        <label for="observaciones">OBSERVACIONES</label>
+                        <textarea
+                            id="observaciones"
+                            name="observaciones"
+                        >{{ cliente.observaciones }}</textarea>
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="btn-guardar"
+                    >
+                        GUARDAR CAMBIOS
+                    </button>
+                </form>
+
+                <a
+                    href="{% url 'pedidos:nuevo' %}?cliente={{ cliente.id }}"
+                    class="btn-nuevo-pedido"
+                >
+                    + NUEVO PEDIDO
+                </a>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-titulo">
+                PEDIDOS DEL CLIENTE
+            </div>
+
+            {% if filas_pedidos %}
+                {% for item in filas_pedidos %}
+                    <div class="pedido">
+                        <div class="pedido-arriba">
+                            <div>
+                                <div class="pedido-codigo">
+                                    {{ item.pedido.codigo }}
+                                </div>
+                                <div class="pedido-meta">
+                                    {{ item.pedido.fecha|date:"d/m/Y" }}
+                                    ·
+                                    {{ item.pedido.get_estado_display|upper }}
+                                </div>
+                            </div>
+
+                            <span class="estado-pago estado-{{ item.estado_pago }}">
+                                {{ item.estado_pago_display|upper }}
+                            </span>
+                        </div>
+
+                        <div class="pedido-numeros">
+                            <div class="numero">
+                                <div class="numero-label">TOTAL</div>
+                                <div class="numero-valor">
+                                    ${{ item.total|floatformat:0 }}
+                                </div>
+                            </div>
+
+                            <div class="numero">
+                                <div class="numero-label">PAGADO</div>
+                                <div class="numero-valor">
+                                    ${{ item.pagado|floatformat:0 }}
+                                </div>
+                            </div>
+
+                            <div class="numero">
+                                <div class="numero-label">SALDO</div>
+                                <div class="numero-valor">
+                                    ${{ item.saldo|floatformat:0 }}
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if item.saldo > 0 %}
+                            <div class="pedido-accion">
+                                <button
+                                    type="button"
+                                    class="btn-pagar"
+                                    data-url="{% url 'pedidos:registrar_pago' item.pedido.id %}"
+                                    data-codigo="{{ item.pedido.codigo }}"
+                                    data-saldo="{{ item.saldo }}"
+                                    onclick="abrirPagoCliente(this)"
+                                >
+                                    + REGISTRAR PAGO
+                                </button>
+                            </div>
+                        {% endif %}
+
+
+                        <details class="resumen-pedido">
+                            <summary>
+                                VER QUÉ COMPRÓ
+                            </summary>
+
+                            <div class="resumen-contenido">
+                                {% for detalle in item.pedido.detalles.all %}
+                                    {% if detalle.estado != "CANCELADO" %}
+                                        <div class="item-resumen">
+                                            <div class="item-resumen-arriba">
+                                                <div class="item-resumen-nombre">
+                                                    {% if detalle.tipo_item == "KIT" and detalle.kit %}
+                                                        {{ detalle.kit.nombre }}
+                                                    {% elif detalle.producto %}
+                                                        {{ detalle.producto.nombre }}
+                                                    {% else %}
+                                                        {{ detalle.get_tipo_item_display }}
+                                                    {% endif %}
+                                                </div>
+
+                                                <div class="item-resumen-subtotal">
+                                                    ${{ detalle.subtotal|floatformat:0 }}
+                                                </div>
+                                            </div>
+
+                                            <div class="item-resumen-meta">
+                                                Cantidad: {{ detalle.cantidad }}
+                                                ·
+                                                ${{ detalle.precio_unitario|floatformat:0 }} c/u
+                                                {% if detalle.tipo_item == "PERSONALIZADO" %}
+                                                    · PERSONALIZADO
+                                                {% elif detalle.tipo_item == "KIT" %}
+                                                    · KIT
+                                                {% endif %}
+                                            </div>
+
+                                            {% if detalle.tipo_item == "KIT" %}
+                                                <div class="kit-componentes">
+                                                    <div class="kit-componentes-titulo">
+                                                        PRODUCTOS DEL KIT
+                                                    </div>
+
+                                                    {% for componente in detalle.productos_kit.all %}
+                                                        <div class="kit-componente">
+                                                            <span>
+                                                                {{ componente.producto.nombre }}
+                                                            </span>
+                                                            <strong>
+                                                                x{{ componente.cantidad }}
+                                                            </strong>
+                                                        </div>
+                                                    {% empty %}
+                                                        <div class="item-resumen-meta">
+                                                            Sin detalle de componentes guardado.
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+
+                                            {% if detalle.tipo_item == "PERSONALIZADO" %}
+                                                {% if detalle.detalle_personalizacion or detalle.color_personalizacion %}
+                                                    <div class="personalizacion">
+                                                        {% if detalle.detalle_personalizacion %}
+                                                            <div>
+                                                                <strong>Detalle:</strong>
+                                                                {{ detalle.detalle_personalizacion }}
+                                                            </div>
+                                                        {% endif %}
+
+                                                        {% if detalle.color_personalizacion %}
+                                                            <div>
+                                                                <strong>Color:</strong>
+                                                                {{ detalle.color_personalizacion }}
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endif %}
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% empty %}
+                                    <div class="vacio">
+                                        Este pedido no tiene productos cargados.
+                                    </div>
+                                {% endfor %}
+
+                                <div class="resumen-total">
+                                    <span>TOTAL DEL PEDIDO</span>
+                                    <span>${{ item.total|floatformat:0 }}</span>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="vacio">
+                    Este cliente todavía no tiene pedidos.
+                </div>
+            {% endif %}
+        </section>
+    </div>
+</div>
+
+
+<div
+    id="modalPagoCliente"
+    class="modal-fondo"
+    aria-hidden="true"
+    onclick="cerrarPagoClienteDesdeFondo(event)"
+>
+    <div class="modal" role="dialog" aria-modal="true">
+        <div class="modal-cabecera">
+            <div>
+                <div class="modal-titulo">Registrar pago</div>
+                <div id="modalPagoClientePedido" class="modal-subtitulo"></div>
+            </div>
+
+            <button
+                type="button"
+                class="cerrar"
+                onclick="cerrarPagoCliente()"
+                aria-label="Cerrar"
+            >
+                ×
+            </button>
+        </div>
+
+        <div class="modal-cuerpo">
+            <div class="saldo-modal">
+                <span>Saldo pendiente</span>
+                <strong id="modalPagoClienteSaldo">$0</strong>
+            </div>
+
+            <form id="formPagoCliente" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="origen" value="cliente">
+                <input type="hidden" name="cliente_id" value="{{ cliente.id }}">
+
+                <div class="campo-pago">
+                    <label for="montoPagoCliente">MONTO</label>
+                    <input
+                        id="montoPagoCliente"
+                        name="monto"
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        inputmode="decimal"
+                        required
+                    >
+                </div>
+
+                <div class="campo-pago">
+                    <label for="medioPagoCliente">MEDIO DE PAGO</label>
+                    <select id="medioPagoCliente" name="medio" required>
+                        <option value="TRANSFERENCIA">Transferencia</option>
+                        <option value="EFECTIVO">Efectivo</option>
+                        <option value="MERCADO_PAGO">Mercado Pago</option>
+                        <option value="OTRO">Otro</option>
+                    </select>
+                </div>
+
+                <div class="campo-pago">
+                    <label for="obsPagoCliente">OBSERVACIONES</label>
+                    <textarea
+                        id="obsPagoCliente"
+                        name="observaciones"
+                        maxlength="250"
+                        placeholder="Opcional"
+                    ></textarea>
+                </div>
+
+                <div class="acciones-modal">
+                    <button
+                        type="button"
+                        class="cancelar-modal"
+                        onclick="cerrarPagoCliente()"
+                    >
+                        CANCELAR
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="guardar-modal"
+                    >
+                        GUARDAR PAGO
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<nav class="nav-inferior" aria-label="Navegación principal">
+    <a class="nav-item" href="{% url 'dashboard:inicio' %}">
+        <span>⌂</span>
+        <span>Inicio</span>
+    </a>
+    <a class="nav-item" href="{% url 'pedidos:impresiones' %}">
+        <span>📦</span>
+        <span>Pedidos</span>
+    </a>
+    <a class="nav-item nuevo-nav" href="{% url 'pedidos:nuevo' %}">
+        <span>＋</span>
+        <span>Nuevo</span>
+    </a>
+    <a class="nav-item" href="{% url 'produccion:lista' %}">
+        <span>⚙</span>
+        <span>Producción</span>
+    </a>
+    <a class="nav-item" href="{% url 'productos:lista' %}">
+        <span>▦</span>
+        <span>Productos</span>
+    </a>
+</nav>
+
+
+<script>
+function abrirPagoCliente(boton) {
+    const modal = document.getElementById("modalPagoCliente");
+    const form = document.getElementById("formPagoCliente");
+    const pedido = document.getElementById("modalPagoClientePedido");
+    const saldoTexto = document.getElementById("modalPagoClienteSaldo");
+    const monto = document.getElementById("montoPagoCliente");
+
+    const saldo = Number(
+        String(boton.dataset.saldo || "0").replace(",", ".")
+    );
+
+    form.action = boton.dataset.url;
+    pedido.textContent = boton.dataset.codigo;
+    saldoTexto.textContent = "$" + saldo.toLocaleString("es-AR");
+    monto.value = saldo.toFixed(2);
+    monto.max = saldo.toFixed(2);
+
+    modal.classList.add("abierto");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+
+    setTimeout(function() {
+        monto.focus();
+        monto.select();
+    }, 50);
+}
+
+function cerrarPagoCliente() {
+    const modal = document.getElementById("modalPagoCliente");
+    modal.classList.remove("abierto");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+}
+
+function cerrarPagoClienteDesdeFondo(event) {
+    if (event.target.id === "modalPagoCliente") {
+        cerrarPagoCliente();
+    }
+}
+
+document.addEventListener("keydown", function(event) {
+    if (event.key === "Escape") {
+        cerrarPagoCliente();
+    }
+});
+</script>
+
+</body>
+</html>

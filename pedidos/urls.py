@@ -27,6 +27,12 @@ urlpatterns = [
     ),
 
     path(
+        "pagos/",
+        views.pagos,
+        name="pagos",
+    ),
+
+    path(
         "impresiones/listo/",
         views.cambiar_listo_impresion,
         name="cambiar_listo",
