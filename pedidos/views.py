@@ -16,6 +16,7 @@ from .models import (
     DetallePedido,
     DetalleKitProducto,
     EstadoImpresionPedido,
+    Pago,
 )
 
 
@@ -33,6 +34,7 @@ def impresiones_por_pedido(request):
             "detalles__producto",
             "detalles__kit",
             "detalles__productos_kit__producto",
+            "pagos",
         )
         .order_by(
             "fecha_entrega",
@@ -293,6 +295,12 @@ def impresiones_por_pedido(request):
                         item["a_imprimir"]
                         for item in lista_productos
                     ),
+                    "total_pedido": pedido.total,
+                    "total_pagado": pedido.total_pagado,
+                    "saldo_pendiente": pedido.saldo_pendiente,
+                    "estado_pago": pedido.estado_pago,
+                    "estado_pago_display": pedido.estado_pago_display,
+                    "pagos": list(pedido.pagos.all()),
                 }
             )
 
@@ -1463,6 +1471,96 @@ def impresiones_por_producto(request):
 
 
 # ==========================================================
+# REGISTRAR PAGO
+# ==========================================================
+
+@transaction.atomic
+def registrar_pago(request, pedido_id):
+    if request.method != "POST":
+        return redirect("pedidos:impresiones")
+
+    pedido = get_object_or_404(
+        Pedido.objects
+        .select_for_update()
+        .prefetch_related("detalles", "pagos"),
+        id=pedido_id,
+    )
+
+    if pedido.estado == "CANCELADO":
+        messages.error(
+            request,
+            "No se pueden registrar pagos en un pedido cancelado."
+        )
+        return redirect("pedidos:impresiones")
+
+    monto_texto = request.POST.get("monto", "").strip().replace(" ", "")
+    if "," in monto_texto and "." not in monto_texto:
+        monto_texto = monto_texto.replace(",", ".")
+
+    medio = request.POST.get("medio", "").strip()
+    observaciones = request.POST.get("observaciones", "").strip()
+
+    try:
+        monto = Decimal(monto_texto)
+    except (InvalidOperation, TypeError, ValueError):
+        monto = Decimal("0")
+
+    medios_validos = {valor for valor, _ in Pago.MEDIOS}
+
+    if monto <= 0:
+        messages.error(request, "El monto del pago debe ser mayor a cero.")
+        return redirect("pedidos:impresiones")
+
+    if medio not in medios_validos:
+        messages.error(request, "Seleccioná un medio de pago válido.")
+        return redirect("pedidos:impresiones")
+
+    saldo = pedido.saldo_pendiente
+
+    if saldo <= 0:
+        messages.warning(
+            request,
+            f"{pedido.codigo} ya se encuentra completamente pagado."
+        )
+        return redirect("pedidos:impresiones")
+
+    if monto > saldo:
+        messages.error(
+            request,
+            (
+                f"El pago (${monto:.2f}) supera el saldo pendiente "
+                f"(${saldo:.2f})."
+            )
+        )
+        return redirect("pedidos:impresiones")
+
+    Pago.objects.create(
+        pedido=pedido,
+        monto=monto,
+        medio=medio,
+        observaciones=observaciones,
+    )
+
+    nuevo_saldo = pedido.saldo_pendiente
+
+    if nuevo_saldo <= 0:
+        messages.success(
+            request,
+            f"Pago registrado. {pedido.codigo} quedó PAGADO."
+        )
+    else:
+        messages.success(
+            request,
+            (
+                f"Pago registrado en {pedido.codigo}. "
+                f"Saldo pendiente: ${nuevo_saldo:.2f}."
+            )
+        )
+
+    return redirect("pedidos:impresiones")
+
+
+# ==========================================================
 # EDITAR PEDIDO
 # ==========================================================
 
@@ -2022,6 +2120,18 @@ def eliminar_pedido(request, pedido_id):
         Pedido.objects.select_for_update(),
         id=pedido_id,
     )
+
+
+    if pedido.pagos.exists():
+        messages.error(
+            request,
+            (
+                f"{pedido.codigo} tiene pagos registrados y no puede "
+                "eliminarse. Si corresponde, cancelá el pedido para "
+                "conservar el historial financiero."
+            )
+        )
+        return redirect("pedidos:impresiones")
 
     codigo_pedido = pedido.codigo
 

@@ -52,6 +52,37 @@ class Pedido(models.Model):
             Decimal("0")
         )
 
+    @property
+    def total_pagado(self):
+        return sum(
+            (pago.monto for pago in self.pagos.all()),
+            Decimal("0")
+        )
+
+    @property
+    def saldo_pendiente(self):
+        saldo = self.total - self.total_pagado
+        return max(saldo, Decimal("0"))
+
+    @property
+    def estado_pago(self):
+        pagado = self.total_pagado
+        total = self.total
+
+        if pagado <= 0:
+            return "SIN_PAGAR"
+        if pagado < total:
+            return "PARCIAL"
+        return "PAGADO"
+
+    @property
+    def estado_pago_display(self):
+        return {
+            "SIN_PAGAR": "Sin pagar",
+            "PARCIAL": "Parcial",
+            "PAGADO": "Pagado",
+        }[self.estado_pago]
+
     def __str__(self):
         if self.id:
             return f"{self.codigo} - {self.cliente.nombre}"
@@ -236,4 +267,46 @@ class EstadoImpresionPedido(models.Model):
             f"{self.pedido.codigo} - "
             f"{self.producto.nombre} - "
             f"{estado}"
+        )
+
+
+class Pago(models.Model):
+    MEDIOS = [
+        ("EFECTIVO", "Efectivo"),
+        ("TRANSFERENCIA", "Transferencia"),
+        ("MERCADO_PAGO", "Mercado Pago"),
+        ("OTRO", "Otro"),
+    ]
+
+    pedido = models.ForeignKey(
+        Pedido,
+        on_delete=models.PROTECT,
+        related_name="pagos"
+    )
+
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    monto = models.DecimalField(
+        max_digits=12,
+        decimal_places=2
+    )
+
+    medio = models.CharField(
+        max_length=30,
+        choices=MEDIOS
+    )
+
+    observaciones = models.CharField(
+        max_length=250,
+        blank=True
+    )
+
+    class Meta:
+        ordering = ["-fecha", "-id"]
+
+    def __str__(self):
+        return (
+            f"{self.pedido.codigo} - "
+            f"{self.get_medio_display()} - "
+            f"${self.monto}"
         )

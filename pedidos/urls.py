@@ -40,6 +40,12 @@ urlpatterns = [
 
 
     path(
+        "<int:pedido_id>/pago/",
+        views.registrar_pago,
+        name="registrar_pago",
+    ),
+
+    path(
         "<int:pedido_id>/editar/",
         views.editar_pedido,
         name="editar",
