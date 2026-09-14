@@ -2,36 +2,44 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finanzas | Doble V 3D</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+    <title>Finanzas · Doble V 3D</title>
 
     <style>
         :root{
-            --fondo:#f3f4f6;
-            --panel:#fff;
-            --texto:#17191c;
-            --muted:#70757d;
-            --borde:#e2e5e9;
-            --verde:#1f7a45;
+            --fondo:#f5f6f8;
+            --panel:#ffffff;
+            --texto:#24272c;
+            --muted:#747b84;
+            --borde:#e4e7eb;
+            --verde:#24714a;
             --verde-bg:#e8f5ed;
-            --rojo:#aa2633;
-            --amarillo:#806400;
-            --amarillo-bg:#fff6cf;
-            --sombra:0 8px 24px rgba(0,0,0,.06);
+            --rojo:#a63d3d;
+            --rojo-bg:#fff0f0;
+            --azul:#285ea8;
+            --azul-bg:#edf4ff;
+            --amarillo:#8a6417;
+            --amarillo-bg:#fff7db;
+            --violeta:#6948a8;
+            --violeta-bg:#f4efff;
+            --sombra:0 4px 18px rgba(31,41,55,.05);
         }
 
         *{box-sizing:border-box}
 
         body{
             margin:0;
-            padding:18px 18px 92px;
+            padding:20px 16px 105px;
             background:var(--fondo);
             color:var(--texto);
             font-family:Arial,Helvetica,sans-serif;
         }
 
         .contenedor{
-            width:min(1180px,100%);
+            width:min(1280px,100%);
             margin:0 auto;
         }
 
@@ -43,110 +51,160 @@
             margin-bottom:18px;
         }
 
-        h1{margin:0;font-size:28px}
+        h1{margin:0;font-size:26px}
+        h2{margin:0;font-size:18px}
+        h3{margin:0;font-size:14px}
 
         .subtitulo{
-            margin-top:5px;
+            margin-top:4px;
             color:var(--muted);
             font-size:12px;
         }
 
-        .acciones{display:flex;gap:8px}
+        .acciones-encabezado{
+            display:flex;
+            gap:8px;
+        }
 
         .boton{
             min-height:44px;
             display:inline-flex;
             align-items:center;
             justify-content:center;
-            padding:0 15px;
+            padding:0 14px;
             border:1px solid var(--borde);
             border-radius:12px;
-            background:var(--panel);
+            background:white;
             color:var(--texto);
-            text-decoration:none;
             font-size:10px;
             font-weight:900;
+            text-decoration:none;
             cursor:pointer;
         }
 
-        .filtros{
+        .boton-principal{
+            border-color:#23262b;
+            background:#23262b;
+            color:white;
+        }
+
+        .boton-peligro{
+            color:var(--rojo);
+            background:var(--rojo-bg);
+            border-color:#f2cccc;
+        }
+
+        .mensajes{margin-bottom:14px}
+        .mensaje{
+            margin-bottom:7px;
+            padding:12px 14px;
+            border:1px solid var(--borde);
+            border-radius:12px;
+            background:white;
+            font-size:11px;
+            font-weight:800;
+        }
+        .mensaje.success{background:var(--verde-bg);color:var(--verde)}
+        .mensaje.error{background:var(--rojo-bg);color:var(--rojo)}
+
+        .filtro-periodo{
             display:flex;
             align-items:end;
             gap:10px;
+            margin-bottom:14px;
             padding:14px;
-            margin-bottom:16px;
             border:1px solid var(--borde);
             border-radius:16px;
             background:var(--panel);
-            box-shadow:var(--sombra);
         }
 
         .campo label{
             display:block;
-            margin-bottom:6px;
+            margin-bottom:5px;
             color:var(--muted);
             font-size:9px;
             font-weight:900;
+            letter-spacing:.04em;
         }
 
-        input[type="month"]{
+        input,select,textarea{
+            width:100%;
             min-height:44px;
-            padding:0 12px;
-            border:1px solid var(--borde);
+            padding:9px 11px;
+            border:1px solid #d7dbe0;
             border-radius:10px;
             background:white;
-            font-size:14px;
+            font-size:13px;
+        }
+
+        textarea{
+            min-height:70px;
+            resize:vertical;
+        }
+
+        .seccion{
+            margin-bottom:16px;
+        }
+
+        .seccion-cabecera{
+            display:flex;
+            justify-content:space-between;
+            align-items:end;
+            gap:12px;
+            margin-bottom:9px;
+        }
+
+        .seccion-ayuda{
+            color:var(--muted);
+            font-size:10px;
         }
 
         .metricas{
             display:grid;
-            grid-template-columns:repeat(3,1fr);
-            gap:12px;
-            margin-bottom:16px;
+            grid-template-columns:repeat(4,1fr);
+            gap:10px;
         }
 
         .metrica{
-            min-height:122px;
-            display:flex;
-            flex-direction:column;
-            justify-content:space-between;
-            padding:16px;
+            min-height:108px;
+            padding:15px;
             border:1px solid var(--borde);
             border-radius:16px;
             background:var(--panel);
             box-shadow:var(--sombra);
         }
 
-        .metrica-titulo{
+        .metrica-etiqueta{
             color:var(--muted);
             font-size:9px;
             font-weight:900;
+            letter-spacing:.04em;
         }
 
-        .metrica-numero{
-            margin-top:14px;
-            font-size:26px;
+        .metrica-valor{
+            margin-top:9px;
+            font-size:22px;
             font-weight:900;
+            line-height:1.05;
         }
 
-        .metrica-ayuda{
-            margin-top:5px;
+        .metrica-nota{
+            margin-top:6px;
             color:var(--muted);
             font-size:9px;
+            line-height:1.35;
         }
 
-        .positivo .metrica-numero{color:var(--verde)}
-        .negativo .metrica-numero{color:var(--rojo)}
+        .positivo{color:var(--verde)}
+        .negativo{color:var(--rojo)}
+        .azul{color:var(--azul)}
+        .violeta{color:var(--violeta)}
 
-        .alerta{
-            margin-bottom:16px;
-            padding:13px 15px;
-            border:1px solid #ead98b;
-            border-radius:14px;
-            background:var(--amarillo-bg);
-            color:#625000;
-            font-size:10px;
-            line-height:1.5;
+        .grid-dos{
+            display:grid;
+            grid-template-columns:1.05fr .95fr;
+            gap:12px;
+            align-items:start;
         }
 
         .panel{
@@ -157,74 +215,195 @@
             box-shadow:var(--sombra);
         }
 
-        .panel-titulo{
-            padding:16px;
+        .panel-cabecera{
+            padding:14px 15px;
             border-bottom:1px solid var(--borde);
-            font-size:11px;
+        }
+
+        .panel-cuerpo{padding:15px}
+
+        .form-grid{
+            display:grid;
+            grid-template-columns:repeat(2,1fr);
+            gap:10px;
+        }
+
+        .ancho{grid-column:1/-1}
+
+        .tarjeta-plan{
+            padding:16px;
+            border:1px solid var(--borde);
+            border-radius:16px;
+            background:white;
+            box-shadow:var(--sombra);
+        }
+
+        .progreso{
+            height:12px;
+            overflow:hidden;
+            margin:12px 0 7px;
+            border-radius:999px;
+            background:#eceff2;
+        }
+
+        .progreso > span{
+            display:block;
+            height:100%;
+            border-radius:inherit;
+            background:#4b8d67;
+        }
+
+        .plan-datos{
+            display:grid;
+            grid-template-columns:repeat(2,1fr);
+            gap:8px;
+            margin-top:13px;
+        }
+
+        .plan-dato{
+            padding:11px;
+            border-radius:12px;
+            background:#f7f8fa;
+        }
+
+        .plan-dato span{
+            display:block;
+            color:var(--muted);
+            font-size:8px;
             font-weight:900;
         }
 
-        table{width:100%;border-collapse:collapse}
+        .plan-dato strong{
+            display:block;
+            margin-top:4px;
+            font-size:14px;
+        }
 
-        th{
-            padding:10px 11px;
-            border-bottom:1px solid var(--borde);
-            background:#f8f9fa;
+        .accion-plan{
+            margin-top:12px;
+            padding:12px;
+            border-radius:12px;
+            background:var(--azul-bg);
+            color:#274d7e;
+            font-size:10px;
+            font-weight:800;
+            line-height:1.45;
+        }
+
+        .alerta-cuotas{
+            display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:8px;
+            margin-bottom:12px;
+        }
+
+        .alerta{
+            padding:11px;
+            border-radius:12px;
+            background:#f7f8fa;
+        }
+
+        .alerta span{
+            display:block;
             color:var(--muted);
             font-size:8px;
+            font-weight:900;
+        }
+
+        .alerta strong{
+            display:block;
+            margin-top:4px;
+            font-size:14px;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+        }
+
+        th{
+            padding:10px 12px;
+            border-bottom:1px solid var(--borde);
+            background:#fafbfc;
+            color:var(--muted);
+            font-size:8px;
+            font-weight:900;
             text-align:left;
-            white-space:nowrap;
         }
 
         td{
-            padding:12px 11px;
-            border-bottom:1px solid var(--borde);
+            padding:11px 12px;
+            border-bottom:1px solid #eef0f2;
             font-size:10px;
             vertical-align:middle;
         }
 
         tr:last-child td{border-bottom:0}
-        .numero{text-align:right;white-space:nowrap}
-        .codigo,.cliente{font-weight:900}
-        .ganancia-positiva{color:var(--verde);font-weight:900}
-        .ganancia-negativa{color:var(--rojo);font-weight:900}
+
+        .numero{text-align:right}
+        .codigo{font-weight:900}
+        .descripcion{font-weight:800}
 
         .badge{
-            min-height:24px;
             display:inline-flex;
             align-items:center;
+            min-height:24px;
             padding:0 8px;
             border-radius:999px;
             font-size:8px;
             font-weight:900;
-            white-space:nowrap;
         }
 
-        .badge-historico{
-            background:var(--verde-bg);
-            color:var(--verde);
+        .badge-operativo{background:var(--amarillo-bg);color:var(--amarillo)}
+        .badge-inversion{background:var(--violeta-bg);color:var(--violeta)}
+        .badge-tarjeta{background:var(--azul-bg);color:var(--azul)}
+        .badge-pagada{background:var(--verde-bg);color:var(--verde)}
+        .badge-pendiente{background:var(--rojo-bg);color:var(--rojo)}
+
+        .cuota-accion form{margin:0}
+
+        .boton-mini{
+            min-height:32px;
+            padding:0 9px;
+            border:1px solid var(--borde);
+            border-radius:9px;
+            background:white;
+            font-size:8px;
+            font-weight:900;
+            cursor:pointer;
         }
 
-        .badge-estimado{
-            background:var(--amarillo-bg);
-            color:var(--amarillo);
+        .detalle-cuotas{
+            margin-top:5px;
+            color:var(--muted);
+            font-size:8px;
+            line-height:1.35;
         }
 
         .vacio{
-            padding:38px 16px;
+            padding:26px 15px;
             color:var(--muted);
-            font-size:11px;
+            font-size:10px;
             text-align:center;
         }
 
-        /* NAV INFERIOR - mismo estilo que el resto del sistema */
+        .nota-contable{
+            margin-top:10px;
+            padding:11px 13px;
+            border-radius:12px;
+            background:#f8f9fb;
+            color:#606773;
+            font-size:9px;
+            line-height:1.45;
+        }
+
         .nav-inferior{
             position:fixed;
             z-index:100;
             left:50%;
-            bottom:max(10px,env(safe-area-inset-bottom));
+            bottom:max(8px,env(safe-area-inset-bottom));
             transform:translateX(-50%);
-            width:min(720px,calc(100% - 20px));
+            width:min(720px,calc(100% - 16px));
             display:grid;
             grid-template-columns:repeat(5,1fr);
             gap:4px;
@@ -232,11 +411,10 @@
             border-radius:20px;
             background:rgba(35,38,43,.96);
             box-shadow:0 12px 35px rgba(0,0,0,.22);
-            backdrop-filter:blur(14px);
         }
 
         .nav-item{
-            min-height:58px;
+            min-height:56px;
             display:flex;
             flex-direction:column;
             align-items:center;
@@ -245,79 +423,54 @@
             border-radius:14px;
             color:#d9dbe0;
             text-decoration:none;
-            font-size:9px;
-            font-weight:bold;
+            font-size:8px;
+            font-weight:900;
         }
 
         .nav-item span:first-child{
-            font-size:19px;
-            line-height:1;
+            font-size:18px;
         }
 
-        .nav-item.nuevo-nav{
-            background:white;
-            color:#23262b;
-        }
-
-        @media(max-width:900px){
+        @media(max-width:980px){
             .metricas{grid-template-columns:repeat(2,1fr)}
-            .panel{
-                overflow:visible;
-                border:0;
-                background:transparent;
-                box-shadow:none;
-            }
-            .panel-titulo{
-                margin-bottom:10px;
-                border:1px solid var(--borde);
-                border-radius:14px;
-                background:var(--panel);
-            }
+            .grid-dos{grid-template-columns:1fr}
+        }
+
+        @media(max-width:650px){
+            body{padding:12px 10px 100px}
+            .encabezado{align-items:flex-start;flex-direction:column}
+            .acciones-encabezado{width:100%}
+            .acciones-encabezado .boton{flex:1}
+            .filtro-periodo{align-items:stretch;flex-direction:column}
+            .metricas{grid-template-columns:1fr 1fr}
+            .metrica{min-height:96px;padding:12px}
+            .metrica-valor{font-size:18px}
+            .form-grid{grid-template-columns:1fr}
+            .ancho{grid-column:auto}
+            .alerta-cuotas{grid-template-columns:1fr}
+
             table,thead,tbody,tr,td{display:block}
             thead{display:none}
             tr{
-                margin-bottom:10px;
-                padding:12px;
+                margin:9px;
+                padding:11px;
                 border:1px solid var(--borde);
-                border-radius:14px;
-                background:var(--panel);
-                box-shadow:var(--sombra);
+                border-radius:13px;
             }
             td{
                 display:flex;
                 justify-content:space-between;
-                align-items:center;
                 gap:14px;
-                padding:7px 0;
+                padding:6px 0;
                 border:0;
                 text-align:right!important;
             }
             td::before{
                 content:attr(data-label);
-                flex:0 0 40%;
                 color:var(--muted);
                 font-size:8px;
                 font-weight:900;
                 text-align:left;
-            }
-        }
-
-        @media(max-width:620px){
-            body{padding:12px 12px 88px}
-            .encabezado{flex-direction:column;align-items:stretch}
-            .acciones{width:100%}
-            .acciones .boton{flex:1}
-            .filtros{flex-direction:column;align-items:stretch}
-            input[type="month"],.filtros .boton{width:100%}
-            .metricas{
-                display:flex;
-                overflow-x:auto;
-                scroll-snap-type:x mandatory;
-                padding-bottom:4px;
-            }
-            .metrica{
-                min-width:78%;
-                scroll-snap-align:start;
             }
         }
     </style>
@@ -328,230 +481,826 @@
 
     <div class="encabezado">
         <div>
-            <h1>Finanzas y rentabilidad</h1>
+            <h1>Finanzas</h1>
             <div class="subtitulo">
-                Ventas, costos productivos, ganancia bruta y cobranza
+                Rentabilidad, caja, gastos, cuotas e inversión
             </div>
         </div>
 
-        <div class="acciones">
-            <button type="button" class="boton" onclick="volverPagina()">
+        <div class="acciones-encabezado">
+            <a
+                href="javascript:history.back()"
+                class="boton"
+            >
                 ← VOLVER
-            </button>
+            </a>
 
-            <a href="{% url 'dashboard:inicio' %}" class="boton">
+            <a
+                href="{% url 'dashboard:inicio' %}"
+                class="boton"
+            >
                 INICIO
             </a>
         </div>
     </div>
 
-    <form method="get" class="filtros">
+    {% if messages %}
+        <div class="mensajes">
+            {% for message in messages %}
+                <div class="mensaje {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <form
+        method="get"
+        class="filtro-periodo"
+    >
         <div class="campo">
-            <label>PERÍODO</label>
-            <input type="month" name="periodo" value="{{ periodo }}">
+            <label>PERÍODO A ANALIZAR</label>
+            <input
+                type="month"
+                name="periodo"
+                value="{{ periodo }}"
+            >
         </div>
 
-        <button type="submit" class="boton">
+        <button
+            type="submit"
+            class="boton boton-principal"
+        >
             VER PERÍODO
         </button>
     </form>
 
-    {% if detalles_sin_snapshot %}
-        <div class="alerta">
-            <strong>PEDIDOS ANTERIORES:</strong>
-            Hay {{ detalles_sin_snapshot }}
-            detalle{{ detalles_sin_snapshot|pluralize }}
-            sin costo histórico guardado.
-            Para esos ítems se utiliza el
-            <strong>costo actual estimado</strong>
-            y se los identifica en la tabla.
-            Los pedidos nuevos conservarán el costo del momento de la venta.
-        </div>
-    {% endif %}
 
-    <div class="metricas">
-
-        <div class="metrica">
-            <div class="metrica-titulo">VENTAS</div>
+    <!-- RESULTADO DEL NEGOCIO -->
+    <section class="seccion">
+        <div class="seccion-cabecera">
             <div>
-                <div class="metrica-numero">${{ ventas|floatformat:0 }}</div>
-                <div class="metrica-ayuda">
-                    {{ cantidad_pedidos }} pedidos no cancelados
+                <h2>Resultado del negocio</h2>
+                <div class="seccion-ayuda">
+                    Mide rentabilidad del período, independientemente de cómo se pagaron las compras.
                 </div>
             </div>
         </div>
 
-        <div class="metrica">
-            <div class="metrica-titulo">COSTOS PRODUCTIVOS</div>
+        <div class="metricas">
+            <div class="metrica">
+                <div class="metrica-etiqueta">VENTAS</div>
+                <div class="metrica-valor azul">
+                    $ {{ ventas|floatformat:"0g" }}
+                </div>
+                <div class="metrica-nota">
+                    {{ cantidad_pedidos }} pedidos del período.
+                </div>
+            </div>
+
+            <div class="metrica">
+                <div class="metrica-etiqueta">GANANCIA BRUTA</div>
+                <div class="metrica-valor">
+                    $ {{ ganancia|floatformat:"0g" }}
+                </div>
+                <div class="metrica-nota">
+                    Ventas menos costo productivo.
+                </div>
+            </div>
+
+            <div class="metrica">
+                <div class="metrica-etiqueta">GASTOS OPERATIVOS</div>
+                <div class="metrica-valor negativo">
+                    $ {{ gastos_operativos|floatformat:"0g" }}
+                </div>
+                <div class="metrica-nota">
+                    Filamentos, insumos, servicios, publicidad, etc.
+                </div>
+            </div>
+
+            <div class="metrica">
+                <div class="metrica-etiqueta">RESULTADO OPERATIVO</div>
+                <div class="metrica-valor {% if resultado_operativo >= 0 %}positivo{% else %}negativo{% endif %}">
+                    $ {{ resultado_operativo|floatformat:"0g" }}
+                </div>
+                <div class="metrica-nota">
+                    Ganancia bruta menos gastos operativos.
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- CAJA -->
+    <section class="seccion">
+        <div class="seccion-cabecera">
             <div>
-                <div class="metrica-numero">${{ costos|floatformat:0 }}</div>
-                <div class="metrica-ayuda">
-                    según el cálculo de costos del producto
+                <h2>Movimiento de caja</h2>
+                <div class="seccion-ayuda">
+                    Acá importan los cobros y las cuotas que efectivamente pagaste.
                 </div>
             </div>
         </div>
 
-        <div class="metrica {% if ganancia >= 0 %}positivo{% else %}negativo{% endif %}">
-            <div class="metrica-titulo">GANANCIA BRUTA</div>
+        <div class="metricas">
+            <div class="metrica">
+                <div class="metrica-etiqueta">COBRADO</div>
+                <div class="metrica-valor positivo">
+                    $ {{ cobrado_periodo|floatformat:"0g" }}
+                </div>
+            </div>
+
+            <div class="metrica">
+                <div class="metrica-etiqueta">CUOTAS / GASTOS PAGADOS</div>
+                <div class="metrica-valor negativo">
+                    $ {{ cuotas_pagadas_periodo|floatformat:"0g" }}
+                </div>
+            </div>
+
+            <div class="metrica">
+                <div class="metrica-etiqueta">FLUJO NETO</div>
+                <div class="metrica-valor {% if flujo_neto_caja >= 0 %}positivo{% else %}negativo{% endif %}">
+                    $ {{ flujo_neto_caja|floatformat:"0g" }}
+                </div>
+            </div>
+
+            <div class="metrica">
+                <div class="metrica-etiqueta">DEUDA EN CUOTAS</div>
+                <div class="metrica-valor violeta">
+                    $ {{ deuda_pendiente|floatformat:"0g" }}
+                </div>
+                <div class="metrica-nota">
+                    Total de cuotas todavía no marcadas como pagadas.
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- INVERSIÓN + PLAN -->
+    <section class="seccion">
+        <div class="seccion-cabecera">
             <div>
-                <div class="metrica-numero">${{ ganancia|floatformat:0 }}</div>
-                <div class="metrica-ayuda">
-                    margen {{ margen|floatformat:1 }}%
+                <h2>Recuperación de inversión</h2>
+                <div class="seccion-ayuda">
+                    Lectura gerencial para saber cuánto capital de equipamiento falta recuperar.
                 </div>
             </div>
         </div>
 
-        <div class="metrica">
-            <div class="metrica-titulo">COBRADO EN EL MES</div>
-            <div>
-                <div class="metrica-numero">${{ cobrado_periodo|floatformat:0 }}</div>
-                <div class="metrica-ayuda">
-                    pagos realmente recibidos durante el período
+        <div class="grid-dos">
+            <div class="tarjeta-plan">
+                <div class="metrica-etiqueta">
+                    INVERSIÓN TOTAL REGISTRADA
+                </div>
+                <div class="metrica-valor violeta">
+                    $ {{ inversion_total|floatformat:"0g" }}
+                </div>
+
+                <div class="progreso">
+                    <span style="width:{% if porcentaje_recuperado > 100 %}100{% else %}{{ porcentaje_recuperado|floatformat:'0' }}{% endif %}%"></span>
+                </div>
+
+                <div class="subtitulo">
+                    {{ porcentaje_recuperado|floatformat:"1" }}% recuperado
+                </div>
+
+                <div class="plan-datos">
+                    <div class="plan-dato">
+                        <span>RECUPERADA</span>
+                        <strong class="positivo">
+                            $ {{ inversion_recuperada|floatformat:"0g" }}
+                        </strong>
+                    </div>
+
+                    <div class="plan-dato">
+                        <span>PENDIENTE</span>
+                        <strong class="violeta">
+                            $ {{ inversion_pendiente|floatformat:"0g" }}
+                        </strong>
+                    </div>
+
+                    <div class="plan-dato">
+                        <span>RESULTADO OPERATIVO ACUMULADO</span>
+                        <strong>
+                            $ {{ resultado_operativo_acumulado|floatformat:"0g" }}
+                        </strong>
+                    </div>
+
+                    <div class="plan-dato">
+                        <span>INVERSIÓN DEL PERÍODO</span>
+                        <strong>
+                            $ {{ inversiones_periodo|floatformat:"0g" }}
+                        </strong>
+                    </div>
+                </div>
+
+                <div class="accion-plan">
+                    <strong>Plan:</strong>
+                    {{ accion_principal }}
+
+                    {% if meses_estimados %}
+                        <br><br>
+                        Al ritmo del período seleccionado:
+                        <strong>
+                            ~{{ meses_estimados }} mes{% if meses_estimados != 1 %}es{% endif %}
+                        </strong>
+                        para cubrir la inversión pendiente.
+                    {% endif %}
+
+                    {% if ventas_objetivo_recuperacion %}
+                        <br>
+                        Ventas aproximadas necesarias, manteniendo el margen operativo actual:
+                        <strong>
+                            $ {{ ventas_objetivo_recuperacion|floatformat:"0g" }}
+                        </strong>.
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-cabecera">
+                    <h3>Compromisos próximos</h3>
+                    <div class="subtitulo">
+                        Para anticipar tarjeta y necesidades de caja.
+                    </div>
+                </div>
+
+                <div class="panel-cuerpo">
+                    <div class="alerta-cuotas">
+                        <div class="alerta">
+                            <span>PRÓXIMOS 30 DÍAS</span>
+                            <strong class="negativo">
+                                $ {{ compromiso_30|floatformat:"0g" }}
+                            </strong>
+                        </div>
+
+                        <div class="alerta">
+                            <span>PRÓXIMOS 90 DÍAS</span>
+                            <strong>
+                                $ {{ compromiso_90|floatformat:"0g" }}
+                            </strong>
+                        </div>
+
+                        <div class="alerta">
+                            <span>DEUDA TOTAL</span>
+                            <strong class="violeta">
+                                $ {{ deuda_pendiente|floatformat:"0g" }}
+                            </strong>
+                        </div>
+                    </div>
+
+                    {% if cuotas_proximas %}
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>VENCE</th>
+                                    <th>COMPRA</th>
+                                    <th>CUOTA</th>
+                                    <th class="numero">MONTO</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for cuota in cuotas_proximas %}
+                                    <tr>
+                                        <td data-label="VENCE">
+                                            {{ cuota.fecha_vencimiento|date:"d/m/Y" }}
+                                        </td>
+
+                                        <td data-label="COMPRA">
+                                            <span class="descripcion">
+                                                {{ cuota.gasto.descripcion }}
+                                            </span>
+                                        </td>
+
+                                        <td data-label="CUOTA">
+                                            {{ cuota.numero }}/{{ cuota.gasto.cantidad_cuotas }}
+                                        </td>
+
+                                        <td data-label="MONTO" class="numero">
+                                            $ {{ cuota.monto|floatformat:"0g" }}
+                                        </td>
+
+                                        <td data-label="ACCIÓN" class="cuota-accion">
+                                            <form
+                                                method="post"
+                                                action="{% url 'pedidos:cambiar_estado_cuota' cuota.id %}"
+                                            >
+                                                {% csrf_token %}
+                                                <input
+                                                    type="hidden"
+                                                    name="pagada"
+                                                    value="1"
+                                                >
+                                                <input
+                                                    type="hidden"
+                                                    name="periodo"
+                                                    value="{{ periodo }}"
+                                                >
+
+                                                <button
+                                                    type="submit"
+                                                    class="boton-mini"
+                                                >
+                                                    MARCAR PAGADA
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <div class="vacio">
+                            No hay cuotas pendientes dentro de los próximos 90 días.
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
+    </section>
 
-        <div class="metrica">
-            <div class="metrica-titulo">COBRADO DE ESTOS PEDIDOS</div>
-            <div>
-                <div class="metrica-numero">${{ cobrado_pedidos|floatformat:0 }}</div>
-                <div class="metrica-ayuda">
-                    aunque el pago haya ingresado en otro mes
+
+    <!-- REGISTRAR GASTO -->
+    <section class="seccion">
+        <div class="panel">
+            <div class="panel-cabecera">
+                <h2>Registrar gasto o inversión</h2>
+                <div class="subtitulo">
+                    Si pagás con tarjeta, se genera automáticamente el calendario de cuotas.
                 </div>
             </div>
-        </div>
 
-        <div class="metrica">
-            <div class="metrica-titulo">SALDO PENDIENTE</div>
-            <div>
-                <div class="metrica-numero">${{ saldo|floatformat:0 }}</div>
-                <div class="metrica-ayuda">
-                    de los pedidos creados en este período
-                </div>
-            </div>
-        </div>
+            <div class="panel-cuerpo">
+                <form
+                    method="post"
+                    action="{% url 'pedidos:registrar_gasto' %}"
+                    id="form-gasto"
+                >
+                    {% csrf_token %}
 
-    </div>
-
-    <div class="panel">
-        <div class="panel-titulo">
-            DETALLE POR PEDIDO
-        </div>
-
-        {% if pedidos_finanzas %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>PEDIDO</th>
-                        <th>CLIENTE</th>
-                        <th>ESTADO</th>
-                        <th class="numero">VENTA</th>
-                        <th class="numero">COSTO</th>
-                        <th class="numero">GANANCIA</th>
-                        <th class="numero">MARGEN</th>
-                        <th class="numero">PAGADO</th>
-                        <th class="numero">SALDO</th>
-                        <th>COSTO</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    {% for item in pedidos_finanzas %}
-                        <tr>
-                            <td data-label="PEDIDO" class="codigo">
-                                {{ item.pedido.codigo }}
-                            </td>
-
-                            <td data-label="CLIENTE" class="cliente">
-                                {{ item.pedido.cliente.nombre }}
-                            </td>
-
-                            <td data-label="ESTADO">
-                                {{ item.pedido.get_estado_display }}
-                            </td>
-
-                            <td data-label="VENTA" class="numero">
-                                ${{ item.venta|floatformat:0 }}
-                            </td>
-
-                            <td data-label="COSTO" class="numero">
-                                ${{ item.costo|floatformat:0 }}
-                            </td>
-
-                            <td
-                                data-label="GANANCIA"
-                                class="numero {% if item.ganancia >= 0 %}ganancia-positiva{% else %}ganancia-negativa{% endif %}"
+                    <div class="form-grid">
+                        <div class="campo">
+                            <label>FECHA DE COMPRA</label>
+                            <input
+                                type="date"
+                                name="fecha_compra"
+                                value="{{ hoy|date:'Y-m-d' }}"
+                                required
                             >
-                                ${{ item.ganancia|floatformat:0 }}
-                            </td>
+                        </div>
 
-                            <td data-label="MARGEN" class="numero">
-                                {{ item.margen|floatformat:1 }}%
-                            </td>
+                        <div class="campo">
+                            <label>TIPO</label>
+                            <select name="tipo" required>
+                                {% for valor, etiqueta in tipos_gasto %}
+                                    <option value="{{ valor }}">
+                                        {{ etiqueta }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
 
-                            <td data-label="PAGADO" class="numero">
-                                ${{ item.pagado|floatformat:0 }}
-                            </td>
+                        <div class="campo">
+                            <label>CATEGORÍA</label>
+                            <select name="categoria" required>
+                                {% for valor, etiqueta in categorias_gasto %}
+                                    <option value="{{ valor }}">
+                                        {{ etiqueta }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
 
-                            <td data-label="SALDO" class="numero">
-                                ${{ item.saldo|floatformat:0 }}
-                            </td>
+                        <div class="campo">
+                            <label>MEDIO DE PAGO</label>
+                            <select
+                                name="medio_pago"
+                                id="medio_pago"
+                                required
+                            >
+                                {% for valor, etiqueta in medios_gasto %}
+                                    <option value="{{ valor }}">
+                                        {{ etiqueta }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
 
-                            <td data-label="TIPO DE COSTO">
-                                {% if item.usa_estimacion_actual %}
-                                    <span class="badge badge-estimado">
-                                        ESTIMADO ACTUAL
-                                    </span>
-                                {% else %}
-                                    <span class="badge badge-historico">
-                                        HISTÓRICO
-                                    </span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <div class="vacio">
-                No hay pedidos para este período.
+                        <div class="campo ancho">
+                            <label>DESCRIPCIÓN</label>
+                            <input
+                                type="text"
+                                name="descripcion"
+                                placeholder="Ej: 6 kg PLA / Bambu A1 / cajas para envíos"
+                                required
+                            >
+                        </div>
+
+                        <div class="campo">
+                            <label>MONTO TOTAL</label>
+                            <input
+                                type="number"
+                                name="monto_total"
+                                min="0.01"
+                                step="0.01"
+                                placeholder="0"
+                                required
+                            >
+                        </div>
+
+                        <div
+                            class="campo"
+                            id="campo-cuotas"
+                            style="display:none"
+                        >
+                            <label>CANTIDAD DE CUOTAS</label>
+                            <input
+                                type="number"
+                                name="cantidad_cuotas"
+                                id="cantidad_cuotas"
+                                min="1"
+                                max="36"
+                                value="1"
+                            >
+                        </div>
+
+                        <div
+                            class="campo"
+                            id="campo-primera-cuota"
+                            style="display:none"
+                        >
+                            <label>VENCIMIENTO PRIMERA CUOTA</label>
+                            <input
+                                type="date"
+                                name="fecha_primera_cuota"
+                                id="fecha_primera_cuota"
+                            >
+                        </div>
+
+                        <div class="campo ancho">
+                            <label>OBSERVACIONES</label>
+                            <textarea
+                                name="observaciones"
+                                placeholder="Opcional: tarjeta utilizada, proveedor, detalle de la compra..."
+                            ></textarea>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:12px">
+                        <button
+                            type="submit"
+                            class="boton boton-principal"
+                        >
+                            + REGISTRAR GASTO
+                        </button>
+                    </div>
+                </form>
             </div>
-        {% endif %}
-    </div>
+        </div>
+    </section>
+
+
+    <!-- HISTORIAL DE GASTOS DEL PERÍODO -->
+    <section class="seccion">
+        <div class="panel">
+            <div class="panel-cabecera">
+                <h2>Gastos e inversiones del período</h2>
+            </div>
+
+            {% if gastos_periodo %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>FECHA</th>
+                            <th>TIPO</th>
+                            <th>DESCRIPCIÓN</th>
+                            <th>PAGO</th>
+                            <th class="numero">TOTAL</th>
+                            <th class="numero">PAGADO</th>
+                            <th class="numero">PENDIENTE</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for gasto in gastos_periodo %}
+                            <tr>
+                                <td data-label="FECHA">
+                                    {{ gasto.fecha_compra|date:"d/m/Y" }}
+                                </td>
+
+                                <td data-label="TIPO">
+                                    <span class="badge {% if gasto.tipo == 'INVERSION' %}badge-inversion{% else %}badge-operativo{% endif %}">
+                                        {{ gasto.get_tipo_display|upper }}
+                                    </span>
+                                </td>
+
+                                <td data-label="DESCRIPCIÓN">
+                                    <span class="descripcion">
+                                        {{ gasto.descripcion }}
+                                    </span>
+
+                                    <div class="detalle-cuotas">
+                                        {{ gasto.get_categoria_display }}
+                                        {% if gasto.medio_pago == "TARJETA_CREDITO" %}
+                                            · {{ gasto.cantidad_cuotas }} cuotas
+                                        {% endif %}
+                                    </div>
+                                </td>
+
+                                <td data-label="PAGO">
+                                    {% if gasto.medio_pago == "TARJETA_CREDITO" %}
+                                        <span class="badge badge-tarjeta">
+                                            TARJETA
+                                        </span>
+                                    {% else %}
+                                        {{ gasto.get_medio_pago_display }}
+                                    {% endif %}
+                                </td>
+
+                                <td data-label="TOTAL" class="numero">
+                                    $ {{ gasto.monto_total|floatformat:"0g" }}
+                                </td>
+
+                                <td data-label="PAGADO" class="numero positivo">
+                                    $ {{ gasto.monto_pagado|floatformat:"0g" }}
+                                </td>
+
+                                <td data-label="PENDIENTE" class="numero">
+                                    $ {{ gasto.saldo_pendiente|floatformat:"0g" }}
+                                </td>
+
+                                <td data-label="ACCIÓN">
+                                    <form
+                                        method="post"
+                                        action="{% url 'pedidos:eliminar_gasto' gasto.id %}"
+                                        onsubmit="return confirm('¿Eliminar este gasto y todas sus cuotas?');"
+                                    >
+                                        {% csrf_token %}
+                                        <input
+                                            type="hidden"
+                                            name="periodo"
+                                            value="{{ periodo }}"
+                                        >
+                                        <button
+                                            type="submit"
+                                            class="boton-mini"
+                                        >
+                                            ELIMINAR
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+
+                            {% if gasto.medio_pago == "TARJETA_CREDITO" %}
+                                {% for cuota in gasto.cuotas.all %}
+                                    <tr>
+                                        <td data-label="CUOTA" colspan="2">
+                                            Cuota {{ cuota.numero }}/{{ gasto.cantidad_cuotas }}
+                                        </td>
+
+                                        <td data-label="VENCE">
+                                            Vence {{ cuota.fecha_vencimiento|date:"d/m/Y" }}
+                                        </td>
+
+                                        <td data-label="ESTADO">
+                                            {% if cuota.pagada %}
+                                                <span class="badge badge-pagada">
+                                                    PAGADA
+                                                </span>
+                                            {% else %}
+                                                <span class="badge badge-pendiente">
+                                                    PENDIENTE
+                                                </span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td data-label="MONTO" class="numero">
+                                            $ {{ cuota.monto|floatformat:"0g" }}
+                                        </td>
+
+                                        <td data-label="FECHA PAGO" class="numero">
+                                            {% if cuota.fecha_pago %}
+                                                {{ cuota.fecha_pago|date:"d/m/Y" }}
+                                            {% else %}
+                                                —
+                                            {% endif %}
+                                        </td>
+
+                                        <td data-label="ACCIÓN" colspan="2">
+                                            <form
+                                                method="post"
+                                                action="{% url 'pedidos:cambiar_estado_cuota' cuota.id %}"
+                                            >
+                                                {% csrf_token %}
+                                                <input
+                                                    type="hidden"
+                                                    name="periodo"
+                                                    value="{{ periodo }}"
+                                                >
+
+                                                {% if cuota.pagada %}
+                                                    <input
+                                                        type="hidden"
+                                                        name="pagada"
+                                                        value="0"
+                                                    >
+                                                    <button
+                                                        type="submit"
+                                                        class="boton-mini"
+                                                    >
+                                                        VOLVER A PENDIENTE
+                                                    </button>
+                                                {% else %}
+                                                    <input
+                                                        type="hidden"
+                                                        name="pagada"
+                                                        value="1"
+                                                    >
+                                                    <button
+                                                        type="submit"
+                                                        class="boton-mini"
+                                                    >
+                                                        MARCAR PAGADA
+                                                    </button>
+                                                {% endif %}
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="vacio">
+                    No hay gastos registrados en este período.
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+
+    <!-- RENTABILIDAD POR PEDIDO -->
+    <section class="seccion">
+        <div class="panel">
+            <div class="panel-cabecera">
+                <h2>Rentabilidad por pedido</h2>
+                <div class="subtitulo">
+                    Venta y costo productivo histórico del período.
+                </div>
+            </div>
+
+            {% if pedidos_finanzas %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>PEDIDO</th>
+                            <th>CLIENTE</th>
+                            <th class="numero">VENTA</th>
+                            <th class="numero">COSTO</th>
+                            <th class="numero">GANANCIA</th>
+                            <th class="numero">MARGEN</th>
+                            <th class="numero">SALDO</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for item in pedidos_finanzas %}
+                            <tr>
+                                <td data-label="PEDIDO" class="codigo">
+                                    {{ item.pedido.codigo }}
+                                </td>
+
+                                <td data-label="CLIENTE">
+                                    {{ item.pedido.cliente.nombre }}
+                                    {% if item.usa_estimacion_actual %}
+                                        <div class="detalle-cuotas">
+                                            costo estimado actual
+                                        </div>
+                                    {% endif %}
+                                </td>
+
+                                <td data-label="VENTA" class="numero">
+                                    $ {{ item.venta|floatformat:"0g" }}
+                                </td>
+
+                                <td data-label="COSTO" class="numero">
+                                    $ {{ item.costo|floatformat:"0g" }}
+                                </td>
+
+                                <td data-label="GANANCIA" class="numero {% if item.ganancia >= 0 %}positivo{% else %}negativo{% endif %}">
+                                    $ {{ item.ganancia|floatformat:"0g" }}
+                                </td>
+
+                                <td data-label="MARGEN" class="numero">
+                                    {{ item.margen|floatformat:"1" }}%
+                                </td>
+
+                                <td data-label="SALDO" class="numero">
+                                    $ {{ item.saldo|floatformat:"0g" }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="vacio">
+                    No hay pedidos para este período.
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="nota-contable">
+            <strong>Cómo leer esta pantalla:</strong>
+            el resultado operativo reconoce el gasto completo en el mes de la compra,
+            aunque haya sido financiado. El movimiento de caja, en cambio, descuenta
+            solamente las cuotas que marcaste como pagadas. Una impresora se registra
+            como inversión, no como gasto operativo. La “recuperación de inversión”
+            es una herramienta gerencial basada en el resultado operativo acumulado;
+            no reemplaza contabilidad fiscal ni depreciación contable.
+        </div>
+    </section>
 
 </div>
 
-<nav class="nav-inferior" aria-label="Navegación principal">
+
+<nav class="nav-inferior">
     <a href="{% url 'dashboard:inicio' %}" class="nav-item">
-        <span>⌂</span><span>INICIO</span>
+        <span>⌂</span>
+        <span>INICIO</span>
     </a>
 
     <a href="{% url 'pedidos:impresiones' %}" class="nav-item">
-        <span>📦</span><span>PEDIDOS</span>
+        <span>📦</span>
+        <span>PEDIDOS</span>
     </a>
 
-    <a href="{% url 'pedidos:nuevo' %}" class="nav-item nuevo-nav">
-        <span>＋</span><span>NUEVO</span>
+    <a href="{% url 'pedidos:nuevo' %}" class="nav-item">
+        <span>＋</span>
+        <span>NUEVO</span>
     </a>
 
     <a href="{% url 'produccion:lista' %}" class="nav-item">
-        <span>⚙</span><span>PRODUCCIÓN</span>
+        <span>⚙</span>
+        <span>PRODUCCIÓN</span>
     </a>
 
     <a href="{% url 'productos:lista' %}" class="nav-item">
-        <span>▦</span><span>PRODUCTOS</span>
+        <span>▤</span>
+        <span>PRODUCTOS</span>
     </a>
 </nav>
 
+
 <script>
-    function volverPagina() {
-        if (window.history.length > 1) {
-            window.history.back();
-        } else {
-            window.location.href =
-                "{% url 'dashboard:inicio' %}";
+    const medioPago =
+        document.getElementById("medio_pago");
+
+    const campoCuotas =
+        document.getElementById("campo-cuotas");
+
+    const campoPrimeraCuota =
+        document.getElementById("campo-primera-cuota");
+
+    const cantidadCuotas =
+        document.getElementById("cantidad_cuotas");
+
+    const fechaPrimeraCuota =
+        document.getElementById("fecha_primera_cuota");
+
+    function actualizarFormaPago() {
+        const tarjeta =
+            medioPago.value === "TARJETA_CREDITO";
+
+        campoCuotas.style.display =
+            tarjeta ? "block" : "none";
+
+        campoPrimeraCuota.style.display =
+            tarjeta ? "block" : "none";
+
+        cantidadCuotas.required =
+            tarjeta;
+
+        fechaPrimeraCuota.required =
+            tarjeta;
+
+        if (!tarjeta) {
+            cantidadCuotas.value = "1";
+            fechaPrimeraCuota.value = "";
         }
     }
+
+    medioPago.addEventListener(
+        "change",
+        actualizarFormaPago
+    );
+
+    actualizarFormaPago();
 </script>
+
 </body>
 </html>

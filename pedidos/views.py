@@ -1,4 +1,4 @@
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 from django.contrib import messages
 from django.db import transaction, models
@@ -18,6 +18,8 @@ from calculadora.precios import (
 
 
 from collections import defaultdict
+from calendar import monthrange
+from datetime import date, timedelta
 
 from .models import (
     Pedido,
@@ -25,6 +27,8 @@ from .models import (
     DetalleKitProducto,
     EstadoImpresionPedido,
     Pago,
+    Gasto,
+    CuotaGasto,
 )
 
 
@@ -2433,6 +2437,427 @@ def editar_pedido(request, pedido_id):
     )
     return redirect("pedidos:impresiones")
 
+
+
+# ==========================================================
+# GASTOS / CUOTAS
+# ==========================================================
+
+def _fecha_mas_meses(fecha, meses):
+    """
+    Suma meses sin depender de librerías externas.
+    Si el día no existe en el mes destino, usa el último día.
+    """
+    indice = (
+        fecha.year * 12
+        + fecha.month - 1
+        + meses
+    )
+
+    anio = indice // 12
+    mes = indice % 12 + 1
+    ultimo_dia = monthrange(
+        anio,
+        mes,
+    )[1]
+
+    return date(
+        anio,
+        mes,
+        min(fecha.day, ultimo_dia),
+    )
+
+
+def _crear_cuotas_gasto(gasto):
+    gasto.cuotas.all().delete()
+
+    cantidad = max(
+        int(gasto.cantidad_cuotas or 1),
+        1,
+    )
+
+    total = Decimal(
+        str(gasto.monto_total)
+    ).quantize(
+        Decimal("0.01")
+    )
+
+    monto_base = (
+        total / Decimal(cantidad)
+    ).quantize(
+        Decimal("0.01"),
+        rounding=ROUND_HALF_UP,
+    )
+
+    if gasto.medio_pago == "TARJETA_CREDITO":
+        fecha_base = (
+            gasto.fecha_primera_cuota
+            or gasto.fecha_compra
+        )
+
+        acumulado = Decimal("0")
+
+        for numero in range(1, cantidad + 1):
+            if numero < cantidad:
+                monto = monto_base
+                acumulado += monto
+            else:
+                monto = (
+                    total - acumulado
+                ).quantize(
+                    Decimal("0.01")
+                )
+
+            CuotaGasto.objects.create(
+                gasto=gasto,
+                numero=numero,
+                fecha_vencimiento=_fecha_mas_meses(
+                    fecha_base,
+                    numero - 1,
+                ),
+                monto=monto,
+                pagada=False,
+                fecha_pago=None,
+            )
+
+    else:
+        CuotaGasto.objects.create(
+            gasto=gasto,
+            numero=1,
+            fecha_vencimiento=gasto.fecha_compra,
+            monto=total,
+            pagada=True,
+            fecha_pago=gasto.fecha_compra,
+        )
+
+
+@transaction.atomic
+def registrar_gasto(request):
+    if request.method != "POST":
+        return redirect(
+            "pedidos:finanzas"
+        )
+
+    fecha_texto = request.POST.get(
+        "fecha_compra",
+        "",
+    ).strip()
+
+    tipo = request.POST.get(
+        "tipo",
+        "OPERATIVO",
+    ).strip().upper()
+
+    categoria = request.POST.get(
+        "categoria",
+        "OTRO",
+    ).strip().upper()
+
+    descripcion = request.POST.get(
+        "descripcion",
+        "",
+    ).strip()
+
+    monto_texto = (
+        request.POST.get(
+            "monto_total",
+            "",
+        )
+        .strip()
+        .replace(",", ".")
+    )
+
+    medio_pago = request.POST.get(
+        "medio_pago",
+        "TRANSFERENCIA",
+    ).strip().upper()
+
+    cuotas_texto = request.POST.get(
+        "cantidad_cuotas",
+        "1",
+    ).strip()
+
+    primera_cuota_texto = request.POST.get(
+        "fecha_primera_cuota",
+        "",
+    ).strip()
+
+    observaciones = request.POST.get(
+        "observaciones",
+        "",
+    ).strip()
+
+    try:
+        fecha_compra = date.fromisoformat(
+            fecha_texto
+        )
+    except (TypeError, ValueError):
+        messages.error(
+            request,
+            "La fecha de compra no es válida."
+        )
+        return redirect(
+            "pedidos:finanzas"
+        )
+
+    try:
+        monto_total = Decimal(
+            monto_texto
+        ).quantize(
+            Decimal("0.01")
+        )
+    except (
+        InvalidOperation,
+        TypeError,
+        ValueError,
+    ):
+        monto_total = Decimal("0")
+
+    try:
+        cantidad_cuotas = int(
+            cuotas_texto or 1
+        )
+    except (TypeError, ValueError):
+        cantidad_cuotas = 1
+
+    if not descripcion:
+        messages.error(
+            request,
+            "Ingresá una descripción para el gasto."
+        )
+        return redirect(
+            "pedidos:finanzas"
+        )
+
+    if monto_total <= 0:
+        messages.error(
+            request,
+            "El monto debe ser mayor a cero."
+        )
+        return redirect(
+            "pedidos:finanzas"
+        )
+
+    tipos_validos = {
+        clave
+        for clave, _ in Gasto.TIPOS
+    }
+
+    categorias_validas = {
+        clave
+        for clave, _ in Gasto.CATEGORIAS
+    }
+
+    medios_validos = {
+        clave
+        for clave, _ in Gasto.MEDIOS_PAGO
+    }
+
+    if tipo not in tipos_validos:
+        tipo = "OPERATIVO"
+
+    if categoria not in categorias_validas:
+        categoria = "OTRO"
+
+    if medio_pago not in medios_validos:
+        medio_pago = "OTRO"
+
+    fecha_primera_cuota = None
+
+    if medio_pago == "TARJETA_CREDITO":
+        cantidad_cuotas = max(
+            min(cantidad_cuotas, 36),
+            1,
+        )
+
+        if not primera_cuota_texto:
+            messages.error(
+                request,
+                (
+                    "Para una compra con tarjeta de crédito "
+                    "indicá el vencimiento de la primera cuota."
+                )
+            )
+            return redirect(
+                "pedidos:finanzas"
+            )
+
+        try:
+            fecha_primera_cuota = (
+                date.fromisoformat(
+                    primera_cuota_texto
+                )
+            )
+        except (TypeError, ValueError):
+            messages.error(
+                request,
+                "El primer vencimiento no es válido."
+            )
+            return redirect(
+                "pedidos:finanzas"
+            )
+
+    else:
+        cantidad_cuotas = 1
+
+    gasto = Gasto.objects.create(
+        fecha_compra=fecha_compra,
+        tipo=tipo,
+        categoria=categoria,
+        descripcion=descripcion,
+        monto_total=monto_total,
+        medio_pago=medio_pago,
+        cantidad_cuotas=cantidad_cuotas,
+        fecha_primera_cuota=fecha_primera_cuota,
+        observaciones=observaciones,
+    )
+
+    _crear_cuotas_gasto(
+        gasto
+    )
+
+    messages.success(
+        request,
+        (
+            f"Gasto registrado: {gasto.descripcion} "
+            f"por ${gasto.monto_total:,.2f}."
+        )
+    )
+
+    periodo = fecha_compra.strftime(
+        "%Y-%m"
+    )
+
+    return redirect(
+        f"{redirect('pedidos:finanzas').url}?periodo={periodo}"
+    )
+
+
+@transaction.atomic
+def cambiar_estado_cuota(
+    request,
+    cuota_id,
+):
+    if request.method != "POST":
+        return redirect(
+            "pedidos:finanzas"
+        )
+
+    cuota = get_object_or_404(
+        CuotaGasto.objects
+        .select_for_update()
+        .select_related("gasto"),
+        id=cuota_id,
+    )
+
+    pagada = (
+        request.POST.get(
+            "pagada"
+        )
+        == "1"
+    )
+
+    cuota.pagada = pagada
+    cuota.fecha_pago = (
+        timezone.localdate()
+        if pagada
+        else None
+    )
+
+    cuota.save(
+        update_fields=[
+            "pagada",
+            "fecha_pago",
+        ]
+    )
+
+    periodo = request.POST.get(
+        "periodo",
+        timezone.localdate().strftime(
+            "%Y-%m"
+        ),
+    )
+
+    return redirect(
+        f"{redirect('pedidos:finanzas').url}?periodo={periodo}"
+    )
+
+
+@transaction.atomic
+def eliminar_gasto(
+    request,
+    gasto_id,
+):
+    if request.method != "POST":
+        return redirect(
+            "pedidos:finanzas"
+        )
+
+    gasto = get_object_or_404(
+        Gasto,
+        id=gasto_id,
+    )
+
+    descripcion = gasto.descripcion
+    gasto.delete()
+
+    messages.success(
+        request,
+        f"Gasto eliminado: {descripcion}."
+    )
+
+    periodo = request.POST.get(
+        "periodo",
+        timezone.localdate().strftime(
+            "%Y-%m"
+        ),
+    )
+
+    return redirect(
+        f"{redirect('pedidos:finanzas').url}?periodo={periodo}"
+    )
+
+
+def _rentabilidad_acumulada():
+    pedidos = (
+        Pedido.objects
+        .exclude(
+            estado="CANCELADO"
+        )
+        .prefetch_related(
+            "detalles__producto",
+            "detalles__kit",
+            "detalles__productos_kit__producto",
+        )
+    )
+
+    ventas = Decimal("0")
+    costos = Decimal("0")
+
+    for pedido in pedidos:
+        ventas += pedido.total
+
+        for detalle in pedido.detalles.all():
+            if detalle.estado == "CANCELADO":
+                continue
+
+            if detalle.costo_unitario is not None:
+                costos += (
+                    detalle.costo_unitario
+                    * detalle.cantidad
+                )
+            else:
+                costos += _costo_actual_detalle(
+                    detalle
+                )
+
+    return {
+        "ventas": ventas,
+        "costos": costos,
+        "ganancia_bruta": ventas - costos,
+    }
+
+
 # ==========================================================
 # FINANZAS / RENTABILIDAD
 # ==========================================================
@@ -2503,7 +2928,10 @@ def finanzas(request):
 
             costo_pedido += costo_detalle
 
-        ganancia_pedido = venta_pedido - costo_pedido
+        ganancia_pedido = (
+            venta_pedido
+            - costo_pedido
+        )
 
         if venta_pedido > 0:
             margen_pedido = (
@@ -2531,7 +2959,8 @@ def finanzas(request):
                 "margen": margen_pedido,
                 "pagado": pagado_pedido,
                 "saldo": saldo_pedido,
-                "usa_estimacion_actual": usa_estimacion_actual,
+                "usa_estimacion_actual":
+                    usa_estimacion_actual,
             }
         )
 
@@ -2552,15 +2981,264 @@ def finanzas(request):
             fecha__year=anio,
             fecha__month=mes,
         )
-        .aggregate(total=Sum("monto"))
+        .aggregate(
+            total=Sum("monto")
+        )
         .get("total")
         or Decimal("0")
     )
+
+    # ------------------------------------------------------
+    # GASTOS DEL PERÍODO - resultado económico
+    # ------------------------------------------------------
+    gastos_periodo_qs = (
+        Gasto.objects
+        .filter(
+            fecha_compra__year=anio,
+            fecha_compra__month=mes,
+        )
+        .prefetch_related("cuotas")
+        .order_by(
+            "-fecha_compra",
+            "-id",
+        )
+    )
+
+    gastos_periodo = list(
+        gastos_periodo_qs
+    )
+
+    gastos_operativos = sum(
+        (
+            gasto.monto_total
+            for gasto in gastos_periodo
+            if gasto.tipo == "OPERATIVO"
+        ),
+        Decimal("0"),
+    )
+
+    inversiones_periodo = sum(
+        (
+            gasto.monto_total
+            for gasto in gastos_periodo
+            if gasto.tipo == "INVERSION"
+        ),
+        Decimal("0"),
+    )
+
+    resultado_operativo = (
+        ganancia
+        - gastos_operativos
+    )
+
+    # ------------------------------------------------------
+    # CAJA - solamente cuotas efectivamente pagadas
+    # ------------------------------------------------------
+    cuotas_pagadas_periodo = (
+        CuotaGasto.objects
+        .filter(
+            pagada=True,
+            fecha_pago__year=anio,
+            fecha_pago__month=mes,
+        )
+        .aggregate(
+            total=Sum("monto")
+        )
+        .get("total")
+        or Decimal("0")
+    )
+
+    flujo_neto_caja = (
+        cobrado_periodo
+        - cuotas_pagadas_periodo
+    )
+
+    deuda_pendiente = (
+        CuotaGasto.objects
+        .filter(
+            pagada=False
+        )
+        .aggregate(
+            total=Sum("monto")
+        )
+        .get("total")
+        or Decimal("0")
+    )
+
+    # ------------------------------------------------------
+    # PRÓXIMAS CUOTAS / COMPROMISOS
+    # ------------------------------------------------------
+    limite_90 = (
+        hoy + timedelta(days=90)
+    )
+
+    cuotas_proximas = list(
+        CuotaGasto.objects
+        .filter(
+            pagada=False,
+            fecha_vencimiento__lte=limite_90,
+        )
+        .select_related("gasto")
+        .order_by(
+            "fecha_vencimiento",
+            "id",
+        )[:30]
+    )
+
+    compromiso_30 = (
+        CuotaGasto.objects
+        .filter(
+            pagada=False,
+            fecha_vencimiento__gte=hoy,
+            fecha_vencimiento__lte=(
+                hoy + timedelta(days=30)
+            ),
+        )
+        .aggregate(
+            total=Sum("monto")
+        )
+        .get("total")
+        or Decimal("0")
+    )
+
+    compromiso_90 = (
+        CuotaGasto.objects
+        .filter(
+            pagada=False,
+            fecha_vencimiento__gte=hoy,
+            fecha_vencimiento__lte=limite_90,
+        )
+        .aggregate(
+            total=Sum("monto")
+        )
+        .get("total")
+        or Decimal("0")
+    )
+
+    # ------------------------------------------------------
+    # RECUPERACIÓN DE INVERSIÓN - lectura gerencial
+    # ------------------------------------------------------
+    acumulado = (
+        _rentabilidad_acumulada()
+    )
+
+    gastos_operativos_acumulados = (
+        Gasto.objects
+        .filter(
+            tipo="OPERATIVO"
+        )
+        .aggregate(
+            total=Sum("monto_total")
+        )
+        .get("total")
+        or Decimal("0")
+    )
+
+    inversion_total = (
+        Gasto.objects
+        .filter(
+            tipo="INVERSION"
+        )
+        .aggregate(
+            total=Sum("monto_total")
+        )
+        .get("total")
+        or Decimal("0")
+    )
+
+    resultado_operativo_acumulado = (
+        acumulado["ganancia_bruta"]
+        - gastos_operativos_acumulados
+    )
+
+    capacidad_recuperacion = max(
+        resultado_operativo_acumulado,
+        Decimal("0"),
+    )
+
+    inversion_recuperada = min(
+        capacidad_recuperacion,
+        inversion_total,
+    )
+
+    inversion_pendiente = max(
+        inversion_total
+        - inversion_recuperada,
+        Decimal("0"),
+    )
+
+    if inversion_total > 0:
+        porcentaje_recuperado = (
+            inversion_recuperada
+            * Decimal("100")
+            / inversion_total
+        )
+    else:
+        porcentaje_recuperado = Decimal("0")
+
+    # ------------------------------------------------------
+    # PLAN DE ACCIÓN
+    # ------------------------------------------------------
+    meses_estimados = None
+    ventas_objetivo_recuperacion = None
+    margen_operativo_periodo = Decimal("0")
+
+    if ventas > 0:
+        margen_operativo_periodo = (
+            resultado_operativo
+            / ventas
+        )
+
+    if (
+        inversion_pendiente > 0
+        and resultado_operativo > 0
+    ):
+        meses_estimados = int(
+            (
+                inversion_pendiente
+                / resultado_operativo
+            )
+            .to_integral_value(
+                rounding="ROUND_CEILING"
+            )
+        )
+
+    if (
+        inversion_pendiente > 0
+        and margen_operativo_periodo > 0
+    ):
+        ventas_objetivo_recuperacion = (
+            inversion_pendiente
+            / margen_operativo_periodo
+        )
+
+    if inversion_pendiente <= 0 and inversion_total > 0:
+        estado_plan = "RECUPERADA"
+        accion_principal = (
+            "La inversión registrada ya está cubierta por "
+            "el resultado operativo acumulado."
+        )
+
+    elif resultado_operativo > 0:
+        estado_plan = "EN_CAMINO"
+        accion_principal = (
+            "Manteniendo el resultado operativo de este período, "
+            "la inversión continúa recuperándose."
+        )
+
+    else:
+        estado_plan = "AJUSTAR"
+        accion_principal = (
+            "El resultado operativo del período no alcanza para "
+            "recuperar inversión. Priorizá margen, volumen rentable "
+            "y control de gastos antes de sumar nuevas cuotas."
+        )
 
     return render(
         request,
         "pedidos/finanzas.html",
         {
+            "hoy": hoy,
             "periodo": periodo,
             "pedidos_finanzas": filas,
             "ventas": ventas,
@@ -2571,7 +3249,63 @@ def finanzas(request):
             "cobrado_pedidos": cobrado_pedidos,
             "saldo": saldo,
             "cantidad_pedidos": len(filas),
-            "detalles_sin_snapshot": detalles_sin_snapshot,
+            "detalles_sin_snapshot":
+                detalles_sin_snapshot,
+
+            "gastos_periodo":
+                gastos_periodo,
+            "gastos_operativos":
+                gastos_operativos,
+            "inversiones_periodo":
+                inversiones_periodo,
+            "resultado_operativo":
+                resultado_operativo,
+
+            "cuotas_pagadas_periodo":
+                cuotas_pagadas_periodo,
+            "flujo_neto_caja":
+                flujo_neto_caja,
+            "deuda_pendiente":
+                deuda_pendiente,
+            "cuotas_proximas":
+                cuotas_proximas,
+            "compromiso_30":
+                compromiso_30,
+            "compromiso_90":
+                compromiso_90,
+
+            "ventas_acumuladas":
+                acumulado["ventas"],
+            "ganancia_bruta_acumulada":
+                acumulado["ganancia_bruta"],
+            "gastos_operativos_acumulados":
+                gastos_operativos_acumulados,
+            "resultado_operativo_acumulado":
+                resultado_operativo_acumulado,
+            "inversion_total":
+                inversion_total,
+            "inversion_recuperada":
+                inversion_recuperada,
+            "inversion_pendiente":
+                inversion_pendiente,
+            "porcentaje_recuperado":
+                porcentaje_recuperado,
+
+            "meses_estimados":
+                meses_estimados,
+            "ventas_objetivo_recuperacion":
+                ventas_objetivo_recuperacion,
+            "estado_plan":
+                estado_plan,
+            "accion_principal":
+                accion_principal,
+
+            "tipos_gasto":
+                Gasto.TIPOS,
+            "categorias_gasto":
+                Gasto.CATEGORIAS,
+            "medios_gasto":
+                Gasto.MEDIOS_PAGO,
         },
     )
 

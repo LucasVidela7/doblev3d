@@ -332,3 +332,162 @@ class Pago(models.Model):
             f"{self.get_medio_display()} - "
             f"${self.monto}"
         )
+
+# ============================================================
+# GASTOS / INVERSIONES
+# ============================================================
+
+class Gasto(models.Model):
+    TIPOS = [
+        ("OPERATIVO", "Gasto operativo"),
+        ("INVERSION", "Inversión"),
+    ]
+
+    CATEGORIAS = [
+        ("FILAMENTO", "Filamento"),
+        ("INSUMOS", "Otros insumos"),
+        ("EQUIPAMIENTO", "Equipamiento"),
+        ("MANTENIMIENTO", "Mantenimiento"),
+        ("EMBALAJE", "Embalaje"),
+        ("PUBLICIDAD", "Publicidad"),
+        ("SERVICIOS", "Servicios"),
+        ("ENVIO", "Envíos"),
+        ("SOFTWARE", "Software"),
+        ("COMISIONES", "Comisiones"),
+        ("OTRO", "Otro"),
+    ]
+
+    MEDIOS_PAGO = [
+        ("EFECTIVO", "Efectivo"),
+        ("TRANSFERENCIA", "Transferencia"),
+        ("DEBITO", "Débito"),
+        ("TARJETA_CREDITO", "Tarjeta de crédito"),
+        ("MERCADO_PAGO", "Mercado Pago"),
+        ("OTRO", "Otro"),
+    ]
+
+    fecha_compra = models.DateField()
+
+    tipo = models.CharField(
+        max_length=20,
+        choices=TIPOS,
+        default="OPERATIVO",
+    )
+
+    categoria = models.CharField(
+        max_length=30,
+        choices=CATEGORIAS,
+        default="OTRO",
+    )
+
+    descripcion = models.CharField(
+        max_length=200,
+    )
+
+    monto_total = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+    )
+
+    medio_pago = models.CharField(
+        max_length=30,
+        choices=MEDIOS_PAGO,
+        default="TRANSFERENCIA",
+    )
+
+    cantidad_cuotas = models.PositiveSmallIntegerField(
+        default=1,
+    )
+
+    fecha_primera_cuota = models.DateField(
+        null=True,
+        blank=True,
+    )
+
+    observaciones = models.TextField(
+        blank=True,
+    )
+
+    creado_en = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    class Meta:
+        ordering = [
+            "-fecha_compra",
+            "-id",
+        ]
+
+    @property
+    def monto_pagado(self):
+        return sum(
+            (
+                cuota.monto
+                for cuota in self.cuotas.filter(
+                    pagada=True
+                )
+            ),
+            Decimal("0"),
+        )
+
+    @property
+    def saldo_pendiente(self):
+        return max(
+            self.monto_total - self.monto_pagado,
+            Decimal("0"),
+        )
+
+    def __str__(self):
+        return (
+            f"{self.get_tipo_display()} - "
+            f"{self.descripcion} - "
+            f"${self.monto_total}"
+        )
+
+
+class CuotaGasto(models.Model):
+    gasto = models.ForeignKey(
+        Gasto,
+        on_delete=models.CASCADE,
+        related_name="cuotas",
+    )
+
+    numero = models.PositiveSmallIntegerField()
+
+    fecha_vencimiento = models.DateField()
+
+    monto = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+    )
+
+    pagada = models.BooleanField(
+        default=False,
+    )
+
+    fecha_pago = models.DateField(
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        ordering = [
+            "fecha_vencimiento",
+            "numero",
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "gasto",
+                    "numero",
+                ],
+                name="cuota_gasto_numero_unico",
+            )
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.gasto.descripcion} - "
+            f"{self.numero}/{self.gasto.cantidad_cuotas}"
+        )
+

@@ -39,21 +39,39 @@ urlpatterns = [
     ),
 
     path(
+        "gastos/nuevo/",
+        views.registrar_gasto,
+        name="registrar_gasto",
+    ),
+
+    path(
+        "gastos/<int:gasto_id>/eliminar/",
+        views.eliminar_gasto,
+        name="eliminar_gasto",
+    ),
+
+    path(
+        "gastos/cuotas/<int:cuota_id>/estado/",
+        views.cambiar_estado_cuota,
+        name="cambiar_estado_cuota",
+    ),
+
+    path(
         "impresiones/listo/",
         views.cambiar_listo_impresion,
         name="cambiar_listo",
     ),
 
     path(
-        "api/precio-producto/",
-        views.precio_producto,
-        name="precio_producto",
-    ),
-
-    path(
         "api/kit/<int:kit_id>/productos/",
         views.productos_por_kit,
         name="productos_kit",
+    ),
+
+    path(
+        "api/precio-producto/",
+        views.precio_producto,
+        name="precio_producto",
     ),
 
 
