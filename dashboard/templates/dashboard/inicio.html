@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     >
     <title>Doble V 3D | Inicio</title>
 
@@ -641,12 +641,12 @@
     <!-- MÉTRICAS DESLIZABLES -->
 
     <section
-        class="metricas"
-        aria-label="Resumen del taller"
+            class="metricas"
+            aria-label="Resumen del taller"
     >
         <a
-            href="{% url 'pedidos:impresiones' %}"
-            class="metrica m-pedidos"
+                href="{% url 'pedidos:impresiones' %}"
+                class="metrica m-pedidos"
         >
             <div class="metrica-cabecera">
                 <div class="metrica-titulo">PEDIDOS ACTIVOS</div>
@@ -662,8 +662,8 @@
         </a>
 
         <a
-            href="{% url 'pedidos:impresiones_productos' %}"
-            class="metrica m-imprimir"
+                href="{% url 'pedidos:impresiones_productos' %}"
+                class="metrica m-imprimir"
         >
             <div class="metrica-cabecera">
                 <div class="metrica-titulo">A IMPRIMIR</div>
@@ -679,8 +679,8 @@
         </a>
 
         <a
-            href="{% url 'produccion:lista' %}"
-            class="metrica m-produccion"
+                href="{% url 'produccion:lista' %}"
+                class="metrica m-produccion"
         >
             <div class="metrica-cabecera">
                 <div class="metrica-titulo">IMPRIMIENDO</div>
@@ -696,8 +696,8 @@
         </a>
 
         <a
-            href="{% url 'pedidos:impresiones' %}"
-            class="metrica m-listos"
+                href="{% url 'pedidos:impresiones' %}"
+                class="metrica m-listos"
         >
             <div class="metrica-cabecera">
                 <div class="metrica-titulo">LISTOS</div>
@@ -713,8 +713,8 @@
         </a>
 
         <a
-            href="#entregas"
-            class="metrica m-atrasados {% if pedidos_atrasados %}alerta{% endif %}"
+                href="#entregas"
+                class="metrica m-atrasados {% if pedidos_atrasados %}alerta{% endif %}"
         >
             <div class="metrica-cabecera">
                 <div class="metrica-titulo">ATRASADOS</div>
@@ -730,8 +730,8 @@
         </a>
 
         <a
-            href="{% url 'pedidos:pagos' %}"
-            class="metrica m-cobrar"
+                href="{% url 'pedidos:pagos' %}"
+                class="metrica m-cobrar"
         >
             <div class="metrica-cabecera">
                 <div class="metrica-titulo">SALDO A COBRAR</div>
@@ -749,8 +749,8 @@
         </a>
 
         <a
-            href="{% url 'pedidos:pagos' %}"
-            class="metrica m-cobrado"
+                href="{% url 'pedidos:pagos' %}"
+                class="metrica m-cobrado"
         >
             <div class="metrica-cabecera">
                 <div class="metrica-titulo">COBRADO MES</div>
@@ -778,8 +778,8 @@
 
         <div class="acciones">
             <a
-                href="{% url 'pedidos:nuevo' %}"
-                class="accion accion-principal"
+                    href="{% url 'pedidos:nuevo' %}"
+                    class="accion accion-principal"
             >
                 <div class="accion-icono">＋</div>
                 <div>
@@ -791,8 +791,8 @@
             </a>
 
             <a
-                href="{% url 'pedidos:impresiones' %}"
-                class="accion"
+                    href="{% url 'pedidos:impresiones' %}"
+                    class="accion"
             >
                 <div class="accion-icono">📦</div>
                 <div>
@@ -804,8 +804,8 @@
             </a>
 
             <a
-                href="{% url 'pedidos:impresiones_productos' %}"
-                class="accion"
+                    href="{% url 'pedidos:impresiones_productos' %}"
+                    class="accion"
             >
                 <div class="accion-icono">🖨</div>
                 <div>
@@ -817,8 +817,8 @@
             </a>
 
             <a
-                href="{% url 'produccion:lista' %}"
-                class="accion"
+                    href="{% url 'produccion:lista' %}"
+                    class="accion"
             >
                 <div class="accion-icono">⚙</div>
                 <div>
@@ -830,8 +830,8 @@
             </a>
 
             <a
-                href="{% url 'productos:lista' %}"
-                class="accion"
+                    href="{% url 'productos:lista' %}"
+                    class="accion"
             >
                 <div class="accion-icono">▦</div>
                 <div>
@@ -843,8 +843,8 @@
             </a>
 
             <a
-                href="{% url 'clientes:lista' %}"
-                class="accion"
+                    href="{% url 'clientes:lista' %}"
+                    class="accion"
             >
                 <div class="accion-icono">👥</div>
                 <div>
@@ -856,8 +856,8 @@
             </a>
 
             <a
-                href="{% url 'pedidos:pagos' %}"
-                class="accion"
+                    href="{% url 'pedidos:pagos' %}"
+                    class="accion"
             >
                 <div class="accion-icono">$</div>
                 <div>
@@ -869,8 +869,8 @@
             </a>
 
             <a
-                href="{% url 'pedidos:finanzas' %}"
-                class="accion"
+                    href="{% url 'pedidos:finanzas' %}"
+                    class="accion"
             >
                 <div class="accion-icono">↗</div>
                 <div>
@@ -878,6 +878,13 @@
                     <div class="accion-texto">
                         Ventas, costos, ganancia y rentabilidad.
                     </div>
+                </div>
+            </a>
+            <a href="{% url 'calculadora:precios' %}" class="accion">
+                <div class="accion-icono">🧮</div>
+                <div>
+                    <div class="accion-titulo">Calculadora</div>
+                    <div class="accion-texto">Cotizar productos y mayorista</div>
                 </div>
             </a>
         </div>
@@ -901,36 +908,36 @@
                 </div>
 
                 {% if top_impresion %}
-                    {% for item in top_impresion %}
-                        <div class="barra-item">
-                            <div class="barra-cabecera">
-                                <div class="barra-producto">
-                                    {{ item.producto.nombre }}
-                                </div>
-
-                                <div class="barra-cantidad">
-                                    {{ item.cantidad }}
-                                </div>
-                            </div>
-
-                            <div class="barra-fondo">
-                                <div
-                                    class="barra-valor"
-                                    style="width: {{ item.porcentaje }}%;"
-                                ></div>
-                            </div>
-
-                            {% if item.personalizada %}
-                                <div class="barra-nota">
-                                    {{ item.personalizada }} personalizadas
-                                </div>
-                            {% endif %}
+                {% for item in top_impresion %}
+                <div class="barra-item">
+                    <div class="barra-cabecera">
+                        <div class="barra-producto">
+                            {{ item.producto.nombre }}
                         </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="sin-datos">
-                        No hay productos pendientes de impresión.
+
+                        <div class="barra-cantidad">
+                            {{ item.cantidad }}
+                        </div>
                     </div>
+
+                    <div class="barra-fondo">
+                        <div
+                                class="barra-valor"
+                                style="width: {{ item.porcentaje }}%;"
+                        ></div>
+                    </div>
+
+                    {% if item.personalizada %}
+                    <div class="barra-nota">
+                        {{ item.personalizada }} personalizadas
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="sin-datos">
+                    No hay productos pendientes de impresión.
+                </div>
                 {% endif %}
             </div>
 
@@ -958,27 +965,27 @@
                 </div>
 
                 {% if pedidos_activos %}
-                    <div
+                <div
                         class="estado-barra"
                         aria-label="Distribución de pedidos"
-                    >
-                        <div
+                >
+                    <div
                             class="seg-pendiente"
                             style="width: {% widthratio pedidos_pendientes pedidos_activos 100 %}%;"
-                        ></div>
-                        <div
+                    ></div>
+                    <div
                             class="seg-preparando"
                             style="width: {% widthratio pedidos_preparando pedidos_activos 100 %}%;"
-                        ></div>
-                        <div
+                    ></div>
+                    <div
                             class="seg-listo"
                             style="width: {% widthratio pedidos_listos pedidos_activos 100 %}%;"
-                        ></div>
-                    </div>
+                    ></div>
+                </div>
                 {% else %}
-                    <div class="sin-datos">
-                        No hay pedidos activos.
-                    </div>
+                <div class="sin-datos">
+                    No hay pedidos activos.
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -987,8 +994,8 @@
     <!-- ENTREGAS -->
 
     <section
-        class="seccion"
-        id="entregas"
+            class="seccion"
+            id="entregas"
     >
         <div class="seccion-cabecera">
             <h2 class="seccion-titulo">Próximas entregas</h2>
@@ -999,36 +1006,36 @@
 
         <div class="panel">
             {% if proximas_entregas %}
-                <div class="entregas">
-                    {% for pedido in proximas_entregas %}
-                        <div class="entrega">
-                            <div
-                                class="entrega-fecha {% if pedido.fecha_entrega < hoy %}atrasada{% endif %}"
-                            >
-                                {% if pedido.fecha_entrega == hoy %}
-                                    HOY
-                                {% elif pedido.fecha_entrega < hoy %}
-                                    ATRASADO
-                                {% else %}
-                                    {{ pedido.fecha_entrega|date:"d/m" }}
-                                {% endif %}
-                            </div>
+            <div class="entregas">
+                {% for pedido in proximas_entregas %}
+                <div class="entrega">
+                    <div
+                            class="entrega-fecha {% if pedido.fecha_entrega < hoy %}atrasada{% endif %}"
+                    >
+                        {% if pedido.fecha_entrega == hoy %}
+                        HOY
+                        {% elif pedido.fecha_entrega < hoy %}
+                        ATRASADO
+                        {% else %}
+                        {{ pedido.fecha_entrega|date:"d/m" }}
+                        {% endif %}
+                    </div>
 
-                            <div class="entrega-cliente">
-                                <strong>{{ pedido.cliente.nombre }}</strong>
-                                <span>{{ pedido.codigo }}</span>
-                            </div>
+                    <div class="entrega-cliente">
+                        <strong>{{ pedido.cliente.nombre }}</strong>
+                        <span>{{ pedido.codigo }}</span>
+                    </div>
 
-                            <span class="badge badge-{{ pedido.estado }}">
+                    <span class="badge badge-{{ pedido.estado }}">
                                 {{ pedido.get_estado_display|upper }}
                             </span>
-                        </div>
-                    {% endfor %}
                 </div>
+                {% endfor %}
+            </div>
             {% else %}
-                <div class="sin-datos">
-                    No hay entregas programadas para los próximos 7 días.
-                </div>
+            <div class="sin-datos">
+                No hay entregas programadas para los próximos 7 días.
+            </div>
             {% endif %}
         </div>
     </section>
@@ -1038,44 +1045,44 @@
 <!-- NAVEGACIÓN TÁCTIL FIJA -->
 
 <nav
-    class="nav-inferior"
-    aria-label="Navegación principal"
+        class="nav-inferior"
+        aria-label="Navegación principal"
 >
     <a
-        href="{% url 'dashboard:inicio' %}"
-        class="nav-item activo"
+            href="{% url 'dashboard:inicio' %}"
+            class="nav-item activo"
     >
         <span>⌂</span>
         <span>INICIO</span>
     </a>
 
     <a
-        href="{% url 'pedidos:impresiones' %}"
-        class="nav-item"
+            href="{% url 'pedidos:impresiones' %}"
+            class="nav-item"
     >
         <span>📦</span>
         <span>PEDIDOS</span>
     </a>
 
     <a
-        href="{% url 'pedidos:nuevo' %}"
-        class="nav-item nuevo-nav"
+            href="{% url 'pedidos:nuevo' %}"
+            class="nav-item nuevo-nav"
     >
         <span>＋</span>
         <span>NUEVO</span>
     </a>
 
     <a
-        href="{% url 'produccion:lista' %}"
-        class="nav-item"
+            href="{% url 'produccion:lista' %}"
+            class="nav-item"
     >
         <span>⚙</span>
         <span>PRODUCCIÓN</span>
     </a>
 
     <a
-        href="{% url 'productos:lista' %}"
-        class="nav-item"
+            href="{% url 'productos:lista' %}"
+            class="nav-item"
     >
         <span>▦</span>
         <span>PRODUCTOS</span>

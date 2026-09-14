@@ -31,5 +31,5 @@ urlpatterns = [
         "clientes/",
         include("clientes.urls")
     ),
-
+    path("calculadora/", include("calculadora.urls")),
 ]

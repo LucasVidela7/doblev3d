@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "stock",
     "produccion",
     "dashboard",
+    "calculadora",
 ]
 
 MIDDLEWARE = [
