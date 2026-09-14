@@ -39,6 +39,12 @@ urlpatterns = [
     ),
 
     path(
+        "finanzas/caja/actualizar/",
+        views.actualizar_saldo_caja,
+        name="actualizar_saldo_caja",
+    ),
+
+    path(
         "gastos/nuevo/",
         views.registrar_gasto,
         name="registrar_gasto",

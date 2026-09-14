@@ -473,7 +473,117 @@
                 text-align:left;
             }
         }
-    </style>
+    
+        .caja-panel{
+            display:grid;
+            grid-template-columns:1.25fr .75fr;
+            gap:12px;
+            margin-bottom:16px;
+        }
+
+        .caja-principal{
+            padding:17px;
+            border:1px solid var(--borde);
+            border-radius:18px;
+            background:linear-gradient(135deg,#ffffff,#f5fbff);
+            box-shadow:var(--sombra);
+        }
+
+        .caja-saldo{
+            margin-top:7px;
+            font-size:32px;
+            font-weight:900;
+            line-height:1;
+        }
+
+        .caja-desglose{
+            display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:8px;
+            margin-top:14px;
+        }
+
+        .caja-mini{
+            padding:10px;
+            border-radius:12px;
+            background:#f6f8fa;
+        }
+
+        .caja-mini span{
+            display:block;
+            color:var(--muted);
+            font-size:8px;
+            font-weight:900;
+        }
+
+        .caja-mini strong{
+            display:block;
+            margin-top:4px;
+            font-size:13px;
+        }
+
+        .estado-caja{
+            display:inline-flex;
+            margin-top:10px;
+            padding:6px 9px;
+            border-radius:999px;
+            font-size:8px;
+            font-weight:900;
+        }
+
+        .estado-caja.OK{
+            background:var(--verde-bg);
+            color:var(--verde);
+        }
+
+        .estado-caja.AJUSTADA{
+            background:var(--amarillo-bg);
+            color:var(--amarillo);
+        }
+
+        .estado-caja.URGENTE{
+            background:var(--rojo-bg);
+            color:var(--rojo);
+        }
+
+        .estado-caja.SIN_CORTE{
+            background:var(--azul-bg);
+            color:var(--azul);
+        }
+
+        .caja-form{
+            padding:17px;
+            border:1px solid var(--borde);
+            border-radius:18px;
+            background:white;
+            box-shadow:var(--sombra);
+        }
+
+        .caja-form .boton{
+            width:100%;
+            margin-top:10px;
+        }
+
+        .caja-accion{
+            margin-top:12px;
+            padding:11px 12px;
+            border-radius:12px;
+            background:#f7f8fa;
+            color:#565d66;
+            font-size:10px;
+            line-height:1.45;
+        }
+
+        @media(max-width:800px){
+            .caja-panel{
+                grid-template-columns:1fr;
+            }
+            .caja-desglose{
+                grid-template-columns:1fr;
+            }
+        }
+
+</style>
 </head>
 
 <body>
@@ -534,6 +644,143 @@
             VER PERÍODO
         </button>
     </form>
+
+
+    <!-- CAJA MERCADO PAGO -->
+    <section class="seccion">
+        <div class="seccion-cabecera">
+            <div>
+                <h2>Caja Mercado Pago</h2>
+                <div class="seccion-ayuda">
+                    Tomamos el saldo real como punto cero y desde ahí seguimos los movimientos del sistema.
+                </div>
+            </div>
+        </div>
+
+        <div class="caja-panel">
+            <div class="caja-principal">
+                <div class="metrica-etiqueta">
+                    SALDO ESTIMADO ACTUAL
+                </div>
+
+                {% if caja.requiere_corte %}
+                    <div class="caja-saldo azul">
+                        —
+                    </div>
+                {% else %}
+                    <div class="caja-saldo {% if saldo_caja >= 0 %}positivo{% else %}negativo{% endif %}">
+                        $ {{ saldo_caja|floatformat:"0g" }}
+                    </div>
+                {% endif %}
+
+                <span class="estado-caja {{ estado_caja }}">
+                    {% if estado_caja == "OK" %}
+                        CAJA CUBIERTA
+                    {% elif estado_caja == "AJUSTADA" %}
+                        CAJA AJUSTADA
+                    {% elif estado_caja == "URGENTE" %}
+                        ATENCIÓN DE CAJA
+                    {% else %}
+                        FALTA SALDO INICIAL
+                    {% endif %}
+                </span>
+
+                {% if caja.corte %}
+                    <div class="subtitulo">
+                        Última conciliación:
+                        {{ caja.corte.fecha|date:"d/m/Y H:i" }}
+                        · saldo real $ {{ caja.saldo_base|floatformat:"0g" }}
+                    </div>
+                {% endif %}
+
+                <div class="caja-desglose">
+                    <div class="caja-mini">
+                        <span>INGRESOS DESDE EL CORTE</span>
+                        <strong class="positivo">
+                            + $ {{ caja.ingresos_desde_corte|floatformat:"0g" }}
+                        </strong>
+                    </div>
+
+                    <div class="caja-mini">
+                        <span>EGRESOS DESDE EL CORTE</span>
+                        <strong class="negativo">
+                            - $ {{ caja.egresos_desde_corte|floatformat:"0g" }}
+                        </strong>
+                    </div>
+
+                    <div class="caja-mini">
+                        <span>DISPONIBLE LUEGO DE RESERVAR 30 DÍAS</span>
+                        <strong>
+                            $ {{ disponible_operativo|floatformat:"0g" }}
+                        </strong>
+                    </div>
+                </div>
+
+                <div class="caja-accion">
+                    <strong>Gestión sugerida:</strong>
+                    {{ accion_caja }}
+                    <br><br>
+                    Compromisos próximos:
+                    <strong>
+                        7 días $ {{ compromiso_7|floatformat:"0g" }}
+                    </strong>
+                    ·
+                    <strong>
+                        30 días $ {{ reserva_30|floatformat:"0g" }}
+                    </strong>
+                </div>
+            </div>
+
+            <div class="caja-form">
+                <h3>Actualizar saldo real</h3>
+                <div class="subtitulo">
+                    Ingresá exactamente el saldo que ves ahora en Mercado Pago.
+                    Este valor se convierte en el nuevo punto de conciliación.
+                </div>
+
+                <form
+                    method="post"
+                    action="{% url 'pedidos:actualizar_saldo_caja' %}"
+                >
+                    {% csrf_token %}
+
+                    <input
+                        type="hidden"
+                        name="periodo"
+                        value="{{ periodo }}"
+                    >
+
+                    <div class="campo" style="margin-top:12px">
+                        <label>SALDO ACTUAL MERCADO PAGO</label>
+                        <input
+                            type="number"
+                            name="saldo_real"
+                            min="0"
+                            step="0.01"
+                            placeholder="0"
+                            required
+                        >
+                    </div>
+
+                    <div class="campo" style="margin-top:10px">
+                        <label>NOTA</label>
+                        <input
+                            type="text"
+                            name="observaciones"
+                            placeholder="Ej: conciliación de hoy"
+                        >
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="boton boton-principal"
+                    >
+                        ACTUALIZAR CAJA
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
 
 
     <!-- RESULTADO DEL NEGOCIO -->
@@ -1218,7 +1465,10 @@
             <strong>Cómo leer esta pantalla:</strong>
             el resultado operativo reconoce el gasto completo en el mes de la compra,
             aunque haya sido financiado. El movimiento de caja, en cambio, descuenta
-            solamente las cuotas que marcaste como pagadas. Una impresora se registra
+            solamente las cuotas que marcaste como pagadas. La Caja Mercado Pago toma
+            como punto cero la última conciliación manual y luego proyecta ingresos y
+            egresos registrados en el sistema. Podés volver a conciliarla cuando quieras.
+            Una impresora se registra
             como inversión, no como gasto operativo. La “recuperación de inversión”
             es una herramienta gerencial basada en el resultado operativo acumulado;
             no reemplaza contabilidad fiscal ni depreciación contable.

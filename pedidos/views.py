@@ -19,7 +19,7 @@ from calculadora.precios import (
 
 from collections import defaultdict
 from calendar import monthrange
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
 
 from .models import (
     Pedido,
@@ -29,6 +29,7 @@ from .models import (
     Pago,
     Gasto,
     CuotaGasto,
+    CajaCorte,
 )
 
 
@@ -2518,9 +2519,20 @@ def _crear_cuotas_gasto(gasto):
                 monto=monto,
                 pagada=False,
                 fecha_pago=None,
+                pagada_en=None,
             )
 
     else:
+        if gasto.fecha_compra == timezone.localdate():
+            pagada_en = timezone.now()
+        else:
+            pagada_en = timezone.make_aware(
+                datetime.combine(
+                    gasto.fecha_compra,
+                    time.min,
+                )
+            )
+
         CuotaGasto.objects.create(
             gasto=gasto,
             numero=1,
@@ -2528,6 +2540,7 @@ def _crear_cuotas_gasto(gasto):
             monto=total,
             pagada=True,
             fecha_pago=gasto.fecha_compra,
+            pagada_en=pagada_en,
         )
 
 
@@ -2763,11 +2776,17 @@ def cambiar_estado_cuota(
         if pagada
         else None
     )
+    cuota.pagada_en = (
+        timezone.now()
+        if pagada
+        else None
+    )
 
     cuota.save(
         update_fields=[
             "pagada",
             "fecha_pago",
+            "pagada_en",
         ]
     )
 
@@ -2816,6 +2835,161 @@ def eliminar_gasto(
     return redirect(
         f"{redirect('pedidos:finanzas').url}?periodo={periodo}"
     )
+
+
+
+@transaction.atomic
+def actualizar_saldo_caja(request):
+    """
+    Guarda un nuevo punto cero para la caja de Mercado Pago.
+
+    El usuario carga el saldo REAL que ve en Mercado Pago.
+    Desde este momento se suman cobros y se restan egresos
+    registrados posteriormente.
+    """
+    if request.method != "POST":
+        return redirect(
+            "pedidos:finanzas"
+        )
+
+    saldo_texto = (
+        request.POST.get(
+            "saldo_real",
+            "",
+        )
+        .strip()
+        .replace(",", ".")
+    )
+
+    observaciones = request.POST.get(
+        "observaciones",
+        "",
+    ).strip()
+
+    try:
+        saldo_real = Decimal(
+            saldo_texto
+        ).quantize(
+            Decimal("0.01")
+        )
+    except (
+        InvalidOperation,
+        TypeError,
+        ValueError,
+    ):
+        messages.error(
+            request,
+            "El saldo de Mercado Pago no es válido."
+        )
+        return redirect(
+            "pedidos:finanzas"
+        )
+
+    if saldo_real < 0:
+        messages.error(
+            request,
+            "El saldo no puede ser negativo."
+        )
+        return redirect(
+            "pedidos:finanzas"
+        )
+
+    CajaCorte.objects.create(
+        saldo_real=saldo_real,
+        observaciones=observaciones,
+    )
+
+    messages.success(
+        request,
+        (
+            "Saldo real de Mercado Pago actualizado. "
+            "Este valor queda como nuevo punto de conciliación."
+        )
+    )
+
+    periodo = request.POST.get(
+        "periodo",
+        timezone.localdate().strftime(
+            "%Y-%m"
+        ),
+    )
+
+    return redirect(
+        f"{redirect('pedidos:finanzas').url}?periodo={periodo}"
+    )
+
+
+def _resumen_caja_mercadopago(hoy):
+    """
+    Calcula la caja operativa desde el último corte manual.
+
+    saldo_estimado =
+        saldo_real_del_corte
+        + cobros registrados después
+        - egresos registrados después
+
+    Como el usuario indicó que hoy maneja la operatoria por
+    Mercado Pago, esta primera versión considera todos los
+    cobros y egresos registrados como movimientos de esa caja.
+    """
+    corte = (
+        CajaCorte.objects
+        .order_by(
+            "-fecha",
+            "-id",
+        )
+        .first()
+    )
+
+    if not corte:
+        return {
+            "corte": None,
+            "saldo_base": Decimal("0"),
+            "ingresos_desde_corte": Decimal("0"),
+            "egresos_desde_corte": Decimal("0"),
+            "saldo_estimado": Decimal("0"),
+            "requiere_corte": True,
+        }
+
+    ingresos = (
+        Pago.objects
+        .filter(
+            fecha__gt=corte.fecha,
+        )
+        .aggregate(
+            total=Sum("monto")
+        )
+        .get("total")
+        or Decimal("0")
+    )
+
+    egresos = (
+        CuotaGasto.objects
+        .filter(
+            pagada=True,
+            pagada_en__gt=corte.fecha,
+        )
+        .aggregate(
+            total=Sum("monto")
+        )
+        .get("total")
+        or Decimal("0")
+    )
+
+    saldo_estimado = (
+        corte.saldo_real
+        + ingresos
+        - egresos
+    )
+
+    return {
+        "corte": corte,
+        "saldo_base": corte.saldo_real,
+        "ingresos_desde_corte": ingresos,
+        "egresos_desde_corte": egresos,
+        "saldo_estimado": saldo_estimado,
+        "requiere_corte": False,
+    }
 
 
 def _rentabilidad_acumulada():
@@ -3212,6 +3386,70 @@ def finanzas(request):
             / margen_operativo_periodo
         )
 
+    # ------------------------------------------------------
+    # CAJA REAL / MERCADO PAGO
+    # ------------------------------------------------------
+    caja = _resumen_caja_mercadopago(
+        hoy
+    )
+
+    saldo_caja = caja[
+        "saldo_estimado"
+    ]
+
+    compromiso_7 = (
+        CuotaGasto.objects
+        .filter(
+            pagada=False,
+            fecha_vencimiento__gte=hoy,
+            fecha_vencimiento__lte=(
+                hoy + timedelta(days=7)
+            ),
+        )
+        .aggregate(
+            total=Sum("monto")
+        )
+        .get("total")
+        or Decimal("0")
+    )
+
+    reserva_30 = compromiso_30
+
+    disponible_operativo = max(
+        saldo_caja - reserva_30,
+        Decimal("0"),
+    )
+
+    if caja["requiere_corte"]:
+        estado_caja = "SIN_CORTE"
+        accion_caja = (
+            "Cargá el saldo que ves ahora mismo en Mercado Pago "
+            "para empezar a gestionar la caja desde un punto real."
+        )
+
+    elif saldo_caja < compromiso_7:
+        estado_caja = "URGENTE"
+        accion_caja = (
+            "La caja estimada no alcanza para cubrir los compromisos "
+            "de los próximos 7 días. Priorizá cobros y evitá nuevas "
+            "salidas no esenciales."
+        )
+
+    elif saldo_caja < reserva_30:
+        estado_caja = "AJUSTADA"
+        accion_caja = (
+            "La caja cubre lo inmediato, pero no todos los compromisos "
+            "de 30 días. Reservá los próximos cobros para cuotas y gastos."
+        )
+
+    else:
+        estado_caja = "OK"
+        accion_caja = (
+            "La caja estimada cubre los compromisos de los próximos "
+            "30 días. El excedente puede quedar disponible para operación "
+            "o recuperación de inversión."
+        )
+
     if inversion_pendiente <= 0 and inversion_total > 0:
         estado_plan = "RECUPERADA"
         accion_principal = (
@@ -3299,6 +3537,21 @@ def finanzas(request):
                 estado_plan,
             "accion_principal":
                 accion_principal,
+
+            "caja":
+                caja,
+            "saldo_caja":
+                saldo_caja,
+            "compromiso_7":
+                compromiso_7,
+            "reserva_30":
+                reserva_30,
+            "disponible_operativo":
+                disponible_operativo,
+            "estado_caja":
+                estado_caja,
+            "accion_caja":
+                accion_caja,
 
             "tipos_gasto":
                 Gasto.TIPOS,

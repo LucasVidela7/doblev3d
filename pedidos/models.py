@@ -470,6 +470,13 @@ class CuotaGasto(models.Model):
         blank=True,
     )
 
+    # Momento real en que la salida de dinero se registró.
+    # Se usa para calcular la caja desde el último corte.
+    pagada_en = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
     class Meta:
         ordering = [
             "fecha_vencimiento",
@@ -491,3 +498,44 @@ class CuotaGasto(models.Model):
             f"{self.numero}/{self.gasto.cantidad_cuotas}"
         )
 
+
+
+# ============================================================
+# CAJA / MERCADO PAGO
+# ============================================================
+
+class CajaCorte(models.Model):
+    """
+    Punto de conciliación de caja.
+
+    El saldo ingresado por el usuario se toma como saldo REAL
+    de Mercado Pago en ese momento. Desde este corte, la app
+    proyecta la caja con los cobros y egresos registrados.
+    """
+
+    fecha = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    saldo_real = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+    )
+
+    observaciones = models.CharField(
+        max_length=250,
+        blank=True,
+    )
+
+    class Meta:
+        ordering = [
+            "-fecha",
+            "-id",
+        ]
+
+    def __str__(self):
+        return (
+            f"Mercado Pago - "
+            f"${self.saldo_real} - "
+            f"{self.fecha:%d/%m/%Y %H:%M}"
+        )
