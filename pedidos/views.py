@@ -555,11 +555,29 @@ def nuevo_pedido(request):
                     activo=True,
                 )
 
+                precio_unitario = producto.subtotal
+
+                if precio_unitario is None or precio_unitario <= 0:
+                    messages.error(
+                        request,
+                        (
+                            f"El producto {producto.nombre} no tiene "
+                            "un precio de venta válido."
+                        )
+                    )
+
+                    transaction.set_rollback(True)
+
+                    return redirect(
+                        "pedidos:nuevo"
+                    )
+
                 DetallePedido.objects.create(
                     pedido=pedido,
                     tipo_item="PRODUCTO",
                     producto=producto,
                     cantidad=cantidad,
+                    precio_unitario=precio_unitario,
                     estado="PENDIENTE",
                 )
 
@@ -615,11 +633,27 @@ def nuevo_pedido(request):
                         "pedidos:nuevo"
                     )
 
+                if kit.precio is None or kit.precio <= 0:
+                    messages.error(
+                        request,
+                        (
+                            f"El kit {kit.nombre} no tiene "
+                            "un precio de venta válido."
+                        )
+                    )
+
+                    transaction.set_rollback(True)
+
+                    return redirect(
+                        "pedidos:nuevo"
+                    )
+
                 detalle = DetallePedido.objects.create(
                     pedido=pedido,
                     tipo_item="KIT",
                     kit=kit,
                     cantidad=cantidad,
+                    precio_unitario=kit.precio,
                     estado="PENDIENTE",
                 )
 
@@ -2306,3 +2340,4 @@ def eliminar_pedido(request, pedido_id):
     return redirect(
         "pedidos:impresiones"
     )
+    
