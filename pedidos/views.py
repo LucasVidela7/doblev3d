@@ -48,14 +48,13 @@ def impresiones_por_pedido(request):
 
     # Stock físico actual.
     #
-    # Se reserva virtualmente siguiendo
-    # fecha de entrega + ID para impedir que una
-    # misma unidad se asigne a dos pedidos.
+    # IMPORTANTE:
+    # El stock NO se reserva para los primeros pedidos de la lista.
+    # Todos los pedidos pendientes pueden usar el stock disponible
+    # en ese momento. El stock se descuenta recién cuando el usuario
+    # marca un producto como LISTO.
     #
-    # Los PERSONALIZADOS no consumen stock general:
-    # fueron fabricados específicamente para su pedido.
-    stock_disponible = {}
-
+    # Los PERSONALIZADOS no consumen stock general.
     for pedido in pedidos:
 
         productos = defaultdict(
@@ -238,16 +237,21 @@ def impresiones_por_pedido(request):
             # ==================================================
             # PRODUCTO TODAVÍA PENDIENTE
             # ==================================================
+            #
+            # No se reserva stock según la posición del pedido.
+            # Cada fila consulta el stock físico ACTUAL.
+            #
+            # Ejemplo:
+            # - stock = 6
+            # - 13 pedidos necesitan 1 unidad
+            #
+            # Los 13 pueden marcarse mientras haya stock.
+            # Cada vez que uno se marca LISTO se descuenta 1.
+            # Cuando el stock llega a 0, recién entonces los
+            # restantes quedan bloqueados por stock insuficiente.
+            # ==================================================
 
-            if producto.id not in stock_disponible:
-
-                stock_disponible[
-                    producto.id
-                ] = producto.stock
-
-            disponible = stock_disponible[
-                producto.id
-            ]
+            disponible = producto.stock
 
             stock_usado = min(
                 cantidad,
@@ -255,25 +259,15 @@ def impresiones_por_pedido(request):
             )
 
             a_imprimir = max(
-                cantidad - stock_usado,
+                cantidad - disponible,
                 0,
             )
 
             item["stock_usado"] = stock_usado
             item["a_imprimir"] = a_imprimir
 
-            # Para productos normales sólo se permite marcar
-            # LISTO cuando todo el pedido puede cubrirse
-            # con stock general.
             item["puede_marcar_listo"] = (
-                stock_usado >= cantidad
-            )
-
-            # Reservar virtualmente para pedidos posteriores.
-            stock_disponible[
-                producto.id
-            ] = (
-                disponible - stock_usado
+                disponible >= cantidad
             )
 
             lista_productos.append(item)
@@ -860,53 +854,14 @@ def _cantidad_producto_en_pedido(pedido, producto_id):
 
 def _stock_disponible_para_pedido(pedido, producto):
     """
-    Calcula el stock que realmente le corresponde a este pedido,
-    respetando la prioridad fecha_entrega + id.
+    Devuelve el stock físico disponible en este momento.
 
-    Los pedidos anteriores pendientes reservan stock virtualmente.
-    Los productos ya marcados LISTO no vuelven a reservar porque su
-    stock ya fue descontado físicamente de Producto.stock.
+    Ya no se reserva stock según fecha de entrega ni posición
+    del pedido en la lista. El stock se consume únicamente
+    cuando un producto se marca como LISTO.
     """
-    stock_virtual = producto.stock
+    return producto.stock
 
-    pedidos_activos = (
-        Pedido.objects
-        .exclude(estado__in=["ENTREGADO", "CANCELADO"])
-        .prefetch_related(
-            "detalles__producto",
-            "detalles__kit",
-            "detalles__productos_kit__producto",
-        )
-        .order_by("fecha_entrega", "id")
-    )
-
-    for pedido_actual in pedidos_activos:
-        if pedido_actual.id == pedido.id:
-            return stock_virtual
-
-        estado_anterior = (
-            EstadoImpresionPedido.objects
-            .filter(
-                pedido=pedido_actual,
-                producto=producto,
-                listo=True,
-            )
-            .first()
-        )
-
-        if estado_anterior:
-            # Ese stock ya fue descontado físicamente.
-            continue
-
-        cantidad_anterior = _cantidad_producto_en_pedido(
-            pedido_actual,
-            producto.id,
-        )
-
-        reservado = min(cantidad_anterior, stock_virtual)
-        stock_virtual -= reservado
-
-    return 0
 
 
 def _actualizar_estado_general_pedido(pedido):
@@ -1161,8 +1116,7 @@ def cambiar_listo_impresion(request):
                 (
                     f"No hay stock suficiente de {producto.nombre}. "
                     f"Este pedido necesita {cantidad_necesaria} y "
-                    f"solo tiene {stock_disponible} disponible "
-                    "según prioridad."
+                    f"solo hay {stock_disponible} disponible."
                 ),
             )
 
@@ -2340,4 +2294,3 @@ def eliminar_pedido(request, pedido_id):
     return redirect(
         "pedidos:impresiones"
     )
-    
