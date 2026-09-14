@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Editar {{ pedido.codigo }} | Doble V 3D</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f5f7;color:#24272b;font-family:Arial,sans-serif;padding-bottom:95px}
+.contenedor{width:min(1000px,100%);margin:auto;padding:20px 14px 35px}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+h1{margin:0;font-size:28px}.sub{color:#73777f;font-size:13px;margin-top:4px}
+.acciones{display:flex;gap:8px}.navbtn{min-height:48px;padding:0 16px;border:1px solid #e2e4e8;border-radius:13px;background:#fff;color:#333;text-decoration:none;font-weight:800;display:flex;align-items:center}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:20px;padding:16px;margin-bottom:13px;box-shadow:0 4px 18px rgba(20,25,35,.06)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.full{grid-column:1/-1}
+label{display:block;font-size:10px;font-weight:900;color:#70747b;margin:0 0 6px}
+input,select,textarea{width:100%;min-height:50px;border:1px solid #d5d8dd;border-radius:12px;padding:10px 12px;background:#fff;font-size:14px}
+textarea{min-height:85px;resize:vertical}
+.item{position:relative}.item-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.item-title{font-weight:900}
+.eliminar{border:0;background:#fde8e8;color:#9b3131;border-radius:10px;min-height:42px;padding:0 12px;font-weight:800}
+.oculto{display:none!important}.kit-box,.personal-box{grid-column:1/-1;padding:12px;border-radius:14px;background:#f7f8fa;border:1px solid #e8eaed}
+.componentes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.agregar{width:100%;min-height:52px;border:2px dashed #b9bec6;border-radius:15px;background:#fff;font-weight:900;margin:4px 0 90px}
+.guardar{position:fixed;z-index:30;bottom:84px;left:50%;transform:translateX(-50%);width:min(620px,calc(100% - 24px));min-height:56px;border:0;border-radius:16px;background:#24272b;color:#fff;font-weight:900;box-shadow:0 8px 28px rgba(0,0,0,.2)}
+.nav{position:fixed;z-index:25;bottom:8px;left:50%;transform:translateX(-50%);width:min(720px,calc(100% - 16px));display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:#25282d;padding:7px;border-radius:19px}
+.nav a{min-height:57px;color:#ddd;text-decoration:none;font-size:9px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:13px}.nav b{font-size:18px}.nav .activo{background:#fff;color:#25282d}
+@media(max-width:650px){.header{align-items:flex-start;flex-direction:column}.acciones{width:100%}.navbtn{flex:1;justify-content:center}.grid,.componentes{grid-template-columns:1fr}.full{grid-column:auto}}
+</style>
+</head>
+<body>
+<div class="contenedor">
+    <div class="header">
+        <div><h1>Editar {{ pedido.codigo }}</h1><div class="sub">{{ pedido.cliente.nombre }}</div></div>
+        <div class="acciones"><a href="{% url 'pedidos:impresiones' %}" class="navbtn">← VOLVER</a><a href="{% url 'dashboard:inicio' %}" class="navbtn">INICIO</a></div>
+    </div>
+
+    {% if messages %}{% for message in messages %}<div class="card">{{ message }}</div>{% endfor %}{% endif %}
+
+    <form method="post" id="formPedido">
+        {% csrf_token %}
+        <div class="card grid">
+            <div><label>CLIENTE</label><select name="cliente" required>
+                {% for cliente in clientes %}
+                <option value="{{ cliente.id }}" {% if cliente.id == pedido.cliente_id %}selected{% endif %}>{{ cliente.nombre }}</option>
+                {% endfor %}
+            </select></div>
+            <div><label>FECHA DE ENTREGA</label><input type="date" name="fecha_entrega" value="{{ pedido.fecha_entrega|date:'Y-m-d' }}"></div>
+            <div class="full"><label>OBSERVACIONES</label><textarea name="observaciones">{{ pedido.observaciones }}</textarea></div>
+        </div>
+
+        <div id="items"></div>
+        <button type="button" class="agregar" onclick="agregarItem()">＋ AGREGAR ITEM</button>
+        <button type="submit" class="guardar">GUARDAR CAMBIOS</button>
+    </form>
+</div>
+
+<nav class="nav">
+<a href="{% url 'dashboard:inicio' %}"><b>⌂</b>INICIO</a>
+<a href="{% url 'pedidos:impresiones' %}" class="activo"><b>📦</b>PEDIDOS</a>
+<a href="{% url 'pedidos:nuevo' %}"><b>＋</b>NUEVO</a>
+<a href="{% url 'produccion:lista' %}"><b>⚙</b>PRODUCCIÓN</a>
+<a href="{% url 'productos:lista' %}"><b>▦</b>PRODUCTOS</a>
+</nav>
+
+{{ items_iniciales|json_script:"items-iniciales" }}
+<script>
+const productos = [
+{% for p in productos %}{id:{{p.id}},nombre:"{{p.nombre|escapejs}}",tipo:{{p.tipo_id|default:"null"}}},{% endfor %}
+];
+const kits = [
+{% for k in kits %}{id:{{k.id}},nombre:"{{k.nombre|escapejs}}"},{% endfor %}
+];
+let indice = 0;
+
+function opcionesProductos(sel=""){
+ return '<option value="">Seleccionar...</option>'+productos.map(p=>`<option value="${p.id}" ${String(p.id)===String(sel)?'selected':''}>${p.nombre}</option>`).join('');
+}
+function opcionesKits(sel=""){
+ return '<option value="">Seleccionar...</option>'+kits.map(k=>`<option value="${k.id}" ${String(k.id)===String(sel)?'selected':''}>${k.nombre}</option>`).join('');
+}
+function agregarItem(data=null){
+ const i=indice++;
+ const tipo=data?.tipo_item||"PRODUCTO";
+ const div=document.createElement("div"); div.className="card item"; div.dataset.i=i;
+ div.innerHTML=`
+ <input type="hidden" name="item_indice" value="${i}">
+ <input type="hidden" name="detalle_id_${i}" value="${data?.id||''}">
+ <div class="item-head"><span class="item-title">ITEM</span><button type="button" class="eliminar" onclick="this.closest('.item').remove()">QUITAR</button></div>
+ <div class="grid">
+  <div><label>TIPO</label><select name="tipo_item_${i}" onchange="cambiarTipo(${i})">
+   <option value="PRODUCTO" ${tipo==="PRODUCTO"?"selected":""}>Producto</option>
+   <option value="KIT" ${tipo==="KIT"?"selected":""}>Kit</option>
+   <option value="PERSONALIZADO" ${tipo==="PERSONALIZADO"?"selected":""}>Personalizado</option>
+  </select></div>
+  <div><label>CANTIDAD</label><input type="number" min="1" name="cantidad_${i}" value="${data?.cantidad||1}" required></div>
+  <div class="full bloque-producto"><label>PRODUCTO</label><select name="producto_${i}">${opcionesProductos(data?.producto_id)}</select></div>
+  <div class="full bloque-kit"><label>KIT</label><select name="kit_${i}" onchange="cargarKit(${i}, this.value)">${opcionesKits(data?.kit_id)}</select></div>
+  <div class="kit-box bloque-kit"><label>PRODUCTOS DEL KIT</label><div class="componentes" id="componentes_${i}"></div></div>
+  <div class="personal-box bloque-personal grid">
+   <div class="full"><label>PRODUCTO BASE</label><select name="producto_personalizado_${i}">${opcionesProductos(data?.producto_id)}</select></div>
+   <div><label>COLOR</label><input name="color_personalizacion_${i}" value="${data?.color_personalizacion||''}"></div>
+   <div><label>PRECIO TOTAL</label><input type="number" step="0.01" min="0.01" name="precio_total_personalizado_${i}" value="${data?.precio_total_personalizado||''}"></div>
+   <div class="full"><label>DETALLE</label><textarea name="detalle_personalizacion_${i}">${data?.detalle_personalizacion||''}</textarea></div>
+  </div>
+ </div>`;
+ document.getElementById("items").appendChild(div);
+ cambiarTipo(i);
+ if(tipo==="KIT" && data?.kit_id) cargarKit(i,data.kit_id,data.productos_kit_ids||[]);
+}
+function cambiarTipo(i){
+ const item=document.querySelector(`.item[data-i="${i}"]`);
+ const tipo=item.querySelector(`[name="tipo_item_${i}"]`).value;
+ item.querySelectorAll(".bloque-producto").forEach(e=>e.classList.toggle("oculto",tipo!=="PRODUCTO"));
+ item.querySelectorAll(".bloque-kit").forEach(e=>e.classList.toggle("oculto",tipo!=="KIT"));
+ item.querySelectorAll(".bloque-personal").forEach(e=>e.classList.toggle("oculto",tipo!=="PERSONALIZADO"));
+}
+async function cargarKit(i,kitId,seleccionados=[]){
+ const caja=document.getElementById(`componentes_${i}`); caja.innerHTML="";
+ if(!kitId)return;
+ const r=await fetch(`/pedidos/api/kit/${kitId}/productos/`);
+ const data=await r.json();
+ for(let n=0;n<data.kit.cantidad_productos;n++){
+  const s=document.createElement("select"); s.name=`productos_kit_${i}`; s.required=true;
+  s.innerHTML='<option value="">Seleccionar...</option>'+data.productos.map(p=>`<option value="${p.id}" ${String(p.id)===String(seleccionados[n])?'selected':''}>${p.nombre}</option>`).join('');
+  caja.appendChild(s);
+ }
+}
+document.addEventListener("DOMContentLoaded",()=>{
+ const iniciales=JSON.parse(document.getElementById("items-iniciales").textContent);
+ if(iniciales.length){iniciales.forEach(agregarItem)}else{agregarItem()}
+});
+</script>
+</body></html>

@@ -38,6 +38,13 @@ urlpatterns = [
         name="productos_kit",
     ),
 
+
+    path(
+        "<int:pedido_id>/editar/",
+        views.editar_pedido,
+        name="editar",
+    ),
+
     path(
         "<int:pedido_id>/entregar/",
         views.entregar_pedido,

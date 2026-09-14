@@ -1461,6 +1461,434 @@ def impresiones_por_producto(request):
     )
 
 
+
+# ==========================================================
+# EDITAR PEDIDO
+# ==========================================================
+
+def _restaurar_estado_impresion_para_edicion(pedido, producto_id):
+    """
+    Si el producto estaba marcado LISTO, devuelve al stock exactamente
+    lo que se había descontado y elimina su estado operativo anterior.
+    """
+    estado = (
+        EstadoImpresionPedido.objects
+        .select_for_update()
+        .filter(
+            pedido=pedido,
+            producto_id=producto_id,
+        )
+        .first()
+    )
+
+    if not estado:
+        return
+
+    if estado.stock_descontado and estado.cantidad_stock_descontada:
+        producto = (
+            Producto.objects
+            .select_for_update()
+            .get(id=producto_id)
+        )
+        producto.stock += estado.cantidad_stock_descontada
+        producto.save(update_fields=["stock"])
+
+    estado.delete()
+
+
+def _firmas_normales_del_pedido(pedido):
+    """
+    Firma por producto para PRODUCTO + componentes de KIT.
+    Permite detectar qué productos normales cambiaron realmente.
+    """
+    firmas = defaultdict(int)
+
+    for detalle in pedido.detalles.all():
+        if detalle.tipo_item == "PRODUCTO" and detalle.producto_id:
+            firmas[detalle.producto_id] += detalle.cantidad
+
+        elif detalle.tipo_item == "KIT":
+            for componente in detalle.productos_kit.all():
+                firmas[componente.producto_id] += componente.cantidad
+
+    return dict(firmas)
+
+
+@transaction.atomic
+def editar_pedido(request, pedido_id):
+    pedido = get_object_or_404(
+        Pedido.objects
+        .select_for_update()
+        .select_related("cliente"),
+        id=pedido_id,
+    )
+
+    if pedido.estado in ["ENTREGADO", "CANCELADO"]:
+        messages.error(
+            request,
+            "No se puede editar un pedido entregado o cancelado."
+        )
+        return redirect("pedidos:impresiones")
+
+    clientes = Cliente.objects.filter(activo=True).order_by("nombre")
+    productos = (
+        Producto.objects
+        .filter(activo=True)
+        .select_related("tipo")
+        .order_by("nombre")
+    )
+    kits = (
+        Kit.objects
+        .filter(activo=True)
+        .select_related("tipo_producto")
+        .order_by("nombre")
+    )
+
+    detalles_actuales = list(
+        pedido.detalles
+        .select_related("producto", "kit")
+        .prefetch_related("productos_kit__producto")
+        .all()
+    )
+
+    if request.method == "GET":
+        items_iniciales = []
+
+        for detalle in detalles_actuales:
+            item = {
+                "id": detalle.id,
+                "tipo_item": detalle.tipo_item,
+                "cantidad": detalle.cantidad,
+                "producto_id": detalle.producto_id,
+                "kit_id": detalle.kit_id,
+                "productos_kit_ids": [
+                    componente.producto_id
+                    for componente in detalle.productos_kit.all()
+                ],
+                "detalle_personalizacion":
+                    detalle.detalle_personalizacion,
+                "color_personalizacion":
+                    detalle.color_personalizacion,
+                "precio_total_personalizado":
+                    (
+                        str(detalle.precio_total_personalizado)
+                        if detalle.precio_total_personalizado is not None
+                        else ""
+                    ),
+            }
+            items_iniciales.append(item)
+
+        return render(
+            request,
+            "pedidos/editar_pedido.html",
+            {
+                "pedido": pedido,
+                "clientes": clientes,
+                "productos": productos,
+                "kits": kits,
+                "items_iniciales": items_iniciales,
+            },
+        )
+
+    # ------------------------------------------------------
+    # DATOS GENERALES
+    # ------------------------------------------------------
+    cliente_id = request.POST.get("cliente")
+    fecha_entrega = request.POST.get("fecha_entrega")
+    observaciones = request.POST.get("observaciones", "").strip()
+
+    cliente = get_object_or_404(
+        Cliente,
+        id=cliente_id,
+        activo=True,
+    )
+
+    indices = request.POST.getlist("item_indice")
+    if not indices:
+        messages.error(
+            request,
+            "El pedido debe tener al menos un producto, kit o personalizado."
+        )
+        transaction.set_rollback(True)
+        return redirect("pedidos:editar", pedido_id=pedido.id)
+
+    # Firma anterior de demanda normal.
+    pedido_prefetch = (
+        Pedido.objects
+        .prefetch_related(
+            "detalles__producto",
+            "detalles__kit",
+            "detalles__productos_kit__producto",
+        )
+        .get(id=pedido.id)
+    )
+    firma_anterior = _firmas_normales_del_pedido(pedido_prefetch)
+
+    # Personalizados LISTO se conservan solamente si el detalle existente
+    # queda exactamente igual.
+    personalizados_anteriores = {
+        detalle.id: {
+            "producto_id": detalle.producto_id,
+            "cantidad": detalle.cantidad,
+            "detalle": detalle.detalle_personalizacion,
+            "color": detalle.color_personalizacion,
+            "precio_total": detalle.precio_total_personalizado,
+            "estado": detalle.estado,
+        }
+        for detalle in detalles_actuales
+        if detalle.tipo_item == "PERSONALIZADO"
+    }
+
+    # Construimos primero los nuevos datos sin tocar la base.
+    nuevos_items = []
+
+    for indice in indices:
+        detalle_id_texto = request.POST.get(
+            f"detalle_id_{indice}", ""
+        ).strip()
+
+        try:
+            detalle_id = int(detalle_id_texto) if detalle_id_texto else None
+        except (TypeError, ValueError):
+            detalle_id = None
+
+        tipo_item = request.POST.get(f"tipo_item_{indice}")
+        cantidad_texto = request.POST.get(f"cantidad_{indice}", "1")
+
+        try:
+            cantidad = int(cantidad_texto)
+        except (TypeError, ValueError):
+            cantidad = 0
+
+        if cantidad <= 0:
+            messages.error(
+                request,
+                "Las cantidades deben ser mayores a cero."
+            )
+            transaction.set_rollback(True)
+            return redirect("pedidos:editar", pedido_id=pedido.id)
+
+        if tipo_item == "PRODUCTO":
+            producto = get_object_or_404(
+                Producto,
+                id=request.POST.get(f"producto_{indice}"),
+                activo=True,
+            )
+            nuevos_items.append({
+                "detalle_id": detalle_id,
+                "tipo_item": "PRODUCTO",
+                "cantidad": cantidad,
+                "producto": producto,
+            })
+
+        elif tipo_item == "KIT":
+            kit = get_object_or_404(
+                Kit,
+                id=request.POST.get(f"kit_{indice}"),
+                activo=True,
+            )
+            productos_kit_ids = request.POST.getlist(
+                f"productos_kit_{indice}"
+            )
+
+            if len(productos_kit_ids) != kit.cantidad_productos:
+                messages.error(
+                    request,
+                    f"El kit {kit.nombre} necesita "
+                    f"{kit.cantidad_productos} productos."
+                )
+                transaction.set_rollback(True)
+                return redirect("pedidos:editar", pedido_id=pedido.id)
+
+            componentes = defaultdict(int)
+            for producto_id in productos_kit_ids:
+                producto = get_object_or_404(
+                    Producto,
+                    id=producto_id,
+                    activo=True,
+                    tipo=kit.tipo_producto,
+                )
+                componentes[producto.id] += cantidad
+
+            nuevos_items.append({
+                "detalle_id": detalle_id,
+                "tipo_item": "KIT",
+                "cantidad": cantidad,
+                "kit": kit,
+                "componentes": dict(componentes),
+            })
+
+        elif tipo_item == "PERSONALIZADO":
+            producto = get_object_or_404(
+                Producto,
+                id=request.POST.get(
+                    f"producto_personalizado_{indice}"
+                ),
+                activo=True,
+            )
+            detalle_personalizacion = request.POST.get(
+                f"detalle_personalizacion_{indice}", ""
+            ).strip()
+            color = request.POST.get(
+                f"color_personalizacion_{indice}", ""
+            ).strip()
+            precio_texto = request.POST.get(
+                f"precio_total_personalizado_{indice}", ""
+            ).strip()
+
+            if not detalle_personalizacion:
+                messages.error(
+                    request,
+                    "Debés ingresar el detalle de la personalización."
+                )
+                transaction.set_rollback(True)
+                return redirect("pedidos:editar", pedido_id=pedido.id)
+
+            try:
+                precio_total = Decimal(precio_texto)
+            except (InvalidOperation, TypeError, ValueError):
+                precio_total = Decimal("0")
+
+            if precio_total <= 0:
+                messages.error(
+                    request,
+                    "El precio total del personalizado debe ser mayor a cero."
+                )
+                transaction.set_rollback(True)
+                return redirect("pedidos:editar", pedido_id=pedido.id)
+
+            nuevos_items.append({
+                "detalle_id": detalle_id,
+                "tipo_item": "PERSONALIZADO",
+                "cantidad": cantidad,
+                "producto": producto,
+                "detalle_personalizacion": detalle_personalizacion,
+                "color": color,
+                "precio_total": precio_total,
+            })
+
+        else:
+            messages.error(
+                request,
+                "Existe un item del pedido que no es válido."
+            )
+            transaction.set_rollback(True)
+            return redirect("pedidos:editar", pedido_id=pedido.id)
+
+    # Firma nueva de productos normales.
+    firma_nueva = defaultdict(int)
+    for item in nuevos_items:
+        if item["tipo_item"] == "PRODUCTO":
+            firma_nueva[item["producto"].id] += item["cantidad"]
+        elif item["tipo_item"] == "KIT":
+            for producto_id, cantidad in item["componentes"].items():
+                firma_nueva[producto_id] += cantidad
+
+    productos_afectados = {
+        producto_id
+        for producto_id in set(firma_anterior) | set(firma_nueva)
+        if firma_anterior.get(producto_id, 0)
+        != firma_nueva.get(producto_id, 0)
+    }
+
+    # Si cambió la demanda de un producto normal, restauramos su LISTO.
+    for producto_id in productos_afectados:
+        _restaurar_estado_impresion_para_edicion(
+            pedido,
+            producto_id,
+        )
+
+    # Guardar cabecera.
+    pedido.cliente = cliente
+    pedido.fecha_entrega = fecha_entrega if fecha_entrega else None
+    pedido.observaciones = observaciones
+    pedido.save(
+        update_fields=[
+            "cliente",
+            "fecha_entrega",
+            "observaciones",
+        ]
+    )
+
+    # Reemplazamos detalles, pero conservamos LISTO de personalizados
+    # únicamente cuando el mismo detalle sigue idéntico.
+    ids_nuevos_personalizados = set()
+
+    # Eliminamos todos los detalles y recreamos. Los estados normales viven
+    # aparte y sólo se resetearon para productos cuya demanda cambió.
+    pedido.detalles.all().delete()
+
+    for item in nuevos_items:
+        if item["tipo_item"] == "PRODUCTO":
+            DetallePedido.objects.create(
+                pedido=pedido,
+                tipo_item="PRODUCTO",
+                producto=item["producto"],
+                cantidad=item["cantidad"],
+                estado="PENDIENTE",
+            )
+
+        elif item["tipo_item"] == "KIT":
+            detalle = DetallePedido.objects.create(
+                pedido=pedido,
+                tipo_item="KIT",
+                kit=item["kit"],
+                cantidad=item["cantidad"],
+                estado="PENDIENTE",
+            )
+            for producto_id, cantidad in item["componentes"].items():
+                DetalleKitProducto.objects.create(
+                    detalle=detalle,
+                    producto_id=producto_id,
+                    cantidad=cantidad,
+                )
+
+        else:
+            anterior = personalizados_anteriores.get(
+                item["detalle_id"]
+            )
+            conservar_listo = bool(
+                anterior
+                and anterior["estado"] == "LISTO"
+                and anterior["producto_id"] == item["producto"].id
+                and anterior["cantidad"] == item["cantidad"]
+                and anterior["detalle"] == item["detalle_personalizacion"]
+                and anterior["color"] == item["color"]
+                and anterior["precio_total"] == item["precio_total"]
+            )
+
+            precio_unitario = (
+                item["precio_total"] / Decimal(item["cantidad"])
+            ).quantize(Decimal("0.01"))
+
+            DetallePedido.objects.create(
+                pedido=pedido,
+                tipo_item="PERSONALIZADO",
+                producto=item["producto"],
+                cantidad=item["cantidad"],
+                precio_unitario=precio_unitario,
+                precio_total_personalizado=item["precio_total"],
+                estado="LISTO" if conservar_listo else "PENDIENTE",
+                personalizado=True,
+                detalle_personalizacion=item["detalle_personalizacion"],
+                color_personalizacion=item["color"],
+            )
+
+    # Eliminar estados normales que ya no corresponden a demanda actual.
+    EstadoImpresionPedido.objects.filter(
+        pedido=pedido
+    ).exclude(
+        producto_id__in=list(firma_nueva.keys())
+    ).delete()
+
+    _actualizar_estado_general_pedido(pedido)
+
+    messages.success(
+        request,
+        f"{pedido.codigo} actualizado correctamente."
+    )
+    return redirect("pedidos:impresiones")
+
 # ==========================================================
 # ENTREGAR PEDIDO
 # ==========================================================

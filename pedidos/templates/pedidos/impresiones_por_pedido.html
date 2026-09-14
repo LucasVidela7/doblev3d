@@ -122,7 +122,7 @@
 
         .pedido {
             margin-bottom: 15px;
-            overflow: hidden;
+            overflow: visible;
             border: 1px solid var(--borde);
             border-radius: 20px;
             background: var(--tarjeta);
@@ -138,6 +138,9 @@
             padding: 16px 18px;
             background: #fbfbfc;
             border-bottom: 1px solid var(--borde);
+            border-radius: 20px 20px 0 0;
+            position: relative;
+            z-index: 5;
         }
 
         .pedido-info-principal {
@@ -192,16 +195,6 @@
         .estado-ENTREGADO { background: var(--azul); color: var(--azul-texto); }
         .estado-CANCELADO { background: var(--rojo); color: var(--rojo-texto); }
 
-        .btn-plegar {
-            width: 44px;
-            height: 44px;
-            border: 1px solid var(--borde);
-            border-radius: 13px;
-            background: white;
-            color: var(--texto);
-            font-size: 21px;
-            cursor: pointer;
-        }
 
         .pedido-plegado .pedido-contenido {
             display: none;
@@ -209,6 +202,16 @@
 
         .pedido-plegado .pedido-cabecera {
             border-bottom: none;
+        }
+
+
+        .pedido > .tabla-contenedor:last-child {
+            border-radius: 0 0 20px 20px;
+            overflow: hidden;
+        }
+
+        .pedido-acciones {
+            border-radius: 0 0 20px 20px;
         }
 
         /* PRODUCTOS: TARJETA VISUAL AUNQUE SIGUE SIENDO TABLE */
@@ -630,11 +633,34 @@
             }
 
             .boton-volver:hover,
-            .btn-plegar:hover {
-                background: #f0f1f3;
-            }
+
         }
-    </style>
+
+/* MENÚ DE ACCIONES DEL PEDIDO */
+.menu-pedido{position:relative;flex:0 0 auto}
+.menu-pedido-btn{
+    width:44px;height:44px;border:1px solid var(--borde);border-radius:13px;
+    background:#fff;color:var(--texto);font-size:25px;line-height:1;
+    cursor:pointer;font-weight:900;display:flex;align-items:center;justify-content:center
+}
+.menu-pedido-lista{
+    display:none;position:absolute;right:0;top:50px;z-index:200;
+    min-width:220px;padding:7px;background:#fff;border:1px solid #e3e5e8;
+    border-radius:14px;box-shadow:0 14px 38px rgba(0,0,0,.18)
+}
+.menu-pedido.abierto .menu-pedido-lista{display:block}
+.menu-pedido-lista a,.menu-pedido-lista button{
+    width:100%;min-height:44px;padding:0 12px;border:0;border-radius:9px;
+    background:transparent;color:#333;text-decoration:none;text-align:left;
+    font:inherit;font-size:12px;font-weight:800;display:flex;align-items:center;cursor:pointer
+}
+.menu-pedido-lista a:hover,.menu-pedido-lista button:hover{background:#f3f4f6}
+.menu-pedido-lista .peligro{color:#a52d2d}
+.menu-pedido-lista form{margin:0}
+.menu-separador{height:1px;background:#eceef1;margin:5px 4px}
+
+.accion-secundaria-oculta{display:none!important}
+</style>
 
 </head>
 <body>
@@ -720,18 +746,66 @@
                     </div>
 
                     <div class="pedido-cabecera-derecha">
+
                         <span class="estado-pedido estado-{{ item_pedido.pedido.estado }}">
                             {{ item_pedido.pedido.get_estado_display }}
                         </span>
 
-                        <button
-                            type="button"
-                            class="btn-plegar"
-                            aria-label="Plegar o desplegar pedido"
-                            onclick="alternarPedido(this)"
-                        >
-                           ⌃
-                        </button>
+                        <!-- MENÚ DE ACCIONES DEL PEDIDO -->
+                        <div class="menu-pedido">
+
+                            <button
+                                type="button"
+                                class="menu-pedido-btn"
+                                onclick="alternarMenuPedido(event, this)"
+                                aria-label="Más acciones"
+                                aria-expanded="false"
+                            >
+                                ⋮
+                            </button>
+
+                            <div class="menu-pedido-lista">
+
+                                <a
+                                    href="{% url 'pedidos:editar' item_pedido.pedido.id %}"
+                                >
+                                    ✎ Editar pedido
+                                </a>
+
+                                <div class="menu-separador"></div>
+
+                                <form
+                                    method="post"
+                                    action="{% url 'pedidos:cancelar' item_pedido.pedido.id %}"
+                                    onsubmit="return confirmarCancelacion();"
+                                >
+                                    {% csrf_token %}
+                                    <button
+                                        type="submit"
+                                        class="peligro"
+                                    >
+                                        Cancelar pedido
+                                    </button>
+                                </form>
+
+                                <form
+                                    method="post"
+                                    action="{% url 'pedidos:eliminar' item_pedido.pedido.id %}"
+                                    onsubmit="return confirmarEliminacion();"
+                                >
+                                    {% csrf_token %}
+                                    <button
+                                        type="submit"
+                                        class="peligro"
+                                    >
+                                        Eliminar pedido
+                                    </button>
+                                </form>
+
+                            </div>
+
+                        </div>
+
                     </div>
 
                 </div>
@@ -882,11 +956,11 @@
 
                 </div>
 
-                <!-- ACCIONES DEL PEDIDO -->
+                <!-- ACCIÓN OPERATIVA: ENTREGAR -->
 
-                <div class="pedido-acciones">
+                {% if item_pedido.pedido.estado == "LISTO" %}
 
-                    {% if item_pedido.pedido.estado == "LISTO" %}
+                    <div class="pedido-acciones">
 
                         <form
                             method="post"
@@ -903,43 +977,9 @@
                             </button>
                         </form>
 
-                    {% endif %}
+                    </div>
 
-                    {% if item_pedido.pedido.estado != "ENTREGADO" %}
-
-                        <form
-                            method="post"
-                            action="{% url 'pedidos:cancelar' item_pedido.pedido.id %}"
-                            onsubmit="return confirmarCancelacion();"
-                        >
-                            {% csrf_token %}
-
-                            <button
-                                type="submit"
-                                class="btn-cancelar"
-                            >
-                                CANCELAR
-                            </button>
-                        </form>
-
-                    {% endif %}
-
-                    <form
-                        method="post"
-                        action="{% url 'pedidos:eliminar' item_pedido.pedido.id %}"
-                        onsubmit="return confirmarEliminacion();"
-                    >
-                        {% csrf_token %}
-
-                        <button
-                            type="submit"
-                            class="btn-eliminar"
-                        >
-                            ELIMINAR
-                        </button>
-                    </form>
-
-                </div>
+                {% endif %}
 
             </div>
 
@@ -1005,20 +1045,6 @@
     }
 
 
-
-    function alternarPedido(boton) {
-        const pedido = boton.closest(".pedido");
-
-        if (!pedido) {
-            return;
-        }
-
-        pedido.classList.toggle("pedido-plegado");
-
-        boton.textContent = pedido.classList.contains("pedido-plegado")
-            ? "⌄"
-            : "⌃";
-    }
 
     /*
      * Mantiene la posición vertical después de marcar/desmarcar LISTO.
@@ -1157,6 +1183,48 @@
         );
 
     }
+
+
+function alternarMenuPedido(event, boton){
+    event.stopPropagation();
+
+    const menu = boton.closest(".menu-pedido");
+    const seAbrira = !menu.classList.contains("abierto");
+
+    document.querySelectorAll(".menu-pedido.abierto").forEach(function(otroMenu){
+        otroMenu.classList.remove("abierto");
+
+        const otroBoton = otroMenu.querySelector(".menu-pedido-btn");
+        if (otroBoton) {
+            otroBoton.setAttribute("aria-expanded", "false");
+        }
+    });
+
+    if (seAbrira) {
+        menu.classList.add("abierto");
+        boton.setAttribute("aria-expanded", "true");
+    } else {
+        menu.classList.remove("abierto");
+        boton.setAttribute("aria-expanded", "false");
+    }
+}
+
+document.addEventListener("click", function(){
+    document.querySelectorAll(".menu-pedido.abierto").forEach(function(menu){
+        menu.classList.remove("abierto");
+
+        const boton = menu.querySelector(".menu-pedido-btn");
+        if (boton) {
+            boton.setAttribute("aria-expanded", "false");
+        }
+    });
+});
+
+document.querySelectorAll(".menu-pedido-lista").forEach(function(lista){
+    lista.addEventListener("click", function(event){
+        event.stopPropagation();
+    });
+});
 
 </script>
 
