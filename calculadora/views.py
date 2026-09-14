@@ -340,6 +340,11 @@ def calculadora_precios(request):
         request.GET.get("modo", "nuevo"),
     )
 
+    producto_inicial_id = request.GET.get(
+        "producto_id",
+        "",
+    ).strip()
+
     resultado_nuevo = None
     resultado_existente = None
     errores = []
@@ -608,6 +613,7 @@ def calculadora_precios(request):
         "escalas": ESCALAS_MAYORISTAS,
         "margen_minimo": MARGEN_MINIMO_ADVERTENCIA,
         "cantidades_texto": cantidades_texto,
+        "producto_inicial_id": producto_inicial_id,
     }
 
     return render(

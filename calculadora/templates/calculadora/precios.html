@@ -777,8 +777,14 @@
                         <select id="producto_id" name="producto_id" required>
                             <option value="">Seleccionar...</option>
                             {% for producto in productos %}
-                                <option value="{{ producto.id }}"
-                                    {% if request.POST.producto_id == producto.id|stringformat:"s" %}selected{% endif %}>
+                                <option
+                                    value="{{ producto.id }}"
+                                    {% if request.POST.producto_id == producto.id|stringformat:"s" %}
+                                        selected
+                                    {% elif not request.POST.producto_id and producto_inicial_id == producto.id|stringformat:"s" %}
+                                        selected
+                                    {% endif %}
+                                >
                                     {{ producto.codigo }} · {{ producto.nombre }}
                                 </option>
                             {% endfor %}
