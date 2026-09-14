@@ -1,7 +1,9 @@
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from django.contrib import messages
 from django.db import transaction
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -10,6 +12,9 @@ from pedidos.models import Pedido
 from productos.models import Producto
 
 from .models import Impresora, Produccion
+
+
+ARGENTINA_TZ = ZoneInfo("America/Argentina/Buenos_Aires")
 
 
 # ============================================================
@@ -31,7 +36,7 @@ def _parsear_datetime_local(texto):
     if timezone.is_naive(fecha):
         fecha = timezone.make_aware(
             fecha,
-            timezone.get_current_timezone(),
+            ARGENTINA_TZ,
         )
 
     return fecha
@@ -130,7 +135,58 @@ def _impresora_ocupada(
 # ============================================================
 
 def lista_produccion(request):
-    producciones = list(
+    """
+    Vista operativa de producción.
+
+    Por defecto:
+    - muestra SIEMPRE PENDIENTE e IMPRIMIENDO
+    - suma las últimas 20 producciones LISTO
+    - evita que el historial crezca indefinidamente en pantalla
+
+    Filtros disponibles:
+    - estado
+    - impresora
+    - texto de producto/código
+    - fecha desde/hasta
+    """
+
+    estado_filtro = (
+        request.GET.get(
+            "estado",
+            "OPERATIVA",
+        ).strip()
+        or "OPERATIVA"
+    )
+
+    impresora_filtro = (
+        request.GET.get(
+            "impresora",
+            "",
+        ).strip()
+    )
+
+    busqueda = (
+        request.GET.get(
+            "q",
+            "",
+        ).strip()
+    )
+
+    fecha_desde = (
+        request.GET.get(
+            "desde",
+            "",
+        ).strip()
+    )
+
+    fecha_hasta = (
+        request.GET.get(
+            "hasta",
+            "",
+        ).strip()
+    )
+
+    qs_base = (
         Produccion.objects
         .select_related(
             "producto",
@@ -143,12 +199,134 @@ def lista_produccion(request):
         )
     )
 
+    if impresora_filtro:
+        qs_base = qs_base.filter(
+            impresora_id=impresora_filtro
+        )
+
+    if busqueda:
+        qs_base = qs_base.filter(
+            Q(
+                producto__nombre__icontains=
+                    busqueda
+            )
+            |
+            Q(
+                producto__id__icontains=
+                    busqueda.replace(
+                        "P",
+                        "",
+                    ).replace(
+                        "p",
+                        "",
+                    )
+            )
+        )
+
+    if fecha_desde:
+        try:
+            desde_dt = datetime.strptime(
+                fecha_desde,
+                "%Y-%m-%d",
+            )
+            desde_dt = timezone.make_aware(
+                desde_dt,
+                ARGENTINA_TZ,
+            )
+            qs_base = qs_base.filter(
+                inicio_impresion__gte=
+                    desde_dt
+            )
+        except ValueError:
+            pass
+
+    if fecha_hasta:
+        try:
+            hasta_dt = datetime.strptime(
+                fecha_hasta,
+                "%Y-%m-%d",
+            )
+            hasta_dt = (
+                hasta_dt
+                + timedelta(days=1)
+            )
+            hasta_dt = timezone.make_aware(
+                hasta_dt,
+                ARGENTINA_TZ,
+            )
+            qs_base = qs_base.filter(
+                inicio_impresion__lt=
+                    hasta_dt
+            )
+        except ValueError:
+            pass
+
+    if estado_filtro == "PENDIENTE":
+        producciones = list(
+            qs_base
+            .filter(
+                estado="PENDIENTE"
+            )
+        )
+
+    elif estado_filtro == "IMPRIMIENDO":
+        producciones = list(
+            qs_base
+            .filter(
+                estado="IMPRIMIENDO"
+            )
+        )
+
+    elif estado_filtro == "LISTO":
+        producciones = list(
+            qs_base
+            .filter(
+                estado="LISTO"
+            )
+        )
+
+    elif estado_filtro == "TODAS":
+        producciones = list(
+            qs_base
+        )
+
+    else:
+        # Vista recomendada:
+        # todo lo operativo + últimos 20 finalizados.
+        activas = list(
+            qs_base
+            .filter(
+                estado__in=[
+                    "PENDIENTE",
+                    "IMPRIMIENDO",
+                ]
+            )
+        )
+
+        ultimas_listas = list(
+            qs_base
+            .filter(
+                estado="LISTO"
+            )
+            .order_by(
+                "-inicio_impresion",
+                "-id",
+            )[:20]
+        )
+
+        producciones = (
+            activas
+            + ultimas_listas
+        )
+
+        estado_filtro = "OPERATIVA"
+
     ahora = timezone.now()
 
     # Orden operativo:
-    # 1. Lo que está IMPRIMIENDO.
-    # 2. Lo PLANIFICADO/PENDIENTE, por horario más próximo.
-    # 3. Lo LISTO, dejando lo más reciente arriba.
+    # 1. IMPRIMIENDO.
+    # 2. PENDIENTE por horario próximo.
+    # 3. LISTO más reciente primero.
     def clave_orden(produccion):
         if produccion.estado == "IMPRIMIENDO":
             return (
@@ -184,8 +362,10 @@ def lista_produccion(request):
     for produccion in producciones:
         produccion.es_planificada_futura = (
             produccion.estado == "PENDIENTE"
-            and produccion.inicio_impresion is not None
-            and produccion.inicio_impresion > ahora
+            and produccion.inicio_impresion
+                is not None
+            and produccion.inicio_impresion
+                > ahora
         )
 
     productos = (
@@ -249,6 +429,24 @@ def lista_produccion(request):
             ).first()
         )
 
+    cantidad_imprimiendo = sum(
+        1
+        for p in producciones
+        if p.estado == "IMPRIMIENDO"
+    )
+
+    cantidad_pendientes = sum(
+        1
+        for p in producciones
+        if p.estado == "PENDIENTE"
+    )
+
+    cantidad_listas = sum(
+        1
+        for p in producciones
+        if p.estado == "LISTO"
+    )
+
     return render(
         request,
         "produccion/lista.html",
@@ -263,6 +461,24 @@ def lista_produccion(request):
                 producto_seleccionado_obj,
             "cantidad_seleccionada":
                 cantidad_seleccionada,
+
+            "estado_filtro":
+                estado_filtro,
+            "impresora_filtro":
+                impresora_filtro,
+            "busqueda":
+                busqueda,
+            "fecha_desde":
+                fecha_desde,
+            "fecha_hasta":
+                fecha_hasta,
+
+            "cantidad_imprimiendo":
+                cantidad_imprimiendo,
+            "cantidad_pendientes":
+                cantidad_pendientes,
+            "cantidad_listas":
+                cantidad_listas,
         },
     )
 
@@ -390,53 +606,12 @@ def nueva_produccion(request):
     # --------------------------------------------------------
     # IMPRESORA
     # --------------------------------------------------------
+    #
+    # La impresora YA NO se asigna al planificar.
+    # Se elige al momento de iniciar la producción.
+    # --------------------------------------------------------
 
-    if impresora_id == "NUEVA":
-        if not nueva_impresora_nombre:
-            messages.error(
-                request,
-                (
-                    "Ingresá el nombre de la "
-                    "nueva impresora."
-                ),
-            )
-            return redirect(
-                "produccion:lista"
-            )
-
-        impresora, _ = (
-            Impresora.objects
-            .get_or_create(
-                nombre=nueva_impresora_nombre,
-                defaults={
-                    "activa": True,
-                },
-            )
-        )
-
-        if not impresora.activa:
-            impresora.activa = True
-            impresora.save(
-                update_fields=[
-                    "activa",
-                ]
-            )
-
-    else:
-        if not impresora_id:
-            messages.error(
-                request,
-                "Seleccioná una impresora.",
-            )
-            return redirect(
-                "produccion:lista"
-            )
-
-        impresora = get_object_or_404(
-            Impresora,
-            id=impresora_id,
-            activa=True,
-        )
+    impresora = None
 
     # --------------------------------------------------------
     # DESTINO / PEDIDO
@@ -605,46 +780,6 @@ def nueva_produccion(request):
                 )
 
     # --------------------------------------------------------
-    # CONFLICTO DE AGENDA
-    # --------------------------------------------------------
-
-    conflicto = _conflicto_planificacion(
-        impresora=impresora,
-        inicio=inicio_impresion,
-        tiempo_minutos=tiempo_total,
-    )
-
-    if conflicto:
-        inicio_conflicto = (
-            timezone.localtime(
-                conflicto.inicio_impresion
-            ).strftime(
-                "%d/%m %H:%M"
-            )
-        )
-
-        fin_conflicto = (
-            timezone.localtime(
-                conflicto.fin_estimado
-            ).strftime(
-                "%d/%m %H:%M"
-            )
-        )
-
-        messages.error(
-            request,
-            (
-                f"{impresora.nombre} ya tiene "
-                f"{conflicto.codigo} programada "
-                f"de {inicio_conflicto} a "
-                f"{fin_conflicto}."
-            ),
-        )
-        return redirect(
-            "produccion:lista"
-        )
-
-    # --------------------------------------------------------
     # CREAR PLANIFICACIÓN
     # --------------------------------------------------------
 
@@ -664,13 +799,15 @@ def nueva_produccion(request):
     )
 
     inicio_local = timezone.localtime(
-        produccion.inicio_impresion
+        produccion.inicio_impresion,
+        ARGENTINA_TZ,
     ).strftime(
         "%d/%m/%Y %H:%M"
     )
 
     fin_local = timezone.localtime(
-        produccion.fin_estimado
+        produccion.fin_estimado,
+        ARGENTINA_TZ,
     ).strftime(
         "%d/%m/%Y %H:%M"
     )
@@ -678,10 +815,10 @@ def nueva_produccion(request):
     messages.success(
         request,
         (
-            f"{produccion.codigo} planificada en "
-            f"{impresora.nombre} para "
+            f"{produccion.codigo} planificada para "
             f"{inicio_local}. "
-            f"Fin estimado: {fin_local}."
+            f"Fin estimado: {fin_local}. "
+            "La impresora se elige al comenzar."
         ),
     )
 
@@ -708,7 +845,6 @@ def iniciar_produccion(
         Produccion.objects
         .select_for_update()
         .select_related(
-            "impresora",
             "producto",
         ),
         id=produccion_id,
@@ -726,25 +862,32 @@ def iniciar_produccion(
             "produccion:lista"
         )
 
-    if not produccion.impresora:
+    impresora_id = (
+        request.POST.get(
+            "impresora",
+            "",
+        ).strip()
+    )
+
+    if not impresora_id:
         messages.error(
             request,
-            (
-                "La producción no tiene una "
-                "impresora asignada."
-            ),
+            "Seleccioná una impresora para comenzar.",
         )
         return redirect(
             "produccion:lista"
         )
 
-    # Se puede adelantar una producción.
-    # Al mandarla a imprimir, el inicio real para esta
-    # versión pasa a ser AHORA.
+    impresora = get_object_or_404(
+        Impresora,
+        id=impresora_id,
+        activa=True,
+    )
+
     inicio_actual = timezone.now()
 
     ocupando = _impresora_ocupada(
-        impresora=produccion.impresora,
+        impresora=impresora,
         excluir_id=produccion.id,
     )
 
@@ -752,7 +895,7 @@ def iniciar_produccion(
         messages.error(
             request,
             (
-                f"{produccion.impresora.nombre} "
+                f"{impresora.nombre} "
                 f"está ocupada por "
                 f"{ocupando.codigo} · "
                 f"{ocupando.producto.nombre}."
@@ -762,38 +905,7 @@ def iniciar_produccion(
             "produccion:lista"
         )
 
-    conflicto = _conflicto_planificacion(
-        impresora=produccion.impresora,
-        inicio=inicio_actual,
-        tiempo_minutos=(
-            produccion
-            .tiempo_impresion_minutos
-        ),
-        excluir_id=produccion.id,
-    )
-
-    if conflicto:
-        inicio_conflicto = (
-            timezone.localtime(
-                conflicto.inicio_impresion
-            ).strftime(
-                "%d/%m %H:%M"
-            )
-        )
-
-        messages.error(
-            request,
-            (
-                "No se puede adelantar porque "
-                f"se superpondría con "
-                f"{conflicto.codigo} desde "
-                f"{inicio_conflicto}."
-            ),
-        )
-        return redirect(
-            "produccion:lista"
-        )
-
+    produccion.impresora = impresora
     produccion.inicio_impresion = (
         inicio_actual
     )
@@ -801,6 +913,7 @@ def iniciar_produccion(
 
     produccion.save(
         update_fields=[
+            "impresora",
             "inicio_impresion",
             "estado",
         ]
@@ -810,7 +923,7 @@ def iniciar_produccion(
         request,
         (
             f"{produccion.codigo} enviada a "
-            f"{produccion.impresora.nombre}. "
+            f"{impresora.nombre}. "
             "Inicio actualizado al horario actual."
         ),
     )
@@ -839,34 +952,43 @@ def repetir_produccion(
         .select_for_update()
         .select_related(
             "producto",
-            "impresora",
             "pedido",
         ),
         id=produccion_id,
         estado="LISTO",
     )
 
-    if not original.impresora:
+    impresora_id = (
+        request.POST.get(
+            "impresora",
+            "",
+        ).strip()
+    )
+
+    if not impresora_id:
         messages.error(
             request,
-            (
-                "La producción terminada no tiene "
-                "una impresora asignada."
-            ),
+            "Seleccioná una impresora para repetir.",
         )
         return redirect(
             "produccion:lista"
         )
 
+    impresora = get_object_or_404(
+        Impresora,
+        id=impresora_id,
+        activa=True,
+    )
+
     ocupando = _impresora_ocupada(
-        impresora=original.impresora,
+        impresora=impresora,
     )
 
     if ocupando:
         messages.error(
             request,
             (
-                f"{original.impresora.nombre} "
+                f"{impresora.nombre} "
                 f"está ocupada por "
                 f"{ocupando.codigo} · "
                 f"{ocupando.producto.nombre}."
@@ -878,41 +1000,10 @@ def repetir_produccion(
 
     inicio_actual = timezone.now()
 
-    conflicto = _conflicto_planificacion(
-        impresora=original.impresora,
-        inicio=inicio_actual,
-        tiempo_minutos=(
-            original
-            .tiempo_impresion_minutos
-        ),
-    )
-
-    if conflicto:
-        inicio_conflicto = (
-            timezone.localtime(
-                conflicto.inicio_impresion
-            ).strftime(
-                "%d/%m %H:%M"
-            )
-        )
-
-        messages.error(
-            request,
-            (
-                "No se puede repetir ahora porque "
-                f"se superpondría con "
-                f"{conflicto.codigo} desde "
-                f"{inicio_conflicto}."
-            ),
-        )
-        return redirect(
-            "produccion:lista"
-        )
-
     nueva = Produccion.objects.create(
         producto=original.producto,
         cantidad=original.cantidad,
-        impresora=original.impresora,
+        impresora=impresora,
         destino=original.destino,
         pedido=original.pedido,
         estado="IMPRIMIENDO",
@@ -928,7 +1019,7 @@ def repetir_produccion(
         (
             f"{nueva.codigo} creada repitiendo "
             f"{original.codigo}. "
-            f"{original.impresora.nombre} quedó "
+            f"{impresora.nombre} quedó "
             "en IMPRIMIENDO con horario actual."
         ),
     )
