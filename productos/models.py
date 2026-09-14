@@ -70,8 +70,22 @@ class Producto(models.Model):
     def es_compuesto(self):
         return self.tipo_fabricacion == "COMPUESTO"
 
+    def _relaciones_componentes(self):
+        if not self.pk or not self.es_compuesto:
+            return []
+        return self.componentes.select_related("componente").all()
+
     @property
     def horas_totales(self):
+        if self.es_compuesto and self.pk:
+            total = Decimal("0")
+            for relacion in self._relaciones_componentes():
+                total += (
+                    relacion.componente.horas_totales
+                    * Decimal(int(relacion.cantidad or 0))
+                )
+            return total
+
         return Decimal(self.horas) + Decimal(self.minutos) / Decimal("60")
 
     @property
@@ -140,6 +154,18 @@ class Producto(models.Model):
     def costo(self):
         if not self.requiere_impresion:
             return Decimal("0")
+
+        # Un compuesto se valoriza desde sus piezas reales. Así el precio
+        # no depende de que horas/peso agregados hayan quedado sincronizados.
+        if self.es_compuesto and self.pk:
+            total = Decimal("0")
+            for relacion in self._relaciones_componentes():
+                total += (
+                    Decimal(str(relacion.componente.costo or 0))
+                    * Decimal(int(relacion.cantidad or 0))
+                )
+            return total
+
         config = self.obtener_configuracion()
         if not config:
             return Decimal("0")
@@ -155,6 +181,18 @@ class Producto(models.Model):
     def seguro(self):
         if not self.requiere_impresion:
             return Decimal("0")
+
+        # Igual que el costo, la cobertura productiva del compuesto se suma
+        # desde cada pieza y su cantidad.
+        if self.es_compuesto and self.pk:
+            total = Decimal("0")
+            for relacion in self._relaciones_componentes():
+                total += (
+                    Decimal(str(relacion.componente.seguro or 0))
+                    * Decimal(int(relacion.cantidad or 0))
+                )
+            return total
+
         config = self.obtener_configuracion()
         if not config:
             return Decimal("0")
