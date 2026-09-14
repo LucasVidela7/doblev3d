@@ -23,13 +23,15 @@ h1{margin:0 0 5px;font-size:clamp(25px,4vw,34px)}
 .mensaje.success{background:var(--verde);color:var(--verde-t)}.mensaje.error{background:var(--rojo);color:var(--rojo-t)}
 
 .formulario{background:white;border:1px solid var(--borde);border-radius:20px;padding:20px;margin-bottom:18px;box-shadow:var(--sombra)}
-.formulario h2{margin:0 0 17px;font-size:18px}
-.campos{display:grid;grid-template-columns:minmax(230px,2fr) 110px 190px 150px minmax(210px,1.5fr);gap:12px;align-items:end}
+.formulario h2{margin:0;font-size:18px}
+.formulario-subtitulo{margin:5px 0 18px;color:var(--muted);font-size:11px}
+.grupo-formulario{padding:15px;border:1px solid #eceef1;border-radius:16px;background:#fafbfc;margin-bottom:12px}
+.grupo-formulario-titulo{margin-bottom:12px;color:#555b63;font-size:9px;font-weight:900;letter-spacing:.45px}
+.campos{display:grid;grid-template-columns:minmax(260px,2fr) 110px minmax(190px,1fr);gap:12px;align-items:end}
+.campos-programacion{grid-template-columns:minmax(210px,1.2fr) 150px minmax(240px,1.4fr)}
 .campo label,.campo-tiempo label{display:block;margin-bottom:6px;color:var(--muted);font-size:9px;font-weight:900;letter-spacing:.3px}
-input,select,textarea{width:100%;min-height:50px;padding:10px 12px;border:1px solid #d4d7dc;border-radius:12px;background:white;font-size:14px}
-textarea{min-height:72px;resize:vertical}
-input:focus,select:focus,textarea:focus{outline:2px solid #cbd8e8;border-color:#9db2cc}
-.observaciones{margin-top:14px}
+input,select{width:100%;min-height:50px;padding:10px 12px;border:1px solid #d4d7dc;border-radius:12px;background:white;font-size:14px}
+input:focus,select:focus{outline:2px solid #cbd8e8;border-color:#9db2cc}
 .bloque-tiempo{margin-top:15px;padding:15px;border-radius:15px;background:#f7f8fa;border:1px solid #eceef1}
 .bloque-tiempo-titulo{margin-bottom:12px;color:#555b63;font-size:10px;font-weight:900}
 .tiempo-manual-contenedor{display:none;grid-template-columns:140px 140px minmax(220px,1fr);gap:11px;align-items:end}
@@ -50,22 +52,23 @@ td{padding:14px 10px;border-bottom:1px solid var(--borde);vertical-align:middle;
 .codigo{font-weight:900;white-space:nowrap}.producto{font-weight:800}.cantidad{text-align:center;font-size:16px;font-weight:900}.fecha-hora,.fin-estimado{white-space:nowrap}.fin-estimado{font-weight:700}
 .destino{display:inline-flex;padding:5px 8px;border-radius:999px;font-size:8px;font-weight:900}.destino-stock{background:#eceef1;color:#555}.destino-pedido{background:var(--azul);color:var(--azul-t)}
 .estado-form{margin:0}.estado-select{min-width:125px;min-height:42px;border:none;border-radius:11px;font-size:10px;font-weight:900;cursor:pointer}
+.estado-fijo{min-width:125px;min-height:42px;display:inline-flex;align-items:center;justify-content:center;padding:0 13px;border-radius:11px;font-size:10px;font-weight:900}
 .estado-PENDIENTE{background:var(--amarillo);color:var(--amarillo-t)}.estado-IMPRIMIENDO{background:var(--azul);color:var(--azul-t)}.estado-LISTO{background:var(--verde);color:var(--verde-t)}.estado-CANCELADO{background:var(--rojo);color:var(--rojo-t)}
 .sin-datos{padding:35px!important;text-align:center;color:var(--muted)}
 
 .nav-inferior{position:fixed;z-index:50;left:50%;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(720px,calc(100% - 20px));display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:7px;border-radius:20px;background:rgba(35,38,43,.96);box-shadow:0 12px 35px rgba(0,0,0,.22);backdrop-filter:blur(14px)}
 .nav-item{min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:14px;color:#d9dbe0;text-decoration:none;font-size:9px;font-weight:bold}.nav-item span:first-child{font-size:19px}.nav-item.activo,.nav-item.nuevo-nav{background:white;color:var(--oscuro)}
 
-@media(max-width:1100px){.campos{grid-template-columns:1fr 1fr}.tabla-contenedor{overflow-x:auto}table{min-width:1050px}}
+@media(max-width:1100px){.campos,.campos-programacion{grid-template-columns:1fr 1fr}.tabla-contenedor{overflow-x:auto}table{min-width:1120px}}
 @media(max-width:720px){
 .contenedor{padding:16px 11px 28px}.encabezado-pagina{flex-direction:column;align-items:flex-start}.acciones-encabezado{width:100%}.boton-volver,.boton-inicio{flex:1}
-.formulario{padding:15px}.campos{grid-template-columns:1fr}.tiempo-manual-contenedor{grid-template-columns:1fr 1fr}.fin-preview{grid-column:1/-1}.acciones-formulario .boton{width:100%}
+.formulario{padding:15px}.grupo-formulario{padding:12px}.campos,.campos-programacion{grid-template-columns:1fr}.tiempo-manual-contenedor{grid-template-columns:1fr 1fr}.fin-preview{grid-column:1/-1}.acciones-formulario .boton{width:100%}
 .tabla-contenedor{overflow:visible;border:none;background:transparent;box-shadow:none}table,tbody,tr,td{display:block;width:100%}thead{display:none}tbody{display:grid;gap:11px}
 tbody tr{display:grid;grid-template-columns:1fr 1fr;overflow:hidden;border:1px solid var(--borde);border-radius:18px;background:white;box-shadow:var(--sombra)}
 td{border:none!important;padding:10px 13px}td.codigo{grid-column:1/-1;padding-top:14px;padding-bottom:4px;color:var(--muted);font-size:9px}td.producto{grid-column:1/-1;padding-top:4px;padding-bottom:13px;border-bottom:1px solid var(--borde)!important;font-size:14px}
 td::before{display:block;margin-bottom:4px;color:var(--muted);font-size:7px;font-weight:900}
-td:nth-child(3)::before{content:"CANTIDAD"}td:nth-child(4)::before{content:"INICIO"}td:nth-child(5)::before{content:"TIEMPO"}td:nth-child(6)::before{content:"FIN ESTIMADO"}td:nth-child(7)::before{content:"DESTINO"}td:nth-child(8)::before{content:"PEDIDO"}td:nth-child(9)::before{content:"ESTADO"}
-td:nth-child(9){grid-column:1/-1;border-top:1px solid var(--borde)!important;padding:12px}.estado-select{width:100%;min-height:48px}
+td:nth-child(3)::before{content:"CANTIDAD"}td:nth-child(4)::before{content:"IMPRESORA"}td:nth-child(5)::before{content:"INICIO"}td:nth-child(6)::before{content:"TIEMPO"}td:nth-child(7)::before{content:"FIN ESTIMADO"}td:nth-child(8)::before{content:"DESTINO"}td:nth-child(9)::before{content:"PEDIDO"}td:nth-child(10)::before{content:"ESTADO"}
+td:nth-child(10){grid-column:1/-1;border-top:1px solid var(--borde)!important;padding:12px}.estado-select,.estado-fijo{width:100%;min-height:48px}
 .nav-inferior{width:calc(100% - 12px);bottom:max(6px,env(safe-area-inset-bottom))}
 }
 @media(hover:hover){tbody tr:hover{filter:brightness(.985)}.boton-volver:hover{background:#f0f1f3}}
@@ -141,257 +144,190 @@ td:nth-child(9){grid-column:1/-1;border-top:1px solid var(--borde)!important;pad
 
     <div class="formulario">
 
-        <h2>
-            Nueva producción
-        </h2>
+        <h2>Nueva producción</h2>
+        <div class="formulario-subtitulo">
+            Seleccioná qué imprimir, la máquina y cuándo comienza.
+        </div>
 
         <form
             method="post"
             action="{% url 'produccion:nueva' %}"
             id="form-produccion"
         >
-
             {% csrf_token %}
 
+            <div class="grupo-formulario">
+                <div class="grupo-formulario-titulo">
+                    1 · TRABAJO
+                </div>
 
-            <!-- DATOS PRINCIPALES -->
+                <div class="campos">
 
-            <div class="campos">
+                    <div class="campo">
+                        <label>PRODUCTO</label>
 
-
-                <!-- PRODUCTO -->
-
-                <div class="campo">
-
-                    <label>
-                        PRODUCTO
-                    </label>
-
-                    <select
-                        name="producto"
-                        id="producto"
-                        required
-                    >
-
-                        <option value="">
-                            Seleccionar producto
-                        </option>
-
-                        {% for producto in productos %}
-
-                            <option
-                                value="{{ producto.id }}"
-                                data-horas="{{ producto.horas }}"
-                                data-minutos="{{ producto.minutos }}"
-                                {% if producto_seleccionado == producto.id|stringformat:"s" %}
-                                    selected
-                                {% endif %}
-                            >
-                                {{ producto.codigo }} - {{ producto.nombre }}
+                        <select
+                            name="producto"
+                            id="producto"
+                            required
+                        >
+                            <option value="">
+                                Seleccionar producto
                             </option>
 
-                        {% endfor %}
+                            {% for producto in productos %}
+                                <option
+                                    value="{{ producto.id }}"
+                                    data-horas="{{ producto.horas }}"
+                                    data-minutos="{{ producto.minutos }}"
+                                    {% if producto_seleccionado == producto.id|stringformat:"s" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ producto.codigo }} - {{ producto.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-                    </select>
+                    <div class="campo">
+                        <label>CANTIDAD</label>
 
-                </div>
+                        <input
+                            type="number"
+                            name="cantidad"
+                            id="cantidad"
+                            min="1"
+                            value="{{ cantidad_seleccionada|default:'1' }}"
+                            required
+                        >
+                    </div>
 
+                    <div class="campo">
+                        <label>IMPRESORA</label>
 
-                <!-- CANTIDAD -->
-
-                <div class="campo">
-
-                    <label>
-                        CANTIDAD
-                    </label>
-
-                    <input
-                        type="number"
-                        name="cantidad"
-                        id="cantidad"
-                        min="1"
-                        value="{{ cantidad_seleccionada|default:'1' }}"
-                        required
-                    >
-
-                </div>
-
-
-
-                <!-- IMPRESORA -->
-
-                <div class="campo">
-
-                    <label>
-                        IMPRESORA
-                    </label>
-
-                    <select
-                        name="impresora"
-                        id="impresora"
-                        required
-                        onchange="actualizarNuevaImpresora()"
-                    >
-                        <option value="">
-                            Seleccionar impresora
-                        </option>
-
-                        {% for impresora in impresoras %}
-                            <option value="{{ impresora.id }}">
-                                {{ impresora.nombre }}
-                            </option>
-                        {% endfor %}
-
-                        <option value="NUEVA">
-                            + Nueva impresora
-                        </option>
-                    </select>
-
-                </div>
-
-
-                <div
-                    class="campo"
-                    id="campo-nueva-impresora"
-                    style="display:none"
-                >
-
-                    <label>
-                        NOMBRE NUEVA IMPRESORA
-                    </label>
-
-                    <input
-                        type="text"
-                        name="nueva_impresora_nombre"
-                        id="nueva_impresora_nombre"
-                        placeholder="Ej: Ender 3 V3"
-                    >
-
-                </div>
-
-                <!-- INICIO -->
-
-                <div class="campo">
-
-                    <label>
-                        INICIO DE IMPRESIÓN
-                    </label>
-
-                    <input
-                        type="datetime-local"
-                        name="inicio_impresion"
-                        id="inicio_impresion"
-                        required
-                    >
-
-                </div>
-
-
-                <!-- DESTINO -->
-
-                <div class="campo">
-
-                    <label>
-                        DESTINO
-                    </label>
-
-                    <select
-                        name="destino"
-                        id="destino"
-                        required
-                    >
-
-                        <option value="STOCK">
-                            Stock
-                        </option>
-
-                        <option value="PEDIDO">
-                            Pedido
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                <!-- PEDIDO -->
-
-                <div
-                    class="campo"
-                    id="campo-pedido"
-                    style="display: none;"
-                >
-
-                    <label>
-                        PEDIDO
-                    </label>
-
-                    <select
-                        name="pedido"
-                        id="pedido"
-                    >
-
-                        <option value="">
-                            Seleccionar pedido
-                        </option>
-
-                        {% for pedido in pedidos %}
-
-                            <option value="{{ pedido.id }}">
-                                {{ pedido.codigo }} - {{ pedido.cliente.nombre }}
+                        <select
+                            name="impresora"
+                            id="impresora"
+                            required
+                            onchange="actualizarNuevaImpresora()"
+                        >
+                            <option value="">
+                                Seleccionar impresora
                             </option>
 
-                        {% endfor %}
+                            {% for impresora in impresoras %}
+                                <option value="{{ impresora.id }}">
+                                    {{ impresora.nombre }}
+                                </option>
+                            {% endfor %}
 
-                    </select>
+                            <option value="NUEVA">
+                                + Nueva impresora
+                            </option>
+                        </select>
+                    </div>
+
+                    <div
+                        class="campo"
+                        id="campo-nueva-impresora"
+                        style="display:none"
+                    >
+                        <label>NOMBRE NUEVA IMPRESORA</label>
+
+                        <input
+                            type="text"
+                            name="nueva_impresora_nombre"
+                            id="nueva_impresora_nombre"
+                            placeholder="Ej: Bambu A1 Mini"
+                        >
+                    </div>
 
                 </div>
-
             </div>
 
+            <div class="grupo-formulario">
+                <div class="grupo-formulario-titulo">
+                    2 · PROGRAMACIÓN
+                </div>
 
-            <!-- =========================================
-                 TIEMPO DE IMPRESIÓN
-            ========================================== -->
+                <div class="campos campos-programacion">
+
+                    <div class="campo">
+                        <label>INICIO DE IMPRESIÓN</label>
+
+                        <input
+                            type="datetime-local"
+                            name="inicio_impresion"
+                            id="inicio_impresion"
+                            required
+                        >
+                    </div>
+
+                    <div class="campo">
+                        <label>DESTINO</label>
+
+                        <select
+                            name="destino"
+                            id="destino"
+                            required
+                        >
+                            <option value="STOCK">
+                                Stock
+                            </option>
+
+                            <option value="PEDIDO">
+                                Pedido
+                            </option>
+                        </select>
+                    </div>
+
+                    <div
+                        class="campo"
+                        id="campo-pedido"
+                        style="display:none"
+                    >
+                        <label>PEDIDO</label>
+
+                        <select
+                            name="pedido"
+                            id="pedido"
+                        >
+                            <option value="">
+                                Seleccionar pedido
+                            </option>
+
+                            {% for pedido in pedidos %}
+                                <option value="{{ pedido.id }}">
+                                    {{ pedido.codigo }} - {{ pedido.cliente.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                </div>
+            </div>
 
             <div class="bloque-tiempo">
 
                 <div class="bloque-tiempo-titulo">
-                    TIEMPO DE IMPRESIÓN
+                    3 · TIEMPO DE IMPRESIÓN
                 </div>
-
-
-                <!-- CANTIDAD = 1 -->
 
                 <div
                     class="tiempo-automatico"
                     id="tiempo-automatico"
                 >
-
                     Tiempo automático del producto:
-
-                    <strong id="texto-tiempo-automatico">
-                        —
-                    </strong>
-
+                    <strong id="texto-tiempo-automatico">—</strong>
                 </div>
-
-
-                <!-- CANTIDAD > 1 -->
 
                 <div
                     class="tiempo-manual-contenedor"
                     id="tiempo-manual"
                 >
-
-
-                    <!-- HORAS -->
-
                     <div class="campo-tiempo">
-
-                        <label>
-                            HORAS
-                        </label>
+                        <label>HORAS</label>
 
                         <input
                             type="number"
@@ -400,17 +336,10 @@ td:nth-child(9){grid-column:1/-1;border-top:1px solid var(--borde)!important;pad
                             min="0"
                             value="0"
                         >
-
                     </div>
 
-
-                    <!-- MINUTOS -->
-
                     <div class="campo-tiempo">
-
-                        <label>
-                            MINUTOS
-                        </label>
+                        <label>MINUTOS</label>
 
                         <input
                             type="number"
@@ -420,100 +349,51 @@ td:nth-child(9){grid-column:1/-1;border-top:1px solid var(--borde)!important;pad
                             max="59"
                             value="0"
                         >
-
                     </div>
 
-
-                    <!-- FIN ESTIMADO -->
-
                     <div>
-
                         <label
                             style="
-                                display: block;
-                                margin-bottom: 6px;
-                                font-size: 11px;
-                                font-weight: bold;
-                                color: #666666;
+                                display:block;
+                                margin-bottom:6px;
+                                color:var(--muted);
+                                font-size:9px;
+                                font-weight:900;
                             "
                         >
                             FINALIZACIÓN
                         </label>
 
                         <div class="fin-preview">
-
                             Fin estimado:
-
-                            <strong id="fin-estimado-manual">
-                                —
-                            </strong>
-
+                            <strong id="fin-estimado-manual">—</strong>
                         </div>
-
                     </div>
-
 
                     <div
                         class="recomendacion-tiempo"
                         id="recomendacion-tiempo"
-                    >
-                    </div>
-
-
+                    ></div>
                 </div>
-
-
-                <!-- FIN PARA TIEMPO AUTOMÁTICO -->
 
                 <div
                     class="fin-preview fin-automatico"
                     id="fin-automatico"
-                    style="display: none;"
+                    style="display:none"
                 >
-
                     Fin estimado:
-
-                    <strong id="fin-estimado-automatico">
-                        —
-                    </strong>
-
+                    <strong id="fin-estimado-automatico">—</strong>
                 </div>
 
-
             </div>
-
-
-            <!-- =========================================
-                 OBSERVACIONES
-            ========================================== -->
-
-            <div class="campo observaciones">
-
-                <label>
-                    OBSERVACIONES
-                </label>
-
-                <textarea
-                    name="observaciones"
-                    placeholder="Opcional"
-                ></textarea>
-
-            </div>
-
-
-            <!-- =========================================
-                 BOTÓN
-            ========================================== -->
 
             <div class="acciones-formulario">
-
                 <button
                     type="submit"
                     class="boton boton-principal"
                 >
                     + CREAR PRODUCCIÓN
                 </button>
-
             </div>
 
         </form>
@@ -710,68 +590,67 @@ td:nth-child(9){grid-column:1/-1;border-top:1px solid var(--borde)!important;pad
 
                         <td>
 
-                            <form
-                                method="post"
-                                class="estado-form"
-                                action="{% url 'produccion:cambiar_estado' produccion.id %}"
-                            >
+                            {% if produccion.estado == "LISTO" %}
 
-                                {% csrf_token %}
-
-                                <select
-                                    name="estado"
-                                    class="estado-select estado-{{ produccion.estado }}"
-                                    onchange="this.form.submit()"
+                                <span
+                                    class="estado-fijo estado-LISTO"
+                                    title="Una producción lista queda bloqueada para evitar cambios accidentales."
                                 >
+                                    ✓ LISTO
+                                </span>
 
+                            {% else %}
 
-                                    {% if produccion.estado == "PENDIENTE" %}
-                                        <option value="PENDIENTE" selected>
-                                            PENDIENTE
-                                        </option>
-                                    {% else %}
-                                        <option value="PENDIENTE">
-                                            PENDIENTE
-                                        </option>
-                                    {% endif %}
+                                <form
+                                    method="post"
+                                    class="estado-form"
+                                    action="{% url 'produccion:cambiar_estado' produccion.id %}"
+                                >
+                                    {% csrf_token %}
 
+                                    <select
+                                        name="estado"
+                                        class="estado-select estado-{{ produccion.estado }}"
+                                        onchange="this.form.submit()"
+                                    >
+                                        {% if produccion.estado == "PENDIENTE" %}
+                                            <option value="PENDIENTE" selected>
+                                                PENDIENTE
+                                            </option>
+                                        {% else %}
+                                            <option value="PENDIENTE">
+                                                PENDIENTE
+                                            </option>
+                                        {% endif %}
 
-                                    {% if produccion.estado == "IMPRIMIENDO" %}
-                                        <option value="IMPRIMIENDO" selected>
-                                            IMPRIMIENDO
-                                        </option>
-                                    {% else %}
-                                        <option value="IMPRIMIENDO">
-                                            IMPRIMIENDO
-                                        </option>
-                                    {% endif %}
+                                        {% if produccion.estado == "IMPRIMIENDO" %}
+                                            <option value="IMPRIMIENDO" selected>
+                                                IMPRIMIENDO
+                                            </option>
+                                        {% else %}
+                                            <option value="IMPRIMIENDO">
+                                                IMPRIMIENDO
+                                            </option>
+                                        {% endif %}
 
-
-                                    {% if produccion.estado == "LISTO" %}
-                                        <option value="LISTO" selected>
-                                            LISTO
-                                        </option>
-                                    {% else %}
                                         <option value="LISTO">
                                             LISTO
                                         </option>
-                                    {% endif %}
 
+                                        {% if produccion.estado == "CANCELADO" %}
+                                            <option value="CANCELADO" selected>
+                                                CANCELADO
+                                            </option>
+                                        {% else %}
+                                            <option value="CANCELADO">
+                                                CANCELADO
+                                            </option>
+                                        {% endif %}
+                                    </select>
 
-                                    {% if produccion.estado == "CANCELADO" %}
-                                        <option value="CANCELADO" selected>
-                                            CANCELADO
-                                        </option>
-                                    {% else %}
-                                        <option value="CANCELADO">
-                                            CANCELADO
-                                        </option>
-                                    {% endif %}
+                                </form>
 
-
-                                </select>
-
-                            </form>
+                            {% endif %}
 
                         </td>
 
