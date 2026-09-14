@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import precios_api, views
+from .impresiones_compuestas import impresiones_por_producto
 
 
 app_name = "pedidos"
@@ -22,7 +23,7 @@ urlpatterns = [
 
     path(
         "impresiones/productos/",
-        views.impresiones_por_producto,
+        impresiones_por_producto,
         name="impresiones_productos",
     ),
 
