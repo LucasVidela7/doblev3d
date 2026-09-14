@@ -45,6 +45,12 @@ urlpatterns = [
     ),
 
     path(
+        "api/precio-producto/",
+        views.precio_producto,
+        name="precio_producto",
+    ),
+
+    path(
         "api/kit/<int:kit_id>/productos/",
         views.productos_por_kit,
         name="productos_kit",

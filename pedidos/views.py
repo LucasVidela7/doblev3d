@@ -11,6 +11,8 @@ from clientes.models import Cliente
 from kits.models import Kit
 from productos.models import Producto
 
+from calculadora.precios import calcular_escenarios_producto
+
 from collections import defaultdict
 
 from .models import (
@@ -493,6 +495,57 @@ def productos_por_kit(request, kit_id):
     })
 
 
+def precio_producto(request):
+    """Devuelve recomendaciones mayoristas para Nuevo Pedido."""
+    producto_id = request.GET.get("producto_id")
+    cantidad_texto = request.GET.get("cantidad", "1")
+
+    try:
+        cantidad = int(cantidad_texto)
+    except (TypeError, ValueError):
+        cantidad = 0
+
+    if cantidad <= 0:
+        return JsonResponse({"error": "Cantidad inválida."}, status=400)
+
+    producto = get_object_or_404(
+        Producto,
+        id=producto_id,
+        activo=True,
+    )
+
+    datos = calcular_escenarios_producto(producto, cantidad)
+
+    def serializar(fila):
+        return {
+            "margen": str(fila["margen_objetivo"]),
+            "precio_unitario_calculado": str(fila["precio_unitario"]),
+            "precio_unitario_pedido": str(fila["precio_unitario_pedido"]),
+            "total_recomendado": str(fila["total_recomendado"]),
+            "total_pedido": str(fila["total_pedido"]),
+            "margen_real": str(
+                fila["margen_real"].quantize(Decimal("0.01"))
+            ),
+        }
+
+    return JsonResponse({
+        "producto": {
+            "id": datos["producto_id"],
+            "codigo": datos["codigo"],
+            "nombre": datos["nombre"],
+            "precio_lista": str(datos["precio_lista"]),
+            "margen_tope": str(datos["margen_tope"]),
+            "margen_piso": str(datos["margen_piso"]),
+        },
+        "cantidad": datos["cantidad"],
+        "escenarios": {
+            "conservador": serializar(datos["escenarios"]["conservador"]),
+            "recomendado": serializar(datos["escenarios"]["recomendado"]),
+            "agresivo": serializar(datos["escenarios"]["agresivo"]),
+        },
+    })
+
+
 @transaction.atomic
 def nuevo_pedido(request):
     cliente_inicial_id = request.GET.get("cliente", "").strip()
@@ -659,7 +712,24 @@ def nuevo_pedido(request):
                     activo=True,
                 )
 
-                precio_unitario = producto.subtotal
+                precio_texto = request.POST.get(
+                    f"precio_unitario_{indice}",
+                    "",
+                ).strip().replace(",", ".")
+
+                if precio_texto:
+                    try:
+                        precio_unitario = Decimal(
+                            precio_texto
+                        ).quantize(Decimal("0.01"))
+                    except (
+                        InvalidOperation,
+                        TypeError,
+                        ValueError,
+                    ):
+                        precio_unitario = Decimal("0")
+                else:
+                    precio_unitario = producto.subtotal
 
                 if precio_unitario is None or precio_unitario <= 0:
                     messages.error(
@@ -1953,6 +2023,15 @@ def editar_pedido(request, pedido_id):
 
     # Personalizados LISTO se conservan solamente si el detalle existente
     # queda exactamente igual.
+    detalles_normales_anteriores = {
+        detalle.id: {
+            "producto_id": detalle.producto_id,
+            "precio_unitario": detalle.precio_unitario,
+        }
+        for detalle in detalles_actuales
+        if detalle.tipo_item == "PRODUCTO"
+    }
+
     personalizados_anteriores = {
         detalle.id: {
             "producto_id": detalle.producto_id,
@@ -2148,7 +2227,15 @@ def editar_pedido(request, pedido_id):
     for item in nuevos_items:
         if item["tipo_item"] == "PRODUCTO":
             producto = item["producto"]
-            precio_unitario = producto.subtotal
+
+            anterior = detalles_normales_anteriores.get(
+                item["detalle_id"]
+            )
+
+            if anterior and anterior["producto_id"] == producto.id:
+                precio_unitario = anterior["precio_unitario"]
+            else:
+                precio_unitario = producto.subtotal
 
             if precio_unitario is None or precio_unitario <= 0:
                 messages.error(

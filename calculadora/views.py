@@ -6,8 +6,17 @@ from django.shortcuts import render
 from costos.models import ConfiguracionCostos
 from productos.models import Producto
 
+from calculadora.precios import (
+    MARGEN_MINIMO as MARGEN_MINIMO_COMPARTIDO,
+    redondear_arriba as redondear_arriba_compartido,
+    margen_sugerido as margen_sugerido_compartido,
+    precio_mayorista as precio_mayorista_compartido,
+    fila_precio as fila_precio_compartido,
+    margenes_escenario as margenes_escenario_compartido,
+)
 
-MARGEN_MINIMO_ADVERTENCIA = Decimal("22.5")
+
+MARGEN_MINIMO_ADVERTENCIA = MARGEN_MINIMO_COMPARTIDO
 CANTIDAD_PISO_MARGEN = Decimal("1500")
 CANTIDADES_LISTA_DEFAULT = "10,20,50,100"
 
@@ -41,96 +50,13 @@ def _entero(valor, default=0):
 
 
 def _redondear_arriba(valor, multiplo=Decimal("100")):
-    valor = Decimal(valor)
-    multiplo = Decimal(multiplo)
-
-    if valor <= 0:
-        return Decimal("0")
-
-    return (
-        (valor / multiplo).to_integral_value(rounding=ROUND_CEILING)
-        * multiplo
-    )
-
+    return redondear_arriba_compartido(valor, multiplo)
 
 def _margen_sugerido(cantidad, margen_tope):
-    """
-    Margen dinámico según:
-    - cantidad
-    - margen propio del producto
-
-    El margen del producto es el TOPE.
-    El piso mayorista es 22,5%.
-
-    La curva baja de forma logarítmica desde el margen del producto
-    hasta 22,5% al llegar a 1500 unidades.
-
-    Ejemplo:
-        producto con margen 75% -> parte de 75%
-        producto con margen 60% -> parte de 60%
-
-    Así dos productos con distinta rentabilidad minorista no usan
-    exactamente la misma curva mayorista.
-    """
-    cantidad = max(int(cantidad or 1), 1)
-
-    margen_tope = Decimal(margen_tope)
-    margen_tope = max(
-        margen_tope,
-        MARGEN_MINIMO_ADVERTENCIA,
-    )
-
-    if cantidad <= 1:
-        return margen_tope.quantize(Decimal("0.1"))
-
-    if Decimal(cantidad) >= CANTIDAD_PISO_MARGEN:
-        return MARGEN_MINIMO_ADVERTENCIA
-
-    progreso = (
-        Decimal(str(log10(cantidad)))
-        / Decimal(str(log10(float(CANTIDAD_PISO_MARGEN))))
-    )
-
-    margen = (
-        margen_tope
-        - (
-            (margen_tope - MARGEN_MINIMO_ADVERTENCIA)
-            * progreso
-        )
-    )
-
-    margen = min(margen, margen_tope)
-    margen = max(margen, MARGEN_MINIMO_ADVERTENCIA)
-
-    return margen.quantize(Decimal("0.1"))
-
+    return margen_sugerido_compartido(cantidad, margen_tope)
 
 def _precio_mayorista(costo_productivo, margen):
-    """
-    Margen real sobre precio de venta:
-        precio = costo_productivo / (1 - margen)
-
-    IMPORTANTE:
-    El precio UNITARIO no se redondea a $100.
-    Se conserva con hasta 2 decimales.
-
-    El redondeo a $100 se aplica recién al TOTAL de la cotización.
-    """
-    costo_productivo = Decimal(costo_productivo)
-    margen = Decimal(margen)
-
-    if costo_productivo <= 0 or margen >= Decimal("100"):
-        return Decimal("0")
-
-    factor = Decimal("1") - (margen / Decimal("100"))
-
-    if factor <= 0:
-        return Decimal("0")
-
-    return (
-        costo_productivo / factor
-    ).quantize(Decimal("0.01"))
-
+    return precio_mayorista_compartido(costo_productivo, margen)
 
 def _margen_real(precio_unitario, costo_productivo):
     precio_unitario = Decimal(precio_unitario)
@@ -214,53 +140,57 @@ def _fila_precio(
     precio_forzado=None,
     margen_tope=Decimal("60"),
 ):
-    margen_objetivo = (
-        Decimal(margen)
-        if margen is not None
-        else _margen_sugerido(cantidad, margen_tope)
-    )
-
     if precio_forzado is not None:
         precio_unitario = Decimal(precio_forzado)
-    else:
-        precio_unitario = _precio_mayorista(
-            costo_productivo,
-            margen_objetivo,
+        costo_productivo = Decimal(costo_productivo)
+        cantidad = max(int(cantidad or 1), 1)
+        total_sin_redondear = precio_unitario * Decimal(cantidad)
+        total = _redondear_arriba(total_sin_redondear, Decimal("100"))
+        costo_total = costo_productivo * Decimal(cantidad)
+        ganancia = total - costo_total
+        margen_real = (
+            ganancia / total * Decimal("100")
+            if total > 0 else Decimal("0")
         )
-    costo_total = costo_productivo * Decimal(cantidad)
+        return {
+            "cantidad": cantidad,
+            "margen_objetivo": (
+                Decimal(margen)
+                if margen is not None
+                else _margen_sugerido(cantidad, margen_tope)
+            ),
+            "precio_unitario": precio_unitario,
+            "total_sin_redondear": total_sin_redondear,
+            "total": total,
+            "costo_total": costo_total,
+            "ganancia": ganancia,
+            "margen_real": margen_real,
+        }
 
-    # El unitario conserva sus centavos.
-    # Recién el importe FINAL se redondea hacia arriba a $100.
-    total_sin_redondear = (
-        precio_unitario
-        * Decimal(cantidad)
-    )
-    total = _redondear_arriba(
-        total_sin_redondear,
-        Decimal("100"),
+    fila = fila_precio_compartido(
+        costo_productivo,
+        cantidad,
+        margen=margen,
+        margen_tope=margen_tope,
     )
 
+    total = fila["total_recomendado"]
+    costo_total = fila["costo_total"]
     ganancia = total - costo_total
 
-    margen_real = Decimal("0")
-    if total > 0:
-        margen_real = (
-            ganancia
-            / total
-            * Decimal("100")
-        )
-
     return {
-        "cantidad": cantidad,
-        "margen_objetivo": margen_objetivo,
-        "precio_unitario": precio_unitario,
-        "total_sin_redondear": total_sin_redondear,
+        "cantidad": fila["cantidad"],
+        "margen_objetivo": fila["margen_objetivo"],
+        "precio_unitario": fila["precio_unitario"],
+        "total_sin_redondear": fila["total_sin_redondear"],
         "total": total,
         "costo_total": costo_total,
         "ganancia": ganancia,
-        "margen_real": margen_real,
+        "margen_real": (
+            ganancia / total * Decimal("100")
+            if total > 0 else Decimal("0")
+        ),
     }
-
 
 def _lista_precios(costo_productivo, cantidades, margen_tope):
     return [
@@ -274,22 +204,7 @@ def _lista_precios(costo_productivo, cantidades, margen_tope):
 
 
 def _margenes_escenario(cantidad, margen_tope):
-    recomendado = _margen_sugerido(cantidad, margen_tope)
-    conservador = min(
-        recomendado + Decimal("4"),
-        Decimal(margen_tope),
-    )
-    agresivo = max(
-        recomendado - Decimal("4"),
-        MARGEN_MINIMO_ADVERTENCIA,
-    )
-
-    return {
-        "conservador": conservador,
-        "recomendado": recomendado,
-        "agresivo": agresivo,
-    }
-
+    return margenes_escenario_compartido(cantidad, margen_tope)
 
 def _lista_precios_escenarios(costo_productivo, cantidades, margen_tope):
     filas = []

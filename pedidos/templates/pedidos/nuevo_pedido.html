@@ -158,6 +158,159 @@ button{font-family:Arial,sans-serif}
 .nav-item span:first-child{font-size:19px}
 .nav-item.activo,.nav-item.nuevo-nav{background:white;color:var(--oscuro)}
 
+
+
+.personalizado-precios{
+    display:none;
+    margin-top:13px;
+    padding:14px;
+    border-radius:12px;
+    border:1px solid #e3d7f1;
+    background:#fbf8ff;
+}
+
+.personalizado-precios.activo{
+    display:block;
+}
+
+.personalizado-precios-titulo{
+    margin-bottom:4px;
+    font-size:10px;
+    font-weight:900;
+    color:#4b3566;
+}
+
+.personalizado-precios-ayuda{
+    margin-bottom:10px;
+    color:#756781;
+    font-size:10px;
+    line-height:1.4;
+}
+
+.personalizado-precio-lista{
+    margin-bottom:10px;
+    padding:9px 11px;
+    border-radius:10px;
+    background:#f1eafd;
+    color:#51366f;
+    font-size:10px;
+    font-weight:800;
+    line-height:1.4;
+}
+
+.personalizado-recomendaciones{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:9px;
+}
+
+.personalizado-recomendacion{
+    padding:11px;
+    border-radius:12px;
+    border:1px solid transparent;
+}
+
+.personalizado-recomendacion.conservador{
+    background:#eaf3ff;
+    border-color:#bed8f4;
+    color:#173f68;
+}
+
+.personalizado-recomendacion.recomendado{
+    background:#e8f7ef;
+    border-color:#b9dfc9;
+    color:#175a36;
+}
+
+.personalizado-recomendacion.agresivo{
+    background:#fff2df;
+    border-color:#efd2a5;
+    color:#754814;
+}
+
+.personalizado-recomendacion-nombre{
+    margin-bottom:5px;
+    font-size:9px;
+    font-weight:900;
+    text-transform:uppercase;
+}
+
+.personalizado-recomendacion-unitario{
+    margin-bottom:3px;
+    font-size:16px;
+    font-weight:900;
+}
+
+.personalizado-recomendacion-total{
+    font-size:11px;
+    font-weight:900;
+}
+
+.personalizado-recomendacion-detalle{
+    min-height:30px;
+    margin-top:4px;
+    font-size:9px;
+    line-height:1.4;
+}
+
+.personalizado-boton-usar{
+    width:100%;
+    min-height:34px;
+    margin-top:8px;
+    border:0;
+    border-radius:9px;
+    background:rgba(255,255,255,.86);
+    color:inherit;
+    font-size:9px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+@media(max-width:700px){
+    .personalizado-recomendaciones{
+        grid-template-columns:1fr;
+    }
+}
+
+/* PRECIOS POR CANTIDAD */
+.precio-producto-box{
+    display:none;margin-top:13px;padding:15px;background:white;
+    border:1px solid #d9e1ea;border-radius:14px
+}
+.precio-producto-box.activo{display:block}
+.precio-producto-cabecera{margin-bottom:11px}
+.precio-producto-titulo{font-size:10px;font-weight:900;color:#29313b}
+.precio-producto-ayuda{margin-top:4px;font-size:10px;color:var(--muted);line-height:1.4}
+.precio-acordado-grid{
+    display:grid;grid-template-columns:minmax(170px,220px) 1fr;
+    gap:11px;align-items:end;margin-bottom:11px
+}
+.precio-total-actual{
+    min-height:42px;display:flex;align-items:center;padding:0 12px;
+    border-radius:10px;background:#f1f4f7;color:#2d3742;
+    font-size:11px;font-weight:900
+}
+.precio-lista-info{
+    margin-bottom:10px;padding:9px 11px;border-radius:10px;
+    background:#eef5ff;color:#244563;font-size:10px;font-weight:800;line-height:1.4
+}
+.recomendaciones-precio{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.recomendacion-precio{padding:11px;border-radius:12px;border:1px solid transparent}
+.recomendacion-precio.conservador{background:#eaf3ff;border-color:#bed8f4;color:#173f68}
+.recomendacion-precio.recomendado{background:#e8f7ef;border-color:#b9dfc9;color:#175a36}
+.recomendacion-precio.agresivo{background:#fff2df;border-color:#efd2a5;color:#754814}
+.recomendacion-nombre{font-size:9px;font-weight:900;text-transform:uppercase;margin-bottom:5px}
+.recomendacion-precio-unitario{font-size:17px;font-weight:900;margin-bottom:4px}
+.recomendacion-detalle{min-height:32px;font-size:9px;line-height:1.4}
+.boton-usar-precio{
+    width:100%;min-height:34px;margin-top:8px;border:0;border-radius:9px;
+    background:rgba(255,255,255,.86);color:inherit;font-size:9px;font-weight:900;cursor:pointer
+}
+.precio-cargando{padding:10px;color:var(--muted);font-size:10px}
+@media(max-width:700px){
+    .precio-acordado-grid,.recomendaciones-precio{grid-template-columns:1fr}
+}
+
 @media(min-width:760px) and (max-width:1100px){
     .contenedor{padding:20px 16px 32px}
     .item-grid{grid-template-columns:155px minmax(220px,1fr) 110px}
@@ -659,6 +812,7 @@ button{font-family:Arial,sans-serif}
                     <select
                         name="producto_${indice}"
                         id="producto_${indice}"
+                        onchange="cambioProductoPedido(${indice})"
                         required
                     >
 
@@ -723,6 +877,7 @@ button{font-family:Arial,sans-serif}
                         id="cantidad_${indice}"
                         min="1"
                         value="1"
+                        oninput="cambioCantidadPedido(${indice})"
                         required
                     >
 
@@ -731,6 +886,38 @@ button{font-family:Arial,sans-serif}
 
             </div>
 
+            <div class="precio-producto-box" id="precio_producto_box_${indice}">
+                <div class="precio-producto-cabecera">
+                    <div class="precio-producto-titulo">PRECIO DEL PRODUCTO</div>
+                    <div class="precio-producto-ayuda">
+                        El precio de lista queda por defecto. Las recomendaciones no se aplican solas.
+                    </div>
+                </div>
+
+                <div class="precio-acordado-grid">
+                    <div class="campo">
+                        <label>PRECIO UNITARIO ACORDADO</label>
+                        <input
+                            type="number"
+                            name="precio_unitario_${indice}"
+                            id="precio_unitario_${indice}"
+                            min="0.01"
+                            step="0.01"
+                            oninput="actualizarTotalPrecio(${indice})"
+                        >
+                    </div>
+
+                    <div class="precio-total-actual" id="precio_total_actual_${indice}">
+                        Total: —
+                    </div>
+                </div>
+
+                <div class="precio-lista-info" id="precio_lista_info_${indice}">
+                    Seleccioná un producto para ver precios.
+                </div>
+
+                <div class="recomendaciones-precio" id="recomendaciones_precio_${indice}"></div>
+            </div>
 
             <div
                 class="selector-personalizado"
@@ -756,6 +943,7 @@ button{font-family:Arial,sans-serif}
                         <select
                             name="producto_personalizado_${indice}"
                             id="producto_personalizado_${indice}"
+                            onchange="cambioProductoPersonalizado(${indice})"
                         >
                             <option value="">
                                 Seleccionar producto base...
@@ -794,9 +982,37 @@ button{font-family:Arial,sans-serif}
                             min="0"
                             step="0.01"
                             placeholder="Ej: 60000"
+                            oninput="actualizarResumenPersonalizado(${indice})"
                         >
                     </div>
 
+                </div>
+
+                <div
+                    class="personalizado-precios"
+                    id="personalizado_precios_${indice}"
+                >
+                    <div class="personalizado-precios-titulo">
+                        RECOMENDACIÓN DE PRECIO POR CANTIDAD
+                    </div>
+
+                    <div class="personalizado-precios-ayuda">
+                        Usa el costo y el margen del producto base.
+                        No se aplica automáticamente: el precio total acordado sigue siendo editable.
+                    </div>
+
+                    <div
+                        class="personalizado-precio-lista"
+                        id="personalizado_precio_lista_${indice}"
+                    >
+                        Seleccioná un producto base para calcular.
+                    </div>
+
+                    <div
+                        class="personalizado-recomendaciones"
+                        id="personalizado_recomendaciones_${indice}"
+                    >
+                    </div>
                 </div>
 
                 <div class="campo personalizado-detalle">
@@ -906,6 +1122,469 @@ button{font-family:Arial,sans-serif}
     }
 
 
+
+    /* PRECIO PRODUCTO / MAYORISTA */
+    const datosPrecioPorItem = {};
+    const timerPrecioPorItem = {};
+
+    function moneda(valor, decimales = 2) {
+        return new Intl.NumberFormat("es-AR", {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: decimales
+        }).format(Number(valor || 0));
+    }
+
+    function actualizarTotalPrecio(indice) {
+        const cantidadInput = document.getElementById(`cantidad_${indice}`);
+        const precioInput = document.getElementById(`precio_unitario_${indice}`);
+        const total = document.getElementById(`precio_total_actual_${indice}`);
+
+        if (!cantidadInput || !precioInput || !total) return;
+
+        const cantidad = Number(cantidadInput.value || 0);
+        const precio = Number(precioInput.value || 0);
+
+        total.textContent =
+            cantidad > 0 && precio > 0
+                ? `Total pedido: $${moneda(cantidad * precio, 2)}`
+                : "Total: —";
+    }
+
+    function cambioProductoPedido(indice) {
+        const precioInput = document.getElementById(`precio_unitario_${indice}`);
+        if (precioInput) {
+            precioInput.value = "";
+            precioInput.dataset.producto = "";
+        }
+        cargarRecomendacionPrecio(indice, true);
+    }
+
+    function cambioCantidadPedido(indice) {
+        actualizarTotalPrecio(indice);
+
+        clearTimeout(timerPrecioPorItem[indice]);
+        timerPrecioPorItem[indice] = setTimeout(
+            () => cargarRecomendacionPrecio(indice, false),
+            250
+        );
+
+        cambioCantidadPersonalizado(indice);
+    }
+
+    async function cargarRecomendacionPrecio(indice, productoCambio = false) {
+        const tipo = document.getElementById(`tipo_item_${indice}`);
+        const producto = document.getElementById(`producto_${indice}`);
+        const cantidadInput = document.getElementById(`cantidad_${indice}`);
+        const bloque = document.getElementById(`precio_producto_box_${indice}`);
+        const precioInput = document.getElementById(`precio_unitario_${indice}`);
+        const infoLista = document.getElementById(`precio_lista_info_${indice}`);
+        const recomendaciones = document.getElementById(`recomendaciones_precio_${indice}`);
+
+        if (!tipo || tipo.value !== "PRODUCTO" || !producto || !producto.value) {
+            if (bloque) bloque.classList.remove("activo");
+            return;
+        }
+
+        const cantidad = Math.max(Number(cantidadInput.value || 1), 1);
+        bloque.classList.add("activo");
+        recomendaciones.innerHTML =
+            '<div class="precio-cargando">Calculando recomendaciones…</div>';
+
+        const url =
+            "{% url 'pedidos:precio_producto' %}"
+            + `?producto_id=${encodeURIComponent(producto.value)}`
+            + `&cantidad=${encodeURIComponent(cantidad)}`;
+
+        try {
+            const respuesta = await fetch(url, {
+                headers: {"X-Requested-With": "XMLHttpRequest"}
+            });
+
+            if (!respuesta.ok) throw new Error("Error calculando precio");
+
+            const datos = await respuesta.json();
+            datosPrecioPorItem[indice] = datos;
+
+            const precioLista = Number(datos.producto.precio_lista);
+
+            if (
+                productoCambio
+                || !precioInput.value
+                || precioInput.dataset.producto !== String(datos.producto.id)
+            ) {
+                precioInput.value = precioLista.toFixed(2);
+                precioInput.dataset.producto = String(datos.producto.id);
+            }
+
+            infoLista.innerHTML =
+                `Lista: <strong>$${moneda(precioLista)}</strong>/u`
+                + ` · tope ${datos.producto.margen_tope}%`
+                + ` · piso ${datos.producto.margen_piso}%`;
+
+            if (cantidad <= 1) {
+                recomendaciones.innerHTML =
+                    '<div class="precio-cargando">'
+                    + 'Para 1 unidad se mantiene el precio de lista. '
+                    + 'Aumentá la cantidad para ver recomendaciones.'
+                    + '</div>';
+                actualizarTotalPrecio(indice);
+                return;
+            }
+
+            const nombres = [
+                ["conservador", "Conservador"],
+                ["recomendado", "Recomendado"],
+                ["agresivo", "Agresivo"]
+            ];
+
+            recomendaciones.innerHTML = nombres.map(([clave, etiqueta]) => {
+                const fila = datos.escenarios[clave];
+
+                return `
+                    <div class="recomendacion-precio ${clave}">
+                        <div class="recomendacion-nombre">${etiqueta}</div>
+                        <div class="recomendacion-precio-unitario">
+                            $${moneda(fila.precio_unitario_pedido)}/u
+                        </div>
+                        <div class="recomendacion-detalle">
+                            Margen ${fila.margen}%<br>
+                            Total sugerido $${moneda(fila.total_recomendado, 0)}
+                        </div>
+                        <button
+                            type="button"
+                            class="boton-usar-precio"
+                            onclick="usarPrecioRecomendado(${indice}, '${clave}')"
+                        >
+                            USAR ESTE PRECIO
+                        </button>
+                    </div>
+                `;
+            }).join("");
+
+            actualizarTotalPrecio(indice);
+
+        } catch (error) {
+            console.error(error);
+            recomendaciones.innerHTML =
+                '<div class="precio-cargando">No se pudo calcular la recomendación.</div>';
+        }
+    }
+
+    function usarPrecioRecomendado(indice, estrategia) {
+        const datos = datosPrecioPorItem[indice];
+        const precioInput = document.getElementById(`precio_unitario_${indice}`);
+
+        if (!datos || !datos.escenarios || !datos.escenarios[estrategia] || !precioInput) {
+            return;
+        }
+
+        precioInput.value =
+            Number(datos.escenarios[estrategia].precio_unitario_pedido).toFixed(2);
+
+        precioInput.dataset.producto = String(datos.producto.id);
+        actualizarTotalPrecio(indice);
+    }
+
+
+    /* =========================================
+       PRECIO PERSONALIZADO / MAYORISTA
+    ========================================= */
+
+    const datosPrecioPersonalizado = {};
+    const timerPrecioPersonalizado = {};
+
+    function cambioProductoPersonalizado(indice) {
+        const totalInput =
+            document.getElementById(
+                `precio_total_personalizado_${indice}`
+            );
+
+        if (totalInput) {
+            totalInput.dataset.producto = "";
+        }
+
+        cargarRecomendacionPersonalizado(
+            indice,
+            true
+        );
+    }
+
+
+    function actualizarResumenPersonalizado(indice) {
+        const cantidadInput =
+            document.getElementById(
+                `cantidad_${indice}`
+            );
+
+        const totalInput =
+            document.getElementById(
+                `precio_total_personalizado_${indice}`
+            );
+
+        const info =
+            document.getElementById(
+                `personalizado_precio_lista_${indice}`
+            );
+
+        const datos =
+            datosPrecioPersonalizado[indice];
+
+        if (
+            !cantidadInput
+            || !totalInput
+            || !info
+        ) {
+            return;
+        }
+
+        const cantidad =
+            Math.max(
+                Number(cantidadInput.value || 1),
+                1
+            );
+
+        const total =
+            Number(totalInput.value || 0);
+
+        if (!datos) {
+            return;
+        }
+
+        const precioLista =
+            Number(datos.producto.precio_lista);
+
+        let texto =
+            `Base lista: <strong>$${moneda(precioLista)}</strong>/u`
+            + ` · tope ${datos.producto.margen_tope}%`
+            + ` · piso ${datos.producto.margen_piso}%`;
+
+        if (total > 0) {
+            texto +=
+                ` · acordado: <strong>$${moneda(total / cantidad)}</strong>/u`;
+        }
+
+        info.innerHTML = texto;
+    }
+
+
+    function cambioCantidadPersonalizado(indice) {
+        clearTimeout(
+            timerPrecioPersonalizado[indice]
+        );
+
+        timerPrecioPersonalizado[indice] =
+            setTimeout(
+                function() {
+                    cargarRecomendacionPersonalizado(
+                        indice,
+                        false
+                    );
+                },
+                250
+            );
+    }
+
+
+    async function cargarRecomendacionPersonalizado(
+        indice,
+        productoCambio = false
+    ) {
+        const tipo =
+            document.getElementById(
+                `tipo_item_${indice}`
+            );
+
+        const producto =
+            document.getElementById(
+                `producto_personalizado_${indice}`
+            );
+
+        const cantidadInput =
+            document.getElementById(
+                `cantidad_${indice}`
+            );
+
+        const totalInput =
+            document.getElementById(
+                `precio_total_personalizado_${indice}`
+            );
+
+        const bloque =
+            document.getElementById(
+                `personalizado_precios_${indice}`
+            );
+
+        const info =
+            document.getElementById(
+                `personalizado_precio_lista_${indice}`
+            );
+
+        const recomendaciones =
+            document.getElementById(
+                `personalizado_recomendaciones_${indice}`
+            );
+
+        if (
+            !tipo
+            || tipo.value !== "PERSONALIZADO"
+            || !producto
+            || !producto.value
+        ) {
+            if (bloque) {
+                bloque.classList.remove("activo");
+            }
+            return;
+        }
+
+        const cantidad =
+            Math.max(
+                Number(cantidadInput.value || 1),
+                1
+            );
+
+        bloque.classList.add("activo");
+
+        recomendaciones.innerHTML =
+            '<div class="precio-cargando">Calculando recomendaciones…</div>';
+
+        const url =
+            "{% url 'pedidos:precio_producto' %}"
+            + `?producto_id=${encodeURIComponent(producto.value)}`
+            + `&cantidad=${encodeURIComponent(cantidad)}`;
+
+        try {
+            const respuesta =
+                await fetch(
+                    url,
+                    {
+                        headers: {
+                            "X-Requested-With":
+                                "XMLHttpRequest"
+                        }
+                    }
+                );
+
+            if (!respuesta.ok) {
+                throw new Error(
+                    "No se pudo calcular el precio."
+                );
+            }
+
+            const datos =
+                await respuesta.json();
+
+            datosPrecioPersonalizado[indice] =
+                datos;
+
+            /*
+             * En personalizados NO cargamos automáticamente
+             * el precio de lista ni una recomendación.
+             *
+             * Solo mantenemos lo que el usuario ya escribió
+             * y mostramos opciones para aplicar.
+             */
+            if (
+                productoCambio
+                && totalInput
+                && totalInput.dataset.producto
+                    !== String(datos.producto.id)
+            ) {
+                totalInput.dataset.producto =
+                    String(datos.producto.id);
+            }
+
+            actualizarResumenPersonalizado(indice);
+
+            const nombres = [
+                ["conservador", "Conservador"],
+                ["recomendado", "Recomendado"],
+                ["agresivo", "Agresivo"]
+            ];
+
+            recomendaciones.innerHTML =
+                nombres.map(
+                    ([clave, etiqueta]) => {
+                        const fila =
+                            datos.escenarios[clave];
+
+                        return `
+                            <div class="personalizado-recomendacion ${clave}">
+                                <div class="personalizado-recomendacion-nombre">
+                                    ${etiqueta}
+                                </div>
+
+                                <div class="personalizado-recomendacion-unitario">
+                                    $${moneda(fila.precio_unitario_pedido)}/u
+                                </div>
+
+                                <div class="personalizado-recomendacion-total">
+                                    Total $${moneda(fila.total_recomendado, 0)}
+                                </div>
+
+                                <div class="personalizado-recomendacion-detalle">
+                                    Margen objetivo ${fila.margen}%<br>
+                                    Sobre el costo del producto base
+                                </div>
+
+                                <button
+                                    type="button"
+                                    class="personalizado-boton-usar"
+                                    onclick="usarPrecioPersonalizado(${indice}, '${clave}')"
+                                >
+                                    USAR ESTE TOTAL
+                                </button>
+                            </div>
+                        `;
+                    }
+                ).join("");
+
+        } catch (error) {
+            console.error(error);
+
+            recomendaciones.innerHTML =
+                '<div class="precio-cargando">'
+                + 'No se pudo calcular la recomendación.'
+                + '</div>';
+        }
+    }
+
+
+    function usarPrecioPersonalizado(
+        indice,
+        estrategia
+    ) {
+        const datos =
+            datosPrecioPersonalizado[indice];
+
+        const totalInput =
+            document.getElementById(
+                `precio_total_personalizado_${indice}`
+            );
+
+        if (
+            !datos
+            || !datos.escenarios
+            || !datos.escenarios[estrategia]
+            || !totalInput
+        ) {
+            return;
+        }
+
+        const fila =
+            datos.escenarios[estrategia];
+
+        totalInput.value =
+            Number(
+                fila.total_recomendado
+            ).toFixed(2);
+
+        totalInput.dataset.producto =
+            String(datos.producto.id);
+
+        actualizarResumenPersonalizado(indice);
+    }
+
+
     /* =========================================
        CAMBIO PRODUCTO / KIT
     ========================================= */
@@ -957,6 +1636,21 @@ button{font-family:Arial,sans-serif}
                 `detalle_personalizacion_${indice}`
             );
 
+        const bloquePrecioProducto =
+            document.getElementById(
+                `precio_producto_box_${indice}`
+            );
+
+        const precioUnitarioProducto =
+            document.getElementById(
+                `precio_unitario_${indice}`
+            );
+
+        const bloquePrecioPersonalizado =
+            document.getElementById(
+                `personalizado_precios_${indice}`
+            );
+
         const componentes =
             document.getElementById(
                 `componentes_kit_${indice}`
@@ -973,6 +1667,8 @@ button{font-family:Arial,sans-serif}
         bloqueProducto.style.display = "none";
         bloqueKit.style.display = "none";
         bloquePersonalizado.classList.remove("activo");
+        bloquePrecioProducto.classList.remove("activo");
+        bloquePrecioPersonalizado.classList.remove("activo");
 
         producto.required = false;
         kit.required = false;
@@ -995,6 +1691,8 @@ button{font-family:Arial,sans-serif}
             precioPersonalizado.value = "";
             detallePersonalizado.value = "";
 
+            cargarRecomendacionPrecio(indice, false);
+
         } else if (tipo === "KIT") {
 
             bloqueKit.style.display = "block";
@@ -1006,6 +1704,9 @@ button{font-family:Arial,sans-serif}
             precioPersonalizado.value = "";
             detallePersonalizado.value = "";
 
+            precioUnitarioProducto.value = "";
+            precioUnitarioProducto.dataset.producto = "";
+
         } else if (tipo === "PERSONALIZADO") {
 
             bloquePersonalizado.classList.add("activo");
@@ -1016,6 +1717,14 @@ button{font-family:Arial,sans-serif}
 
             producto.value = "";
             kit.value = "";
+
+            precioUnitarioProducto.value = "";
+            precioUnitarioProducto.dataset.producto = "";
+
+            cargarRecomendacionPersonalizado(
+                indice,
+                false
+            );
         }
 
     }
