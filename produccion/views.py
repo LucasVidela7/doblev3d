@@ -949,7 +949,7 @@ def repetir_produccion(
 
     original = get_object_or_404(
         Produccion.objects
-        .select_for_update()
+        .select_for_update(of=("self",))
         .select_related(
             "producto",
             "pedido",
@@ -1045,7 +1045,7 @@ def cambiar_estado(
 
     produccion = get_object_or_404(
         Produccion.objects
-        .select_for_update()
+        .select_for_update(of=("self",))
         .select_related(
             "impresora",
             "producto",
