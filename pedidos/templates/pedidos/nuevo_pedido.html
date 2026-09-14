@@ -903,7 +903,14 @@ button{font-family:Arial,sans-serif}
                             id="precio_unitario_${indice}"
                             min="0.01"
                             step="0.01"
-                            oninput="actualizarTotalPrecio(${indice})"
+                            oninput="actualizarTotalPrecio(${indice}, true)"
+                        >
+
+                        <input
+                            type="hidden"
+                            name="precio_total_producto_${indice}"
+                            id="precio_total_producto_${indice}"
+                            value=""
                         >
                     </div>
 
@@ -1134,29 +1141,93 @@ button{font-family:Arial,sans-serif}
         }).format(Number(valor || 0));
     }
 
-    function actualizarTotalPrecio(indice) {
-        const cantidadInput = document.getElementById(`cantidad_${indice}`);
-        const precioInput = document.getElementById(`precio_unitario_${indice}`);
-        const total = document.getElementById(`precio_total_actual_${indice}`);
+    function actualizarTotalPrecio(
+        indice,
+        desdeEdicionManual = false
+    ) {
+        const cantidadInput =
+            document.getElementById(
+                `cantidad_${indice}`
+            );
 
-        if (!cantidadInput || !precioInput || !total) return;
+        const precioInput =
+            document.getElementById(
+                `precio_unitario_${indice}`
+            );
 
-        const cantidad = Number(cantidadInput.value || 0);
-        const precio = Number(precioInput.value || 0);
+        const total =
+            document.getElementById(
+                `precio_total_actual_${indice}`
+            );
+
+        const totalHidden =
+            document.getElementById(
+                `precio_total_producto_${indice}`
+            );
+
+        if (
+            !cantidadInput
+            || !precioInput
+            || !total
+        ) {
+            return;
+        }
+
+        const cantidad =
+            Number(
+                cantidadInput.value || 0
+            );
+
+        const precio =
+            Number(
+                precioInput.value || 0
+            );
+
+        const totalCalculado =
+            cantidad > 0 && precio > 0
+            ? cantidad * precio
+            : 0;
+
+        if (totalHidden) {
+            totalHidden.value =
+                totalCalculado > 0
+                ? totalCalculado.toFixed(2)
+                : "";
+        }
 
         total.textContent =
-            cantidad > 0 && precio > 0
-                ? `Total pedido: $${moneda(cantidad * precio, 2)}`
-                : "Total: —";
+            totalCalculado > 0
+            ? `Total acordado: $${moneda(
+                totalCalculado,
+                2
+            )}`
+            : "Total: —";
     }
 
     function cambioProductoPedido(indice) {
-        const precioInput = document.getElementById(`precio_unitario_${indice}`);
+        const precioInput =
+            document.getElementById(
+                `precio_unitario_${indice}`
+            );
+
+        const totalHidden =
+            document.getElementById(
+                `precio_total_producto_${indice}`
+            );
+
         if (precioInput) {
             precioInput.value = "";
             precioInput.dataset.producto = "";
         }
-        cargarRecomendacionPrecio(indice, true);
+
+        if (totalHidden) {
+            totalHidden.value = "";
+        }
+
+        cargarRecomendacionPrecio(
+            indice,
+            true
+        );
     }
 
     function cambioCantidadPedido(indice) {
@@ -1214,6 +1285,19 @@ button{font-family:Arial,sans-serif}
             ) {
                 precioInput.value = precioLista.toFixed(2);
                 precioInput.dataset.producto = String(datos.producto.id);
+
+                const totalHidden =
+                    document.getElementById(
+                        `precio_total_producto_${indice}`
+                    );
+
+                if (totalHidden) {
+                    totalHidden.value =
+                        (
+                            precioLista
+                            * cantidad
+                        ).toFixed(2);
+                }
             }
 
             infoLista.innerHTML =
@@ -1270,19 +1354,79 @@ button{font-family:Arial,sans-serif}
         }
     }
 
-    function usarPrecioRecomendado(indice, estrategia) {
-        const datos = datosPrecioPorItem[indice];
-        const precioInput = document.getElementById(`precio_unitario_${indice}`);
+    function usarPrecioRecomendado(
+        indice,
+        estrategia
+    ) {
+        const datos =
+            datosPrecioPorItem[indice];
 
-        if (!datos || !datos.escenarios || !datos.escenarios[estrategia] || !precioInput) {
+        const precioInput =
+            document.getElementById(
+                `precio_unitario_${indice}`
+            );
+
+        const cantidadInput =
+            document.getElementById(
+                `cantidad_${indice}`
+            );
+
+        const totalHidden =
+            document.getElementById(
+                `precio_total_producto_${indice}`
+            );
+
+        const totalVisible =
+            document.getElementById(
+                `precio_total_actual_${indice}`
+            );
+
+        if (
+            !datos
+            || !datos.escenarios
+            || !datos.escenarios[estrategia]
+            || !precioInput
+            || !cantidadInput
+        ) {
             return;
         }
 
-        precioInput.value =
-            Number(datos.escenarios[estrategia].precio_unitario_pedido).toFixed(2);
+        const cantidad =
+            Math.max(
+                Number(
+                    cantidadInput.value || 1
+                ),
+                1
+            );
 
-        precioInput.dataset.producto = String(datos.producto.id);
-        actualizarTotalPrecio(indice);
+        const totalRecomendado =
+            Number(
+                datos
+                .escenarios[estrategia]
+                .total_recomendado
+            );
+
+        const precioUnitario =
+            totalRecomendado / cantidad;
+
+        precioInput.value =
+            precioUnitario.toFixed(2);
+
+        precioInput.dataset.producto =
+            String(datos.producto.id);
+
+        if (totalHidden) {
+            totalHidden.value =
+                totalRecomendado.toFixed(2);
+        }
+
+        if (totalVisible) {
+            totalVisible.textContent =
+                `Total acordado: $${moneda(
+                    totalRecomendado,
+                    2
+                )}`;
+        }
     }
 
 

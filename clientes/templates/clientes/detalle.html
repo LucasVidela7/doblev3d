@@ -218,6 +218,50 @@
             font-size:12px;
             font-weight:900;
         }
+
+        .pedido-acciones{
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+            margin-top:11px;
+        }
+
+        .pedido-acciones .pedido-accion{
+            margin-top:0;
+        }
+
+        .btn-editar-pedido{
+            min-height:42px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            padding:0 13px;
+            border:1px solid var(--borde);
+            border-radius:11px;
+            background:#fff;
+            color:var(--oscuro);
+            text-decoration:none;
+            font-size:9px;
+            font-weight:900;
+        }
+
+        .btn-editar-pedido:hover{
+            background:#f4f5f7;
+        }
+
+        @media(max-width:520px){
+            .pedido-acciones{
+                display:grid;
+                grid-template-columns:1fr;
+            }
+
+            .pedido-acciones .pedido-accion,
+            .btn-editar-pedido,
+            .pedido-acciones .btn-pagar{
+                width:100%;
+            }
+        }
+
         .pedido-accion{
             margin-top:10px;
         }
@@ -735,20 +779,33 @@
                             </div>
                         </div>
 
-                        {% if item.saldo > 0 %}
-                            <div class="pedido-accion">
-                                <button
-                                    type="button"
-                                    class="btn-pagar"
-                                    data-url="{% url 'pedidos:registrar_pago' item.pedido.id %}"
-                                    data-codigo="{{ item.pedido.codigo }}"
-                                    data-saldo="{{ item.saldo }}"
-                                    onclick="abrirPagoCliente(this)"
+                        <div class="pedido-acciones">
+
+                            {% if item.pedido.estado != "ENTREGADO" and item.pedido.estado != "CANCELADO" %}
+                                <a
+                                    href="{% url 'pedidos:editar' item.pedido.id %}?volver=cliente&cliente_id={{ cliente.id }}"
+                                    class="btn-editar-pedido"
                                 >
-                                    + REGISTRAR PAGO
-                                </button>
-                            </div>
-                        {% endif %}
+                                    ✎ EDITAR PEDIDO
+                                </a>
+                            {% endif %}
+
+                            {% if item.saldo > 0 %}
+                                <div class="pedido-accion">
+                                    <button
+                                        type="button"
+                                        class="btn-pagar"
+                                        data-url="{% url 'pedidos:registrar_pago' item.pedido.id %}"
+                                        data-codigo="{{ item.pedido.codigo }}"
+                                        data-saldo="{{ item.saldo }}"
+                                        onclick="abrirPagoCliente(this)"
+                                    >
+                                        + REGISTRAR PAGO
+                                    </button>
+                                </div>
+                            {% endif %}
+
+                        </div>
 
 
                         <details class="resumen-pedido">

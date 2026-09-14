@@ -670,14 +670,65 @@ def nuevo_pedido(request):
                     activo=True,
                 )
 
-                precio_unitario = producto.subtotal
+                precio_unitario_texto = request.POST.get(
+                    f"precio_unitario_{indice}",
+                    "",
+                ).strip()
 
-                if precio_unitario is None or precio_unitario <= 0:
+                precio_total_texto = request.POST.get(
+                    f"precio_total_producto_{indice}",
+                    "",
+                ).strip()
+
+                try:
+                    precio_unitario = Decimal(
+                        precio_unitario_texto
+                    )
+                except (
+                    InvalidOperation,
+                    TypeError,
+                    ValueError,
+                ):
+                    precio_unitario = Decimal("0")
+
+                try:
+                    precio_total = Decimal(
+                        precio_total_texto
+                    )
+                except (
+                    InvalidOperation,
+                    TypeError,
+                    ValueError,
+                ):
+                    precio_total = Decimal("0")
+
+                # El TOTAL acordado es el dato autoritativo.
+                # Si viene desde una recomendación, conserva exactamente
+                # el total redondeado por la calculadora.
+                if precio_total > 0:
+                    precio_unitario = (
+                        precio_total
+                        / Decimal(cantidad)
+                    ).quantize(
+                        Decimal("0.01")
+                    )
+                elif precio_unitario > 0:
+                    precio_total = (
+                        precio_unitario
+                        * Decimal(cantidad)
+                    ).quantize(
+                        Decimal("0.01")
+                    )
+
+                if (
+                    precio_unitario <= 0
+                    or precio_total <= 0
+                ):
                     messages.error(
                         request,
                         (
-                            f"El producto {producto.nombre} no tiene "
-                            "un precio de venta válido."
+                            f"El precio acordado de "
+                            f"{producto.nombre} debe ser mayor a cero."
                         )
                     )
 
@@ -2075,6 +2126,12 @@ def editar_pedido(request, pedido_id):
                 "cantidad": detalle.cantidad,
                 "producto_id": detalle.producto_id,
                 "kit_id": detalle.kit_id,
+                "precio_unitario":
+                    (
+                        str(detalle.precio_unitario)
+                        if detalle.precio_unitario is not None
+                        else ""
+                    ),
                 "productos_kit_ids": [
                     componente.producto_id
                     for componente in detalle.productos_kit.all()
@@ -2101,6 +2158,12 @@ def editar_pedido(request, pedido_id):
                 "productos": productos,
                 "kits": kits,
                 "items_iniciales": items_iniciales,
+                "volver_cliente": (
+                    request.GET.get("volver") == "cliente"
+                ),
+                "volver_cliente_id": (
+                    request.GET.get("cliente_id", "").strip()
+                ),
             },
         )
 
@@ -2110,6 +2173,17 @@ def editar_pedido(request, pedido_id):
     cliente_id = request.POST.get("cliente")
     fecha_entrega = request.POST.get("fecha_entrega")
     observaciones = request.POST.get("observaciones", "").strip()
+
+    volver_cliente = (
+        request.POST.get("volver") == "cliente"
+    )
+
+    volver_cliente_id = (
+        request.POST.get(
+            "volver_cliente_id",
+            "",
+        ).strip()
+    )
 
     cliente = get_object_or_404(
         Cliente,
@@ -2188,11 +2262,78 @@ def editar_pedido(request, pedido_id):
                 id=request.POST.get(f"producto_{indice}"),
                 activo=True,
             )
+
+            precio_unitario_texto = request.POST.get(
+                f"precio_unitario_{indice}",
+                "",
+            ).strip()
+
+            precio_total_texto = request.POST.get(
+                f"precio_total_producto_{indice}",
+                "",
+            ).strip()
+
+            try:
+                precio_unitario = Decimal(
+                    precio_unitario_texto
+                )
+            except (
+                InvalidOperation,
+                TypeError,
+                ValueError,
+            ):
+                precio_unitario = Decimal("0")
+
+            try:
+                precio_total = Decimal(
+                    precio_total_texto
+                )
+            except (
+                InvalidOperation,
+                TypeError,
+                ValueError,
+            ):
+                precio_total = Decimal("0")
+
+            # El TOTAL acordado es el dato autoritativo.
+            # Esto evita que al editar el pedido se vuelva a calcular
+            # accidentalmente como precio de lista x cantidad.
+            if precio_total > 0:
+                precio_unitario = (
+                    precio_total
+                    / Decimal(cantidad)
+                ).quantize(
+                    Decimal("0.01")
+                )
+            elif precio_unitario > 0:
+                precio_total = (
+                    precio_unitario
+                    * Decimal(cantidad)
+                ).quantize(
+                    Decimal("0.01")
+                )
+
+            if precio_unitario <= 0 or precio_total <= 0:
+                messages.error(
+                    request,
+                    (
+                        f"El precio acordado de "
+                        f"{producto.nombre} debe ser mayor a cero."
+                    )
+                )
+                transaction.set_rollback(True)
+                return redirect(
+                    "pedidos:editar",
+                    pedido_id=pedido.id,
+                )
+
             nuevos_items.append({
                 "detalle_id": detalle_id,
                 "tipo_item": "PRODUCTO",
                 "cantidad": cantidad,
                 "producto": producto,
+                "precio_unitario": precio_unitario,
+                "precio_total": precio_total,
             })
 
         elif tipo_item == "KIT":
@@ -2335,18 +2476,7 @@ def editar_pedido(request, pedido_id):
     for item in nuevos_items:
         if item["tipo_item"] == "PRODUCTO":
             producto = item["producto"]
-            precio_unitario = producto.subtotal
-
-            if precio_unitario is None or precio_unitario <= 0:
-                messages.error(
-                    request,
-                    f"El producto {producto.nombre} no tiene un precio válido."
-                )
-                transaction.set_rollback(True)
-                return redirect(
-                    "pedidos:editar",
-                    pedido_id=pedido.id,
-                )
+            precio_unitario = item["precio_unitario"]
 
             DetallePedido.objects.create(
                 pedido=pedido,
@@ -2436,6 +2566,13 @@ def editar_pedido(request, pedido_id):
         request,
         f"{pedido.codigo} actualizado correctamente."
     )
+
+    if volver_cliente and volver_cliente_id:
+        return redirect(
+            "clientes:detalle",
+            cliente_id=volver_cliente_id,
+        )
+
     return redirect("pedidos:impresiones")
 
 
