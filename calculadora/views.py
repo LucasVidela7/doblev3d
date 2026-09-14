@@ -84,7 +84,11 @@ def _precio_mayorista(costo_productivo, margen):
     Margen real sobre precio de venta:
         precio = costo_productivo / (1 - margen)
 
-    El mayorista se redondea hacia arriba a múltiplos de $100.
+    IMPORTANTE:
+    El precio UNITARIO no se redondea a $100.
+    Se conserva con hasta 2 decimales.
+
+    El redondeo a $100 se aplica recién al TOTAL de la cotización.
     """
     costo_productivo = Decimal(costo_productivo)
     margen = Decimal(margen)
@@ -97,10 +101,9 @@ def _precio_mayorista(costo_productivo, margen):
     if factor <= 0:
         return Decimal("0")
 
-    return _redondear_arriba(
-        costo_productivo / factor,
-        Decimal("100"),
-    )
+    return (
+        costo_productivo / factor
+    ).quantize(Decimal("0.01"))
 
 
 def _margen_real(precio_unitario, costo_productivo):
@@ -193,20 +196,37 @@ def _fila_precio(costo_productivo, cantidad, margen=None, precio_forzado=None):
             margen_objetivo,
         )
     costo_total = costo_productivo * Decimal(cantidad)
-    total = precio_unitario * Decimal(cantidad)
+
+    # El unitario conserva sus centavos.
+    # Recién el importe FINAL se redondea hacia arriba a $100.
+    total_sin_redondear = (
+        precio_unitario
+        * Decimal(cantidad)
+    )
+    total = _redondear_arriba(
+        total_sin_redondear,
+        Decimal("100"),
+    )
+
     ganancia = total - costo_total
+
+    margen_real = Decimal("0")
+    if total > 0:
+        margen_real = (
+            ganancia
+            / total
+            * Decimal("100")
+        )
 
     return {
         "cantidad": cantidad,
         "margen_objetivo": margen_objetivo,
         "precio_unitario": precio_unitario,
+        "total_sin_redondear": total_sin_redondear,
         "total": total,
         "costo_total": costo_total,
         "ganancia": ganancia,
-        "margen_real": _margen_real(
-            precio_unitario,
-            costo_productivo,
-        ),
+        "margen_real": margen_real,
     }
 
 
@@ -276,6 +296,26 @@ def _moneda_entera(valor):
     return f"{numero:,}".replace(",", ".")
 
 
+def _moneda_unitaria(valor):
+    """
+    Muestra hasta 2 decimales solo cuando existen.
+    Ejemplos:
+        18500.00 -> 18.500
+        18500.50 -> 18.500,50
+        18500.57 -> 18.500,57
+    """
+    valor = Decimal(valor).quantize(Decimal("0.01"))
+    entero = int(valor)
+    decimales = int((valor - Decimal(entero)) * 100)
+
+    entero_txt = f"{entero:,}".replace(",", ".")
+
+    if decimales == 0:
+        return entero_txt
+
+    return f"{entero_txt},{decimales:02d}".rstrip("0")
+
+
 def _mensaje_cliente(nombre, filas, estrategia=None):
     nombre = (nombre or "Producto").strip()
 
@@ -288,7 +328,7 @@ def _mensaje_cliente(nombre, filas, estrategia=None):
     for fila in filas:
         lineas.append(
             f"• x{fila['cantidad']}: "
-            f"${_moneda_entera(fila['precio_unitario'])} c/u "
+            f"${_moneda_unitaria(fila['precio_unitario'])} c/u "
             f"— Total ${_moneda_entera(fila['total'])}"
         )
 

@@ -610,7 +610,7 @@
                     <div class="valor-principal destacado">
                         <div class="valor-label">Precio para x{{ resultado_nuevo.cantidad }}</div>
                         <div class="valor-numero">
-                            ${{ resultado_nuevo.fila_cantidad.precio_unitario|floatformat:"0g" }} c/u
+                            ${{ resultado_nuevo.fila_cantidad.precio_unitario|floatformat:"-2g" }} c/u
                         </div>
                         <div class="valor-sub">
                             Total: ${{ resultado_nuevo.fila_cantidad.total|floatformat:"0g" }} ·
@@ -673,15 +673,15 @@
                                 <tr>
                                     <td>x{{ fila.cantidad }}</td>
                                     <td class="col-conservador">
-                                        <span class="precio-tabla">${{ fila.conservador.precio_unitario|floatformat:"0g" }}</span>
+                                        <span class="precio-tabla">${{ fila.conservador.precio_unitario|floatformat:"-2g" }}</span>
                                         <span class="margen-tabla">{{ fila.conservador.margen_objetivo|floatformat:1 }}% margen</span>
                                     </td>
                                     <td class="col-recomendado">
-                                        <span class="precio-tabla">${{ fila.recomendado.precio_unitario|floatformat:"0g" }}</span>
+                                        <span class="precio-tabla">${{ fila.recomendado.precio_unitario|floatformat:"-2g" }}</span>
                                         <span class="margen-tabla">{{ fila.recomendado.margen_objetivo|floatformat:1 }}% margen</span>
                                     </td>
                                     <td class="col-agresivo">
-                                        <span class="precio-tabla">${{ fila.agresivo.precio_unitario|floatformat:"0g" }}</span>
+                                        <span class="precio-tabla">${{ fila.agresivo.precio_unitario|floatformat:"-2g" }}</span>
                                         <span class="margen-tabla">{{ fila.agresivo.margen_objetivo|floatformat:1 }}% margen</span>
                                     </td>
                                 </tr>
@@ -711,17 +711,17 @@
                     {% for fila in resultado_nuevo.lista_escenarios %}
                         <div class="precio-publico fila-publica-estrategia" data-estrategia="conservador">
                             <div class="cantidad-publica">x{{ fila.cantidad }}</div>
-                            <div class="unitario-publico">${{ fila.conservador.precio_unitario|floatformat:"0g" }} c/u</div>
+                            <div class="unitario-publico">${{ fila.conservador.precio_unitario|floatformat:"-2g" }} c/u</div>
                             <div class="total-publico">Total ${{ fila.conservador.total|floatformat:"0g" }}</div>
                         </div>
                         <div class="precio-publico fila-publica-estrategia" data-estrategia="recomendado">
                             <div class="cantidad-publica">x{{ fila.cantidad }}</div>
-                            <div class="unitario-publico">${{ fila.recomendado.precio_unitario|floatformat:"0g" }} c/u</div>
+                            <div class="unitario-publico">${{ fila.recomendado.precio_unitario|floatformat:"-2g" }} c/u</div>
                             <div class="total-publico">Total ${{ fila.recomendado.total|floatformat:"0g" }}</div>
                         </div>
                         <div class="precio-publico fila-publica-estrategia" data-estrategia="agresivo">
                             <div class="cantidad-publica">x{{ fila.cantidad }}</div>
-                            <div class="unitario-publico">${{ fila.agresivo.precio_unitario|floatformat:"0g" }} c/u</div>
+                            <div class="unitario-publico">${{ fila.agresivo.precio_unitario|floatformat:"-2g" }} c/u</div>
                             <div class="total-publico">Total ${{ fila.agresivo.total|floatformat:"0g" }}</div>
                         </div>
                     {% endfor %}
@@ -817,7 +817,7 @@
                     <div class="valor-principal destacado">
                         <div class="valor-label">Precio para x{{ resultado_existente.cantidad }}</div>
                         <div class="valor-numero">
-                            ${{ resultado_existente.fila_cantidad.precio_unitario|floatformat:"0g" }} c/u
+                            ${{ resultado_existente.fila_cantidad.precio_unitario|floatformat:"-2g" }} c/u
                         </div>
                         <div class="valor-sub">
                             Total ${{ resultado_existente.fila_cantidad.total|floatformat:"0g" }} ·
@@ -858,7 +858,7 @@
                             {% for escenario in resultado_existente.escenarios %}
                                 <div class="escenario {% if escenario.nombre == 'Recomendado' %}recomendado{% endif %}">
                                     <h3>{{ escenario.nombre }}</h3>
-                                    <div class="precio">${{ escenario.precio_unitario|floatformat:"0g" }}/u</div>
+                                    <div class="precio">${{ escenario.precio_unitario|floatformat:"-2g" }}/u</div>
                                     <p>Margen objetivo {{ escenario.margen_objetivo|floatformat:1 }}%</p>
                                     <p>Total ${{ escenario.total|floatformat:"0g" }}</p>
                                     <p>Ganancia ${{ escenario.ganancia|floatformat:"0g" }}</p>
@@ -899,15 +899,15 @@
                                 <tr>
                                     <td>x{{ fila.cantidad }}</td>
                                     <td class="col-conservador">
-                                        <span class="precio-tabla">${{ fila.conservador.precio_unitario|floatformat:"0g" }}</span>
+                                        <span class="precio-tabla">${{ fila.conservador.precio_unitario|floatformat:"-2g" }}</span>
                                         <span class="margen-tabla">{{ fila.conservador.margen_objetivo|floatformat:1 }}% margen</span>
                                     </td>
                                     <td class="col-recomendado">
-                                        <span class="precio-tabla">${{ fila.recomendado.precio_unitario|floatformat:"0g" }}</span>
+                                        <span class="precio-tabla">${{ fila.recomendado.precio_unitario|floatformat:"-2g" }}</span>
                                         <span class="margen-tabla">{{ fila.recomendado.margen_objetivo|floatformat:1 }}% margen</span>
                                     </td>
                                     <td class="col-agresivo">
-                                        <span class="precio-tabla">${{ fila.agresivo.precio_unitario|floatformat:"0g" }}</span>
+                                        <span class="precio-tabla">${{ fila.agresivo.precio_unitario|floatformat:"-2g" }}</span>
                                         <span class="margen-tabla">{{ fila.agresivo.margen_objetivo|floatformat:1 }}% margen</span>
                                     </td>
                                 </tr>
@@ -937,17 +937,17 @@
                     {% for fila in resultado_existente.lista_escenarios %}
                         <div class="precio-publico fila-publica-estrategia" data-estrategia="conservador">
                             <div class="cantidad-publica">x{{ fila.cantidad }}</div>
-                            <div class="unitario-publico">${{ fila.conservador.precio_unitario|floatformat:"0g" }} c/u</div>
+                            <div class="unitario-publico">${{ fila.conservador.precio_unitario|floatformat:"-2g" }} c/u</div>
                             <div class="total-publico">Total ${{ fila.conservador.total|floatformat:"0g" }}</div>
                         </div>
                         <div class="precio-publico fila-publica-estrategia" data-estrategia="recomendado">
                             <div class="cantidad-publica">x{{ fila.cantidad }}</div>
-                            <div class="unitario-publico">${{ fila.recomendado.precio_unitario|floatformat:"0g" }} c/u</div>
+                            <div class="unitario-publico">${{ fila.recomendado.precio_unitario|floatformat:"-2g" }} c/u</div>
                             <div class="total-publico">Total ${{ fila.recomendado.total|floatformat:"0g" }}</div>
                         </div>
                         <div class="precio-publico fila-publica-estrategia" data-estrategia="agresivo">
                             <div class="cantidad-publica">x{{ fila.cantidad }}</div>
-                            <div class="unitario-publico">${{ fila.agresivo.precio_unitario|floatformat:"0g" }} c/u</div>
+                            <div class="unitario-publico">${{ fila.agresivo.precio_unitario|floatformat:"-2g" }} c/u</div>
                             <div class="total-publico">Total ${{ fila.agresivo.total|floatformat:"0g" }}</div>
                         </div>
                     {% endfor %}
