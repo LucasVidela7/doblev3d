@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import precios_api, views
 
 
 app_name = "pedidos"
@@ -76,10 +76,9 @@ urlpatterns = [
 
     path(
         "api/precio-producto/",
-        views.precio_producto,
+        precios_api.precio_producto,
         name="precio_producto",
     ),
-
 
     path(
         "<int:pedido_id>/pago/",
