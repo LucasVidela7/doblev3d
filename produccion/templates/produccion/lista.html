@@ -217,6 +217,58 @@ td:nth-child(9){grid-column:1/-1;border-top:1px solid var(--borde)!important;pad
                 </div>
 
 
+
+                <!-- IMPRESORA -->
+
+                <div class="campo">
+
+                    <label>
+                        IMPRESORA
+                    </label>
+
+                    <select
+                        name="impresora"
+                        id="impresora"
+                        required
+                        onchange="actualizarNuevaImpresora()"
+                    >
+                        <option value="">
+                            Seleccionar impresora
+                        </option>
+
+                        {% for impresora in impresoras %}
+                            <option value="{{ impresora.id }}">
+                                {{ impresora.nombre }}
+                            </option>
+                        {% endfor %}
+
+                        <option value="NUEVA">
+                            + Nueva impresora
+                        </option>
+                    </select>
+
+                </div>
+
+
+                <div
+                    class="campo"
+                    id="campo-nueva-impresora"
+                    style="display:none"
+                >
+
+                    <label>
+                        NOMBRE NUEVA IMPRESORA
+                    </label>
+
+                    <input
+                        type="text"
+                        name="nueva_impresora_nombre"
+                        id="nueva_impresora_nombre"
+                        placeholder="Ej: Ender 3 V3"
+                    >
+
+                </div>
+
                 <!-- INICIO -->
 
                 <div class="campo">
@@ -494,6 +546,10 @@ td:nth-child(9){grid-column:1/-1;border-top:1px solid var(--borde)!important;pad
                     </th>
 
                     <th>
+                        IMPRESORA
+                    </th>
+
+                    <th>
                         INICIO
                     </th>
 
@@ -551,6 +607,19 @@ td:nth-child(9){grid-column:1/-1;border-top:1px solid var(--borde)!important;pad
 
                         <td class="cantidad">
                             {{ produccion.cantidad }}
+                        </td>
+
+
+                        <!-- IMPRESORA -->
+
+                        <td>
+                            {% if produccion.impresora %}
+                                <span class="destino destino-pedido">
+                                    🖨 {{ produccion.impresora.nombre }}
+                                </span>
+                            {% else %}
+                                —
+                            {% endif %}
                         </td>
 
 
@@ -714,7 +783,7 @@ td:nth-child(9){grid-column:1/-1;border-top:1px solid var(--borde)!important;pad
                     <tr>
 
                         <td
-                            colspan="9"
+                            colspan="10"
                             class="sin-datos"
                         >
                             Todavía no hay producciones registradas.
@@ -768,6 +837,15 @@ td:nth-child(9){grid-column:1/-1;border-top:1px solid var(--borde)!important;pad
     const cantidad =
         document.getElementById("cantidad");
 
+    const impresora =
+        document.getElementById("impresora");
+
+    const campoNuevaImpresora =
+        document.getElementById("campo-nueva-impresora");
+
+    const nuevaImpresoraNombre =
+        document.getElementById("nueva_impresora_nombre");
+
     const inicio =
         document.getElementById("inicio_impresion");
 
@@ -809,6 +887,31 @@ td:nth-child(9){grid-column:1/-1;border-top:1px solid var(--borde)!important;pad
 
     let solicitudTiempoActual = 0;
 
+
+
+
+    function actualizarNuevaImpresora() {
+
+        if (!impresora) {
+            return;
+        }
+
+        const esNueva =
+            impresora.value === "NUEVA";
+
+        campoNuevaImpresora.style.display =
+            esNueva
+            ? "block"
+            : "none";
+
+        nuevaImpresoraNombre.required =
+            esNueva;
+
+        if (!esNueva) {
+            nuevaImpresoraNombre.value = "";
+        }
+
+    }
 
     /* =========================================
        DESTINO
@@ -1272,6 +1375,7 @@ td:nth-child(9){grid-column:1/-1;border-top:1px solid var(--borde)!important;pad
        INICIALIZAR
     ========================================= */
 
+    actualizarNuevaImpresora();
     actualizarDestino();
 
     actualizarTiempo();

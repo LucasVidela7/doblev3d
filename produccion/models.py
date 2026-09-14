@@ -6,8 +6,24 @@ from pedidos.models import Pedido
 from productos.models import Producto
 
 
-class Produccion(models.Model):
+class Impresora(models.Model):
+    nombre = models.CharField(
+        max_length=100,
+        unique=True,
+    )
 
+    activa = models.BooleanField(
+        default=True,
+    )
+
+    def __str__(self):
+        return self.nombre
+
+    class Meta:
+        ordering = ["nombre"]
+
+
+class Produccion(models.Model):
     DESTINOS = [
         ("STOCK", "Stock"),
         ("PEDIDO", "Pedido"),
@@ -20,24 +36,24 @@ class Produccion(models.Model):
         ("CANCELADO", "Cancelado"),
     ]
 
-    fecha = models.DateField(
-        auto_now_add=True
+    fecha = models.DateTimeField(
+        auto_now_add=True,
     )
 
     producto = models.ForeignKey(
         Producto,
         on_delete=models.PROTECT,
-        related_name="producciones"
+        related_name="producciones",
     )
 
     cantidad = models.PositiveIntegerField(
-        default=1
+        default=1,
     )
 
     destino = models.CharField(
         max_length=20,
         choices=DESTINOS,
-        default="STOCK"
+        default="STOCK",
     )
 
     pedido = models.ForeignKey(
@@ -45,44 +61,50 @@ class Produccion(models.Model):
         on_delete=models.PROTECT,
         null=True,
         blank=True,
-        related_name="producciones"
+        related_name="producciones",
     )
 
     estado = models.CharField(
         max_length=20,
         choices=ESTADOS,
-        default="PENDIENTE"
+        default="PENDIENTE",
+    )
+
+    impresora = models.ForeignKey(
+        Impresora,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="producciones",
     )
 
     inicio_impresion = models.DateTimeField(
         null=True,
         blank=True,
-        verbose_name="Inicio de impresión"
     )
 
     tiempo_impresion_minutos = models.PositiveIntegerField(
         default=0,
-        verbose_name="Tiempo de impresión"
     )
 
     ingresado_stock = models.BooleanField(
-        default=False
+        default=False,
     )
 
     observaciones = models.TextField(
-        blank=True
+        blank=True,
     )
 
     @property
     def codigo(self):
-        if self.id:
-            return f"PR{self.id:04d}"
-
-        return "NUEVO"
+        return (
+            f"PRD{self.id:04d}"
+            if self.id
+            else "NUEVO"
+        )
 
     @property
     def fin_estimado(self):
-
         if (
             not self.inicio_impresion
             or not self.tiempo_impresion_minutos
@@ -98,12 +120,15 @@ class Produccion(models.Model):
 
     @property
     def tiempo_impresion_formateado(self):
+        total = int(
+            self.tiempo_impresion_minutos or 0
+        )
 
-        if not self.tiempo_impresion_minutos:
+        if total <= 0:
             return "—"
 
-        horas = self.tiempo_impresion_minutos // 60
-        minutos = self.tiempo_impresion_minutos % 60
+        horas = total // 60
+        minutos = total % 60
 
         if horas and minutos:
             return f"{horas} h {minutos} min"
@@ -114,9 +139,7 @@ class Produccion(models.Model):
         return f"{minutos} min"
 
     def __str__(self):
-
         return (
             f"{self.codigo} - "
-            f"{self.producto.nombre} - "
-            f"x{self.cantidad}"
+            f"{self.producto.nombre} x{self.cantidad}"
         )

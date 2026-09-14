@@ -10,8 +10,12 @@ from django.shortcuts import get_object_or_404, redirect, render
 from clientes.models import Cliente
 from kits.models import Kit
 from productos.models import Producto
+from produccion.models import Produccion
+from calculadora.precios import (
+    fila_precio,
+    margenes_escenario,
+)
 
-from calculadora.precios import calcular_escenarios_producto
 
 from collections import defaultdict
 
@@ -495,57 +499,6 @@ def productos_por_kit(request, kit_id):
     })
 
 
-def precio_producto(request):
-    """Devuelve recomendaciones mayoristas para Nuevo Pedido."""
-    producto_id = request.GET.get("producto_id")
-    cantidad_texto = request.GET.get("cantidad", "1")
-
-    try:
-        cantidad = int(cantidad_texto)
-    except (TypeError, ValueError):
-        cantidad = 0
-
-    if cantidad <= 0:
-        return JsonResponse({"error": "Cantidad inválida."}, status=400)
-
-    producto = get_object_or_404(
-        Producto,
-        id=producto_id,
-        activo=True,
-    )
-
-    datos = calcular_escenarios_producto(producto, cantidad)
-
-    def serializar(fila):
-        return {
-            "margen": str(fila["margen_objetivo"]),
-            "precio_unitario_calculado": str(fila["precio_unitario"]),
-            "precio_unitario_pedido": str(fila["precio_unitario_pedido"]),
-            "total_recomendado": str(fila["total_recomendado"]),
-            "total_pedido": str(fila["total_pedido"]),
-            "margen_real": str(
-                fila["margen_real"].quantize(Decimal("0.01"))
-            ),
-        }
-
-    return JsonResponse({
-        "producto": {
-            "id": datos["producto_id"],
-            "codigo": datos["codigo"],
-            "nombre": datos["nombre"],
-            "precio_lista": str(datos["precio_lista"]),
-            "margen_tope": str(datos["margen_tope"]),
-            "margen_piso": str(datos["margen_piso"]),
-        },
-        "cantidad": datos["cantidad"],
-        "escenarios": {
-            "conservador": serializar(datos["escenarios"]["conservador"]),
-            "recomendado": serializar(datos["escenarios"]["recomendado"]),
-            "agresivo": serializar(datos["escenarios"]["agresivo"]),
-        },
-    })
-
-
 @transaction.atomic
 def nuevo_pedido(request):
     cliente_inicial_id = request.GET.get("cliente", "").strip()
@@ -712,24 +665,7 @@ def nuevo_pedido(request):
                     activo=True,
                 )
 
-                precio_texto = request.POST.get(
-                    f"precio_unitario_{indice}",
-                    "",
-                ).strip().replace(",", ".")
-
-                if precio_texto:
-                    try:
-                        precio_unitario = Decimal(
-                            precio_texto
-                        ).quantize(Decimal("0.01"))
-                    except (
-                        InvalidOperation,
-                        TypeError,
-                        ValueError,
-                    ):
-                        precio_unitario = Decimal("0")
-                else:
-                    precio_unitario = producto.subtotal
+                precio_unitario = producto.subtotal
 
                 if precio_unitario is None or precio_unitario <= 0:
                     messages.error(
@@ -1377,6 +1313,159 @@ def cambiar_listo_impresion(request):
     )
 
 
+
+# ==========================================================
+# API - PRECIO MAYORISTA POR PRODUCTO
+# ==========================================================
+
+def precio_producto(request):
+    """
+    Devuelve las recomendaciones de precio por cantidad que usa
+    Nuevo Pedido para PRODUCTO y PERSONALIZADO.
+
+    Esta vista existía en la integración mayorista. Se mantiene
+    separada de la pantalla de Producción porque pedidos/urls.py
+    la referencia como pedidos:precio_producto.
+    """
+    if request.method != "GET":
+        return JsonResponse(
+            {
+                "ok": False,
+                "mensaje": "Método no permitido.",
+            },
+            status=405,
+        )
+
+    producto_id = request.GET.get(
+        "producto_id",
+        "",
+    ).strip()
+
+    cantidad_texto = request.GET.get(
+        "cantidad",
+        "1",
+    ).strip()
+
+    try:
+        cantidad = int(cantidad_texto)
+    except (TypeError, ValueError):
+        cantidad = 0
+
+    if not producto_id or cantidad <= 0:
+        return JsonResponse(
+            {
+                "ok": False,
+                "mensaje": "Producto o cantidad no válidos.",
+            },
+            status=400,
+        )
+
+    producto = get_object_or_404(
+        Producto,
+        id=producto_id,
+        activo=True,
+    )
+
+    costo_productivo = (
+        _costo_actual_producto(producto)
+    )
+
+    margen_tope = Decimal(
+        str(
+            producto.margen_ganancia
+            or 0
+        )
+    )
+
+    margenes = margenes_escenario(
+        cantidad,
+        margen_tope,
+    )
+
+    escenarios = {}
+
+    for estrategia in (
+        "conservador",
+        "recomendado",
+        "agresivo",
+    ):
+        margen = margenes[estrategia]
+
+        fila = fila_precio(
+            costo_productivo,
+            cantidad,
+            margen,
+        )
+
+        total_recomendado = Decimal(
+            str(
+                fila["total_recomendado"]
+            )
+        )
+
+        precio_unitario = Decimal(
+            str(
+                fila["precio_unitario"]
+            )
+        )
+
+        precio_unitario_pedido = (
+            total_recomendado
+            / Decimal(cantidad)
+        ).quantize(
+            Decimal("0.01")
+        )
+
+        escenarios[estrategia] = {
+            "estrategia": estrategia,
+            "margen_objetivo": float(
+                Decimal(
+                    str(
+                        fila["margen_objetivo"]
+                    )
+                )
+            ),
+            "precio_unitario": float(
+                precio_unitario
+            ),
+            "total_recomendado": float(
+                total_recomendado
+            ),
+            "precio_unitario_pedido": float(
+                precio_unitario_pedido
+            ),
+            "total_pedido": float(
+                precio_unitario_pedido
+                * Decimal(cantidad)
+            ),
+        }
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "producto": {
+                "id": producto.id,
+                "codigo": producto.codigo,
+                "nombre": producto.nombre,
+            },
+            "cantidad": cantidad,
+            "precio_lista": float(
+                Decimal(
+                    str(
+                        producto.subtotal
+                    )
+                )
+            ),
+            "costo_productivo": float(
+                costo_productivo
+            ),
+            "margen_tope": float(
+                margen_tope
+            ),
+            "escenarios": escenarios,
+        }
+    )
+
 def impresiones_por_producto(request):
     pedidos = (
         Pedido.objects
@@ -1406,23 +1495,14 @@ def impresiones_por_producto(request):
             "cantidad_personalizada": 0,
             "stock": 0,
             "a_imprimir": 0,
+            "en_produccion": 0,
+            "falta_iniciar": 0,
+            "impresoras": [],
         }
     )
 
     # ==========================================
     # 1. AGRUPAR DEMANDA PENDIENTE
-    # ==========================================
-    #
-    # PRODUCTOS / KITS:
-    # - sí pueden cubrirse con stock general.
-    #
-    # PERSONALIZADOS:
-    # - siempre deben fabricarse para su pedido.
-    # - NO se descuentan del stock general.
-    #
-    # Los productos ya marcados LISTO en
-    # "Impresiones por pedido" tampoco deben
-    # volver a aparecer como demanda pendiente.
     # ==========================================
 
     for pedido in pedidos:
@@ -1441,28 +1521,16 @@ def impresiones_por_producto(request):
             ]:
                 continue
 
-            # --------------------------------------
-            # PERSONALIZADO
-            # --------------------------------------
-
             if (
                 detalle.tipo_item == "PERSONALIZADO"
                 and detalle.producto
                 and detalle.producto.requiere_impresion
             ):
-
-                # Si ya fue marcado LISTO desde
-                # Impresiones por pedido, no queda
-                # pendiente de fabricación.
                 if detalle.estado == "LISTO":
                     continue
 
                 producto = detalle.producto
-
-                item = productos_agrupados[
-                    producto.id
-                ]
-
+                item = productos_agrupados[producto.id]
                 item["producto"] = producto
 
                 item["cantidad_personalizada"] += (
@@ -1475,29 +1543,17 @@ def impresiones_por_producto(request):
 
                 continue
 
-            # --------------------------------------
-            # PRODUCTO INDIVIDUAL NORMAL
-            # --------------------------------------
-
             if (
                 detalle.tipo_item == "PRODUCTO"
                 and detalle.producto
                 and detalle.producto.requiere_impresion
             ):
-
                 producto = detalle.producto
 
-                # Ya está preparado para este pedido.
-                if (
-                    producto.id
-                    in productos_normales_listos
-                ):
+                if producto.id in productos_normales_listos:
                     continue
 
-                item = productos_agrupados[
-                    producto.id
-                ]
-
+                item = productos_agrupados[producto.id]
                 item["producto"] = producto
 
                 item["cantidad_normal"] += (
@@ -1508,35 +1564,22 @@ def impresiones_por_producto(request):
                     detalle.cantidad
                 )
 
-            # --------------------------------------
-            # PRODUCTOS DE KIT
-            # --------------------------------------
-
             elif (
                 detalle.tipo_item == "KIT"
                 and detalle.kit
             ):
-
                 for componente in (
                     detalle.productos_kit.all()
                 ):
-
                     producto = componente.producto
 
                     if not producto.requiere_impresion:
                         continue
 
-                    # Ya está preparado para este pedido.
-                    if (
-                        producto.id
-                        in productos_normales_listos
-                    ):
+                    if producto.id in productos_normales_listos:
                         continue
 
-                    item = productos_agrupados[
-                        producto.id
-                    ]
-
+                    item = productos_agrupados[producto.id]
                     item["producto"] = producto
 
                     item["cantidad_normal"] += (
@@ -1548,23 +1591,62 @@ def impresiones_por_producto(request):
                     )
 
     # ==========================================
-    # 2. CALCULAR A IMPRIMIR
+    # 2. PRODUCCIONES QUE YA ESTÁN IMPRIMIENDO
     # ==========================================
     #
-    # Sólo la demanda NORMAL puede cubrirse
-    # con stock general.
+    # No reducimos "A IMPRIMIR": ese número sigue
+    # representando la necesidad total.
     #
-    # Los PERSONALIZADOS se suman completos
-    # a "A IMPRIMIR".
+    # Mostramos aparte:
+    # - EN PRODUCCIÓN
+    # - FALTA INICIAR
     #
-    # Ejemplo:
-    #
-    # Normal pendiente:       5
-    # Stock:                  3
-    # Personalizado:         20
-    #
-    # Falta normal:           2
-    # A imprimir total:      22
+    # Sólo cuenta estado IMPRIMIENDO.
+    # ==========================================
+
+    producciones_en_curso = (
+        Produccion.objects
+        .filter(
+            estado="IMPRIMIENDO",
+        )
+        .select_related(
+            "producto",
+            "impresora",
+        )
+        .order_by(
+            "producto_id",
+            "id",
+        )
+    )
+
+    en_curso_por_producto = defaultdict(
+        lambda: {
+            "cantidad": 0,
+            "impresoras": [],
+        }
+    )
+
+    for produccion in producciones_en_curso:
+        item_curso = en_curso_por_producto[
+            produccion.producto_id
+        ]
+
+        item_curso["cantidad"] += (
+            produccion.cantidad
+        )
+
+        if produccion.impresora:
+            texto_impresora = (
+                f"{produccion.impresora.nombre} "
+                f"· {produccion.cantidad}"
+            )
+
+            item_curso["impresoras"].append(
+                texto_impresora
+            )
+
+    # ==========================================
+    # 3. CALCULAR NECESIDAD / PRODUCCIÓN / FALTA
     # ==========================================
 
     lista_productos = []
@@ -1593,46 +1675,77 @@ def impresiones_por_producto(request):
             + cantidad_personalizada
         )
 
+        produciendo = en_curso_por_producto.get(
+            producto.id,
+            {
+                "cantidad": 0,
+                "impresoras": [],
+            },
+        )
+
+        en_produccion = (
+            produciendo["cantidad"]
+        )
+
+        falta_iniciar = max(
+            a_imprimir - en_produccion,
+            0,
+        )
+
         item["stock"] = stock
         item["a_imprimir"] = a_imprimir
+        item["en_produccion"] = en_produccion
+        item["falta_iniciar"] = falta_iniciar
+        item["impresoras"] = (
+            produciendo["impresoras"]
+        )
 
-        if a_imprimir >= 6:
+        # La prioridad ahora se calcula con lo que
+        # realmente falta poner a imprimir.
+        if falta_iniciar >= 6:
             item["prioridad"] = "ALTA"
             item["prioridad_clase"] = (
                 "prioridad-alta"
             )
 
-        elif a_imprimir >= 3:
+        elif falta_iniciar >= 3:
             item["prioridad"] = "MEDIA"
             item["prioridad_clase"] = (
                 "prioridad-media"
             )
 
-        elif a_imprimir >= 1:
+        elif falta_iniciar >= 1:
             item["prioridad"] = "BAJA"
             item["prioridad_clase"] = (
                 "prioridad-baja"
             )
 
         else:
-            item["prioridad"] = (
-                "SIN NECESIDAD"
-            )
-            item["prioridad_clase"] = (
-                "prioridad-cero"
-            )
+            if en_produccion > 0 and a_imprimir > 0:
+                item["prioridad"] = "EN CURSO"
+                item["prioridad_clase"] = (
+                    "prioridad-curso"
+                )
+            else:
+                item["prioridad"] = (
+                    "SIN NECESIDAD"
+                )
+                item["prioridad_clase"] = (
+                    "prioridad-cero"
+                )
 
         lista_productos.append(
             item
         )
 
     # ==========================================
-    # 3. ORDENAR
+    # 4. ORDENAR
     # ==========================================
 
     lista_productos.sort(
         key=lambda item: (
-            -item["a_imprimir"],
+            -item["falta_iniciar"],
+            -item["en_produccion"],
             item["producto"].nombre.lower(),
         )
     )
@@ -1645,7 +1758,6 @@ def impresiones_por_producto(request):
                 lista_productos,
         }
     )
-
 
 
 
@@ -2023,15 +2135,6 @@ def editar_pedido(request, pedido_id):
 
     # Personalizados LISTO se conservan solamente si el detalle existente
     # queda exactamente igual.
-    detalles_normales_anteriores = {
-        detalle.id: {
-            "producto_id": detalle.producto_id,
-            "precio_unitario": detalle.precio_unitario,
-        }
-        for detalle in detalles_actuales
-        if detalle.tipo_item == "PRODUCTO"
-    }
-
     personalizados_anteriores = {
         detalle.id: {
             "producto_id": detalle.producto_id,
@@ -2227,15 +2330,7 @@ def editar_pedido(request, pedido_id):
     for item in nuevos_items:
         if item["tipo_item"] == "PRODUCTO":
             producto = item["producto"]
-
-            anterior = detalles_normales_anteriores.get(
-                item["detalle_id"]
-            )
-
-            if anterior and anterior["producto_id"] == producto.id:
-                precio_unitario = anterior["precio_unitario"]
-            else:
-                precio_unitario = producto.subtotal
+            precio_unitario = producto.subtotal
 
             if precio_unitario is None or precio_unitario <= 0:
                 messages.error(

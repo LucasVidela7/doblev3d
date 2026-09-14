@@ -9,7 +9,7 @@ from django.utils import timezone
 from pedidos.models import Pedido
 from productos.models import Producto
 
-from .models import Produccion
+from .models import Impresora, Produccion
 
 
 # ============================================================
@@ -23,6 +23,7 @@ def lista_produccion(request):
             "producto",
             "pedido",
             "pedido__cliente",
+            "impresora",
         )
         .exclude(
             estado="CANCELADO"
@@ -61,6 +62,12 @@ def lista_produccion(request):
         )
     )
 
+    impresoras = (
+        Impresora.objects
+        .filter(activa=True)
+        .order_by("nombre")
+    )
+
     producto_seleccionado = request.GET.get(
         "producto",
         ""
@@ -78,6 +85,7 @@ def lista_produccion(request):
             "producciones": producciones,
             "productos": productos,
             "pedidos": pedidos,
+            "impresoras": impresoras,
             "producto_seleccionado": producto_seleccionado,
             "cantidad_seleccionada": cantidad_seleccionada,
         }
@@ -110,6 +118,16 @@ def nueva_produccion(request):
     destino = request.POST.get(
         "destino"
     )
+
+    impresora_id = request.POST.get(
+        "impresora",
+        "",
+    ).strip()
+
+    nueva_impresora_nombre = request.POST.get(
+        "nueva_impresora_nombre",
+        "",
+    ).strip()
 
     pedido_id = request.POST.get(
         "pedido"
@@ -163,6 +181,56 @@ def nueva_produccion(request):
         messages.error(
             request,
             "La cantidad debe ser mayor a 0."
+        )
+
+        return redirect(
+            "produccion:lista"
+        )
+
+
+    # --------------------------------------------------------
+    # IMPRESORA
+    # --------------------------------------------------------
+
+    impresora = None
+
+    if impresora_id == "NUEVA":
+        if not nueva_impresora_nombre:
+            messages.error(
+                request,
+                "Ingresá el nombre de la nueva impresora."
+            )
+
+            return redirect(
+                "produccion:lista"
+            )
+
+        impresora, _ = (
+            Impresora.objects.get_or_create(
+                nombre=nueva_impresora_nombre,
+                defaults={
+                    "activa": True,
+                },
+            )
+        )
+
+        if not impresora.activa:
+            impresora.activa = True
+            impresora.save(
+                update_fields=["activa"]
+            )
+
+    elif impresora_id:
+        impresora = get_object_or_404(
+            Impresora,
+            id=impresora_id,
+            activa=True,
+        )
+
+    else:
+        messages.error(
+            request,
+            "Debés seleccionar una impresora."
         )
 
         return redirect(
@@ -344,8 +412,8 @@ def nueva_produccion(request):
             )
 
         tiempo_total = (
-                horas * 60
-                + minutos
+            horas * 60
+            + minutos
         )
 
         # Si no llegó un tiempo manual válido,
@@ -377,6 +445,7 @@ def nueva_produccion(request):
                     "produccion:lista"
                 )
 
+
     # --------------------------------------------------------
     # CREAR PRODUCCIÓN
     # --------------------------------------------------------
@@ -390,6 +459,8 @@ def nueva_produccion(request):
         destino=destino,
 
         pedido=pedido,
+
+        impresora=impresora,
 
         estado="PENDIENTE",
 
@@ -451,6 +522,58 @@ def cambiar_estado(
         return redirect(
             "produccion:lista"
         )
+
+
+    # ========================================================
+    # PASAR A IMPRIMIENDO
+    # ========================================================
+
+    if (
+        nuevo_estado == "IMPRIMIENDO"
+        and produccion.estado != "IMPRIMIENDO"
+    ):
+        if not produccion.impresora_id:
+            messages.error(
+                request,
+                (
+                    f"{produccion.codigo} no tiene impresora asignada. "
+                    "Editá o recreá la producción asignando una impresora."
+                )
+            )
+
+            return redirect(
+                "produccion:lista"
+            )
+
+        ocupada = (
+            Produccion.objects
+            .select_for_update()
+            .filter(
+                impresora_id=produccion.impresora_id,
+                estado="IMPRIMIENDO",
+            )
+            .exclude(
+                id=produccion.id,
+            )
+            .select_related(
+                "producto",
+            )
+            .first()
+        )
+
+        if ocupada:
+            messages.error(
+                request,
+                (
+                    f"{produccion.impresora.nombre} ya está imprimiendo "
+                    f"{ocupada.producto.nombre} "
+                    f"({ocupada.codigo})."
+                )
+            )
+
+            return redirect(
+                "produccion:lista"
+            )
 
     # ========================================================
     # PASAR A LISTO
@@ -574,6 +697,7 @@ def cambiar_estado(
     )
 
 
+
 # ============================================================
 # TIEMPO RECOMENDADO
 # ============================================================
@@ -594,9 +718,10 @@ def obtener_tiempo_recomendado(producto, cantidad):
     """
 
     if cantidad == 1:
+
         tiempo_producto = (
-                int(producto.horas or 0) * 60
-                + int(producto.minutos or 0)
+            int(producto.horas or 0) * 60
+            + int(producto.minutos or 0)
         )
 
         return (
@@ -623,6 +748,7 @@ def obtener_tiempo_recomendado(producto, cantidad):
     )
 
     if ultima_produccion:
+
         return (
             ultima_produccion
             .tiempo_impresion_minutos
@@ -636,7 +762,9 @@ def obtener_tiempo_recomendado(producto, cantidad):
 # ============================================================
 
 def tiempo_recomendado(request):
+
     if request.method != "GET":
+
         return JsonResponse(
             {
                 "ok": False,
@@ -664,6 +792,7 @@ def tiempo_recomendado(request):
         cantidad = 0
 
     if not producto_id or cantidad <= 0:
+
         return JsonResponse(
             {
                 "ok": False,
@@ -691,6 +820,7 @@ def tiempo_recomendado(request):
     )
 
     if not tiempo_total:
+
         return JsonResponse(
             {
                 "ok": True,
