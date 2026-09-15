@@ -134,6 +134,23 @@ def recomendar_precio_fijo(request):
             "costo_total": _decimal_texto(
                 calculo["costo_total"]
             ),
+            "peso_total_gramos": _decimal_texto(
+                calculo["peso_total_gramos"]
+            ),
+            "precio_filamento_estandar_kg": _decimal_texto(
+                calculo["precio_filamento_estandar_kg"]
+            ),
+            "precio_filamento_kg": _decimal_texto(
+                calculo["precio_filamento_kg"]
+            ),
+            "tramo_desde_gramos": (
+                _decimal_texto(calculo["tramo_desde_gramos"])
+                if calculo["tramo_desde_gramos"] is not None
+                else None
+            ),
+            "usa_filamento_volumen": bool(
+                calculo["usa_filamento_volumen"]
+            ),
             "margen_piso": _decimal_texto(
                 calculo["margen_piso"],
                 "0.1",
@@ -251,6 +268,27 @@ def recomendar_precio_libre(request):
             ),
         }
 
+    calculos_productos = calculo["productos"]
+    con_volumen = [
+        item
+        for item in calculos_productos
+        if item.get("usa_filamento_volumen")
+    ]
+    precios_filamento = [
+        Decimal(str(item.get("precio_filamento_kg") or 0))
+        for item in calculos_productos
+        if Decimal(str(item.get("precio_filamento_kg") or 0)) > 0
+    ]
+    estandar = (
+        Decimal(str(
+            calculos_productos[0].get(
+                "precio_filamento_estandar_kg"
+            ) or 0
+        ))
+        if calculos_productos
+        else Decimal("0")
+    )
+
     return JsonResponse(
         {
             "ok": True,
@@ -266,6 +304,19 @@ def recomendar_precio_libre(request):
             "costo_peor_caso": _decimal_texto(
                 calculo["costo_peor_caso"]
             ),
+            "precio_filamento_estandar_kg": _decimal_texto(estandar),
+            "precio_filamento_min_kg": (
+                _decimal_texto(min(precios_filamento))
+                if precios_filamento
+                else "0.00"
+            ),
+            "precio_filamento_max_kg": (
+                _decimal_texto(max(precios_filamento))
+                if precios_filamento
+                else "0.00"
+            ),
+            "productos_con_filamento_volumen": len(con_volumen),
+            "usa_filamento_volumen": bool(con_volumen),
             "margen_piso": _decimal_texto(
                 calculo["margen_piso"],
                 "0.1",
