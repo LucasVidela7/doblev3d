@@ -1,4 +1,5 @@
 from datetime import timedelta
+from decimal import Decimal
 
 from django.db import models
 
@@ -119,24 +120,58 @@ class Produccion(models.Model):
         )
 
     @property
+    def peso_total_gramos(self):
+        peso_unitario = Decimal(
+            str(
+                getattr(
+                    self.producto,
+                    "peso_gramos",
+                    0,
+                )
+                or 0
+            )
+        )
+
+        return (
+            peso_unitario
+            * Decimal(int(self.cantidad or 0))
+        )
+
+    @property
+    def peso_total_formateado(self):
+        total = self.peso_total_gramos
+
+        if total >= Decimal("1000"):
+            valor = total / Decimal("1000")
+            texto = f"{valor:.2f}".rstrip("0").rstrip(".")
+            return f"{texto} kg"
+
+        texto = f"{total:.1f}".rstrip("0").rstrip(".")
+        return f"{texto or '0'} g"
+
+    @property
     def tiempo_impresion_formateado(self):
         total = int(
             self.tiempo_impresion_minutos or 0
         )
 
         if total <= 0:
-            return "—"
+            return f"⚖ {self.peso_total_formateado}"
 
         horas = total // 60
         minutos = total % 60
 
         if horas and minutos:
-            return f"{horas} h {minutos} min"
+            duracion = f"{horas} h {minutos} min"
+        elif horas:
+            duracion = f"{horas} h"
+        else:
+            duracion = f"{minutos} min"
 
-        if horas:
-            return f"{horas} h"
-
-        return f"{minutos} min"
+        return (
+            f"{duracion} · "
+            f"⚖ {self.peso_total_formateado}"
+        )
 
     def __str__(self):
         return (
