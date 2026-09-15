@@ -8,7 +8,9 @@ from django.urls import reverse
 from costos.models import ConfiguracionCostos
 
 from .models import Producto, ProductoComponente, TipoProducto
-from .views import _guardar_producto_desde_post
+from stock.models import MovimientoStock
+
+from .views import _armar_producto, _guardar_producto_desde_post
 
 
 class ProductoCompuestoTests(TestCase):
@@ -239,3 +241,85 @@ class ProductoCompuestoTests(TestCase):
             'value="57,50"',
             html,
         )
+
+    def test_armar_compuesto_descuenta_piezas_y_suma_terminado(self):
+        cuerpo = self.pieza("Cuerpo armado", 1, 0, 20)
+        tapa = self.pieza("Tapa armada", 0, 30, 10)
+        cuerpo.stock = 5
+        tapa.stock = 8
+        cuerpo.save(update_fields=["stock"])
+        tapa.save(update_fields=["stock"])
+        compuesto = Producto.objects.create(
+            nombre="Producto armable",
+            categoria="PRODUCTO",
+            tipo=self.tipo,
+            margen_ganancia=Decimal("60"),
+            requiere_impresion=True,
+            tipo_fabricacion="COMPUESTO",
+            stock=1,
+        )
+        ProductoComponente.objects.create(
+            producto=compuesto,
+            componente=cuerpo,
+            cantidad=1,
+        )
+        ProductoComponente.objects.create(
+            producto=compuesto,
+            componente=tapa,
+            cantidad=2,
+        )
+
+        self.assertEqual(compuesto.unidades_armables, 4)
+        _armar_producto(compuesto.id, 3)
+
+        cuerpo.refresh_from_db()
+        tapa.refresh_from_db()
+        compuesto.refresh_from_db()
+        self.assertEqual(cuerpo.stock, 2)
+        self.assertEqual(tapa.stock, 2)
+        self.assertEqual(compuesto.stock, 4)
+        self.assertEqual(
+            MovimientoStock.objects.filter(
+                tipo="SALIDA_ARMADO"
+            ).count(),
+            2,
+        )
+        self.assertEqual(
+            MovimientoStock.objects.filter(
+                producto=compuesto,
+                tipo="ENTRADA_ARMADO",
+                cantidad=3,
+            ).count(),
+            1,
+        )
+
+    def test_armado_sin_stock_no_modifica_ningun_producto(self):
+        pieza = self.pieza("Pieza escasa", 1, 0, 20)
+        pieza.stock = 1
+        pieza.save(update_fields=["stock"])
+        compuesto = Producto.objects.create(
+            nombre="Compuesto sin stock",
+            categoria="PRODUCTO",
+            tipo=self.tipo,
+            margen_ganancia=Decimal("60"),
+            requiere_impresion=True,
+            tipo_fabricacion="COMPUESTO",
+            stock=2,
+        )
+        ProductoComponente.objects.create(
+            producto=compuesto,
+            componente=pieza,
+            cantidad=2,
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Stock insuficiente",
+        ):
+            _armar_producto(compuesto.id, 1)
+
+        pieza.refresh_from_db()
+        compuesto.refresh_from_db()
+        self.assertEqual(pieza.stock, 1)
+        self.assertEqual(compuesto.stock, 2)
+        self.assertFalse(MovimientoStock.objects.exists())

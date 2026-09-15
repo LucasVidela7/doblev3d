@@ -76,6 +76,24 @@ class Producto(models.Model):
         return self.componentes.select_related("componente").all()
 
     @property
+    def unidades_armables(self):
+        """Unidades terminadas posibles con el stock actual de piezas."""
+        if not self.es_compuesto or not self.pk:
+            return 0
+
+        disponibles = []
+        for relacion in self._relaciones_componentes():
+            cantidad = int(relacion.cantidad or 0)
+            if cantidad <= 0:
+                continue
+            disponibles.append(
+                max(int(relacion.componente.stock or 0), 0)
+                // cantidad
+            )
+
+        return min(disponibles) if disponibles else 0
+
+    @property
     def horas_totales(self):
         if self.es_compuesto and self.pk:
             total = Decimal("0")

@@ -90,6 +90,93 @@ def detalle(request, producto_id):
     return render(request, "productos/detalle.html", {"producto": producto})
 
 
+@transaction.atomic
+def _armar_producto(producto_id, cantidad):
+    """Consume piezas y genera stock terminado de forma atómica."""
+    from stock.models import MovimientoStock
+
+    producto = (
+        Producto.objects
+        .select_for_update()
+        .get(id=producto_id)
+    )
+
+    if producto.tipo_fabricacion != "COMPUESTO":
+        raise ValueError("Solo se pueden armar productos compuestos.")
+    if cantidad <= 0:
+        raise ValueError("La cantidad a armar debe ser mayor a cero.")
+
+    relaciones = list(
+        producto.componentes
+        .select_related("componente")
+        .order_by("componente_id")
+    )
+    if not relaciones:
+        raise ValueError("El producto compuesto no tiene piezas configuradas.")
+
+    consumos = []
+    for relacion in relaciones:
+        pieza = (
+            Producto.objects
+            .select_for_update()
+            .get(id=relacion.componente_id)
+        )
+        necesaria = int(relacion.cantidad) * cantidad
+        if pieza.stock < necesaria:
+            raise ValueError(
+                f"Stock insuficiente de {pieza.nombre}: "
+                f"se necesitan {necesaria} y hay {pieza.stock}."
+            )
+        consumos.append((pieza, necesaria))
+
+    referencia = f"ARMADO {producto.codigo}"
+    for pieza, necesaria in consumos:
+        pieza.stock -= necesaria
+        pieza.save(update_fields=["stock"])
+        MovimientoStock.objects.create(
+            producto=pieza,
+            tipo="SALIDA_ARMADO",
+            cantidad=necesaria,
+            referencia=referencia,
+            observaciones=(
+                f"Consumo para armar {cantidad} unidad(es) "
+                f"de {producto.nombre}."
+            ),
+        )
+
+    producto.stock += cantidad
+    producto.save(update_fields=["stock"])
+    MovimientoStock.objects.create(
+        producto=producto,
+        tipo="ENTRADA_ARMADO",
+        cantidad=cantidad,
+        referencia=referencia,
+        observaciones="Ingreso de producto compuesto terminado.",
+    )
+
+    return producto, consumos
+
+
+def armar_producto(request, producto_id):
+    if request.method != "POST":
+        return redirect("productos:detalle", producto_id=producto_id)
+
+    cantidad = _entero(request.POST.get("cantidad"), 0)
+    try:
+        producto, _ = _armar_producto(producto_id, cantidad)
+    except Producto.DoesNotExist:
+        messages.error(request, "El producto no existe.")
+    except ValueError as error:
+        messages.error(request, str(error))
+    else:
+        messages.success(
+            request,
+            f"Se armaron {cantidad} unidad(es) de {producto.nombre}.",
+        )
+
+    return redirect("productos:detalle", producto_id=producto_id)
+
+
 def _piezas_disponibles(producto=None):
     qs = Producto.objects.filter(
         activo=True,

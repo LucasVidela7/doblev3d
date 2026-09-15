@@ -7,7 +7,9 @@ class MovimientoStock(models.Model):
 
     TIPOS = [
         ("ENTRADA_PRODUCCION", "Entrada por producción"),
+        ("ENTRADA_ARMADO", "Entrada por armado"),
         ("SALIDA_PEDIDO", "Salida por pedido"),
+        ("SALIDA_ARMADO", "Salida por armado"),
         ("AJUSTE_POSITIVO", "Ajuste positivo"),
         ("AJUSTE_NEGATIVO", "Ajuste negativo"),
         ("DESCARTE", "Descarte"),
@@ -45,6 +47,7 @@ class MovimientoStock(models.Model):
 
         if self.tipo in [
             "ENTRADA_PRODUCCION",
+            "ENTRADA_ARMADO",
             "AJUSTE_POSITIVO",
         ]:
             return self.cantidad

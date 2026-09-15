@@ -32,4 +32,9 @@ urlpatterns = [
         views.cambiar_activo,
         name="cambiar_activo",
     ),
+    path(
+        "<int:producto_id>/armar/",
+        views.armar_producto,
+        name="armar",
+    ),
 ]
