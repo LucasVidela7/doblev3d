@@ -1,10 +1,10 @@
-#recomendacion_precio.dv-kit-fijo-activo{
+#recomendacion_precio.dv-kit-calculadora-activo{
     display:block!important;
     border-color:#dce2e8;
     background:#fff;
 }
 
-#recomendacion_precio.dv-kit-fijo-activo > .dv-kit-original{
+#recomendacion_precio.dv-kit-calculadora-activo > .dv-kit-original{
     display:none!important;
 }
 
@@ -12,7 +12,7 @@
     display:none;
 }
 
-#recomendacion_precio.dv-kit-fijo-activo > .dv-kit-escenarios{
+#recomendacion_precio.dv-kit-calculadora-activo > .dv-kit-escenarios{
     display:block;
 }
 
@@ -42,7 +42,29 @@
     max-width:650px;
     color:#626870;
     font-size:9px;
-    line-height:1.45;
+    line-height:1.5;
+}
+
+.dv-kit-costos{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-top:8px;
+}
+
+.dv-kit-costo-chip{
+    display:inline-flex;
+    padding:5px 7px;
+    border-radius:999px;
+    background:#f0f2f4;
+    color:#626870;
+    font-size:7px;
+    font-weight:900;
+}
+
+.dv-kit-costo-chip.riesgo{
+    background:#fff2dc;
+    color:#7a5212;
 }
 
 .dv-kit-precio-actual{
@@ -108,11 +130,20 @@
     color:#5d646c;
     font-size:9px;
     font-weight:800;
+    line-height:1.4;
+}
+
+.dv-kit-escenario-riesgo{
+    margin-top:3px;
+    color:#7a5212;
+    font-size:8px;
+    font-weight:800;
+    line-height:1.35;
 }
 
 .dv-kit-escenario-ayuda{
-    min-height:30px;
-    margin-top:5px;
+    min-height:42px;
+    margin-top:6px;
     color:#777d84;
     font-size:8px;
     line-height:1.35;
