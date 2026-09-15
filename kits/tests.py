@@ -2,7 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 from django.test import TestCase
-from django.urls import resolve
+from django.urls import resolve, reverse
 
 from costos.models import ConfiguracionCostos
 from productos.models import Producto, TipoProducto
@@ -121,6 +121,73 @@ class AnalisisEconomicoKitTests(TestCase):
             analisis["precio_sugerido_minimo"],
             Decimal("1000"),
         )
+
+    def test_editar_kit_precarga_precio_valido_para_input_number(self):
+        kit = Kit.objects.create(
+            nombre="Kit precio",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=2,
+            precio=Decimal("12500.50"),
+            activo=True,
+        )
+
+        respuesta = self.client.get(
+            reverse(
+                "kits:editar",
+                args=[kit.id],
+            )
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(
+            respuesta,
+            'value="12500.50"',
+        )
+        self.assertNotContains(
+            respuesta,
+            'value="12500,50"',
+        )
+
+    def test_nuevo_y_editar_muestran_recomendacion_de_precio(self):
+        producto = self.crear_producto("Producto recomendación", 250)
+        kit = Kit.objects.create(
+            nombre="Kit recomendación",
+            modalidad="FIJO",
+            cantidad_productos=1,
+            precio=Decimal("1000"),
+            activo=True,
+        )
+        KitComponente.objects.create(
+            kit=kit,
+            producto=producto,
+            cantidad=1,
+        )
+
+        nueva = self.client.get(
+            reverse("kits:nuevo")
+        )
+        editar = self.client.get(
+            reverse(
+                "kits:editar",
+                args=[kit.id],
+            )
+        )
+
+        for respuesta in (nueva, editar):
+            self.assertEqual(respuesta.status_code, 200)
+            self.assertContains(
+                respuesta,
+                "RECOMENDACIÓN DE PRECIO",
+            )
+            self.assertContains(
+                respuesta,
+                'id="precio_recomendado"',
+            )
+            self.assertContains(
+                respuesta,
+                "const MARGEN_MINIMO = 20;",
+            )
 
     def test_ruta_de_kits_esta_expuesta(self):
         self.assertEqual(
