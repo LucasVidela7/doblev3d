@@ -13,6 +13,8 @@ class RegistroAuditoria(models.Model):
         ("CAMBIAR_ESTADO_PEDIDO", "Cambiar estado de pedido"),
         ("CAMBIAR_ESTADO_PRODUCCION", "Cambiar estado de producción"),
         ("REGISTRAR_PAGO", "Registrar pago"),
+        ("INICIAR_SESION", "Iniciar sesión"),
+        ("CERRAR_SESION", "Cerrar sesión"),
     ]
 
     fecha = models.DateTimeField(auto_now_add=True, db_index=True)
