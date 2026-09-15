@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from .tipos import crear_tipo_producto
 
 
 app_name = "productos"
@@ -16,6 +17,11 @@ urlpatterns = [
         "nuevo/",
         views.nuevo,
         name="nuevo",
+    ),
+    path(
+        "api/tipos/crear/",
+        crear_tipo_producto,
+        name="crear_tipo",
     ),
     path(
         "<int:producto_id>/",
