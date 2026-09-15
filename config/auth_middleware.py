@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.views import redirect_to_login
-from django.urls import resolve
+from django.urls import Resolver404, resolve
 
 
 class LoginRequiredMiddleware:
@@ -23,7 +23,15 @@ class LoginRequiredMiddleware:
         if request.user.is_authenticated:
             return self.get_response(request)
 
-        match = resolve(request.path_info)
+        try:
+            match = resolve(request.path_info)
+        except Resolver404:
+            # Incluso una URL inexistente queda detrás del login mientras
+            # el usuario no está autenticado. Luego Django devolverá el 404.
+            return redirect_to_login(
+                request.get_full_path(),
+                settings.LOGIN_URL,
+            )
 
         if match.url_name in self.PUBLIC_URL_NAMES:
             return self.get_response(request)
