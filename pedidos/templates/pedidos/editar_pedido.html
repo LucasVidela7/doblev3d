@@ -338,12 +338,13 @@ textarea{
 </head>
 
 <body>
-{% include 'shared/brand_bar.html' %}
+
 
 <div class="contenedor">
 
     <div class="header">
         <div>
+{% include 'shared/brand_bar.html' %}
             <h1>Editar {{ pedido.codigo }}</h1>
             <div class="sub">
                 {{ pedido.cliente.nombre }} · precios editables con recomendaciones de la calculadora
