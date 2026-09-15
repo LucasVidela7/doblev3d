@@ -1,6 +1,12 @@
+from decimal import Decimal, ROUND_CEILING
+
 from django.db import models
 
 from productos.models import Producto, TipoProducto
+
+
+MARGEN_MINIMO_KIT = Decimal("20")
+MULTIPLO_PRECIO_KIT = Decimal("500")
 
 
 class Kit(models.Model):
@@ -70,6 +76,192 @@ class Kit(models.Model):
             componente.cantidad
             for componente in self.componentes.all()
         )
+
+    @staticmethod
+    def _costo_operativo_producto(producto):
+        costo = Decimal(str(producto.costo or 0))
+        seguro = Decimal(str(producto.seguro or 0))
+        return max(costo + seguro, Decimal("0"))
+
+    @staticmethod
+    def _precio_lista_producto(producto):
+        return max(
+            Decimal(str(producto.subtotal or 0)),
+            Decimal("0"),
+        )
+
+    def _margen_sobre_precio(self, costo):
+        precio = Decimal(str(self.precio or 0))
+        if precio <= 0:
+            return None
+
+        return (
+            (precio - Decimal(str(costo or 0)))
+            / precio
+            * Decimal("100")
+        ).quantize(Decimal("0.1"))
+
+    @staticmethod
+    def _redondear_precio(valor):
+        valor = Decimal(str(valor or 0))
+        if valor <= 0:
+            return Decimal("0")
+
+        return (
+            (valor / MULTIPLO_PRECIO_KIT)
+            .to_integral_value(rounding=ROUND_CEILING)
+            * MULTIPLO_PRECIO_KIT
+        )
+
+    @classmethod
+    def _precio_para_margen_minimo(cls, costo):
+        costo = Decimal(str(costo or 0))
+        if costo <= 0:
+            return Decimal("0")
+
+        proporcion = Decimal("1") - (
+            MARGEN_MINIMO_KIT / Decimal("100")
+        )
+
+        if proporcion <= 0:
+            return Decimal("0")
+
+        return cls._redondear_precio(
+            costo / proporcion
+        )
+
+    @property
+    def analisis_economico(self):
+        """
+        Calcula la rentabilidad del kit con costos actuales.
+
+        - FIJO: el costo y margen son exactos según la receta.
+        - LIBRE_CATEGORIA: usa el promedio de la categoría como estimación
+          y el producto más costoso como escenario conservador.
+
+        El precio queda marcado para revisión cuando el peor escenario
+        cae por debajo del piso operativo definido en MARGEN_MINIMO_KIT.
+        """
+        precio = Decimal(str(self.precio or 0))
+
+        resultado = {
+            "tipo_calculo": "EXACTO" if self.modalidad == "FIJO" else "ESTIMADO",
+            "costo_estimado": Decimal("0"),
+            "costo_peor_caso": Decimal("0"),
+            "valor_lista_estimado": Decimal("0"),
+            "margen_estimado": None,
+            "margen_peor_caso": None,
+            "precio_sugerido_minimo": Decimal("0"),
+            "margen_minimo": MARGEN_MINIMO_KIT,
+            "alerta": False,
+            "motivo": "",
+        }
+
+        if precio <= 0:
+            resultado["alerta"] = True
+            resultado["motivo"] = "El kit no tiene un precio de venta válido."
+            return resultado
+
+        if self.modalidad == "FIJO":
+            componentes = list(
+                self.componentes
+                .select_related("producto")
+                .all()
+            ) if self.pk else []
+
+            if not componentes:
+                resultado["alerta"] = True
+                resultado["motivo"] = "El kit no tiene componentes configurados."
+                return resultado
+
+            costo = Decimal("0")
+            valor_lista = Decimal("0")
+
+            for componente in componentes:
+                cantidad = Decimal(int(componente.cantidad or 0))
+                costo += (
+                    self._costo_operativo_producto(componente.producto)
+                    * cantidad
+                )
+                valor_lista += (
+                    self._precio_lista_producto(componente.producto)
+                    * cantidad
+                )
+
+            resultado["costo_estimado"] = costo
+            resultado["costo_peor_caso"] = costo
+            resultado["valor_lista_estimado"] = valor_lista
+
+        else:
+            if not self.tipo_producto_id or self.cantidad_productos <= 0:
+                resultado["alerta"] = True
+                resultado["motivo"] = "El kit libre no tiene categoría o cantidad válida."
+                return resultado
+
+            productos = list(
+                Producto.objects
+                .filter(
+                    tipo_id=self.tipo_producto_id,
+                    activo=True,
+                    solo_produccion=False,
+                )
+                .order_by("id")
+            )
+
+            if not productos:
+                resultado["alerta"] = True
+                resultado["motivo"] = "No hay productos activos disponibles en la categoría."
+                return resultado
+
+            costos = [
+                self._costo_operativo_producto(producto)
+                for producto in productos
+            ]
+            precios_lista = [
+                self._precio_lista_producto(producto)
+                for producto in productos
+            ]
+
+            cantidad = Decimal(int(self.cantidad_productos or 0))
+            costo_promedio = (
+                sum(costos, Decimal("0"))
+                / Decimal(len(costos))
+            ) * cantidad
+            costo_peor = max(costos) * cantidad
+            valor_lista_promedio = (
+                sum(precios_lista, Decimal("0"))
+                / Decimal(len(precios_lista))
+            ) * cantidad
+
+            resultado["costo_estimado"] = costo_promedio
+            resultado["costo_peor_caso"] = costo_peor
+            resultado["valor_lista_estimado"] = valor_lista_promedio
+
+        resultado["margen_estimado"] = self._margen_sobre_precio(
+            resultado["costo_estimado"]
+        )
+        resultado["margen_peor_caso"] = self._margen_sobre_precio(
+            resultado["costo_peor_caso"]
+        )
+        resultado["precio_sugerido_minimo"] = self._precio_para_margen_minimo(
+            resultado["costo_peor_caso"]
+        )
+
+        margen_referencia = resultado["margen_peor_caso"]
+
+        if margen_referencia is not None and margen_referencia < MARGEN_MINIMO_KIT:
+            resultado["alerta"] = True
+            if margen_referencia < 0:
+                resultado["motivo"] = (
+                    "El precio actual no cubre el costo operativo del kit."
+                )
+            else:
+                resultado["motivo"] = (
+                    f"El margen cae a {margen_referencia}% y está por debajo "
+                    f"del piso de {MARGEN_MINIMO_KIT}%."
+                )
+
+        return resultado
 
     def __str__(self):
         return self.nombre
