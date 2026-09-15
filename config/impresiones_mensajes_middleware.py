@@ -1,3 +1,5 @@
+from html import escape
+
 from django.contrib.messages import get_messages
 
 
@@ -40,11 +42,19 @@ class MensajesImpresionesMiddleware:
         bloques = []
         for mensaje in mensajes:
             tags = (mensaje.tags or "").split()
-            clase = "success" if "success" in tags else "error" if "error" in tags else "warning" if "warning" in tags else ""
+            clase = (
+                "success"
+                if "success" in tags
+                else "error"
+                if "error" in tags
+                else "warning"
+                if "warning" in tags
+                else ""
+            )
             bloques.append(
                 '<div class="dv-impresiones-mensaje {}">{}</div>'.format(
                     clase,
-                    str(mensaje),
+                    escape(str(mensaje)),
                 )
             )
 
