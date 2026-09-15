@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from django.urls import reverse
 
 from clientes.models import Cliente
 from pedidos.models import Pago, Pedido
@@ -108,3 +109,30 @@ class AuditoriaTests(TestCase):
         self.assertEqual(registro.accion, "ELIMINAR")
         self.assertEqual(registro.cambios["nombre"]["antes"], "Temporal")
         self.assertIsNone(registro.cambios["nombre"]["despues"])
+
+    def test_registra_inicio_y_cierre_de_sesion(self):
+        respuesta_login = self.client.post(
+            reverse("login"),
+            {
+                "username": "lucas",
+                "password": "ClaveSegura-12345",
+            },
+        )
+        self.assertEqual(respuesta_login.status_code, 302)
+
+        inicio = RegistroAuditoria.objects.filter(
+            accion="INICIAR_SESION",
+            usuario=self.usuario,
+        ).latest("id")
+        self.assertEqual(inicio.ruta, reverse("login"))
+        self.assertEqual(inicio.metodo, "POST")
+
+        respuesta_logout = self.client.post(reverse("logout"))
+        self.assertEqual(respuesta_logout.status_code, 302)
+
+        cierre = RegistroAuditoria.objects.filter(
+            accion="CERRAR_SESION",
+            usuario=self.usuario,
+        ).latest("id")
+        self.assertEqual(cierre.ruta, reverse("logout"))
+        self.assertEqual(cierre.metodo, "POST")
