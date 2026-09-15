@@ -6,6 +6,51 @@
     padding-left: 18px !important;
 }
 
+html {
+    overflow-x: hidden;
+}
+
+body {
+    min-width: 0;
+}
+
+img,
+svg {
+    max-width: 100%;
+}
+
+.encabezado,
+.encabezado-pagina,
+.header,
+.h,
+.topbar {
+    min-width: 0;
+}
+
+.encabezado > .encabezado-marca,
+.encabezado-pagina > .encabezado-marca,
+.header > .encabezado-marca,
+.h > .encabezado-marca,
+.topbar > .encabezado-marca {
+    flex: 1 1 auto;
+}
+
+.encabezado > .acciones-encabezado,
+.encabezado-pagina > .acciones-encabezado,
+.header > .acciones,
+.h > .a,
+.topbar > .acciones {
+    flex: 0 0 auto;
+    justify-content: flex-end;
+}
+
+.tabla,
+.tabla-contenedor,
+.tabla-wrapper {
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+
 body.modo-captura > .contenedor {
     width: min(760px, calc(100% - 20px)) !important;
 }
@@ -45,6 +90,15 @@ body.modo-captura > .contenedor {
     line-height: 1 !important;
 }
 
+.brand-action-icon {
+    width: 48px !important;
+    min-width: 48px !important;
+    padding-right: 0 !important;
+    padding-left: 0 !important;
+    font-size: 19px !important;
+    line-height: 1 !important;
+}
+
 .brand-bar__link {
     display: inline-flex;
     align-items: center;
@@ -58,6 +112,38 @@ body.modo-captura > .contenedor {
     object-fit: contain;
 }
 
+@media (min-width: 721px) and (max-width: 1100px) {
+    .contenedor,
+    .c {
+        padding-right: 20px !important;
+        padding-left: 20px !important;
+    }
+
+    .encabezado,
+    .encabezado-pagina,
+    .header,
+    .h,
+    .topbar {
+        flex-wrap: wrap;
+    }
+
+    .encabezado > .encabezado-marca,
+    .encabezado-pagina > .encabezado-marca,
+    .header > .encabezado-marca,
+    .h > .encabezado-marca,
+    .topbar > .encabezado-marca {
+        flex-basis: 360px;
+    }
+
+    .encabezado > .acciones-encabezado,
+    .encabezado-pagina > .acciones-encabezado,
+    .header > .acciones,
+    .h > .a,
+    .topbar > .acciones {
+        flex-wrap: wrap;
+    }
+}
+
 @media (max-width: 720px) {
     .contenedor,
     .c {
@@ -68,6 +154,48 @@ body.modo-captura > .contenedor {
     .encabezado-marca {
         min-height: 44px;
         padding-left: 55px;
+    }
+
+    .encabezado,
+    .encabezado-pagina,
+    .header,
+    .h,
+    .topbar {
+        align-items: stretch !important;
+        flex-direction: column !important;
+    }
+
+    .encabezado > .acciones-encabezado,
+    .encabezado-pagina > .acciones-encabezado,
+    .header > .acciones,
+    .h > .a,
+    .topbar > .acciones {
+        display: flex;
+        width: 100%;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .encabezado > .acciones-encabezado > :not(.brand-header-icon):not(.brand-action-icon),
+    .encabezado-pagina > .acciones-encabezado > :not(.brand-header-icon):not(.brand-action-icon),
+    .header > .acciones > :not(.brand-header-icon):not(.brand-action-icon),
+    .h > .a > :not(.brand-header-icon):not(.brand-action-icon),
+    .topbar > .acciones > :not(.brand-header-icon):not(.brand-action-icon) {
+        flex: 1 1 auto;
+    }
+
+    input,
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+
+    [role="dialog"],
+    .modal,
+    .modal-pago {
+        max-width: calc(100vw - 22px) !important;
+        max-height: calc(100dvh - 22px);
+        overflow-y: auto;
     }
 
     .brand-bar__logo {

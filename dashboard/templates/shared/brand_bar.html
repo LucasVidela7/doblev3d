@@ -6,6 +6,13 @@
 </div>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        function convertirEnIcono(accion, icono, etiqueta, clase) {
+            accion.textContent = icono;
+            accion.setAttribute("aria-label", etiqueta);
+            accion.setAttribute("title", etiqueta);
+            accion.classList.add(clase);
+        }
+
         document.querySelectorAll(".brand-bar").forEach(function (marca) {
             const encabezado = marca.closest(
                 ".encabezado, .encabezado-pagina, .header, .h, .topbar"
@@ -17,17 +24,24 @@
                 const texto = accion.textContent.trim().replace(/\s+/g, " ");
 
                 if (texto === "← VOLVER") {
-                    accion.textContent = "←";
-                    accion.setAttribute("aria-label", "Volver");
-                    accion.setAttribute("title", "Volver");
-                    accion.classList.add("brand-header-icon");
+                    convertirEnIcono(accion, "←", "Volver", "brand-header-icon");
                 } else if (texto === "INICIO") {
-                    accion.textContent = "⌂";
-                    accion.setAttribute("aria-label", "Ir al inicio");
-                    accion.setAttribute("title", "Inicio");
-                    accion.classList.add("brand-header-icon");
+                    convertirEnIcono(accion, "⌂", "Ir al inicio", "brand-header-icon");
+                } else if (/^(?:✎\s*)?EDITAR(?:\s+PRODUCTO)?$/i.test(texto)) {
+                    convertirEnIcono(accion, "✎", texto.replace(/^✎\s*/i, ""), "brand-action-icon");
+                } else if (/^(?:\+|＋)?\s*(?:NUEV[OA](?:\s+PRODUCTO|\s+KIT)?|PRODUCTO\s+NUEVO)$/i.test(texto)) {
+                    convertirEnIcono(accion, "＋", texto.replace(/^(?:\+|＋)\s*/i, ""), "brand-action-icon");
                 }
             });
+        });
+
+        document.querySelectorAll("a, button").forEach(function (accion) {
+            if (accion.closest(".encabezado, .encabezado-pagina, .header, .h, .topbar")) return;
+
+            const texto = accion.textContent.trim().replace(/\s+/g, " ");
+            if (/^(?:✎\s*)?EDITAR(?:\s+(?:PRODUCTO|PEDIDO|KIT))?$/i.test(texto)) {
+                convertirEnIcono(accion, "✎", texto.replace(/^✎\s*/i, ""), "brand-action-icon");
+            }
         });
     });
 </script>
