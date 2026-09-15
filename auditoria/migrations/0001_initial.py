@@ -39,6 +39,8 @@ class Migration(migrations.Migration):
                             ("CAMBIAR_ESTADO_PEDIDO", "Cambiar estado de pedido"),
                             ("CAMBIAR_ESTADO_PRODUCCION", "Cambiar estado de producción"),
                             ("REGISTRAR_PAGO", "Registrar pago"),
+                            ("INICIAR_SESION", "Iniciar sesión"),
+                            ("CERRAR_SESION", "Cerrar sesión"),
                         ],
                         db_index=True,
                         max_length=40,
