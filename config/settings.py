@@ -35,14 +35,21 @@ def _env_bool(nombre, default=False):
 # SEGURIDAD / ENTORNO
 # ----------------------------------------------------------
 
-DEBUG = _env_bool("DEBUG", False)
+# Railway expone esta variable automáticamente. La usamos para distinguir
+# producción/QA de un runserver local sin obligar a crear un .env.
+IS_RAILWAY = bool(os.getenv("RAILWAY_ENVIRONMENT", "").strip())
+
+# Local: DEBUG=True por defecto.
+# Railway: DEBUG=False por defecto.
+# En ambos casos se puede sobrescribir explícitamente con DEBUG.
+DEBUG = _env_bool("DEBUG", not IS_RAILWAY)
 
 SECRET_KEY = os.getenv("SECRET_KEY", "").strip()
 
 # En desarrollo local y tests permitimos una clave temporal para no obligar
 # a configurar variables. En Railway la clave debe existir explícitamente.
 if not SECRET_KEY:
-    if os.getenv("RAILWAY_ENVIRONMENT"):
+    if IS_RAILWAY:
         raise ImproperlyConfigured(
             "Falta configurar SECRET_KEY en las variables del entorno de Railway."
         )
@@ -196,13 +203,22 @@ SECURE_PROXY_SSL_HEADER = (
     "https",
 )
 
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SECURE = not DEBUG
-SECURE_SSL_REDIRECT = (
-    _env_bool("SECURE_SSL_REDIRECT", True)
-    if not DEBUG
-    else False
+# En Railway son seguras por defecto. En runserver local quedan en HTTP,
+# independientemente de DEBUG, para evitar redirecciones/cookies HTTPS
+# incompatibles con el servidor de desarrollo.
+SESSION_COOKIE_SECURE = _env_bool(
+    "SESSION_COOKIE_SECURE",
+    IS_RAILWAY,
 )
+CSRF_COOKIE_SECURE = _env_bool(
+    "CSRF_COOKIE_SECURE",
+    IS_RAILWAY,
+)
+SECURE_SSL_REDIRECT = _env_bool(
+    "SECURE_SSL_REDIRECT",
+    IS_RAILWAY,
+)
+
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
 
