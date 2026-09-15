@@ -1,6 +1,17 @@
 from django.contrib.auth import get_user_model
+from django.contrib.staticfiles import finders
 from django.test import TestCase, override_settings
 from django.urls import reverse
+
+
+class RecursosDeMarcaTests(TestCase):
+    def test_logo_y_favicon_son_encontrados_por_staticfiles(self):
+        self.assertIsNotNone(
+            finders.find("brand/logo.png")
+        )
+        self.assertIsNotNone(
+            finders.find("brand/favicon.ico")
+        )
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
