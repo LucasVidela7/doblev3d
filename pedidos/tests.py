@@ -4,8 +4,11 @@ from decimal import Decimal
 from django.test import TestCase
 from django.urls import reverse
 
+from clientes.models import Cliente
 from costos.models import ConfiguracionCostos
 from productos.models import Producto, ProductoComponente, TipoProducto
+
+from .models import Pedido
 
 
 class PrecioProductoApiTests(TestCase):
@@ -62,8 +65,6 @@ class PrecioProductoApiTests(TestCase):
             cantidad=2,
         )
 
-        # Simula un resumen viejo/incompleto en el padre. La API que consumen
-        # Nuevo Pedido y Editar Pedido debe seguir calculando desde las piezas.
         Producto.objects.filter(pk=producto.pk).update(
             horas=0,
             minutos=0,
@@ -98,3 +99,79 @@ class PrecioProductoApiTests(TestCase):
                 datos["escenarios"][estrategia]["precio_unitario_pedido"],
                 0,
             )
+
+
+class AccionesPedidoEstadoTests(TestCase):
+    def setUp(self):
+        self.cliente = Cliente.objects.create(
+            nombre="Cliente test",
+            activo=True,
+        )
+        self.pedido = Pedido.objects.create(
+            cliente=self.cliente,
+            estado="PENDIENTE",
+        )
+
+    def _estado(self, estado):
+        self.pedido.estado = estado
+        self.pedido.save(update_fields=["estado"])
+
+    def test_editar_solo_se_permite_en_pendiente(self):
+        for estado in ("PREPARANDO", "LISTO", "ENTREGADO", "CANCELADO"):
+            self._estado(estado)
+            respuesta = self.client.get(
+                reverse("pedidos:editar", args=[self.pedido.id])
+            )
+            self.assertEqual(respuesta.status_code, 302)
+            self.pedido.refresh_from_db()
+            self.assertEqual(self.pedido.estado, estado)
+
+    def test_cancelar_no_se_permite_fuera_de_pendiente(self):
+        self._estado("LISTO")
+        respuesta = self.client.post(
+            reverse("pedidos:cancelar", args=[self.pedido.id])
+        )
+        self.assertEqual(respuesta.status_code, 302)
+        self.pedido.refresh_from_db()
+        self.assertEqual(self.pedido.estado, "LISTO")
+
+    def test_eliminar_no_se_permite_fuera_de_pendiente(self):
+        self._estado("PREPARANDO")
+        respuesta = self.client.post(
+            reverse("pedidos:eliminar", args=[self.pedido.id])
+        )
+        self.assertEqual(respuesta.status_code, 302)
+        self.assertTrue(Pedido.objects.filter(pk=self.pedido.id).exists())
+
+    def test_entregar_requiere_estado_listo(self):
+        respuesta = self.client.post(
+            reverse("pedidos:entregar", args=[self.pedido.id])
+        )
+        self.assertEqual(respuesta.status_code, 302)
+        self.pedido.refresh_from_db()
+        self.assertEqual(self.pedido.estado, "PENDIENTE")
+
+        self._estado("LISTO")
+        respuesta = self.client.post(
+            reverse("pedidos:entregar", args=[self.pedido.id])
+        )
+        self.assertEqual(respuesta.status_code, 302)
+        self.pedido.refresh_from_db()
+        self.assertEqual(self.pedido.estado, "ENTREGADO")
+
+    def test_entregar_desde_cliente_vuelve_al_detalle(self):
+        self._estado("LISTO")
+        respuesta = self.client.post(
+            reverse("pedidos:entregar", args=[self.pedido.id]),
+            {
+                "origen": "cliente",
+                "cliente_id": str(self.cliente.id),
+            },
+        )
+        self.assertRedirects(
+            respuesta,
+            reverse("clientes:detalle", args=[self.cliente.id]),
+            fetch_redirect_response=False,
+        )
+        self.pedido.refresh_from_db()
+        self.assertEqual(self.pedido.estado, "ENTREGADO")

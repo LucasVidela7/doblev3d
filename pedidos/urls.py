@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import precios_api, views
+from . import acciones_pedido, precios_api, views
 from .impresiones_compuestas import impresiones_por_producto
 
 
@@ -89,25 +89,25 @@ urlpatterns = [
 
     path(
         "<int:pedido_id>/editar/",
-        views.editar_pedido,
+        acciones_pedido.editar_pedido,
         name="editar",
     ),
 
     path(
         "<int:pedido_id>/entregar/",
-        views.entregar_pedido,
+        acciones_pedido.entregar_pedido,
         name="entregar",
     ),
 
     path(
         "<int:pedido_id>/cancelar/",
-        views.cancelar_pedido,
+        acciones_pedido.cancelar_pedido,
         name="cancelar",
     ),
 
     path(
         "<int:pedido_id>/eliminar/",
-        views.eliminar_pedido,
+        acciones_pedido.eliminar_pedido,
         name="eliminar",
     ),
 
