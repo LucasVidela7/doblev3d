@@ -1,4 +1,12 @@
 {% load static %}
+{% if request.resolver_match.view_name == 'kits:nuevo' or request.resolver_match.view_name == 'kits:editar' %}
+<link rel="stylesheet" href="{% static 'kits/precios_fijos.css' %}">
+<script
+    src="{% static 'kits/precios_fijos.js' %}"
+    data-recomendacion-url="{% url 'kits:recomendacion_fija' %}"
+    defer
+></script>
+{% endif %}
 <div class="brand-bar">
     <a class="brand-bar__link" href="{% url 'dashboard:inicio' %}" aria-label="Ir al inicio de Doble V 3D">
         <img class="brand-bar__logo" src="{% static 'brand/logo.png' %}" alt="Logo de Doble V 3D" width="50" height="38">
