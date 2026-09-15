@@ -1,6 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
+<link rel="apple-touch-icon" href="{% static 'brand/apple-touch-icon.png' %}">
+<link rel="stylesheet" href="{% static 'brand/brand.css' %}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de precios | Doble V 3D</title>
@@ -496,6 +500,7 @@
 
 </head>
 <body>
+{% include 'shared/brand_bar.html' %}
 
 <button type="button" class="btn btn-salir-captura" id="salirCaptura">
     SALIR DE VISTA PARA CAPTURA

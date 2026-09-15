@@ -1,6 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
+<link rel="apple-touch-icon" href="{% static 'brand/apple-touch-icon.png' %}">
+<link rel="stylesheet" href="{% static 'brand/brand.css' %}">
     <meta charset="UTF-8">
     <meta
         name="viewport"
@@ -51,15 +55,9 @@
         }
 
         .logo{
-            width:54px;
-            height:54px;
-            display:grid;
-            place-items:center;
-            border-radius:16px;
-            background:var(--oscuro);
-            color:#fff;
-            font-size:18px;
-            font-weight:900;
+            width:66px;
+            height:50px;
+            object-fit:contain;
         }
 
         h1{
@@ -141,7 +139,7 @@
 
 <main class="login">
     <div class="marca">
-        <div class="logo">DV</div>
+        <img class="logo" src="{% static 'brand/logo.png' %}" alt="Logo de Doble V 3D" width="66" height="50">
         <div>
             <h1>Doble V 3D</h1>
             <div class="subtitulo">Acceso al sistema de gestión</div>

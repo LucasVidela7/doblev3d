@@ -1,6 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
+<link rel="apple-touch-icon" href="{% static 'brand/apple-touch-icon.png' %}">
+<link rel="stylesheet" href="{% static 'brand/brand.css' %}">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>{% if kit and kit.id %}Editar{% else %}Nuevo{% endif %} kit | Doble V 3D</title>
@@ -29,6 +33,7 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
 </style>
 </head>
 <body>
+{% include 'shared/brand_bar.html' %}
 <div class="contenedor">
     <div class="header">
         <div>

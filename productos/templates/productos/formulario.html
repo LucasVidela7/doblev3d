@@ -1,6 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
+<link rel="apple-touch-icon" href="{% static 'brand/apple-touch-icon.png' %}">
+<link rel="stylesheet" href="{% static 'brand/brand.css' %}">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>{% if modo == 'nuevo' %}Nuevo producto{% else %}Editar producto{% endif %} | Doble V 3D</title>
@@ -10,6 +14,7 @@
 </style>
 </head>
 <body>
+{% include 'shared/brand_bar.html' %}
 <div class="contenedor">
 <div class="encabezado"><div><h1>{% if modo == 'nuevo' %}Nuevo producto{% else %}Editar producto{% endif %}</h1><div class="subtitulo">{% if producto %}{{ producto.codigo }} · {{ producto.nombre }}{% else %}Crear un producto nuevo en el catálogo{% endif %}</div></div><div class="acciones"><button type="button" class="boton" onclick="volverPagina()">← VOLVER</button><a href="{% url 'dashboard:inicio' %}" class="boton">INICIO</a></div></div>
 {% if messages %}{% for message in messages %}<div class="mensaje {{ message.tags }}">{{ message }}</div>{% endfor %}{% endif %}

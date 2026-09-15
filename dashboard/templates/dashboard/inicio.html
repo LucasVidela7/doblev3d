@@ -1,6 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
+<link rel="apple-touch-icon" href="{% static 'brand/apple-touch-icon.png' %}">
+<link rel="stylesheet" href="{% static 'brand/brand.css' %}">
     <meta charset="UTF-8">
     <meta
             name="viewport"
@@ -75,16 +79,9 @@
         }
 
         .logo-texto {
-            width: 52px;
-            height: 52px;
-            display: grid;
-            place-items: center;
-            border-radius: 16px;
-            background: var(--oscuro);
-            color: white;
-            font-weight: 900;
-            font-size: 18px;
-            letter-spacing: -1px;
+            width: 62px;
+            height: 48px;
+            object-fit: contain;
         }
 
         .titulo {
@@ -623,7 +620,7 @@
 
     <header class="encabezado">
         <div class="marca">
-            <div class="logo-texto">DV</div>
+            <img class="logo-texto" src="{% static 'brand/logo.png' %}" alt="Logo de Doble V 3D" width="62" height="48">
 
             <div>
                 <h1 class="titulo">Doble V 3D</h1>

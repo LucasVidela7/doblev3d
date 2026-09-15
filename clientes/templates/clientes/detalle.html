@@ -1,6 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
+<link rel="apple-touch-icon" href="{% static 'brand/apple-touch-icon.png' %}">
+<link rel="stylesheet" href="{% static 'brand/brand.css' %}">
     <meta charset="UTF-8">
     <meta
         name="viewport"
@@ -543,6 +547,7 @@
     </style>
 </head>
 <body>
+{% include 'shared/brand_bar.html' %}
 
 <div class="contenedor">
     <div class="encabezado">
