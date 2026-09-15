@@ -3,8 +3,11 @@ from decimal import Decimal
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
-from calculadora.precios import calcular_escenarios_kit_fijo
-from productos.models import Producto
+from calculadora.precios import (
+    calcular_escenarios_kit_fijo,
+    calcular_escenarios_kit_libre,
+)
+from productos.models import Producto, TipoProducto
 
 
 def _decimal_texto(valor, decimales="0.01"):
@@ -127,8 +130,141 @@ def recomendar_precio_fijo(request):
     return JsonResponse(
         {
             "ok": True,
+            "tipo": "FIJO",
             "costo_total": _decimal_texto(
                 calculo["costo_total"]
+            ),
+            "margen_piso": _decimal_texto(
+                calculo["margen_piso"],
+                "0.1",
+            ),
+            "escenarios": escenarios,
+        }
+    )
+
+
+@require_POST
+def recomendar_precio_libre(request):
+    tipo_id = str(
+        request.POST.get("tipo_producto") or ""
+    ).strip()
+    cantidad_raw = str(
+        request.POST.get("cantidad") or ""
+    ).strip()
+
+    try:
+        tipo_id_int = int(tipo_id)
+        cantidad = int(cantidad_raw)
+    except (TypeError, ValueError):
+        return JsonResponse(
+            {
+                "ok": False,
+                "mensaje": "Elegí una categoría y una cantidad válida.",
+            },
+            status=400,
+        )
+
+    if cantidad <= 0:
+        return JsonResponse(
+            {
+                "ok": False,
+                "mensaje": "La cantidad del kit debe ser mayor a cero.",
+            },
+            status=400,
+        )
+
+    try:
+        tipo = TipoProducto.objects.get(
+            id=tipo_id_int,
+            activo=True,
+        )
+    except TipoProducto.DoesNotExist:
+        return JsonResponse(
+            {
+                "ok": False,
+                "mensaje": "La categoría seleccionada no está disponible.",
+            },
+            status=404,
+        )
+
+    productos = list(
+        Producto.objects.filter(
+            tipo=tipo,
+            activo=True,
+            solo_produccion=False,
+        ).order_by("id")
+    )
+
+    if not productos:
+        return JsonResponse(
+            {
+                "ok": False,
+                "mensaje": (
+                    "No hay productos comerciales activos en esta categoría "
+                    "para calcular los escenarios."
+                ),
+            },
+            status=422,
+        )
+
+    calculo = calcular_escenarios_kit_libre(
+        productos,
+        cantidad,
+    )
+
+    if calculo["costo_peor_caso"] <= 0:
+        return JsonResponse(
+            {
+                "ok": False,
+                "mensaje": (
+                    "Los productos de la categoría no tienen un costo "
+                    "productivo calculable actualmente."
+                ),
+            },
+            status=422,
+        )
+
+    escenarios = {}
+    for clave in (
+        "agresivo",
+        "recomendado",
+        "conservador",
+    ):
+        escenario = calculo["escenarios"][clave]
+        escenarios[clave] = {
+            "precio": _decimal_texto(
+                escenario["total_recomendado"]
+            ),
+            "margen_promedio": _decimal_texto(
+                escenario["margen_promedio"],
+                "0.1",
+            ),
+            "margen_peor_caso": _decimal_texto(
+                escenario["margen_peor_caso"],
+                "0.1",
+            ),
+            "ganancia_promedio": _decimal_texto(
+                escenario["ganancia_promedio"]
+            ),
+            "ganancia_peor_caso": _decimal_texto(
+                escenario["ganancia_peor_caso"]
+            ),
+        }
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "tipo": "LIBRE_CATEGORIA",
+            "categoria": tipo.nombre,
+            "cantidad": calculo["cantidad"],
+            "productos_categoria": calculo[
+                "cantidad_productos_categoria"
+            ],
+            "costo_promedio": _decimal_texto(
+                calculo["costo_promedio"]
+            ),
+            "costo_peor_caso": _decimal_texto(
+                calculo["costo_peor_caso"]
             ),
             "margen_piso": _decimal_texto(
                 calculo["margen_piso"],
