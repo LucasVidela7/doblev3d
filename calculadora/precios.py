@@ -161,3 +161,77 @@ def calcular_escenarios_producto(producto, cantidad):
         "margen_piso": MARGEN_MINIMO,
         "escenarios": escenarios,
     }
+
+
+def calcular_escenarios_kit_fijo(componentes):
+    """Calcula un kit fijo usando exactamente la lógica de la calculadora.
+
+    ``componentes`` es un iterable de diccionarios con ``producto`` y
+    ``cantidad``. Cada producto conserva su propio margen configurado y su
+    descuento por cantidad. El precio final del kit es la suma de los totales
+    recomendados de sus componentes para cada escenario.
+    """
+    acumulados = {
+        "agresivo": Decimal("0"),
+        "recomendado": Decimal("0"),
+        "conservador": Decimal("0"),
+    }
+    costo_total = Decimal("0")
+    detalle = []
+
+    for componente in componentes:
+        producto = componente["producto"]
+        cantidad = max(int(componente.get("cantidad") or 0), 0)
+
+        if cantidad <= 0:
+            continue
+
+        calculo = calcular_escenarios_producto(
+            producto,
+            cantidad,
+        )
+        costo_componente = (
+            calculo["costo_productivo"]
+            * Decimal(cantidad)
+        )
+        costo_total += costo_componente
+
+        for clave in acumulados:
+            acumulados[clave] += calculo[
+                "escenarios"
+            ][clave]["total_recomendado"]
+
+        detalle.append(
+            {
+                "producto_id": producto.id,
+                "codigo": producto.codigo,
+                "nombre": producto.nombre,
+                "cantidad": cantidad,
+                "costo_total": costo_componente,
+                "escenarios": calculo["escenarios"],
+            }
+        )
+
+    escenarios = {}
+    for clave, total in acumulados.items():
+        ganancia = total - costo_total
+        margen_real = Decimal("0")
+
+        if total > 0:
+            margen_real = (
+                ganancia / total * Decimal("100")
+            )
+
+        escenarios[clave] = {
+            "total_recomendado": total,
+            "costo_total": costo_total,
+            "ganancia": ganancia,
+            "margen_real": margen_real,
+        }
+
+    return {
+        "costo_total": costo_total,
+        "margen_piso": MARGEN_MINIMO,
+        "escenarios": escenarios,
+        "componentes": detalle,
+    }
