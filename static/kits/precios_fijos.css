@@ -67,6 +67,11 @@
     color:#7a5212;
 }
 
+.dv-kit-costo-chip-volumen{
+    background:#e8f6ed;
+    color:#27633b;
+}
+
 .dv-kit-precio-actual{
     flex:0 0 auto;
     padding:7px 9px;
