@@ -3,7 +3,8 @@
 <link rel="stylesheet" href="{% static 'kits/precios_fijos.css' %}">
 <script
     src="{% static 'kits/precios_fijos.js' %}"
-    data-recomendacion-url="{% url 'kits:recomendacion_fija' %}"
+    data-recomendacion-fija-url="{% url 'kits:recomendacion_fija' %}"
+    data-recomendacion-libre-url="{% url 'kits:recomendacion_libre' %}"
     defer
 ></script>
 {% endif %}
