@@ -58,7 +58,7 @@ if not SECRET_KEY:
 
 ALLOWED_HOSTS = _env_list(
     "ALLOWED_HOSTS",
-    "localhost,127.0.0.1,[::1],testserver",
+    "*" if DEBUG and not IS_RAILWAY else "localhost,127.0.0.1,[::1],testserver",
 )
 
 railway_public_domain = os.getenv(
