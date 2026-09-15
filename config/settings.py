@@ -104,6 +104,7 @@ MIDDLEWARE = [
     "config.auth_middleware.LoginRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "config.operaciones_ui_middleware.OperacionesUIMiddleware",
+    "config.impresiones_mensajes_middleware.MensajesImpresionesMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "config.ui_middleware.NormalizarNavegacionMiddleware",
 ]
