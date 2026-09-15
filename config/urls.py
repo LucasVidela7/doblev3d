@@ -35,6 +35,11 @@ urlpatterns = [
     ),
 
     path(
+        "kits/",
+        include("kits.urls"),
+    ),
+
+    path(
         "pedidos/",
         include("pedidos.urls"),
     ),
