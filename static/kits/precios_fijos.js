@@ -33,6 +33,11 @@
         return `${numero.toFixed(1).replace(".", ",")}%`;
     }
 
+    function kilos(gramos){
+        const numero = Number(gramos || 0) / 1000;
+        return `${numero.toLocaleString("es-AR", {maximumFractionDigits:2})} kg`;
+    }
+
     function componentesActuales(){
         const componentes = [];
 
@@ -158,6 +163,43 @@
         `;
     }
 
+    function chipFilamentoFijo(data){
+        const clase = data.usa_filamento_volumen
+            ? " dv-kit-costo-chip-volumen"
+            : "";
+        const etiqueta = data.usa_filamento_volumen
+            ? "Filamento por volumen"
+            : "Filamento estándar";
+
+        return `
+            <span class="dv-kit-costo-chip${clase}">
+                ${etiqueta} ${dinero(data.precio_filamento_kg)}/kg · ${kilos(data.peso_total_gramos)}
+            </span>
+        `;
+    }
+
+    function chipFilamentoLibre(data){
+        if (!data.usa_filamento_volumen) {
+            return `
+                <span class="dv-kit-costo-chip">
+                    Filamento estándar ${dinero(data.precio_filamento_estandar_kg)}/kg
+                </span>
+            `;
+        }
+
+        const minimo = dinero(data.precio_filamento_min_kg);
+        const maximo = dinero(data.precio_filamento_max_kg);
+        const rango = minimo === maximo
+            ? `${minimo}/kg`
+            : `${minimo}–${maximo}/kg`;
+
+        return `
+            <span class="dv-kit-costo-chip dv-kit-costo-chip-volumen">
+                Volumen aplicado en ${data.productos_con_filamento_volumen}/${data.productos_categoria} referencias · ${rango}
+            </span>
+        `;
+    }
+
     function renderizarFijo(data){
         const estado = estadoPrecioActual(data);
         const tarjetas = [
@@ -174,10 +216,11 @@
                     <div class="dv-kit-escenarios-etiqueta">PRECIOS SEGÚN CALCULADORA</div>
                     <div class="dv-kit-escenarios-titulo">Composición fija</div>
                     <div class="dv-kit-escenarios-detalle">
-                        Cada producto conserva su propio margen configurado y el descuento correspondiente a la cantidad incluida en el kit.
+                        Cada producto conserva su propio margen configurado. El precio/kg de filamento se elige con el peso total de toda la composición.
                     </div>
                     <div class="dv-kit-costos">
                         <span class="dv-kit-costo-chip">Costo productivo ${dinero(data.costo_total)}</span>
+                        ${chipFilamentoFijo(data)}
                         <span class="dv-kit-costo-chip">Piso calculadora ${porcentaje(data.margen_piso)}</span>
                     </div>
                 </div>
@@ -205,11 +248,12 @@
                     <div class="dv-kit-escenarios-etiqueta">PRECIOS SEGÚN CALCULADORA</div>
                     <div class="dv-kit-escenarios-titulo">Libre por categoría · ${data.categoria}</div>
                     <div class="dv-kit-escenarios-detalle">
-                        La categoría tiene ${data.productos_categoria} productos comerciales. Para ${data.cantidad} unidades, el sistema compara el comportamiento promedio con el producto más exigente de la categoría.
+                        La categoría tiene ${data.productos_categoria} productos comerciales. Para ${data.cantidad} unidades, el sistema compara el comportamiento promedio con el producto más exigente y aplica los tramos de filamento según el peso de cada referencia.
                     </div>
                     <div class="dv-kit-costos">
                         <span class="dv-kit-costo-chip">Costo promedio ${dinero(data.costo_promedio)}</span>
                         <span class="dv-kit-costo-chip riesgo">Peor costo ${dinero(data.costo_peor_caso)}</span>
+                        ${chipFilamentoLibre(data)}
                         <span class="dv-kit-costo-chip">Piso calculadora ${porcentaje(data.margen_piso)}</span>
                     </div>
                 </div>
