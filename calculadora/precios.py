@@ -6,6 +6,15 @@ CANTIDAD_PISO_MARGEN = Decimal("1500")
 DIFERENCIA_ESCENARIO = Decimal("4")
 
 
+def _decimal(valor, default=Decimal("0")):
+    try:
+        if valor in (None, ""):
+            return default
+        return Decimal(str(valor))
+    except Exception:
+        return default
+
+
 def redondear_arriba(valor, multiplo=Decimal("100")):
     valor = Decimal(valor)
     multiplo = Decimal(multiplo)
@@ -126,13 +135,129 @@ def margenes_escenario(cantidad, margen_tope):
     }
 
 
-def calcular_escenarios_producto(producto, cantidad):
-    cantidad = max(int(cantidad or 1), 1)
+def desglose_productivo(producto, cantidad=1, precio_filamento_kg=None):
+    """
+    Desglose de costo unitario para una venta de ``cantidad`` unidades.
 
-    costo_productivo = (
-        Decimal(str(producto.costo))
-        + Decimal(str(producto.seguro))
+    El producto y su precio de lista siguen usando siempre el coste estándar.
+    Este cálculo es exclusivo de la calculadora de cantidades/kits y puede
+    elegir un precio de filamento más económico según los gramos totales.
+    """
+    cantidad = max(int(cantidad or 1), 1)
+    peso_unitario = max(
+        _decimal(getattr(producto, "peso_gramos", 0)),
+        Decimal("0"),
     )
+    peso_total = peso_unitario * Decimal(cantidad)
+
+    config = producto.obtener_configuracion()
+
+    vacio = {
+        "config": config,
+        "cantidad": cantidad,
+        "peso_unitario_gramos": peso_unitario,
+        "peso_total_gramos": peso_total,
+        "horas_totales": Decimal("0"),
+        "costo_luz": Decimal("0"),
+        "costo_material": Decimal("0"),
+        "amortizacion": Decimal("0"),
+        "provision_fallos": Decimal("0"),
+        "costo": Decimal("0"),
+        "seguro": Decimal("0"),
+        "costo_productivo": Decimal("0"),
+        "costo_productivo_total": Decimal("0"),
+        "precio_filamento_estandar_kg": Decimal("0"),
+        "precio_filamento_kg": Decimal("0"),
+        "tramo_desde_gramos": None,
+        "usa_filamento_volumen": False,
+    }
+
+    if not config or not getattr(producto, "requiere_impresion", True):
+        return vacio
+
+    estandar = max(
+        _decimal(config.coste_plastico_kg),
+        Decimal("0"),
+    )
+    tramo = None
+
+    if precio_filamento_kg is None:
+        tramo = config.tramo_filamento_para_gramos(peso_total)
+        precio_filamento_kg = config.precio_filamento_para_gramos(peso_total)
+    else:
+        precio_filamento_kg = max(
+            _decimal(precio_filamento_kg),
+            Decimal("0"),
+        )
+        if estandar > 0:
+            precio_filamento_kg = min(
+                estandar,
+                precio_filamento_kg,
+            )
+
+    horas_totales = max(
+        _decimal(producto.horas_totales),
+        Decimal("0"),
+    )
+    costo_luz = horas_totales * _decimal(config.coste_luz_hora)
+    costo_material = (
+        peso_unitario
+        * precio_filamento_kg
+        / Decimal("1000")
+    )
+    costo = costo_luz + costo_material
+    amortizacion = (
+        horas_totales
+        * _decimal(config.coste_amortizacion_hora)
+    )
+    tasa_fallos = _decimal(config.tasa_fallos) / Decimal("100")
+    provision_fallos = (amortizacion + costo) * tasa_fallos
+    seguro = amortizacion + provision_fallos
+    costo_productivo = costo + seguro
+
+    return {
+        "config": config,
+        "cantidad": cantidad,
+        "peso_unitario_gramos": peso_unitario,
+        "peso_total_gramos": peso_total,
+        "horas_totales": horas_totales,
+        "costo_luz": costo_luz,
+        "costo_material": costo_material,
+        "amortizacion": amortizacion,
+        "provision_fallos": provision_fallos,
+        "costo": costo,
+        "seguro": seguro,
+        "costo_productivo": costo_productivo,
+        "costo_productivo_total": (
+            costo_productivo * Decimal(cantidad)
+        ),
+        "precio_filamento_estandar_kg": estandar,
+        "precio_filamento_kg": precio_filamento_kg,
+        "tramo_desde_gramos": (
+            _decimal(tramo.desde_gramos)
+            if tramo is not None
+            else None
+        ),
+        "usa_filamento_volumen": (
+            precio_filamento_kg < estandar
+            if estandar > 0
+            else False
+        ),
+    }
+
+
+def calcular_escenarios_producto(
+    producto,
+    cantidad,
+    precio_filamento_kg=None,
+):
+    cantidad = max(int(cantidad or 1), 1)
+    desglose = desglose_productivo(
+        producto,
+        cantidad,
+        precio_filamento_kg=precio_filamento_kg,
+    )
+    costo_productivo = desglose["costo_productivo"]
 
     margen_tope = max(
         Decimal(str(producto.margen_ganancia)),
@@ -157,6 +282,15 @@ def calcular_escenarios_producto(producto, cantidad):
         "cantidad": cantidad,
         "precio_lista": Decimal(str(producto.subtotal)),
         "costo_productivo": costo_productivo,
+        "costo_productivo_total": desglose["costo_productivo_total"],
+        "peso_total_gramos": desglose["peso_total_gramos"],
+        "precio_filamento_estandar_kg": desglose[
+            "precio_filamento_estandar_kg"
+        ],
+        "precio_filamento_kg": desglose["precio_filamento_kg"],
+        "tramo_desde_gramos": desglose["tramo_desde_gramos"],
+        "usa_filamento_volumen": desglose["usa_filamento_volumen"],
+        "desglose": desglose,
         "margen_tope": margen_tope,
         "margen_piso": MARGEN_MINIMO,
         "escenarios": escenarios,
@@ -164,13 +298,20 @@ def calcular_escenarios_producto(producto, cantidad):
 
 
 def calcular_escenarios_kit_fijo(componentes):
-    """Calcula un kit fijo usando exactamente la lógica de la calculadora.
-
-    ``componentes`` es un iterable de diccionarios con ``producto`` y
-    ``cantidad``. Cada producto conserva su propio margen configurado y su
-    descuento por cantidad. El precio final del kit es la suma de los totales
-    recomendados de sus componentes para cada escenario.
     """
+    Calcula un kit fijo con la misma lógica de la calculadora.
+
+    El precio de filamento por volumen se decide con el peso TOTAL de toda la
+    composición del kit. Después ese mismo precio/kg se aplica a cada
+    componente, evitando que varios componentes chicos pierdan el beneficio
+    por evaluarse por separado.
+    """
+    componentes = [
+        componente
+        for componente in componentes
+        if max(int(componente.get("cantidad") or 0), 0) > 0
+    ]
+
     acumulados = {
         "agresivo": Decimal("0"),
         "recomendado": Decimal("0"),
@@ -178,22 +319,48 @@ def calcular_escenarios_kit_fijo(componentes):
     }
     costo_total = Decimal("0")
     detalle = []
+    peso_total_gramos = sum(
+        (
+            max(
+                _decimal(getattr(item["producto"], "peso_gramos", 0)),
+                Decimal("0"),
+            )
+            * Decimal(max(int(item.get("cantidad") or 0), 0))
+        )
+        for item in componentes
+    ) if componentes else Decimal("0")
+
+    config = (
+        componentes[0]["producto"].obtener_configuracion()
+        if componentes
+        else None
+    )
+    precio_filamento_estandar = (
+        max(_decimal(config.coste_plastico_kg), Decimal("0"))
+        if config
+        else Decimal("0")
+    )
+    tramo = (
+        config.tramo_filamento_para_gramos(peso_total_gramos)
+        if config
+        else None
+    )
+    precio_filamento_kg = (
+        config.precio_filamento_para_gramos(peso_total_gramos)
+        if config
+        else Decimal("0")
+    )
 
     for componente in componentes:
         producto = componente["producto"]
         cantidad = max(int(componente.get("cantidad") or 0), 0)
 
-        if cantidad <= 0:
-            continue
-
         calculo = calcular_escenarios_producto(
             producto,
             cantidad,
+            precio_filamento_kg=precio_filamento_kg,
         )
-        costo_componente = (
-            calculo["costo_productivo"]
-            * Decimal(cantidad)
-        )
+        costo_componente = calculo["costo_productivo_total"]
         costo_total += costo_componente
 
         for clave in acumulados:
@@ -208,6 +375,7 @@ def calcular_escenarios_kit_fijo(componentes):
                 "nombre": producto.nombre,
                 "cantidad": cantidad,
                 "costo_total": costo_componente,
+                "peso_total_gramos": calculo["peso_total_gramos"],
                 "escenarios": calculo["escenarios"],
             }
         )
@@ -231,6 +399,19 @@ def calcular_escenarios_kit_fijo(componentes):
 
     return {
         "costo_total": costo_total,
+        "peso_total_gramos": peso_total_gramos,
+        "precio_filamento_estandar_kg": precio_filamento_estandar,
+        "precio_filamento_kg": precio_filamento_kg,
+        "tramo_desde_gramos": (
+            _decimal(tramo.desde_gramos)
+            if tramo is not None
+            else None
+        ),
+        "usa_filamento_volumen": (
+            precio_filamento_kg < precio_filamento_estandar
+            if precio_filamento_estandar > 0
+            else False
+        ),
         "margen_piso": MARGEN_MINIMO,
         "escenarios": escenarios,
         "componentes": detalle,
@@ -248,18 +429,9 @@ def _margen_real(costo, precio):
 def calcular_escenarios_kit_libre(productos, cantidad):
     """Sugiere precios para un kit libre por categoría.
 
-    Como todavía no sabemos qué productos elegirá el cliente, se calculan dos
-    referencias de costo: el promedio de la categoría y el peor caso. Cada
-    producto se evalúa con la misma calculadora y con la cantidad total del kit.
-
-    - Agresivo: promedio de los escenarios agresivos de la categoría.
-    - Recomendado: promedio recomendado, pero nunca por debajo del precio
-      agresivo del producto más exigente de la categoría.
-    - Conservador: escenario conservador más alto de toda la categoría.
-
-    Así el recomendado sigue siendo competitivo en una selección promedio y,
-    al mismo tiempo, mantiene una protección mínima si el cliente elige la
-    combinación más costosa.
+    Cada producto hipotético se evalúa con la misma calculadora de cantidad,
+    incluyendo el tramo de filamento que le corresponde por sus gramos totales.
+    Luego se comparan el comportamiento promedio y el caso más exigente.
     """
     cantidad = max(int(cantidad or 1), 1)
     productos = list(productos)
@@ -282,7 +454,7 @@ def calcular_escenarios_kit_libre(productos, cantidad):
     divisor = Decimal(len(calculos))
 
     costos_totales = [
-        calculo["costo_productivo"] * Decimal(cantidad)
+        calculo["costo_productivo_total"]
         for calculo in calculos
     ]
     costo_promedio = sum(costos_totales, Decimal("0")) / divisor
