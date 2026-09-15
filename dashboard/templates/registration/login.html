@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
+    <title>Ingresar | Doble V 3D</title>
+
+    <style>
+        :root{
+            --fondo:#f4f5f7;
+            --tarjeta:#ffffff;
+            --texto:#24272b;
+            --muted:#73777f;
+            --borde:#e5e7eb;
+            --oscuro:#24272b;
+            --rojo:#fde5e5;
+            --rojo-texto:#9a3030;
+            --sombra:0 20px 55px rgba(20,25,35,.12);
+        }
+
+        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
+        body{
+            min-height:100vh;
+            margin:0;
+            display:grid;
+            place-items:center;
+            padding:20px;
+            font-family:Arial,sans-serif;
+            background:var(--fondo);
+            color:var(--texto);
+        }
+
+        .login{
+            width:min(430px,100%);
+            padding:28px;
+            border:1px solid var(--borde);
+            border-radius:24px;
+            background:var(--tarjeta);
+            box-shadow:var(--sombra);
+        }
+
+        .marca{
+            display:flex;
+            align-items:center;
+            gap:13px;
+            margin-bottom:25px;
+        }
+
+        .logo{
+            width:54px;
+            height:54px;
+            display:grid;
+            place-items:center;
+            border-radius:16px;
+            background:var(--oscuro);
+            color:#fff;
+            font-size:18px;
+            font-weight:900;
+        }
+
+        h1{
+            margin:0;
+            font-size:24px;
+        }
+
+        .subtitulo{
+            margin-top:5px;
+            color:var(--muted);
+            font-size:12px;
+        }
+
+        .error{
+            margin-bottom:16px;
+            padding:12px 14px;
+            border-radius:12px;
+            background:var(--rojo);
+            color:var(--rojo-texto);
+            font-size:12px;
+            font-weight:800;
+            line-height:1.4;
+        }
+
+        .campo{
+            margin-bottom:15px;
+        }
+
+        .campo label{
+            display:block;
+            margin-bottom:7px;
+            color:var(--muted);
+            font-size:9px;
+            font-weight:900;
+            letter-spacing:.3px;
+        }
+
+        .campo input{
+            width:100%;
+            min-height:52px;
+            padding:0 14px;
+            border:1px solid var(--borde);
+            border-radius:13px;
+            background:#fff;
+            color:var(--texto);
+            font:inherit;
+            font-size:16px;
+            outline:none;
+        }
+
+        .campo input:focus{
+            border-color:#8b9098;
+            box-shadow:0 0 0 3px rgba(36,39,43,.07);
+        }
+
+        .boton{
+            width:100%;
+            min-height:52px;
+            margin-top:4px;
+            border:1px solid var(--oscuro);
+            border-radius:13px;
+            background:var(--oscuro);
+            color:#fff;
+            font-size:11px;
+            font-weight:900;
+            cursor:pointer;
+        }
+
+        .seguridad{
+            margin-top:18px;
+            color:var(--muted);
+            font-size:10px;
+            line-height:1.5;
+            text-align:center;
+        }
+    </style>
+</head>
+<body>
+
+<main class="login">
+    <div class="marca">
+        <div class="logo">DV</div>
+        <div>
+            <h1>Doble V 3D</h1>
+            <div class="subtitulo">Acceso al sistema de gestión</div>
+        </div>
+    </div>
+
+    {% if form.errors %}
+        <div class="error">
+            Usuario o contraseña incorrectos. Revisá los datos e intentá nuevamente.
+        </div>
+    {% endif %}
+
+    {% if next and user.is_authenticated %}
+        <div class="error">
+            Tu usuario no tiene acceso a la página solicitada.
+        </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="campo">
+            <label for="id_username">USUARIO</label>
+            <input
+                id="id_username"
+                name="username"
+                type="text"
+                autocomplete="username"
+                autocapitalize="none"
+                required
+                autofocus
+                value="{{ form.username.value|default:'' }}"
+            >
+        </div>
+
+        <div class="campo">
+            <label for="id_password">CONTRASEÑA</label>
+            <input
+                id="id_password"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                required
+            >
+        </div>
+
+        {% if next %}
+            <input type="hidden" name="next" value="{{ next }}">
+        {% endif %}
+
+        <button type="submit" class="boton">
+            INGRESAR
+        </button>
+    </form>
+
+    <div class="seguridad">
+        El acceso requiere una cuenta activa. La contraseña no se guarda en texto plano.
+    </div>
+</main>
+
+</body>
+</html>
