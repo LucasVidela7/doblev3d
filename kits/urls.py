@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from .listado import lista_kits
 from .precios_api import (
     recomendar_precio_fijo,
     recomendar_precio_libre,
@@ -13,7 +14,7 @@ app_name = "kits"
 urlpatterns = [
     path(
         "",
-        views.lista_kits,
+        lista_kits,
         name="lista",
     ),
     path(
