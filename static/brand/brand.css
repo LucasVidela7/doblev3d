@@ -1,3 +1,15 @@
+.contenedor,
+.c {
+    width: min(1280px, 100%) !important;
+    max-width: none !important;
+    padding-right: 18px !important;
+    padding-left: 18px !important;
+}
+
+body.modo-captura > .contenedor {
+    width: min(760px, calc(100% - 20px)) !important;
+}
+
 .brand-bar {
     position: absolute;
     top: 50%;
@@ -47,6 +59,12 @@
 }
 
 @media (max-width: 720px) {
+    .contenedor,
+    .c {
+        padding-right: 11px !important;
+        padding-left: 11px !important;
+    }
+
     .encabezado-marca {
         min-height: 44px;
         padding-left: 55px;
