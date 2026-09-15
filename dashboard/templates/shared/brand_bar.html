@@ -4,3 +4,30 @@
         <img class="brand-bar__logo" src="{% static 'brand/logo.png' %}" alt="Logo de Doble V 3D" width="50" height="38">
     </a>
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".brand-bar").forEach(function (marca) {
+            const encabezado = marca.closest(
+                ".encabezado, .encabezado-pagina, .header, .h, .topbar"
+            );
+
+            if (!encabezado) return;
+
+            encabezado.querySelectorAll("a, button").forEach(function (accion) {
+                const texto = accion.textContent.trim().replace(/\s+/g, " ");
+
+                if (texto === "← VOLVER") {
+                    accion.textContent = "←";
+                    accion.setAttribute("aria-label", "Volver");
+                    accion.setAttribute("title", "Volver");
+                    accion.classList.add("brand-header-icon");
+                } else if (texto === "INICIO") {
+                    accion.textContent = "⌂";
+                    accion.setAttribute("aria-label", "Ir al inicio");
+                    accion.setAttribute("title", "Inicio");
+                    accion.classList.add("brand-header-icon");
+                }
+            });
+        });
+    });
+</script>

@@ -36,8 +36,7 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
 
 <div class="contenedor">
     <div class="header">
-        <div>
-{% include 'shared/brand_bar.html' %}
+        <div class="encabezado-marca">{% include 'shared/brand_bar.html' %}
             <h1>{% if kit and kit.id %}Editar kit{% else %}Nuevo kit{% endif %}</h1>
             <div class="sub">Conservá los kits libres actuales o armá una receta fija.</div>
         </div>

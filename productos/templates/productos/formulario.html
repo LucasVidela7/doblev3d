@@ -16,8 +16,7 @@
 <body>
 
 <div class="contenedor">
-<div class="encabezado"><div>
-{% include 'shared/brand_bar.html' %}<h1>{% if modo == 'nuevo' %}Nuevo producto{% else %}Editar producto{% endif %}</h1><div class="subtitulo">{% if producto %}{{ producto.codigo }} · {{ producto.nombre }}{% else %}Crear un producto nuevo en el catálogo{% endif %}</div></div><div class="acciones"><button type="button" class="boton" onclick="volverPagina()">← VOLVER</button><a href="{% url 'dashboard:inicio' %}" class="boton">INICIO</a></div></div>
+<div class="encabezado"><div class="encabezado-marca">{% include 'shared/brand_bar.html' %}<h1>{% if modo == 'nuevo' %}Nuevo producto{% else %}Editar producto{% endif %}</h1><div class="subtitulo">{% if producto %}{{ producto.codigo }} · {{ producto.nombre }}{% else %}Crear un producto nuevo en el catálogo{% endif %}</div></div><div class="acciones"><button type="button" class="boton" onclick="volverPagina()">← VOLVER</button><a href="{% url 'dashboard:inicio' %}" class="boton">INICIO</a></div></div>
 {% if messages %}{% for message in messages %}<div class="mensaje {{ message.tags }}">{{ message }}</div>{% endfor %}{% endif %}
 <form method="post" id="form-producto">{% csrf_token %}
 <div class="tarjeta"><div class="titulo">DATOS PRINCIPALES</div><div class="grid">
