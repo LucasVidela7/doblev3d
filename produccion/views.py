@@ -387,6 +387,25 @@ def lista_produccion(request):
             and produccion.inicio_impresion
                 > ahora
         )
+        produccion.es_planificada_vencida = (
+            produccion.estado == "PENDIENTE"
+            and produccion.inicio_impresion
+                is not None
+            and produccion.inicio_impresion
+                <= ahora
+        )
+        produccion.fin_si_inicia_ahora = (
+            ahora
+            + timedelta(
+                minutes=
+                    produccion.tiempo_impresion_minutos
+            )
+            if (
+                produccion.es_planificada_vencida
+                and produccion.tiempo_impresion_minutos
+            )
+            else None
+        )
 
     productos = (
         Producto.objects

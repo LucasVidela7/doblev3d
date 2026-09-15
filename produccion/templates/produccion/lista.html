@@ -81,6 +81,9 @@ td:nth-child(6){grid-column:1/-1;border-top:1px solid var(--borde)!important;pad
 .producto-ayuda{margin-top:5px;min-height:11px;color:var(--muted);font-size:8px;line-height:1.35}
 .planificacion-estado{display:grid;gap:7px}
 .planificacion-horario{padding:7px 9px;border-radius:9px;background:var(--amarillo);color:var(--amarillo-t);font-size:8px;font-weight:900;line-height:1.35}
+.planificacion-horario-vencida{padding:9px 10px;background:#fff4d6}
+.planificacion-horario-vencida strong{display:block;margin-top:3px;color:#5c4800;font-size:10px}
+.planificacion-horario-vencida span{display:block;margin-top:3px;color:#8a731f;font-size:8px;font-weight:700}
 .btn-iniciar{width:100%;min-height:36px;border:0;border-radius:9px;background:#236a3b;color:#fff;font-size:8px;font-weight:900;cursor:pointer}
 .btn-iniciar:disabled{background:#d9dde1;color:#7a7f86;cursor:not-allowed}
 .btn-cancelar-plan{width:100%;min-height:34px;border:1px solid #efcaca;border-radius:9px;background:#fff;color:#923434;font-size:8px;font-weight:900;cursor:pointer}
@@ -910,11 +913,25 @@ table{width:100%;border-collapse:collapse;min-width:940px}
 
                                 <div class="planificacion-estado">
 
-                                    <div class="planificacion-horario">
-                                        PROGRAMADA
-                                        ·
-                                        {{ produccion.inicio_impresion|date:"d/m H:i" }}
-                                    </div>
+                                    {% if produccion.es_planificada_vencida %}
+                                        <div class="planificacion-horario planificacion-horario-vencida">
+                                            DISPONIBLE PARA INICIAR
+                                            {% if produccion.fin_si_inicia_ahora %}
+                                                <strong>
+                                                    Si inicia ahora · termina {{ produccion.fin_si_inicia_ahora|date:"H:i" }}
+                                                </strong>
+                                            {% endif %}
+                                            <span>
+                                                Programada originalmente · {{ produccion.inicio_impresion|date:"d/m H:i" }}
+                                            </span>
+                                        </div>
+                                    {% else %}
+                                        <div class="planificacion-horario">
+                                            PROGRAMADA
+                                            ·
+                                            {{ produccion.inicio_impresion|date:"d/m H:i" }}
+                                        </div>
+                                    {% endif %}
 
                                     <form
                                         method="post"

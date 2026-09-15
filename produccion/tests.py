@@ -155,3 +155,38 @@ class PlanificacionProduccionTests(TestCase):
             respuesta,
             "REPROGRAMAR IMPRESIÓN",
         )
+
+    @patch("produccion.views.timezone.now")
+    def test_planificacion_vencida_muestra_fin_si_inicia_ahora(
+        self,
+        ahora_mock,
+    ):
+        ahora = datetime(
+            2026,
+            9,
+            15,
+            10,
+            41,
+            tzinfo=ARGENTINA_TZ,
+        )
+        ahora_mock.return_value = ahora
+        Produccion.objects.create(
+            producto=self.producto,
+            cantidad=1,
+            estado="PENDIENTE",
+            inicio_impresion=ahora - timedelta(hours=2),
+            tiempo_impresion_minutos=150,
+        )
+
+        respuesta = self.client.get(
+            reverse("produccion:lista")
+        )
+
+        self.assertContains(
+            respuesta,
+            "Si inicia ahora · termina 13:11",
+        )
+        self.assertContains(
+            respuesta,
+            "Programada originalmente · 15/09 08:41",
+        )
