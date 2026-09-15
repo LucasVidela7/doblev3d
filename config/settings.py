@@ -89,6 +89,7 @@ INSTALLED_APPS = [
     "produccion",
     "dashboard",
     "calculadora",
+    "auditoria.apps.AuditoriaConfig",
 ]
 
 MIDDLEWARE = [
@@ -99,6 +100,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "auditoria.middleware.AuditoriaRequestMiddleware",
     "config.auth_middleware.LoginRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
