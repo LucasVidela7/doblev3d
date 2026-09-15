@@ -11,6 +11,8 @@ from calculadora.precios import (
 from costos.models import ConfiguracionCostos
 from productos.models import Producto, TipoProducto
 
+from .models import Kit
+
 
 class PreciosKitFijoCalculadoraTests(TestCase):
     def setUp(self):
@@ -171,11 +173,23 @@ class PreciosKitFijoCalculadoraTests(TestCase):
             esperado,
         )
 
-    def test_formularios_cargan_interfaz_de_tres_escenarios(self):
-        for nombre_url in ("kits:nuevo",):
-            respuesta = self.client.get(
-                reverse(nombre_url)
-            )
+    def test_nuevo_y_editar_cargan_interfaz_de_tres_escenarios(self):
+        kit = Kit.objects.create(
+            nombre="Kit edición escenarios",
+            modalidad="FIJO",
+            cantidad_productos=1,
+            precio=Decimal("1000"),
+            activo=True,
+        )
+
+        respuestas = (
+            self.client.get(reverse("kits:nuevo")),
+            self.client.get(
+                reverse("kits:editar", args=[kit.id])
+            ),
+        )
+
+        for respuesta in respuestas:
             self.assertEqual(respuesta.status_code, 200)
             self.assertContains(
                 respuesta,
