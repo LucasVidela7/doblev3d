@@ -36,7 +36,7 @@ class TramosFilamentoTests(TestCase):
             Decimal("20000"),
         )
 
-    def test_aplica_el_tramo_mas_alto_alcanzado(self):
+    def test_aplica_el_mejor_tramo_alcanzado(self):
         self.assertEqual(
             self.config.precio_filamento_para_gramos(1000),
             Decimal("16000"),
@@ -54,7 +54,7 @@ class TramosFilamentoTests(TestCase):
             Decimal("14000"),
         )
 
-    def test_tramo_mas_caro_no_encarece_el_precio_estandar(self):
+    def test_tramo_mas_caro_no_hace_subir_el_costo(self):
         TramoCostoFilamento.objects.create(
             configuracion=self.config,
             desde_gramos=Decimal("10000"),
@@ -64,7 +64,7 @@ class TramosFilamentoTests(TestCase):
 
         self.assertEqual(
             self.config.precio_filamento_para_gramos(10000),
-            Decimal("20000"),
+            Decimal("14000"),
         )
 
     def test_tramo_inactivo_no_se_aplica(self):
