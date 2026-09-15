@@ -226,27 +226,50 @@
             margin-top:11px;
         }
 
+        .pedido-acciones form,
         .pedido-acciones .pedido-accion{
-            margin-top:0;
+            margin:0;
         }
 
-        .btn-editar-pedido{
+        .btn-editar-pedido,
+        .btn-entregar-pedido,
+        .btn-cancelar-pedido,
+        .btn-eliminar-pedido{
             min-height:42px;
             display:inline-flex;
             align-items:center;
             justify-content:center;
             padding:0 13px;
-            border:1px solid var(--borde);
             border-radius:11px;
-            background:#fff;
-            color:var(--oscuro);
             text-decoration:none;
             font-size:9px;
             font-weight:900;
+            cursor:pointer;
         }
 
-        .btn-editar-pedido:hover{
-            background:#f4f5f7;
+        .btn-editar-pedido{
+            border:1px solid var(--borde);
+            background:#fff;
+            color:var(--oscuro);
+        }
+        .btn-editar-pedido:hover{background:#f4f5f7}
+
+        .btn-entregar-pedido{
+            border:1px solid #438d56;
+            background:#438d56;
+            color:#fff;
+        }
+
+        .btn-cancelar-pedido{
+            border:1px solid #d7a832;
+            background:#fff;
+            color:var(--amarillo-texto);
+        }
+
+        .btn-eliminar-pedido{
+            border:1px solid #dfb4b4;
+            background:#fff;
+            color:var(--rojo-texto);
         }
 
         @media(max-width:520px){
@@ -255,16 +278,18 @@
                 grid-template-columns:1fr;
             }
 
+            .pedido-acciones form,
             .pedido-acciones .pedido-accion,
             .btn-editar-pedido,
+            .btn-entregar-pedido,
+            .btn-cancelar-pedido,
+            .btn-eliminar-pedido,
             .pedido-acciones .btn-pagar{
                 width:100%;
             }
         }
 
-        .pedido-accion{
-            margin-top:10px;
-        }
+        .pedido-accion{margin-top:10px}
 
         .btn-pagar{
             width:100%;
@@ -292,9 +317,7 @@
             align-items:center;
             justify-content:center;
         }
-
         .modal-fondo.abierto{display:flex}
-
         .modal{
             width:min(560px,100%);
             max-height:calc(100vh - 36px);
@@ -303,7 +326,6 @@
             background:#fff;
             box-shadow:0 24px 70px rgba(0,0,0,.28);
         }
-
         .modal-cabecera{
             display:flex;
             align-items:flex-start;
@@ -312,10 +334,8 @@
             padding:20px;
             border-bottom:1px solid var(--borde);
         }
-
         .modal-titulo{font-size:20px;font-weight:900}
         .modal-subtitulo{margin-top:4px;color:var(--muted);font-size:11px}
-
         .cerrar{
             width:44px;
             height:44px;
@@ -325,9 +345,7 @@
             font-size:22px;
             cursor:pointer;
         }
-
         .modal-cuerpo{padding:20px}
-
         .saldo-modal{
             display:flex;
             justify-content:space-between;
@@ -338,17 +356,9 @@
             border-radius:14px;
             background:#f4f5f7;
         }
-
-        .saldo-modal span{
-            color:var(--muted);
-            font-size:11px;
-            font-weight:800;
-        }
-
+        .saldo-modal span{color:var(--muted);font-size:11px;font-weight:800}
         .saldo-modal strong{font-size:21px}
-
         .campo-pago{margin-bottom:14px}
-
         .campo-pago label{
             display:block;
             margin-bottom:6px;
@@ -356,7 +366,6 @@
             font-size:10px;
             font-weight:900;
         }
-
         .campo-pago input,
         .campo-pago select,
         .campo-pago textarea{
@@ -369,19 +378,13 @@
             font:inherit;
             font-size:15px;
         }
-
-        .campo-pago textarea{
-            min-height:78px;
-            resize:vertical;
-        }
-
+        .campo-pago textarea{min-height:78px;resize:vertical}
         .acciones-modal{
             display:grid;
             grid-template-columns:1fr 1fr;
             gap:10px;
             margin-top:18px;
         }
-
         .acciones-modal button{
             min-height:50px;
             border-radius:13px;
@@ -389,17 +392,8 @@
             font-weight:900;
             cursor:pointer;
         }
-
-        .cancelar-modal{
-            border:1px solid var(--borde);
-            background:#fff;
-        }
-
-        .guardar-modal{
-            border:1px solid #438d56;
-            background:#438d56;
-            color:#fff;
-        }
+        .cancelar-modal{border:1px solid var(--borde);background:#fff}
+        .guardar-modal{border:1px solid #438d56;background:#438d56;color:#fff}
 
         .resumen-pedido{
             margin-top:11px;
@@ -408,7 +402,6 @@
             background:#fafafa;
             overflow:hidden;
         }
-
         .resumen-pedido summary{
             min-height:44px;
             display:flex;
@@ -422,76 +415,49 @@
             font-size:9px;
             font-weight:900;
         }
-
-        .resumen-pedido summary::-webkit-details-marker{
-            display:none;
-        }
-
+        .resumen-pedido summary::-webkit-details-marker{display:none}
         .resumen-pedido summary::after{
             content:"＋";
             flex:0 0 auto;
             font-size:16px;
             line-height:1;
         }
-
-        .resumen-pedido[open] summary::after{
-            content:"−";
-        }
-
+        .resumen-pedido[open] summary::after{content:"−"}
         .resumen-contenido{
             padding:0 12px 12px;
             border-top:1px solid var(--borde);
         }
-
         .item-resumen{
             padding:11px 0;
             border-bottom:1px solid var(--borde);
         }
-
-        .item-resumen:last-child{
-            border-bottom:0;
-        }
-
+        .item-resumen:last-child{border-bottom:0}
         .item-resumen-arriba{
             display:flex;
             justify-content:space-between;
             gap:12px;
             align-items:flex-start;
         }
-
-        .item-resumen-nombre{
-            min-width:0;
-            font-size:11px;
-            font-weight:900;
-        }
-
-        .item-resumen-subtotal{
-            flex:0 0 auto;
-            font-size:11px;
-            font-weight:900;
-        }
-
+        .item-resumen-nombre{min-width:0;font-size:11px;font-weight:900}
+        .item-resumen-subtotal{flex:0 0 auto;font-size:11px;font-weight:900}
         .item-resumen-meta{
             margin-top:4px;
             color:var(--muted);
             font-size:9px;
             line-height:1.45;
         }
-
         .kit-componentes{
             margin-top:7px;
             padding:8px 10px;
             border-radius:10px;
             background:#f0f1f3;
         }
-
         .kit-componentes-titulo{
             margin-bottom:5px;
             color:var(--muted);
             font-size:8px;
             font-weight:900;
         }
-
         .kit-componente{
             display:flex;
             justify-content:space-between;
@@ -499,7 +465,6 @@
             padding:3px 0;
             font-size:9px;
         }
-
         .personalizacion{
             margin-top:7px;
             padding:8px 10px;
@@ -509,7 +474,6 @@
             font-size:9px;
             line-height:1.45;
         }
-
         .resumen-total{
             display:flex;
             justify-content:space-between;
@@ -520,7 +484,6 @@
             font-size:11px;
             font-weight:900;
         }
-
         .vacio{
             padding:35px 16px;
             color:var(--muted);
@@ -562,41 +525,16 @@
 
         @media(max-width:780px){
             .contenedor{padding:16px 11px 28px}
-            .encabezado{
-                align-items:flex-start;
-                flex-direction:column;
-            }
+            .encabezado{align-items:flex-start;flex-direction:column}
             .acciones-encabezado{width:100%}
             .boton-volver,.boton-inicio{flex:1}
-            .metricas{
-                display:flex;
-                overflow-x:auto;
-                gap:8px;
-            }
-            .metrica{
-                min-width:165px;
-            }
-            .grid{
-                grid-template-columns:1fr;
-            }
-            .pedido-numeros{
-                grid-template-columns:repeat(3,1fr);
-            }
-            .modal-fondo{
-                padding:8px;
-                align-items:flex-end;
-            }
-
-            .modal{
-                max-height:92vh;
-                border-radius:20px 20px 10px 10px;
-            }
-
-            .modal-cabecera,
-            .modal-cuerpo{
-                padding:16px;
-            }
-
+            .metricas{display:flex;overflow-x:auto;gap:8px}
+            .metrica{min-width:165px}
+            .grid{grid-template-columns:1fr}
+            .pedido-numeros{grid-template-columns:repeat(3,1fr)}
+            .modal-fondo{padding:8px;align-items:flex-end}
+            .modal{max-height:92vh;border-radius:20px 20px 10px 10px}
+            .modal-cabecera,.modal-cuerpo{padding:16px}
             .nav-inferior{
                 width:calc(100% - 12px);
                 bottom:max(6px,env(safe-area-inset-bottom));
@@ -610,35 +548,19 @@
     <div class="encabezado">
         <div>
             <h1>{{ cliente.nombre }}</h1>
-            <div class="subtitulo">
-                Ficha del cliente e historial de pedidos
-            </div>
+            <div class="subtitulo">Ficha del cliente e historial de pedidos</div>
         </div>
 
         <div class="acciones-encabezado">
-            <button
-                type="button"
-                class="boton-volver"
-                onclick="history.back()"
-            >
-                ← VOLVER
-            </button>
-
-            <a
-                href="{% url 'dashboard:inicio' %}"
-                class="boton-inicio"
-            >
-                INICIO
-            </a>
+            <button type="button" class="boton-volver" onclick="history.back()">← VOLVER</button>
+            <a href="{% url 'dashboard:inicio' %}" class="boton-inicio">INICIO</a>
         </div>
     </div>
 
     {% if messages %}
         <div class="mensajes">
             {% for message in messages %}
-                <div class="mensaje {{ message.tags }}">
-                    {{ message }}
-                </div>
+                <div class="mensaje {{ message.tags }}">{{ message }}</div>
             {% endfor %}
         </div>
     {% endif %}
@@ -648,17 +570,14 @@
             <div class="metrica-label">PEDIDOS</div>
             <div class="metrica-valor">{{ cantidad_pedidos }}</div>
         </div>
-
         <div class="metrica">
             <div class="metrica-label">TOTAL COMPRADO</div>
             <div class="metrica-valor">${{ total_comprado|floatformat:0 }}</div>
         </div>
-
         <div class="metrica">
             <div class="metrica-label">TOTAL PAGADO</div>
             <div class="metrica-valor">${{ total_pagado|floatformat:0 }}</div>
         </div>
-
         <div class="metrica">
             <div class="metrica-label">SALDO PENDIENTE</div>
             <div class="metrica-valor">${{ saldo_pendiente|floatformat:0 }}</div>
@@ -667,87 +586,46 @@
 
     <div class="grid">
         <section class="panel">
-            <div class="panel-titulo">
-                DATOS DEL CLIENTE
-            </div>
-
+            <div class="panel-titulo">DATOS DEL CLIENTE</div>
             <div class="panel-cuerpo">
                 <form method="post">
                     {% csrf_token %}
-
                     <div class="campo">
                         <label for="nombre">NOMBRE</label>
-                        <input
-                            id="nombre"
-                            name="nombre"
-                            type="text"
-                            value="{{ cliente.nombre }}"
-                            required
-                        >
+                        <input id="nombre" name="nombre" type="text" value="{{ cliente.nombre }}" required>
                     </div>
-
                     <div class="campo">
                         <label for="telefono">TELÉFONO</label>
-                        <input
-                            id="telefono"
-                            name="telefono"
-                            type="text"
-                            value="{{ cliente.telefono }}"
-                        >
+                        <input id="telefono" name="telefono" type="text" value="{{ cliente.telefono }}">
                     </div>
-
                     <div class="campo">
                         <label for="email">EMAIL</label>
-                        <input
-                            id="email"
-                            name="email"
-                            type="email"
-                            value="{{ cliente.email }}"
-                        >
+                        <input id="email" name="email" type="email" value="{{ cliente.email }}">
                     </div>
-
                     <div class="campo">
                         <label for="observaciones">OBSERVACIONES</label>
-                        <textarea
-                            id="observaciones"
-                            name="observaciones"
-                        >{{ cliente.observaciones }}</textarea>
+                        <textarea id="observaciones" name="observaciones">{{ cliente.observaciones }}</textarea>
                     </div>
-
-                    <button
-                        type="submit"
-                        class="btn-guardar"
-                    >
-                        GUARDAR CAMBIOS
-                    </button>
+                    <button type="submit" class="btn-guardar">GUARDAR CAMBIOS</button>
                 </form>
 
-                <a
-                    href="{% url 'pedidos:nuevo' %}?cliente={{ cliente.id }}"
-                    class="btn-nuevo-pedido"
-                >
+                <a href="{% url 'pedidos:nuevo' %}?cliente={{ cliente.id }}" class="btn-nuevo-pedido">
                     + NUEVO PEDIDO
                 </a>
             </div>
         </section>
 
         <section class="panel">
-            <div class="panel-titulo">
-                PEDIDOS DEL CLIENTE
-            </div>
+            <div class="panel-titulo">PEDIDOS DEL CLIENTE</div>
 
             {% if filas_pedidos %}
                 {% for item in filas_pedidos %}
                     <div class="pedido">
                         <div class="pedido-arriba">
                             <div>
-                                <div class="pedido-codigo">
-                                    {{ item.pedido.codigo }}
-                                </div>
+                                <div class="pedido-codigo">{{ item.pedido.codigo }}</div>
                                 <div class="pedido-meta">
-                                    {{ item.pedido.fecha|date:"d/m/Y" }}
-                                    ·
-                                    {{ item.pedido.get_estado_display|upper }}
+                                    {{ item.pedido.fecha|date:"d/m/Y" }} · {{ item.pedido.get_estado_display|upper }}
                                 </div>
                             </div>
 
@@ -759,35 +637,62 @@
                         <div class="pedido-numeros">
                             <div class="numero">
                                 <div class="numero-label">TOTAL</div>
-                                <div class="numero-valor">
-                                    ${{ item.total|floatformat:0 }}
-                                </div>
+                                <div class="numero-valor">${{ item.total|floatformat:0 }}</div>
                             </div>
-
                             <div class="numero">
                                 <div class="numero-label">PAGADO</div>
-                                <div class="numero-valor">
-                                    ${{ item.pagado|floatformat:0 }}
-                                </div>
+                                <div class="numero-valor">${{ item.pagado|floatformat:0 }}</div>
                             </div>
-
                             <div class="numero">
                                 <div class="numero-label">SALDO</div>
-                                <div class="numero-valor">
-                                    ${{ item.saldo|floatformat:0 }}
-                                </div>
+                                <div class="numero-valor">${{ item.saldo|floatformat:0 }}</div>
                             </div>
                         </div>
 
                         <div class="pedido-acciones">
-
-                            {% if item.pedido.estado != "ENTREGADO" and item.pedido.estado != "CANCELADO" %}
+                            {% if item.pedido.estado == "PENDIENTE" %}
                                 <a
                                     href="{% url 'pedidos:editar' item.pedido.id %}?volver=cliente&cliente_id={{ cliente.id }}"
                                     class="btn-editar-pedido"
                                 >
                                     ✎ EDITAR PEDIDO
                                 </a>
+
+                                <form
+                                    method="post"
+                                    action="{% url 'pedidos:cancelar' item.pedido.id %}"
+                                    onsubmit="return confirmarCancelacionCliente();"
+                                >
+                                    {% csrf_token %}
+                                    <input type="hidden" name="origen" value="cliente">
+                                    <input type="hidden" name="cliente_id" value="{{ cliente.id }}">
+                                    <button type="submit" class="btn-cancelar-pedido">CANCELAR PEDIDO</button>
+                                </form>
+
+                                {% if item.pagado <= 0 %}
+                                    <form
+                                        method="post"
+                                        action="{% url 'pedidos:eliminar' item.pedido.id %}"
+                                        onsubmit="return confirmarEliminacionCliente();"
+                                    >
+                                        {% csrf_token %}
+                                        <input type="hidden" name="origen" value="cliente">
+                                        <input type="hidden" name="cliente_id" value="{{ cliente.id }}">
+                                        <button type="submit" class="btn-eliminar-pedido">ELIMINAR PEDIDO</button>
+                                    </form>
+                                {% endif %}
+                            {% elif item.pedido.estado == "LISTO" %}
+                                <form
+                                    method="post"
+                                    action="{% url 'pedidos:entregar' item.pedido.id %}"
+                                    data-saldo="{{ item.saldo }}"
+                                    onsubmit="return confirmarEntregaCliente(this);"
+                                >
+                                    {% csrf_token %}
+                                    <input type="hidden" name="origen" value="cliente">
+                                    <input type="hidden" name="cliente_id" value="{{ cliente.id }}">
+                                    <button type="submit" class="btn-entregar-pedido">✓ ENTREGAR PEDIDO</button>
+                                </form>
                             {% endif %}
 
                             {% if item.saldo > 0 %}
@@ -804,15 +709,10 @@
                                     </button>
                                 </div>
                             {% endif %}
-
                         </div>
 
-
                         <details class="resumen-pedido">
-                            <summary>
-                                VER QUÉ COMPRÓ
-                            </summary>
-
+                            <summary>VER QUÉ COMPRÓ</summary>
                             <div class="resumen-contenido">
                                 {% for detalle in item.pedido.detalles.all %}
                                     {% if detalle.estado != "CANCELADO" %}
@@ -827,16 +727,11 @@
                                                         {{ detalle.get_tipo_item_display }}
                                                     {% endif %}
                                                 </div>
-
-                                                <div class="item-resumen-subtotal">
-                                                    ${{ detalle.subtotal|floatformat:0 }}
-                                                </div>
+                                                <div class="item-resumen-subtotal">${{ detalle.subtotal|floatformat:0 }}</div>
                                             </div>
 
                                             <div class="item-resumen-meta">
-                                                Cantidad: {{ detalle.cantidad }}
-                                                ·
-                                                ${{ detalle.precio_unitario|floatformat:0 }} c/u
+                                                Cantidad: {{ detalle.cantidad }} · ${{ detalle.precio_unitario|floatformat:0 }} c/u
                                                 {% if detalle.tipo_item == "PERSONALIZADO" %}
                                                     · PERSONALIZADO
                                                 {% elif detalle.tipo_item == "KIT" %}
@@ -846,23 +741,14 @@
 
                                             {% if detalle.tipo_item == "KIT" %}
                                                 <div class="kit-componentes">
-                                                    <div class="kit-componentes-titulo">
-                                                        PRODUCTOS DEL KIT
-                                                    </div>
-
+                                                    <div class="kit-componentes-titulo">PRODUCTOS DEL KIT</div>
                                                     {% for componente in detalle.productos_kit.all %}
                                                         <div class="kit-componente">
-                                                            <span>
-                                                                {{ componente.producto.nombre }}
-                                                            </span>
-                                                            <strong>
-                                                                x{{ componente.cantidad }}
-                                                            </strong>
+                                                            <span>{{ componente.producto.nombre }}</span>
+                                                            <strong>x{{ componente.cantidad }}</strong>
                                                         </div>
                                                     {% empty %}
-                                                        <div class="item-resumen-meta">
-                                                            Sin detalle de componentes guardado.
-                                                        </div>
+                                                        <div class="item-resumen-meta">Sin detalle de componentes guardado.</div>
                                                     {% endfor %}
                                                 </div>
                                             {% endif %}
@@ -871,17 +757,10 @@
                                                 {% if detalle.detalle_personalizacion or detalle.color_personalizacion %}
                                                     <div class="personalizacion">
                                                         {% if detalle.detalle_personalizacion %}
-                                                            <div>
-                                                                <strong>Detalle:</strong>
-                                                                {{ detalle.detalle_personalizacion }}
-                                                            </div>
+                                                            <div><strong>Detalle:</strong> {{ detalle.detalle_personalizacion }}</div>
                                                         {% endif %}
-
                                                         {% if detalle.color_personalizacion %}
-                                                            <div>
-                                                                <strong>Color:</strong>
-                                                                {{ detalle.color_personalizacion }}
-                                                            </div>
+                                                            <div><strong>Color:</strong> {{ detalle.color_personalizacion }}</div>
                                                         {% endif %}
                                                     </div>
                                                 {% endif %}
@@ -889,9 +768,7 @@
                                         </div>
                                     {% endif %}
                                 {% empty %}
-                                    <div class="vacio">
-                                        Este pedido no tiene productos cargados.
-                                    </div>
+                                    <div class="vacio">Este pedido no tiene productos cargados.</div>
                                 {% endfor %}
 
                                 <div class="resumen-total">
@@ -903,14 +780,11 @@
                     </div>
                 {% endfor %}
             {% else %}
-                <div class="vacio">
-                    Este cliente todavía no tiene pedidos.
-                </div>
+                <div class="vacio">Este cliente todavía no tiene pedidos.</div>
             {% endif %}
         </section>
     </div>
 </div>
-
 
 <div
     id="modalPagoCliente"
@@ -924,15 +798,7 @@
                 <div class="modal-titulo">Registrar pago</div>
                 <div id="modalPagoClientePedido" class="modal-subtitulo"></div>
             </div>
-
-            <button
-                type="button"
-                class="cerrar"
-                onclick="cerrarPagoCliente()"
-                aria-label="Cerrar"
-            >
-                ×
-            </button>
+            <button type="button" class="cerrar" onclick="cerrarPagoCliente()" aria-label="Cerrar">×</button>
         </div>
 
         <div class="modal-cuerpo">
@@ -948,15 +814,7 @@
 
                 <div class="campo-pago">
                     <label for="montoPagoCliente">MONTO</label>
-                    <input
-                        id="montoPagoCliente"
-                        name="monto"
-                        type="number"
-                        min="0.01"
-                        step="0.01"
-                        inputmode="decimal"
-                        required
-                    >
+                    <input id="montoPagoCliente" name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required>
                 </div>
 
                 <div class="campo-pago">
@@ -971,29 +829,12 @@
 
                 <div class="campo-pago">
                     <label for="obsPagoCliente">OBSERVACIONES</label>
-                    <textarea
-                        id="obsPagoCliente"
-                        name="observaciones"
-                        maxlength="250"
-                        placeholder="Opcional"
-                    ></textarea>
+                    <textarea id="obsPagoCliente" name="observaciones" maxlength="250" placeholder="Opcional"></textarea>
                 </div>
 
                 <div class="acciones-modal">
-                    <button
-                        type="button"
-                        class="cancelar-modal"
-                        onclick="cerrarPagoCliente()"
-                    >
-                        CANCELAR
-                    </button>
-
-                    <button
-                        type="submit"
-                        class="guardar-modal"
-                    >
-                        GUARDAR PAGO
-                    </button>
+                    <button type="button" class="cancelar-modal" onclick="cerrarPagoCliente()">CANCELAR</button>
+                    <button type="submit" class="guardar-modal">GUARDAR PAGO</button>
                 </div>
             </form>
         </div>
@@ -1001,30 +842,42 @@
 </div>
 
 <nav class="nav-inferior" aria-label="Navegación principal">
-    <a class="nav-item" href="{% url 'dashboard:inicio' %}">
-        <span>⌂</span>
-        <span>Inicio</span>
-    </a>
-    <a class="nav-item" href="{% url 'pedidos:impresiones' %}">
-        <span>📦</span>
-        <span>Pedidos</span>
-    </a>
-    <a class="nav-item nuevo-nav" href="{% url 'pedidos:nuevo' %}">
-        <span>＋</span>
-        <span>Nuevo</span>
-    </a>
-    <a class="nav-item" href="{% url 'produccion:lista' %}">
-        <span>⚙</span>
-        <span>Producción</span>
-    </a>
-    <a class="nav-item" href="{% url 'productos:lista' %}">
-        <span>▦</span>
-        <span>Productos</span>
-    </a>
+    <a class="nav-item" href="{% url 'dashboard:inicio' %}"><span>⌂</span><span>Inicio</span></a>
+    <a class="nav-item" href="{% url 'pedidos:impresiones' %}"><span>📦</span><span>Pedidos</span></a>
+    <a class="nav-item nuevo-nav" href="{% url 'pedidos:nuevo' %}"><span>＋</span><span>Nuevo</span></a>
+    <a class="nav-item" href="{% url 'produccion:lista' %}"><span>⚙</span><span>Producción</span></a>
+    <a class="nav-item" href="{% url 'productos:lista' %}"><span>▦</span><span>Productos</span></a>
 </nav>
 
-
 <script>
+function confirmarEntregaCliente(formulario) {
+    const saldo = Number(String(formulario.dataset.saldo || "0").replace(",", "."));
+
+    if (saldo > 0) {
+        return confirm(
+            "ATENCIÓN: este pedido todavía tiene un saldo pendiente de $" +
+            saldo.toLocaleString("es-AR") +
+            ".\n\n¿Querés ENTREGARLO IGUAL?"
+        );
+    }
+
+    return confirm("¿Confirmás que el pedido fue entregado al cliente?");
+}
+
+function confirmarCancelacionCliente() {
+    return confirm(
+        "¿Seguro que querés CANCELAR este pedido?\n\n" +
+        "Esta acción solo está disponible mientras el pedido está PENDIENTE."
+    );
+}
+
+function confirmarEliminacionCliente() {
+    return confirm(
+        "¿Seguro que querés ELIMINAR este pedido?\n\n" +
+        "Usá esta opción solamente si fue cargado por error. Esta acción no se puede deshacer."
+    );
+}
+
 function abrirPagoCliente(boton) {
     const modal = document.getElementById("modalPagoCliente");
     const form = document.getElementById("formPagoCliente");
