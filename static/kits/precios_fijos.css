@@ -1,0 +1,174 @@
+#recomendacion_precio.dv-kit-fijo-activo{
+    display:block!important;
+    border-color:#dce2e8;
+    background:#fff;
+}
+
+#recomendacion_precio.dv-kit-fijo-activo > .dv-kit-original{
+    display:none!important;
+}
+
+.dv-kit-escenarios{
+    display:none;
+}
+
+#recomendacion_precio.dv-kit-fijo-activo > .dv-kit-escenarios{
+    display:block;
+}
+
+.dv-kit-escenarios-cabecera{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:14px;
+    margin-bottom:13px;
+}
+
+.dv-kit-escenarios-etiqueta{
+    color:#747981;
+    font-size:8px;
+    font-weight:900;
+    letter-spacing:.35px;
+}
+
+.dv-kit-escenarios-titulo{
+    margin-top:4px;
+    font-size:15px;
+    font-weight:900;
+}
+
+.dv-kit-escenarios-detalle{
+    margin-top:5px;
+    max-width:650px;
+    color:#626870;
+    font-size:9px;
+    line-height:1.45;
+}
+
+.dv-kit-precio-actual{
+    flex:0 0 auto;
+    padding:7px 9px;
+    border-radius:9px;
+    background:#f2f4f6;
+    color:#555b63;
+    font-size:8px;
+    font-weight:900;
+    text-align:right;
+}
+
+.dv-kit-precio-actual.alerta{
+    background:#fff1d8;
+    color:#79500e;
+}
+
+.dv-kit-escenarios-grid{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:9px;
+}
+
+.dv-kit-escenario{
+    min-width:0;
+    padding:13px;
+    border:1px solid #dfe3e7;
+    border-radius:13px;
+    background:#fafbfc;
+}
+
+.dv-kit-escenario.agresivo{
+    background:#f6f9fc;
+}
+
+.dv-kit-escenario.recomendado{
+    border-color:#afd5bd;
+    background:#f2faf5;
+    box-shadow:0 3px 12px rgba(36,99,58,.08);
+}
+
+.dv-kit-escenario.conservador{
+    background:#fffaf1;
+}
+
+.dv-kit-escenario-nombre{
+    color:#555b63;
+    font-size:8px;
+    font-weight:900;
+    letter-spacing:.3px;
+}
+
+.dv-kit-escenario-precio{
+    margin-top:6px;
+    font-size:23px;
+    font-weight:900;
+    line-height:1;
+}
+
+.dv-kit-escenario-margen{
+    margin-top:7px;
+    color:#5d646c;
+    font-size:9px;
+    font-weight:800;
+}
+
+.dv-kit-escenario-ayuda{
+    min-height:30px;
+    margin-top:5px;
+    color:#777d84;
+    font-size:8px;
+    line-height:1.35;
+}
+
+.dv-kit-usar-precio{
+    width:100%;
+    min-height:36px;
+    margin-top:9px;
+    border:1px solid #d4d9de;
+    border-radius:9px;
+    background:#fff;
+    color:#2d3136;
+    font-size:8px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+.dv-kit-escenario.recomendado .dv-kit-usar-precio{
+    border-color:#25282d;
+    background:#25282d;
+    color:#fff;
+}
+
+.dv-kit-escenarios-estado{
+    padding:12px;
+    border:1px dashed #d4d8dd;
+    border-radius:11px;
+    color:#747981;
+    background:#fafbfc;
+    font-size:9px;
+    font-weight:800;
+    line-height:1.45;
+}
+
+.dv-kit-escenarios-estado.error{
+    border-color:#e4c2c2;
+    background:#fff7f7;
+    color:#8a3030;
+}
+
+@media(max-width:700px){
+    .dv-kit-escenarios-cabecera{
+        flex-direction:column;
+    }
+
+    .dv-kit-precio-actual{
+        width:100%;
+        text-align:left;
+    }
+
+    .dv-kit-escenarios-grid{
+        grid-template-columns:1fr;
+    }
+
+    .dv-kit-escenario-ayuda{
+        min-height:0;
+    }
+}
