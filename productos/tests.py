@@ -241,6 +241,14 @@ class ProductoCompuestoTests(TestCase):
             'value="57,50"',
             html,
         )
+        self.assertIn(
+            'name="peso_gramos" min="0" step="0.01" value="20"',
+            html,
+        )
+        self.assertNotIn(
+            'name="peso_gramos" min="0" step="0.01" value="20,00"',
+            html,
+        )
 
     def test_armar_compuesto_descuenta_piezas_y_suma_terminado(self):
         cuerpo = self.pieza("Cuerpo armado", 1, 0, 20)
