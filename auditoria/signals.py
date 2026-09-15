@@ -1,3 +1,4 @@
+from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.db.models.signals import post_save, pre_delete, pre_save
 from django.dispatch import receiver
 
@@ -108,6 +109,26 @@ def _crear_registro(sender, instancia, accion, cambios):
     )
 
 
+def _crear_evento_sesion(usuario, accion):
+    if usuario is None:
+        return
+
+    contexto = obtener_contexto()
+    RegistroAuditoria.objects.create(
+        usuario=usuario,
+        usuario_nombre=usuario.get_username(),
+        accion=accion,
+        app_label="auth",
+        modelo="user",
+        objeto_id=str(usuario.pk or ""),
+        objeto_representacion=usuario.get_username()[:255],
+        cambios={},
+        ruta=contexto["ruta"],
+        metodo=contexto["metodo"],
+        ip=contexto["ip"],
+    )
+
+
 @receiver(pre_save)
 def capturar_estado_anterior(sender, instance, **kwargs):
     if not _debe_auditar(sender) or instance.pk is None:
@@ -155,3 +176,13 @@ def registrar_eliminacion(sender, instance, **kwargs):
         _accion_para(sender, False, cambios, eliminando=True),
         cambios,
     )
+
+
+@receiver(user_logged_in)
+def registrar_inicio_sesion(sender, request, user, **kwargs):
+    _crear_evento_sesion(user, "INICIAR_SESION")
+
+
+@receiver(user_logged_out)
+def registrar_cierre_sesion(sender, request, user, **kwargs):
+    _crear_evento_sesion(user, "CERRAR_SESION")
