@@ -1,14 +1,431 @@
-from decimal import Decimal
+import json
 from collections import defaultdict
 from datetime import timedelta
+from decimal import Decimal
+from html import escape
 
 from django.db.models import Sum
-from django.shortcuts import render
+from django.middleware.csrf import get_token
+from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils import timezone
 
 from pedidos.models import Pedido, Pago
-from produccion.models import Produccion
+from produccion import views as produccion_views
+from produccion.models import Impresora, Produccion
 from productos.models import Producto
+
+
+DASHBOARD_PRODUCCION_STYLE = r"""
+<style id="dv-dashboard-produccion-style">
+.dv-produccion-panel{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+.dv-produccion-cabecera{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+}
+.dv-produccion-link{
+    color:#555b63;
+    font-size:9px;
+    font-weight:900;
+    text-decoration:none;
+    white-space:nowrap;
+}
+.dv-maquinas{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+}
+.dv-maquina{
+    min-width:0;
+    padding:11px;
+    border:1px solid #e5e7eb;
+    border-radius:13px;
+    background:#fafafa;
+}
+.dv-maquina-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:7px;
+}
+.dv-maquina-nombre{
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-size:11px;
+    font-weight:900;
+}
+.dv-maquina-estado{
+    flex:0 0 auto;
+    display:inline-flex;
+    padding:4px 7px;
+    border-radius:999px;
+    font-size:7px;
+    font-weight:900;
+}
+.dv-maquina-estado.imprimiendo{
+    background:#e3efff;
+    color:#245a9b;
+}
+.dv-maquina-estado.libre{
+    background:#dff4e5;
+    color:#24633a;
+}
+.dv-maquina-producto{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-size:11px;
+    font-weight:800;
+}
+.dv-maquina-meta{
+    margin-top:4px;
+    color:#73777f;
+    font-size:8px;
+    line-height:1.4;
+}
+.dv-maquina-acciones{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:6px;
+    margin-top:8px;
+}
+.dv-maquina-acciones form{
+    margin:0;
+}
+.dv-btn-listo,.dv-btn-cancelar,.dv-btn-iniciar{
+    width:100%;
+    min-height:31px;
+    padding:0 9px;
+    border-radius:9px;
+    font-family:Arial,sans-serif;
+    font-size:8px;
+    font-weight:900;
+    cursor:pointer;
+}
+.dv-btn-listo{
+    border:0;
+    background:#24633a;
+    color:#fff;
+}
+.dv-btn-cancelar{
+    border:1px solid #eccaca;
+    background:#fff;
+    color:#9a3030;
+}
+.dv-planificaciones{
+    padding-top:10px;
+    border-top:1px solid #eceef1;
+}
+.dv-planificaciones-titulo{
+    margin-bottom:7px;
+    color:#73777f;
+    font-size:8px;
+    font-weight:900;
+    letter-spacing:.35px;
+}
+.dv-plan{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:8px;
+    align-items:center;
+    padding:8px 0;
+}
+.dv-plan + .dv-plan{
+    border-top:1px solid #f0f1f3;
+}
+.dv-plan-producto{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-size:10px;
+    font-weight:900;
+}
+.dv-plan-meta{
+    margin-top:3px;
+    color:#73777f;
+    font-size:8px;
+    line-height:1.35;
+}
+.dv-plan-form{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    margin:0;
+}
+.dv-plan-select{
+    width:112px;
+    min-height:31px;
+    padding:4px 6px;
+    border:1px solid #d9dce0;
+    border-radius:8px;
+    background:#fff;
+    font-size:8px;
+}
+.dv-btn-iniciar{
+    width:auto;
+    border:0;
+    background:#24272b;
+    color:#fff;
+}
+.dv-sin-produccion{
+    padding:12px 8px;
+    color:#73777f;
+    text-align:center;
+    font-size:9px;
+}
+@media(max-width:720px){
+    .dv-maquinas{grid-template-columns:1fr}
+    .dv-plan{grid-template-columns:1fr}
+    .dv-plan-form{width:100%}
+    .dv-plan-select{flex:1;width:auto}
+}
+</style>
+"""
+
+
+def _panel_produccion_dashboard(
+    request,
+    impresoras,
+    producciones_actuales,
+    planificaciones,
+):
+    csrf_token = escape(get_token(request))
+    ahora = timezone.now()
+
+    actuales_por_impresora = {}
+    for produccion in producciones_actuales:
+        if produccion.impresora_id not in actuales_por_impresora:
+            actuales_por_impresora[produccion.impresora_id] = produccion
+
+    impresoras_libres = [
+        impresora
+        for impresora in impresoras
+        if impresora.id not in actuales_por_impresora
+    ]
+
+    maquinas_html = []
+
+    for impresora in impresoras:
+        produccion = actuales_por_impresora.get(impresora.id)
+        nombre = escape(impresora.nombre)
+
+        if produccion:
+            producto = escape(produccion.producto.nombre)
+            fin = produccion.fin_estimado
+            fin_texto = (
+                timezone.localtime(fin).strftime("%H:%M")
+                if fin
+                else "—"
+            )
+            peso = escape(produccion.peso_total_formateado)
+            listo_url = escape(
+                reverse(
+                    "dashboard:produccion_estado",
+                    args=[produccion.id],
+                )
+            )
+
+            maquinas_html.append(
+                f"""
+                <div class="dv-maquina">
+                    <div class="dv-maquina-head">
+                        <div class="dv-maquina-nombre">🖨 {nombre}</div>
+                        <span class="dv-maquina-estado imprimiendo">IMPRIMIENDO</span>
+                    </div>
+                    <div class="dv-maquina-producto">{producto} × {produccion.cantidad}</div>
+                    <div class="dv-maquina-meta">
+                        Termina {fin_texto} · ⚖ {peso}
+                    </div>
+                    <div class="dv-maquina-acciones">
+                        <form method="post" action="{listo_url}">
+                            <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
+                            <input type="hidden" name="estado" value="LISTO">
+                            <button type="submit" class="dv-btn-listo">✓ LISTO</button>
+                        </form>
+                        <form method="post" action="{listo_url}">
+                            <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
+                            <input type="hidden" name="estado" value="CANCELADO">
+                            <button type="submit" class="dv-btn-cancelar" title="Cancelar impresión">×</button>
+                        </form>
+                    </div>
+                </div>
+                """
+            )
+        else:
+            maquinas_html.append(
+                f"""
+                <div class="dv-maquina">
+                    <div class="dv-maquina-head">
+                        <div class="dv-maquina-nombre">🖨 {nombre}</div>
+                        <span class="dv-maquina-estado libre">LIBRE</span>
+                    </div>
+                    <div class="dv-maquina-meta">Disponible para la próxima planificación.</div>
+                </div>
+                """
+            )
+
+    if not maquinas_html:
+        maquinas_html.append(
+            '<div class="dv-sin-produccion">No hay impresoras activas configuradas.</div>'
+        )
+
+    planes_html = []
+
+    for produccion in planificaciones:
+        producto = escape(produccion.producto.nombre)
+        peso = escape(produccion.peso_total_formateado)
+        inicio = produccion.inicio_impresion
+
+        if inicio and inicio <= ahora:
+            inicio_texto = "Disponible ahora"
+        elif inicio:
+            inicio_texto = timezone.localtime(inicio).strftime(
+                "%d/%m · %H:%M"
+            )
+        else:
+            inicio_texto = "Sin horario"
+
+        iniciar_url = escape(
+            reverse(
+                "dashboard:produccion_iniciar",
+                args=[produccion.id],
+            )
+        )
+
+        if impresoras_libres:
+            opciones = "".join(
+                (
+                    f'<option value="{impresora.id}">'
+                    f'{escape(impresora.nombre)}</option>'
+                )
+                for impresora in impresoras_libres
+            )
+
+            accion = f"""
+                <form method="post" action="{iniciar_url}" class="dv-plan-form">
+                    <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
+                    <select name="impresora" class="dv-plan-select" required>
+                        <option value="">Impresora…</option>
+                        {opciones}
+                    </select>
+                    <button type="submit" class="dv-btn-iniciar">▶</button>
+                </form>
+            """
+        else:
+            accion = (
+                '<span class="dv-maquina-estado imprimiendo">SIN MÁQUINA LIBRE</span>'
+            )
+
+        planes_html.append(
+            f"""
+            <div class="dv-plan">
+                <div>
+                    <div class="dv-plan-producto">{producto} × {produccion.cantidad}</div>
+                    <div class="dv-plan-meta">
+                        {inicio_texto} · {escape(produccion.tiempo_impresion_formateado)}
+                    </div>
+                </div>
+                {accion}
+            </div>
+            """
+        )
+
+    if not planes_html:
+        planes_html.append(
+            '<div class="dv-sin-produccion">No hay planificaciones pendientes.</div>'
+        )
+
+    produccion_url = escape(reverse("produccion:lista"))
+
+    return f"""
+    <div class="panel dv-produccion-panel">
+        <div class="dv-produccion-cabecera">
+            <div>
+                <h3 class="panel-titulo">Producción</h3>
+                <div class="panel-subtitulo" style="margin-bottom:0">
+                    Impresoras activas y próximas planificaciones
+                </div>
+            </div>
+            <a class="dv-produccion-link" href="{produccion_url}">VER TODO →</a>
+        </div>
+
+        <div class="dv-maquinas">
+            {''.join(maquinas_html)}
+        </div>
+
+        <div class="dv-planificaciones">
+            <div class="dv-planificaciones-titulo">PLANIFICACIONES</div>
+            {''.join(planes_html)}
+        </div>
+    </div>
+    """
+
+
+def _inyectar_panel_produccion(response, panel_html):
+    try:
+        html = response.content.decode(response.charset or "utf-8")
+    except (AttributeError, UnicodeDecodeError):
+        return response
+
+    if "dv-dashboard-produccion-style" not in html and "</head>" in html:
+        html = html.replace(
+            "</head>",
+            DASHBOARD_PRODUCCION_STYLE + "\n</head>",
+            1,
+        )
+
+    panel_json = json.dumps(
+        panel_html,
+        ensure_ascii=False,
+    ).replace("</", "<\\/")
+
+    script = f"""
+<script id="dv-dashboard-produccion-script">
+(function(){{
+    function reemplazarPanel(){{
+        var paneles = Array.from(document.querySelectorAll('.paneles .panel'));
+        var objetivo = paneles.find(function(panel){{
+            var titulo = panel.querySelector('.panel-titulo');
+            return titulo && titulo.textContent.trim() === 'Pedidos por estado';
+        }});
+
+        if (!objetivo) return;
+
+        var plantilla = document.createElement('template');
+        plantilla.innerHTML = {panel_json}.trim();
+        var nuevo = plantilla.content.firstElementChild;
+        if (nuevo) objetivo.replaceWith(nuevo);
+    }}
+
+    if (document.readyState === 'loading') {{
+        document.addEventListener('DOMContentLoaded', reemplazarPanel);
+    }} else {{
+        reemplazarPanel();
+    }}
+}})();
+</script>
+"""
+
+    if "dv-dashboard-produccion-script" not in html and "</body>" in html:
+        html = html.replace(
+            "</body>",
+            script + "\n</body>",
+            1,
+        )
+
+    encoded = html.encode(response.charset or "utf-8")
+    response.content = encoded
+    response["Content-Length"] = str(len(encoded))
+    return response
 
 
 def inicio(request):
@@ -80,6 +497,38 @@ def inicio(request):
         .aggregate(total=Sum("cantidad"))
         .get("total")
         or 0
+    )
+
+    impresoras_dashboard = list(
+        Impresora.objects
+        .filter(activa=True)
+        .order_by("nombre")
+    )
+
+    producciones_actuales_dashboard = list(
+        Produccion.objects
+        .filter(
+            estado="IMPRIMIENDO",
+            impresora__isnull=False,
+        )
+        .select_related(
+            "producto",
+            "impresora",
+        )
+        .order_by(
+            "inicio_impresion",
+            "id",
+        )
+    )
+
+    planificaciones_dashboard = list(
+        Produccion.objects
+        .filter(estado="PENDIENTE")
+        .select_related("producto")
+        .order_by(
+            "inicio_impresion",
+            "id",
+        )[:4]
     )
 
     # Próximas entregas: primero atrasadas y luego las más cercanas.
@@ -254,7 +703,6 @@ def inicio(request):
         .count()
     )
 
-
     # ==========================================================
     # PAGOS
     # ==========================================================
@@ -291,7 +739,7 @@ def inicio(request):
         or Decimal("0")
     )
 
-    return render(
+    response = render(
         request,
         "dashboard/inicio.html",
         {
@@ -314,3 +762,37 @@ def inicio(request):
             "cobrado_mes": cobrado_mes,
         },
     )
+
+    panel_html = _panel_produccion_dashboard(
+        request,
+        impresoras_dashboard,
+        producciones_actuales_dashboard,
+        planificaciones_dashboard,
+    )
+
+    return _inyectar_panel_produccion(
+        response,
+        panel_html,
+    )
+
+
+def iniciar_produccion_dashboard(
+    request,
+    produccion_id,
+):
+    produccion_views.iniciar_produccion(
+        request,
+        produccion_id,
+    )
+    return redirect("dashboard:inicio")
+
+
+def cambiar_estado_produccion_dashboard(
+    request,
+    produccion_id,
+):
+    produccion_views.cambiar_estado(
+        request,
+        produccion_id,
+    )
+    return redirect("dashboard:inicio")
