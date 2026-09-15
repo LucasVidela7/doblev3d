@@ -957,27 +957,11 @@ td{padding:7px 7px;font-size:9px;vertical-align:middle}
                                     >
                                         {% csrf_token %}
 
-                                        <select
-                                            name="impresora"
-                                            class="selector-impresora-inicio"
-                                            required
-                                        >
-                                            <option value="">
-                                                Elegir impresora...
-                                            </option>
-
-                                            {% for impresora in impresoras %}
-                                                <option value="{{ impresora.id }}">
-                                                    {{ impresora.nombre }}
-                                                </option>
-                                            {% endfor %}
-                                        </select>
-
                                         <button
                                             type="submit"
                                             class="btn-repetir"
                                         >
-                                            ↻ REPETIR IMPRESIÓN
+                                            ↻ REPROGRAMAR IMPRESIÓN
                                         </button>
                                     </form>
 
@@ -1170,6 +1154,20 @@ const campoNuevaImpresora =
 
 const inicio =
         document.getElementById("inicio_impresion");
+
+    function fechaHoraLocalActual() {
+        const ahora = new Date();
+        const desplazamiento =
+            ahora.getTimezoneOffset() * 60000;
+
+        return new Date(
+            ahora.getTime() - desplazamiento
+        ).toISOString().slice(0, 16);
+    }
+
+    if (!inicio.value) {
+        inicio.value = fechaHoraLocalActual();
+    }
 
     const destino =
         document.getElementById("destino");

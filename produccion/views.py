@@ -150,6 +150,28 @@ def lista_produccion(request):
     - fecha desde/hasta
     """
 
+    ahora = timezone.now()
+    inicio_de_hoy = timezone.make_aware(
+        datetime.combine(
+            timezone.localdate(
+                ahora,
+                ARGENTINA_TZ,
+            ),
+            datetime.min.time(),
+        ),
+        ARGENTINA_TZ,
+    )
+
+    # Una planificación de un día anterior ya no representa
+    # un horario posible. La movemos al momento actual para que
+    # el fin estimado vuelva a calcularse desde ahora.
+    Produccion.objects.filter(
+        estado="PENDIENTE",
+        inicio_impresion__lt=inicio_de_hoy,
+    ).update(
+        inicio_impresion=ahora,
+    )
+
     estado_filtro = (
         request.GET.get(
             "estado",
@@ -320,8 +342,6 @@ def lista_produccion(request):
         )
 
         estado_filtro = "OPERATIVA"
-
-    ahora = timezone.now()
 
     # Orden operativo:
     # 1. IMPRIMIENDO.
@@ -683,6 +703,16 @@ def nueva_produccion(request):
             "produccion:lista"
         )
 
+    ahora = timezone.now()
+    if timezone.localdate(
+        inicio_impresion,
+        ARGENTINA_TZ,
+    ) < timezone.localdate(
+        ahora,
+        ARGENTINA_TZ,
+    ):
+        inicio_impresion = ahora
+
     # --------------------------------------------------------
     # TIEMPO
     # --------------------------------------------------------
@@ -958,55 +988,15 @@ def repetir_produccion(
         estado="LISTO",
     )
 
-    impresora_id = (
-        request.POST.get(
-            "impresora",
-            "",
-        ).strip()
-    )
-
-    if not impresora_id:
-        messages.error(
-            request,
-            "Seleccioná una impresora para repetir.",
-        )
-        return redirect(
-            "produccion:lista"
-        )
-
-    impresora = get_object_or_404(
-        Impresora,
-        id=impresora_id,
-        activa=True,
-    )
-
-    ocupando = _impresora_ocupada(
-        impresora=impresora,
-    )
-
-    if ocupando:
-        messages.error(
-            request,
-            (
-                f"{impresora.nombre} "
-                f"está ocupada por "
-                f"{ocupando.codigo} · "
-                f"{ocupando.producto.nombre}."
-            ),
-        )
-        return redirect(
-            "produccion:lista"
-        )
-
     inicio_actual = timezone.now()
 
     nueva = Produccion.objects.create(
         producto=original.producto,
         cantidad=original.cantidad,
-        impresora=impresora,
+        impresora=None,
         destino=original.destino,
         pedido=original.pedido,
-        estado="IMPRIMIENDO",
+        estado="PENDIENTE",
         inicio_impresion=inicio_actual,
         tiempo_impresion_minutos=(
             original
@@ -1019,8 +1009,8 @@ def repetir_produccion(
         (
             f"{nueva.codigo} creada repitiendo "
             f"{original.codigo}. "
-            f"{impresora.nombre} quedó "
-            "en IMPRIMIENDO con horario actual."
+            "Quedó PLANIFICADA con horario actual; "
+            "la impresora se elige al comenzar."
         ),
     )
 
