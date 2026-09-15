@@ -43,7 +43,13 @@ class ConfiguracionCostos(models.Model):
     activa = models.BooleanField(default=True)
 
     def tramo_filamento_para_gramos(self, total_gramos):
-        """Devuelve el tramo de volumen aplicable al peso total de la venta."""
+        """
+        Devuelve el mejor tramo alcanzado para el peso total de la venta.
+
+        Si un tramo posterior estuviera cargado accidentalmente con un precio
+        mayor, se conserva el mejor precio ya disponible y el costo nunca sube
+        por comprar más volumen.
+        """
         total_gramos = max(
             Decimal(str(total_gramos or 0)),
             Decimal("0"),
@@ -59,7 +65,10 @@ class ConfiguracionCostos(models.Model):
                 desde_gramos__lte=total_gramos,
                 coste_plastico_kg__gt=0,
             )
-            .order_by("-desde_gramos")
+            .order_by(
+                "coste_plastico_kg",
+                "-desde_gramos",
+            )
             .first()
         )
 
@@ -67,8 +76,9 @@ class ConfiguracionCostos(models.Model):
         """
         Precio/kg a usar para una venta según sus gramos totales.
 
-        El coste estándar siempre funciona como techo: un tramo mal cargado
-        nunca encarece el material respecto del coste normal del producto.
+        El coste estándar funciona como techo. Además, al considerar todos los
+        tramos ya alcanzados, el precio aplicado nunca aumenta al crecer el
+        volumen de la venta.
         """
         estandar = max(
             Decimal(str(self.coste_plastico_kg or 0)),
