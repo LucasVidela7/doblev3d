@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from .precios_api import recomendar_precio_fijo
 
 
 app_name = "kits"
@@ -16,6 +17,11 @@ urlpatterns = [
         "nuevo/",
         views.nuevo_kit,
         name="nuevo",
+    ),
+    path(
+        "recomendacion-fija/",
+        recomendar_precio_fijo,
+        name="recomendacion_fija",
     ),
     path(
         "<int:kit_id>/editar/",
