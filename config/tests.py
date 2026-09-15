@@ -48,6 +48,16 @@ class AutenticacionTests(TestCase):
         )
         self.assertEqual(respuesta_dashboard.status_code, 200)
 
+    def test_dashboard_muestra_usuario_y_cerrar_sesion(self):
+        self.client.force_login(self.usuario)
+
+        respuesta = self.client.get(reverse("dashboard:inicio"))
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "👤 lucas")
+        self.assertContains(respuesta, "CERRAR SESIÓN")
+        self.assertContains(respuesta, f'action="{reverse("logout")}"')
+
     def test_login_incorrecto_no_inicia_sesion(self):
         respuesta = self.client.post(
             reverse("login"),
