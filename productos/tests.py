@@ -2,6 +2,8 @@ from datetime import date
 from decimal import Decimal
 
 from django.test import RequestFactory, TestCase
+from django.template.loader import render_to_string
+from django.urls import reverse
 
 from costos.models import ConfiguracionCostos
 
@@ -195,3 +197,45 @@ class ProductoCompuestoTests(TestCase):
         self.assertEqual(producto.costo, costo_esperado)
         self.assertEqual(producto.seguro, seguro_esperado)
         self.assertGreater(producto.subtotal, Decimal("0"))
+
+    def test_editar_producto_renderiza_margen_decimal_valido(self):
+        producto = self.pieza(
+            "Pieza con margen",
+            1,
+            0,
+            20,
+        )
+        producto.margen_ganancia = Decimal("57.50")
+        producto.save(
+            update_fields=["margen_ganancia"]
+        )
+        request = RequestFactory().get(
+            reverse(
+                "productos:editar",
+                args=[producto.id],
+            )
+        )
+
+        html = render_to_string(
+            "productos/formulario.html",
+            {
+                "request": request,
+                "producto": producto,
+                "tipos": [self.tipo],
+                "categorias": Producto.CATEGORIAS,
+                "tipos_fabricacion":
+                    Producto.TIPOS_FABRICACION,
+                "piezas": [],
+                "componentes_actuales": [],
+                "modo": "editar",
+            },
+        )
+
+        self.assertIn(
+            'value="57.50"',
+            html,
+        )
+        self.assertNotIn(
+            'value="57,50"',
+            html,
+        )
