@@ -235,3 +235,114 @@ def calcular_escenarios_kit_fijo(componentes):
         "escenarios": escenarios,
         "componentes": detalle,
     }
+
+
+def _margen_real(costo, precio):
+    costo = Decimal(str(costo or 0))
+    precio = Decimal(str(precio or 0))
+    if precio <= 0:
+        return Decimal("0")
+    return (precio - costo) / precio * Decimal("100")
+
+
+def calcular_escenarios_kit_libre(productos, cantidad):
+    """Sugiere precios para un kit libre por categoría.
+
+    Como todavía no sabemos qué productos elegirá el cliente, se calculan dos
+    referencias de costo: el promedio de la categoría y el peor caso. Cada
+    producto se evalúa con la misma calculadora y con la cantidad total del kit.
+
+    - Agresivo: promedio de los escenarios agresivos de la categoría.
+    - Recomendado: promedio recomendado, pero nunca por debajo del precio
+      agresivo del producto más exigente de la categoría.
+    - Conservador: escenario conservador más alto de toda la categoría.
+
+    Así el recomendado sigue siendo competitivo en una selección promedio y,
+    al mismo tiempo, mantiene una protección mínima si el cliente elige la
+    combinación más costosa.
+    """
+    cantidad = max(int(cantidad or 1), 1)
+    productos = list(productos)
+
+    if not productos:
+        return {
+            "cantidad": cantidad,
+            "cantidad_productos_categoria": 0,
+            "costo_promedio": Decimal("0"),
+            "costo_peor_caso": Decimal("0"),
+            "margen_piso": MARGEN_MINIMO,
+            "escenarios": {},
+            "productos": [],
+        }
+
+    calculos = [
+        calcular_escenarios_producto(producto, cantidad)
+        for producto in productos
+    ]
+    divisor = Decimal(len(calculos))
+
+    costos_totales = [
+        calculo["costo_productivo"] * Decimal(cantidad)
+        for calculo in calculos
+    ]
+    costo_promedio = sum(costos_totales, Decimal("0")) / divisor
+    costo_peor = max(costos_totales)
+
+    precios_agresivos = [
+        calculo["escenarios"]["agresivo"]["total_recomendado"]
+        for calculo in calculos
+    ]
+    precios_recomendados = [
+        calculo["escenarios"]["recomendado"]["total_recomendado"]
+        for calculo in calculos
+    ]
+    precios_conservadores = [
+        calculo["escenarios"]["conservador"]["total_recomendado"]
+        for calculo in calculos
+    ]
+
+    agresivo = redondear_arriba(
+        sum(precios_agresivos, Decimal("0")) / divisor,
+        Decimal("100"),
+    )
+    recomendado_promedio = redondear_arriba(
+        sum(precios_recomendados, Decimal("0")) / divisor,
+        Decimal("100"),
+    )
+    recomendado = max(
+        recomendado_promedio,
+        max(precios_agresivos),
+    )
+    conservador = max(precios_conservadores)
+
+    precios = {
+        "agresivo": agresivo,
+        "recomendado": recomendado,
+        "conservador": conservador,
+    }
+
+    escenarios = {}
+    for clave, precio in precios.items():
+        escenarios[clave] = {
+            "total_recomendado": precio,
+            "margen_promedio": _margen_real(
+                costo_promedio,
+                precio,
+            ),
+            "margen_peor_caso": _margen_real(
+                costo_peor,
+                precio,
+            ),
+            "ganancia_promedio": precio - costo_promedio,
+            "ganancia_peor_caso": precio - costo_peor,
+        }
+
+    return {
+        "cantidad": cantidad,
+        "cantidad_productos_categoria": len(calculos),
+        "costo_promedio": costo_promedio,
+        "costo_peor_caso": costo_peor,
+        "margen_piso": MARGEN_MINIMO,
+        "escenarios": escenarios,
+        "productos": calculos,
+    }
