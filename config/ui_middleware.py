@@ -1,3 +1,4 @@
+import json
 from html import escape
 
 from django.middleware.csrf import get_token
@@ -137,6 +138,62 @@ DASHBOARD_SESSION_STYLE = r"""
 </style>
 """
 
+DASHBOARD_KITS_STYLE = r"""
+<style id="dv-dashboard-kits-style">
+#dv-dashboard-kits.dv-kits-alerta{
+    border-color:#e7bcbc;
+}
+#dv-dashboard-kits.dv-kits-alerta .accion-icono{
+    background:#fde5e5;
+    color:#913434;
+}
+#dv-dashboard-kits .dv-kits-aviso{
+    margin-top:5px;
+    color:#913434;
+    font-size:10px;
+    font-weight:900;
+}
+</style>
+"""
+
+KIT_ECONOMIA_STYLE = r"""
+<style id="dv-kit-economia-style">
+.dv-kit-economia{
+    grid-column:1/-1;
+    margin-top:10px;
+    padding:11px 12px;
+    border:1px solid #cfe2d5;
+    border-radius:12px;
+    background:#f0f9f3;
+    color:#275c39;
+    font-family:Arial,sans-serif;
+    font-size:10px;
+    line-height:1.45;
+}
+.dv-kit-economia.dv-kit-alerta{
+    border-color:#e5b7b7;
+    background:#fff0f0;
+    color:#8e3434;
+}
+.dv-kit-economia-titulo{
+    margin-bottom:4px;
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:.2px;
+}
+.dv-kit-economia-datos{
+    font-weight:700;
+}
+.dv-kit-economia-motivo{
+    margin-top:5px;
+}
+.dv-kit-economia-sugerido{
+    margin-top:6px;
+    font-weight:900;
+}
+</style>
+"""
+
 
 def _dashboard_session_html(request):
     usuario = escape(request.user.get_username())
@@ -169,6 +226,293 @@ def _dashboard_session_html(request):
         document.addEventListener('DOMContentLoaded', colocarSesion);
     }} else {{
         colocarSesion();
+    }}
+}})();
+</script>
+"""
+
+
+def _datos_economicos_kits():
+    from kits.models import Kit
+
+    kits = list(
+        Kit.objects
+        .filter(activo=True)
+        .select_related("tipo_producto")
+        .prefetch_related("componentes__producto")
+        .order_by("nombre")
+    )
+
+    datos = {}
+    alertas = 0
+
+    for kit in kits:
+        analisis = kit.analisis_economico
+        if analisis["alerta"]:
+            alertas += 1
+
+        datos[str(kit.id)] = {
+            "nombre": kit.nombre,
+            "modalidad": kit.modalidad,
+            "precio": str(kit.precio or 0),
+            "tipo_calculo": analisis["tipo_calculo"],
+            "costo_estimado": str(analisis["costo_estimado"]),
+            "costo_peor_caso": str(analisis["costo_peor_caso"]),
+            "margen_estimado": (
+                str(analisis["margen_estimado"])
+                if analisis["margen_estimado"] is not None
+                else None
+            ),
+            "margen_peor_caso": (
+                str(analisis["margen_peor_caso"])
+                if analisis["margen_peor_caso"] is not None
+                else None
+            ),
+            "precio_sugerido_minimo": str(
+                analisis["precio_sugerido_minimo"]
+            ),
+            "margen_minimo": str(analisis["margen_minimo"]),
+            "alerta": bool(analisis["alerta"]),
+            "motivo": analisis["motivo"],
+        }
+
+    return datos, len(kits), alertas
+
+
+def _dashboard_kits_html(total_kits, kits_alerta):
+    kits_url = reverse("kits:lista")
+    clase_alerta = " dv-kits-alerta" if kits_alerta else ""
+
+    if kits_alerta:
+        aviso = (
+            f'<div class="dv-kits-aviso">⚠ {kits_alerta} '
+            f'{"kit" if kits_alerta == 1 else "kits"} con precio para revisar</div>'
+        )
+    else:
+        aviso = ""
+
+    descripcion = (
+        f"{total_kits} "
+        f'{"kit activo" if total_kits == 1 else "kits activos"}. '
+        "Crear, editar y revisar rentabilidad."
+    )
+
+    return f"""
+<script id="dv-dashboard-kits-script">
+(function(){{
+    function agregarKits(){{
+        var acciones = document.querySelector('.acciones');
+        if (!acciones || document.getElementById('dv-dashboard-kits')) return;
+
+        var enlace = document.createElement('a');
+        enlace.id = 'dv-dashboard-kits';
+        enlace.href = {json.dumps(kits_url)};
+        enlace.className = 'accion{clase_alerta}';
+        enlace.innerHTML = `
+            <div class="accion-icono">🧰</div>
+            <div>
+                <div class="accion-titulo">Kits</div>
+                <div class="accion-texto">{descripcion}</div>
+                {aviso}
+            </div>
+        `;
+        acciones.appendChild(enlace);
+    }}
+
+    if (document.readyState === 'loading') {{
+        document.addEventListener('DOMContentLoaded', agregarKits);
+    }} else {{
+        agregarKits();
+    }}
+}})();
+</script>
+"""
+
+
+def _kit_economia_html(datos_kits):
+    datos_json = json.dumps(
+        datos_kits,
+        ensure_ascii=False,
+        separators=(",", ":"),
+    ).replace("</", "<\\/")
+
+    return f"""
+<script id="dv-kit-economia-script">
+(function(){{
+    const datosKits = {datos_json};
+
+    function moneda(valor){{
+        return new Intl.NumberFormat('es-AR', {{
+            maximumFractionDigits: 0
+        }}).format(Number(valor || 0));
+    }}
+
+    function porcentaje(valor){{
+        if (valor === null || valor === undefined || valor === '') return '—';
+        return new Intl.NumberFormat('es-AR', {{
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1
+        }}).format(Number(valor)) + '%';
+    }}
+
+    function escapar(texto){{
+        const div = document.createElement('div');
+        div.textContent = texto || '';
+        return div.innerHTML;
+    }}
+
+    function tipoDelItem(select){{
+        const item = select.closest('.item');
+        if (!item) return 'KIT';
+
+        const tipo = item.querySelector('select[id^="tipo_item_"]');
+        return tipo ? tipo.value : 'KIT';
+    }}
+
+    function cajaPara(select){{
+        const item = select.closest('.item');
+        if (!item) return null;
+
+        let caja = item.querySelector(
+            `.dv-kit-economia[data-kit-select="${{select.id}}"]`
+        );
+
+        if (caja) return caja;
+
+        caja = document.createElement('div');
+        caja.className = 'dv-kit-economia';
+        caja.dataset.kitSelect = select.id;
+        caja.hidden = true;
+
+        const ancla =
+            select.closest('.selector-kit')
+            || select.closest('.full.bloque-kit')
+            || select.parentElement;
+
+        if (ancla){{
+            ancla.insertAdjacentElement('afterend', caja);
+        }}
+
+        return caja;
+    }}
+
+    function actualizar(select){{
+        const caja = cajaPara(select);
+        if (!caja) return;
+
+        if (tipoDelItem(select) !== 'KIT' || !select.value){{
+            caja.hidden = true;
+            return;
+        }}
+
+        const info = datosKits[String(select.value)];
+        if (!info){{
+            caja.hidden = true;
+            return;
+        }}
+
+        caja.hidden = false;
+        caja.classList.toggle('dv-kit-alerta', !!info.alerta);
+
+        const titulo = info.alerta
+            ? '⚠ REVISAR PRECIO DEL KIT'
+            : '✓ RENTABILIDAD DEL KIT';
+
+        let datos;
+        if (info.modalidad === 'FIJO'){{
+            datos =
+                `Precio $${{moneda(info.precio)}} · `
+                + `costo actual $${{moneda(info.costo_estimado)}} · `
+                + `margen ${{porcentaje(info.margen_estimado)}}`;
+        }} else {{
+            datos =
+                `Precio $${{moneda(info.precio)}} · `
+                + `costo estimado $${{moneda(info.costo_estimado)}} · `
+                + `margen estimado ${{porcentaje(info.margen_estimado)}} · `
+                + `peor combinación ${{porcentaje(info.margen_peor_caso)}}`;
+        }}
+
+        let html =
+            `<div class="dv-kit-economia-titulo">${{titulo}}</div>`
+            + `<div class="dv-kit-economia-datos">${{datos}}</div>`;
+
+        if (info.alerta && info.motivo){{
+            html +=
+                `<div class="dv-kit-economia-motivo">${{escapar(info.motivo)}}</div>`;
+        }}
+
+        if (
+            info.alerta
+            && Number(info.precio_sugerido_minimo || 0) > 0
+        ){{
+            html +=
+                `<div class="dv-kit-economia-sugerido">`
+                + `Sugerido desde $${{moneda(info.precio_sugerido_minimo)}} `
+                + `para sostener ${{porcentaje(info.margen_minimo)}} de margen.`
+                + `</div>`;
+        }}
+
+        if (caja.innerHTML !== html){{
+            caja.innerHTML = html;
+        }}
+    }}
+
+    function instalar(select){{
+        if (!select || select.dataset.dvKitEconomia === '1'){{
+            if (select) actualizar(select);
+            return;
+        }}
+
+        select.dataset.dvKitEconomia = '1';
+        select.addEventListener('change', function(){{
+            actualizar(select);
+        }});
+        actualizar(select);
+    }}
+
+    function buscarEn(nodo){{
+        if (!nodo || nodo.nodeType !== 1) return;
+
+        if (nodo.matches && nodo.matches('select[id^="kit_"]')){{
+            instalar(nodo);
+        }}
+
+        if (nodo.querySelectorAll){{
+            nodo.querySelectorAll('select[id^="kit_"]').forEach(instalar);
+        }}
+    }}
+
+    function iniciar(){{
+        document.querySelectorAll('select[id^="kit_"]').forEach(instalar);
+
+        document.addEventListener('change', function(evento){{
+            const objetivo = evento.target;
+            if (!objetivo || !objetivo.matches) return;
+
+            if (objetivo.matches('select[id^="tipo_item_"]')){{
+                const item = objetivo.closest('.item');
+                if (!item) return;
+                const kitSelect = item.querySelector('select[id^="kit_"]');
+                if (kitSelect) actualizar(kitSelect);
+            }}
+        }});
+
+        const observador = new MutationObserver(function(mutaciones){{
+            mutaciones.forEach(function(mutacion){{
+                mutacion.addedNodes.forEach(buscarEn);
+            }});
+        }});
+
+        observador.observe(document.body, {{
+            childList: true,
+            subtree: true
+        }});
+    }}
+
+    if (document.readyState === 'loading'){{
+        document.addEventListener('DOMContentLoaded', iniciar);
+    }} else {{
+        iniciar();
     }}
 }})();
 </script>
@@ -211,10 +555,24 @@ class NormalizarNavegacionMiddleware:
             )
 
         resolver_match = getattr(request, "resolver_match", None)
-        es_dashboard = (
-            resolver_match is not None
-            and resolver_match.view_name == "dashboard:inicio"
+        view_name = (
+            resolver_match.view_name
+            if resolver_match is not None
+            else ""
         )
+
+        es_dashboard = view_name == "dashboard:inicio"
+        es_pedido_con_kits = view_name in {
+            "pedidos:nuevo",
+            "pedidos:editar",
+        }
+
+        datos_kits = None
+        total_kits = 0
+        kits_alerta = 0
+
+        if es_dashboard or es_pedido_con_kits:
+            datos_kits, total_kits, kits_alerta = _datos_economicos_kits()
 
         if (
             es_dashboard
@@ -224,13 +582,34 @@ class NormalizarNavegacionMiddleware:
             if "</head>" in html:
                 html = html.replace(
                     "</head>",
-                    DASHBOARD_SESSION_STYLE + "\n</head>",
+                    DASHBOARD_SESSION_STYLE + DASHBOARD_KITS_STYLE + "\n</head>",
                     1,
                 )
             if "</body>" in html:
                 html = html.replace(
                     "</body>",
-                    _dashboard_session_html(request) + "\n</body>",
+                    _dashboard_session_html(request)
+                    + _dashboard_kits_html(total_kits, kits_alerta)
+                    + "\n</body>",
+                    1,
+                )
+
+        if (
+            es_pedido_con_kits
+            and datos_kits is not None
+            and "dv-kit-economia-script" not in html
+        ):
+            if "</head>" in html and "dv-kit-economia-style" not in html:
+                html = html.replace(
+                    "</head>",
+                    KIT_ECONOMIA_STYLE + "\n</head>",
+                    1,
+                )
+
+            if "</body>" in html:
+                html = html.replace(
+                    "</body>",
+                    _kit_economia_html(datos_kits) + "\n</body>",
                     1,
                 )
 
