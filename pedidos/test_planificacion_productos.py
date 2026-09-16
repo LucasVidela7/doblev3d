@@ -2,7 +2,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -15,6 +15,20 @@ from .impresiones_compuestas import obtener_impresiones_por_producto
 from .models import DetallePedido, Pedido
 
 
+TEST_STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
+
+@override_settings(
+    SECURE_SSL_REDIRECT=False,
+    STORAGES=TEST_STORAGES,
+)
 class PlanificacionDesdeImpresionesTests(TestCase):
     def setUp(self):
         usuario = get_user_model().objects.create_user(
@@ -131,7 +145,7 @@ class PlanificacionDesdeImpresionesTests(TestCase):
         self.assertIn("Agregar nombre LUCAS", produccion.observaciones)
         self.assertIn("Azul", produccion.observaciones)
 
-    def test_no_permite_planificar_mas_que_la_necesidad_estandar(self):
+    def test_permite_planificar_mas_que_la_necesidad_estandar_para_stock(self):
         respuesta = self.client.post(
             reverse("pedidos:planificar_impresion_producto"),
             {
@@ -144,7 +158,13 @@ class PlanificacionDesdeImpresionesTests(TestCase):
         )
 
         self.assertEqual(respuesta.status_code, 302)
-        self.assertFalse(Produccion.objects.exists())
+        produccion = Produccion.objects.get()
+        self.assertEqual(produccion.cantidad, 6)
+        self.assertEqual(produccion.destino, "STOCK")
+        self.assertIn(
+            "Excedente voluntario para stock: 1",
+            produccion.observaciones,
+        )
 
     def test_pieza_interna_es_bloqueada_en_nuevo_pedido(self):
         pieza = Producto.objects.create(
@@ -208,10 +228,12 @@ class PlanificacionDesdeImpresionesTests(TestCase):
         self.assertIn(self.producto.id, ids)
         self.assertNotIn(pieza.id, ids)
 
-    def test_pagina_inyecta_planificacion_rapida(self):
+    def test_pagina_inyecta_planificacion_rapida_y_cantidad_libre(self):
         respuesta = self.client.get(
             reverse("pedidos:impresiones_productos")
         )
         self.assertEqual(respuesta.status_code, 200)
         self.assertContains(respuesta, "dv-planificar-productos-script")
         self.assertContains(respuesta, "PLANIFICAR ESTÁNDAR")
+        self.assertContains(respuesta, "dv-planificador-libre-script")
+        self.assertContains(respuesta, "Cantidad libre")
