@@ -80,6 +80,17 @@ Un precio de kit marcado como acordado es definitivo para esa línea y no es sob
 
 En Editar Pedido también se preserva la información histórica de la venta: los kits libres reconstruyen correctamente selecciones repetidas y, para un kit fijo existente, el backend conserva la composición guardada en el pedido aunque la receta maestra del kit haya cambiado después.
 
+## Producción y personalizados
+
+Las líneas personalizadas de un pedido se vinculan con su producción mediante una referencia interna. Cuando todas las unidades físicas necesarias quedan en estado **LISTO**, el detalle personalizado se marca automáticamente como LISTO y deja de aparecer como necesidad pendiente en **Impresiones por producto**.
+
+Para productos compuestos, el personalizado se considera completo únicamente cuando están finalizadas todas las piezas requeridas por su composición. Si una producción finalizada se revierte o cancela y deja de cubrir la necesidad, el personalizado vuelve a quedar pendiente.
+
+El planificador distingue dos comportamientos:
+
+- **Planificación estándar:** la cantidad es libre. Se puede fabricar más que `A imprimir`; el excedente queda destinado a stock al finalizar la producción.
+- **Planificación personalizada:** conserva el límite exacto asociado al pedido para evitar producir una personalización de más o mezclarla con stock genérico.
+
 ## Entornos
 
 El proyecto distingue los entornos mediante `APP_ENV` y las variables provistas por Railway.
@@ -202,6 +213,12 @@ Para validar precio acordado y edición de kits:
 python manage.py test pedidos.test_precio_acordado_kits --verbosity 2
 ```
 
+Para validar personalizados y planificación de producción:
+
+```bash
+python manage.py test pedidos.test_personalizados_produccion pedidos.test_planificacion_productos --verbosity 2
+```
+
 Estos conjuntos cubren, entre otros casos:
 
 - listado, búsqueda, vista y edición de clientes;
@@ -214,7 +231,12 @@ Estos conjuntos cubren, entre otros casos:
 - conservación del posicionamiento comercial cuando el precio real del kit está por encima de la referencia técnica;
 - persistencia de un precio de kit acordado manualmente;
 - protección del precio manual frente al cálculo automático por volumen;
-- edición de la composición histórica de kits fijos.
+- edición de la composición histórica de kits fijos;
+- confirmación de productos personalizados sin errores de bloqueo;
+- cierre automático de la necesidad al finalizar producción personalizada;
+- productos personalizados compuestos y sus piezas;
+- planificación estándar libre para generar stock adicional;
+- límite exacto para planificación vinculada a un personalizado.
 
 ## Estructura principal
 
