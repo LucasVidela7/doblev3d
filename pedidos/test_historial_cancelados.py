@@ -11,6 +11,8 @@ from .models import DetallePedido, Pedido
 
 # Esta suite cubre en QA la diferencia funcional entre cancelar (historial)
 # y eliminar (borrado definitivo) en las vistas donde se listan pedidos.
+# La ejecución de Railway reutiliza su base temporal para evitar residuos de
+# una corrida previa interrumpida; nunca usa la base de datos real de QA.
 TEST_STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
