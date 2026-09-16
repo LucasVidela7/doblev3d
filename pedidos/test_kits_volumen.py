@@ -141,6 +141,42 @@ class PrecioVolumenKitsTests(TestCase):
             resumen["margen_minimo"],
         )
 
+    def test_precio_real_del_kit_conserva_el_posicionamiento_de_mercado(self):
+        self.kit8.precio = Decimal("52000")
+        self.kit8.save(update_fields=["precio"])
+
+        resumen = calcular_precio_volumen_kits([
+            self._item(self.kit8, 5),
+        ])
+
+        descuento_bruto_anterior = (
+            (
+                resumen["precio_lista_total"]
+                - resumen["precio_objetivo_tecnico_total"]
+            )
+            / resumen["precio_lista_total"]
+            * Decimal("100")
+        )
+
+        self.assertTrue(resumen["elegible"])
+        self.assertTrue(resumen["ajustado_por_precio_real"])
+        self.assertGreater(
+            resumen["precio_lista_total"],
+            resumen["precio_referencia_conservador_total"],
+        )
+        self.assertGreater(
+            resumen["precio_final_total"],
+            resumen["precio_objetivo_tecnico_total"],
+        )
+        self.assertLess(
+            resumen["descuento_porcentaje"],
+            descuento_bruto_anterior,
+        )
+        self.assertEqual(
+            resumen["descuento_porcentaje"],
+            resumen["descuento_referencia_porcentaje"],
+        )
+
     def test_dos_kits_mas_tres_kits_distintos_califican_juntos(self):
         resumen = calcular_precio_volumen_kits([
             self._item(self.kit8, 2),
@@ -217,6 +253,8 @@ class PrecioVolumenKitsTests(TestCase):
         self.assertEqual(datos["total_kits"], 5)
         self.assertEqual(datos["total_piezas"], 40)
         self.assertGreater(datos["ahorro"], 0)
+        self.assertIn("precio_referencia_conservador_total", datos)
+        self.assertIn("ajustado_por_precio_real", datos)
 
     def test_api_kit_libre_usa_los_productos_realmente_seleccionados(self):
         self.client.force_login(self.usuario)
