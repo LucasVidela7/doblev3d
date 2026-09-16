@@ -190,6 +190,7 @@ def _script_precio_kits():
 
         const tieneAhorro = Number(datos.ahorro || 0) > 0;
         const limitado = !!datos.limitado_por_margen;
+        const ajustadoMercado = !!datos.ajustado_por_precio_real;
 
         panel.classList.add(tieneAhorro ? 'elegible' : 'limitado');
         if (limitado) panel.classList.add('limitado');
@@ -223,6 +224,13 @@ def _script_precio_kits():
                 `El precio se aplica automáticamente al guardar. `
                 + `El descuento usa las piezas reales contenidas en todos los kits y `
                 + `no permite bajar del margen mínimo de ${{porcentaje(datos.margen_minimo)}}.`;
+
+            if (ajustadoMercado){{
+                ayuda +=
+                    ` El porcentaje de volumen se calcula con la referencia técnica, `
+                    + `pero se aplica sobre el precio real que configuraste para el kit, `
+                    + `conservando su posicionamiento de mercado.`;
+            }}
         }} else {{
             ayuda =
                 `La cantidad habilita precio por volumen, pero los precios actuales ya están `
@@ -233,6 +241,10 @@ def _script_precio_kits():
             ayuda += ' El ahorro fue limitado para proteger la rentabilidad.';
         }}
 
+        const referenciaMercado = ajustadoMercado
+            ? `<span>Referencia técnica $${{moneda(datos.precio_referencia_conservador_total)}}</span>`
+            : '';
+
         panel.innerHTML = `
             <div class="dv-kit-volumen-titulo">Compra mayorista de kits</div>
             <div class="dv-kit-volumen-principal">${{principal}}</div>
@@ -242,6 +254,7 @@ def _script_precio_kits():
                 <span>Margen objetivo ${{porcentaje(datos.margen_objetivo)}}</span>
                 <span>Margen final ${{porcentaje(datos.margen_real)}}</span>
                 <span>Ahorro $${{moneda(datos.ahorro)}} (${{porcentaje(datos.descuento_porcentaje)}})</span>
+                ${{referenciaMercado}}
             </div>
             <div class="dv-kit-volumen-ayuda">${{ayuda}}</div>
             ${{lineas ? `<div class="dv-kit-volumen-lineas">${{lineas}}</div>` : ''}}
