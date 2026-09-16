@@ -1,4 +1,6 @@
-from .impresiones_compuestas import impresiones_por_producto as _impresiones_por_producto
+from django.shortcuts import render
+
+from .impresiones_stock import obtener_impresiones_por_producto
 from .personalizados_produccion import sincronizar_personalizados_pendientes
 
 
@@ -109,9 +111,14 @@ def _inyectar_planificador_libre(response):
 
 def impresiones_por_producto(request):
     """
-    Sincroniza personalizados ya producidos y libera la cantidad de las placas
-    estándar para poder fabricar excedente destinado a stock.
+    Sincroniza personalizados ya producidos, usa el stock físico real de cada
+    producto/pieza y libera la cantidad de las placas estándar para fabricar
+    excedente destinado a stock.
     """
     sincronizar_personalizados_pendientes()
-    response = _impresiones_por_producto(request)
+    response = render(
+        request,
+        "pedidos/impresiones_por_producto.html",
+        {"productos": obtener_impresiones_por_producto()},
+    )
     return _inyectar_planificador_libre(response)
