@@ -12,8 +12,8 @@ from .impresiones_compuestas import (
     _cantidad_personalizada_fisica,
     _parsear_inicio,
     _tiempo_manual,
-    obtener_impresiones_por_producto,
 )
+from .impresiones_stock import obtener_impresiones_por_producto
 from .models import DetallePedido
 
 
