@@ -3,11 +3,10 @@ from decimal import Decimal
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
-from calculadora.precios import (
-    calcular_escenarios_kit_fijo,
-    calcular_escenarios_kit_libre,
-)
+from calculadora.precios import calcular_escenarios_kit_libre
 from productos.models import Producto, TipoProducto
+
+from .precio_fijo_combinado import calcular_escenarios_kit_fijo
 
 
 def _decimal_texto(valor, decimales="0.01"):
@@ -137,14 +136,25 @@ def recomendar_precio_fijo(request):
             "ganancia": _decimal_texto(
                 escenario["ganancia"]
             ),
+            "referencia_separada": _decimal_texto(
+                escenario.get("referencia_separada", 0)
+            ),
+            "ahorro_combo": _decimal_texto(
+                escenario.get("ahorro_combo", 0)
+            ),
         }
 
     return JsonResponse(
         {
             "ok": True,
             "tipo": "FIJO",
+            "cantidad_total": calculo.get("cantidad_total", 0),
             "costo_total": _decimal_texto(
                 calculo["costo_total"]
+            ),
+            "margen_tope_ponderado": _decimal_texto(
+                calculo.get("margen_tope_ponderado", 0),
+                "0.1",
             ),
             "margen_piso": _decimal_texto(
                 calculo["margen_piso"],
