@@ -61,6 +61,17 @@ También se protege un margen mínimo operativo antes de aplicar cualquier reduc
 
 Más detalle: [`docs/precio-volumen-kits.md`](docs/precio-volumen-kits.md).
 
+### Precio acordado de kits en pedidos
+
+En **Nuevo Pedido** y **Editar Pedido**, cada línea de tipo KIT permite trabajar de dos maneras:
+
+- **Automático:** parte del precio comercial configurado del kit y, cuando corresponde, aplica la lógica de volumen del pedido.
+- **Precio acordado:** permite ingresar manualmente el precio unitario conversado con el cliente.
+
+Un precio de kit marcado como acordado es definitivo para esa línea y no es sobrescrito por el descuento automático por volumen. El kit sigue contando para determinar la cantidad total de kits y piezas del pedido.
+
+En Editar Pedido también se preserva la información histórica de la venta: los kits libres reconstruyen correctamente selecciones repetidas y, para un kit fijo existente, el backend conserva la composición guardada en el pedido aunque la receta maestra del kit haya cambiado después.
+
 ## Entornos
 
 El proyecto distingue los entornos mediante `APP_ENV` y las variables provistas por Railway.
@@ -171,14 +182,23 @@ Para validar específicamente la lógica de precio por volumen de kits:
 python manage.py test pedidos.test_kits_volumen --verbosity 2
 ```
 
-Este conjunto cubre, entre otros casos:
+Para validar precio acordado y edición de kits:
 
-- activación desde 5 kits;
+```bash
+python manage.py test pedidos.test_precio_acordado_kits --verbosity 2
+```
+
+Estos conjuntos cubren, entre otros casos:
+
+- activación del precio mayorista desde 5 kits;
 - combinación de distintos kits en un mismo pedido;
 - cálculo según cantidad real de piezas;
-- kits libres con productos seleccionados;
-- aplicación del precio al guardar el pedido;
-- conservación del posicionamiento comercial cuando el precio real del kit está por encima de la referencia técnica.
+- kits libres con productos seleccionados y selecciones repetidas;
+- aplicación del precio automático al guardar el pedido;
+- conservación del posicionamiento comercial cuando el precio real del kit está por encima de la referencia técnica;
+- persistencia de un precio de kit acordado manualmente;
+- protección del precio manual frente al cálculo automático por volumen;
+- edición de la composición histórica de kits fijos.
 
 ## Estructura principal
 
