@@ -17,7 +17,17 @@ from .kits_volumen import (
 from .models import DetalleKitProducto, DetallePedido, Pedido
 
 
-@override_settings(SECURE_SSL_REDIRECT=False)
+@override_settings(
+    SECURE_SSL_REDIRECT=False,
+    STORAGES={
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    },
+)
 class PrecioVolumenKitsTests(TestCase):
     def setUp(self):
         ConfiguracionCostos.objects.create(
