@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import acciones_pedido, precios_api, views
+from . import acciones_pedido, pedido_form_views, precios_api, views
 from .impresiones_compuestas import (
     impresiones_por_producto,
     planificar_impresion_producto,
@@ -14,7 +14,7 @@ urlpatterns = [
 
     path(
         "nuevo/",
-        views.nuevo_pedido,
+        pedido_form_views.nuevo_pedido,
         name="nuevo",
     ),
 
@@ -80,7 +80,7 @@ urlpatterns = [
 
     path(
         "api/kit/<int:kit_id>/productos/",
-        views.productos_por_kit,
+        pedido_form_views.productos_por_kit,
         name="productos_kit",
     ),
 
