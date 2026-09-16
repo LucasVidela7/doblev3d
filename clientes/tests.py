@@ -89,6 +89,21 @@ class DetalleClienteAccionesPedidoTests(TestCase):
         self.assertEqual(self.cliente.email, "nuevo@ejemplo.com")
         self.assertEqual(self.cliente.observaciones, "Nueva observación")
 
+    def test_nombre_vacio_reabre_el_editor_sin_guardar(self):
+        respuesta = self.client.post(
+            self.url,
+            {
+                "nombre": "",
+                "telefono": "1199999999",
+                "email": "nuevo@ejemplo.com",
+                "observaciones": "No debe guardarse",
+            },
+        )
+
+        self.assertRedirects(respuesta, f"{self.url}?editar=1")
+        self.cliente.refresh_from_db()
+        self.assertEqual(self.cliente.nombre, "Cliente historial")
+
 
 @override_settings(SECURE_SSL_REDIRECT=False)
 class ListaClientesUXTests(TestCase):
