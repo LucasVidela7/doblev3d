@@ -208,6 +208,42 @@ class PrecioVolumenKitsTests(TestCase):
         self.assertEqual(datos["total_piezas"], 48)
         self.assertGreater(datos["ahorro"], 0)
 
+    def test_api_kit_libre_usa_los_productos_realmente_seleccionados(self):
+        self.client.force_login(self.usuario)
+        kit_libre = Kit.objects.create(
+            nombre="Kit libre x2",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=2,
+            precio=Decimal("12000"),
+            activo=True,
+        )
+
+        respuesta = self.client.post(
+            reverse("pedidos:precio_kits_volumen"),
+            data={
+                "items": [
+                    {
+                        "key": "libre",
+                        "kit_id": kit_libre.id,
+                        "cantidad": 6,
+                        "productos": [
+                            self.producto.id,
+                            self.producto.id,
+                        ],
+                    }
+                ]
+            },
+            content_type="application/json",
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        datos = respuesta.json()
+        self.assertTrue(datos["elegible"])
+        self.assertEqual(datos["total_kits"], 6)
+        self.assertEqual(datos["total_piezas"], 12)
+        self.assertGreater(datos["ahorro"], 0)
+
     def test_nuevo_pedido_inyecta_resumen_visual(self):
         self.client.force_login(self.usuario)
 
