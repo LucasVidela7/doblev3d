@@ -112,6 +112,7 @@ MIDDLEWARE = [
     "auditoria.middleware.AuditoriaRequestMiddleware",
     "config.auth_middleware.LoginRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    "config.impresiones_landscape_middleware.ImpresionesLandscapeMiddleware",
     "config.production_experience_middleware.ProductionExperienceMiddleware",
     "config.responsive_fixes_middleware.ResponsiveFixesMiddleware",
     "config.operaciones_ui_middleware.OperacionesUIMiddleware",
