@@ -91,6 +91,12 @@ urlpatterns = [
     ),
 
     path(
+        "api/precio-kits-volumen/",
+        precios_api.precio_kits_volumen,
+        name="precio_kits_volumen",
+    ),
+
+    path(
         "<int:pedido_id>/pago/",
         views.registrar_pago,
         name="registrar_pago",
