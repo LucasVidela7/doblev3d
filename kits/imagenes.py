@@ -5,6 +5,7 @@ from productos.image_models import ProductoImagen
 
 
 MAX_VISIBLES_LISTADO = 8
+MAX_FOTOS_COLLAGE = 4
 
 
 def adjuntar_imagenes_reutilizadas(kits, productos_por_tipo=None):
@@ -76,11 +77,21 @@ def adjuntar_imagenes_reutilizadas(kits, productos_por_tipo=None):
                     }
                 )
 
+        # El detalle del kit conserva todos los productos. Para el collage del
+        # catálogo usamos exclusivamente productos con foto, así nunca ocupamos
+        # un espacio con una letra si existe una imagen real disponible.
+        fotos_collage = [
+            visual
+            for visual in visuales
+            if visual["imagen_url"]
+        ][:MAX_FOTOS_COLLAGE]
+
         kit.productos_visuales = visuales
         kit.productos_visuales_visibles = visuales[:MAX_VISIBLES_LISTADO]
         kit.productos_visuales_extra = max(
             len(visuales) - MAX_VISIBLES_LISTADO,
             0,
         )
+        kit.productos_visuales_collage = fotos_collage
 
     return kits
