@@ -1,0 +1,480 @@
+from collections import Counter
+from decimal import Decimal, ROUND_CEILING, ROUND_HALF_UP
+
+from calculadora.precios import (
+    MARGEN_MINIMO,
+    calcular_costo_productivo_producto,
+    margen_sugerido,
+    precio_mayorista,
+    redondear_arriba,
+)
+from kits.models import Kit
+from productos.models import Producto
+
+
+CANTIDAD_MINIMA_KITS_VOLUMEN = 6
+
+
+def _decimal(valor):
+    try:
+        return Decimal(str(valor or 0))
+    except (TypeError, ValueError):
+        return Decimal("0")
+
+
+def _redondear_centavos(valor, modo=ROUND_HALF_UP):
+    return _decimal(valor).quantize(Decimal("0.01"), rounding=modo)
+
+
+def _costo_unitario_volumen(producto, cantidad):
+    """
+    Costo productivo real para ventas de kits.
+
+    Los kits fuerzan el filamento económico cuando está configurado.
+    Para productos sin cálculo productivo se conserva como respaldo el
+    costo + seguro actual del producto.
+    """
+    calculo = calcular_costo_productivo_producto(
+        producto,
+        cantidad=max(int(cantidad or 1), 1),
+        forzar_filamento_economico=True,
+    )
+    costo = max(_decimal(calculo.get("costo_productivo")), Decimal("0"))
+
+    if costo <= 0:
+        costo = max(
+            _decimal(getattr(producto, "costo", 0))
+            + _decimal(getattr(producto, "seguro", 0)),
+            Decimal("0"),
+        )
+
+    return costo
+
+
+def _preparar_linea(item):
+    kit = item["kit"]
+    cantidad_kits = max(int(item.get("cantidad") or 0), 0)
+    componentes = list(item.get("componentes") or [])
+
+    precio_unitario_lista = max(_decimal(kit.precio), Decimal("0"))
+    precio_lista_total = precio_unitario_lista * Decimal(cantidad_kits)
+
+    costo_total = Decimal("0")
+    piezas = 0
+    ponderacion_margen = Decimal("0")
+    detalle_componentes = []
+
+    for componente in componentes:
+        producto = componente["producto"]
+        cantidad = max(int(componente.get("cantidad") or 0), 0)
+        if cantidad <= 0:
+            continue
+
+        costo_unitario = _costo_unitario_volumen(producto, cantidad)
+        costo_componente = costo_unitario * Decimal(cantidad)
+        margen_producto = max(
+            _decimal(getattr(producto, "margen_ganancia", 0)),
+            MARGEN_MINIMO,
+        )
+
+        costo_total += costo_componente
+        piezas += cantidad
+        ponderacion_margen += costo_componente * margen_producto
+
+        detalle_componentes.append(
+            {
+                "producto_id": producto.id,
+                "cantidad": cantidad,
+                "costo_unitario": costo_unitario,
+                "costo_total": costo_componente,
+                "margen": margen_producto,
+            }
+        )
+
+    margen_ponderado = (
+        ponderacion_margen / costo_total
+        if costo_total > 0
+        else MARGEN_MINIMO
+    )
+
+    precio_piso_total = redondear_arriba(
+        precio_mayorista(costo_total, MARGEN_MINIMO),
+        Decimal("100"),
+    )
+
+    # Nunca se sube automáticamente un precio de lista que ya esté por debajo
+    # del piso. En ese caso la línea simplemente no tiene capacidad de descuento.
+    piso_aplicable = min(precio_piso_total, precio_lista_total)
+    capacidad_descuento = max(
+        precio_lista_total - piso_aplicable,
+        Decimal("0"),
+    )
+
+    return {
+        "key": str(item.get("key") or ""),
+        "detalle": item.get("detalle"),
+        "kit": kit,
+        "cantidad_kits": cantidad_kits,
+        "componentes": detalle_componentes,
+        "piezas": piezas,
+        "precio_unitario_lista": precio_unitario_lista,
+        "precio_lista_total": precio_lista_total,
+        "costo_total": costo_total,
+        "margen_ponderado": margen_ponderado,
+        "precio_piso_total": precio_piso_total,
+        "piso_aplicable": piso_aplicable,
+        "capacidad_descuento": capacidad_descuento,
+    }
+
+
+def calcular_precio_volumen_kits(items):
+    """
+    Calcula un único precio mayorista para el conjunto de kits del pedido.
+
+    Reglas:
+    - La lógica se activa desde 6 kits totales.
+    - La intensidad del descuento depende de la cantidad REAL de productos
+      contenidos dentro de esos kits, no sólo del número de kits.
+    - El margen base se pondera por el costo real de los componentes.
+    - El descuento nunca baja una línea por debajo de MARGEN_MINIMO.
+    - Si el precio actual ya está por debajo del piso, no se lo aumenta ni se
+      lo descuenta automáticamente.
+    """
+    lineas = [
+        _preparar_linea(item)
+        for item in items
+        if int(item.get("cantidad") or 0) > 0
+    ]
+
+    total_kits = sum(linea["cantidad_kits"] for linea in lineas)
+    total_piezas = sum(linea["piezas"] for linea in lineas)
+    precio_lista_total = sum(
+        (linea["precio_lista_total"] for linea in lineas),
+        Decimal("0"),
+    )
+    costo_total = sum(
+        (linea["costo_total"] for linea in lineas),
+        Decimal("0"),
+    )
+
+    if costo_total > 0:
+        margen_tope_ponderado = (
+            sum(
+                (
+                    linea["costo_total"] * linea["margen_ponderado"]
+                    for linea in lineas
+                ),
+                Decimal("0"),
+            )
+            / costo_total
+        )
+    else:
+        margen_tope_ponderado = MARGEN_MINIMO
+
+    margen_tope_ponderado = max(
+        margen_tope_ponderado,
+        MARGEN_MINIMO,
+    ).quantize(Decimal("0.1"))
+
+    elegible = (
+        total_kits >= CANTIDAD_MINIMA_KITS_VOLUMEN
+        and total_piezas > 0
+        and precio_lista_total > 0
+        and costo_total > 0
+    )
+
+    margen_objetivo = (
+        margen_sugerido(total_piezas, margen_tope_ponderado)
+        if elegible
+        else margen_tope_ponderado
+    )
+
+    precio_objetivo_total = (
+        redondear_arriba(
+            precio_mayorista(costo_total, margen_objetivo),
+            Decimal("100"),
+        )
+        if elegible
+        else precio_lista_total
+    )
+
+    ahorro_deseado = (
+        max(precio_lista_total - precio_objetivo_total, Decimal("0"))
+        if elegible
+        else Decimal("0")
+    )
+    capacidad_total = sum(
+        (linea["capacidad_descuento"] for linea in lineas),
+        Decimal("0"),
+    )
+    ahorro_aplicable = min(ahorro_deseado, capacidad_total)
+    limitado_por_margen = ahorro_aplicable < ahorro_deseado
+
+    # Repartimos el ahorro según la capacidad real de descuento de cada línea.
+    # Así una línea con margen justo no subsidia otra con margen amplio.
+    for linea in lineas:
+        capacidad = linea["capacidad_descuento"]
+
+        if ahorro_aplicable <= 0 or capacidad_total <= 0 or capacidad <= 0:
+            ahorro_linea = Decimal("0")
+        else:
+            ahorro_linea = (
+                ahorro_aplicable * capacidad / capacidad_total
+            ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            ahorro_linea = min(ahorro_linea, capacidad)
+
+        total_propuesto = max(
+            linea["precio_lista_total"] - ahorro_linea,
+            linea["piso_aplicable"],
+        )
+
+        if linea["cantidad_kits"] > 0:
+            precio_unitario_minimo = (
+                linea["piso_aplicable"]
+                / Decimal(linea["cantidad_kits"])
+            ).quantize(Decimal("0.01"), rounding=ROUND_CEILING)
+
+            precio_unitario = (
+                total_propuesto
+                / Decimal(linea["cantidad_kits"])
+            ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+            precio_unitario = min(
+                linea["precio_unitario_lista"],
+                max(precio_unitario, precio_unitario_minimo),
+            )
+        else:
+            precio_unitario = linea["precio_unitario_lista"]
+
+        precio_final_total = (
+            precio_unitario * Decimal(linea["cantidad_kits"])
+        )
+        ahorro_real_linea = max(
+            linea["precio_lista_total"] - precio_final_total,
+            Decimal("0"),
+        )
+
+        linea["precio_unitario_final"] = precio_unitario
+        linea["precio_final_total"] = precio_final_total
+        linea["ahorro"] = ahorro_real_linea
+        linea["descuento_porcentaje"] = (
+            ahorro_real_linea / linea["precio_lista_total"] * Decimal("100")
+            if linea["precio_lista_total"] > 0
+            else Decimal("0")
+        ).quantize(Decimal("0.1"))
+
+    precio_final_total = sum(
+        (linea["precio_final_total"] for linea in lineas),
+        Decimal("0"),
+    )
+    ahorro = max(precio_lista_total - precio_final_total, Decimal("0"))
+    descuento_porcentaje = (
+        ahorro / precio_lista_total * Decimal("100")
+        if precio_lista_total > 0
+        else Decimal("0")
+    ).quantize(Decimal("0.1"))
+
+    margen_real = Decimal("0")
+    if precio_final_total > 0:
+        margen_real = (
+            (precio_final_total - costo_total)
+            / precio_final_total
+            * Decimal("100")
+        ).quantize(Decimal("0.1"))
+
+    return {
+        "elegible": elegible,
+        "cantidad_minima_kits": CANTIDAD_MINIMA_KITS_VOLUMEN,
+        "total_kits": total_kits,
+        "total_piezas": total_piezas,
+        "precio_lista_total": precio_lista_total,
+        "costo_total": costo_total,
+        "margen_tope_ponderado": margen_tope_ponderado,
+        "margen_objetivo": margen_objetivo,
+        "margen_minimo": MARGEN_MINIMO,
+        "precio_objetivo_total": precio_objetivo_total,
+        "precio_final_total": precio_final_total,
+        "ahorro": ahorro,
+        "descuento_porcentaje": descuento_porcentaje,
+        "margen_real": margen_real,
+        "limitado_por_margen": limitado_por_margen,
+        "lineas": lineas,
+    }
+
+
+def items_desde_pedido(pedido):
+    detalles = (
+        pedido.detalles
+        .filter(tipo_item="KIT")
+        .select_related("kit")
+        .prefetch_related("productos_kit__producto")
+        .order_by("id")
+    )
+
+    items = []
+    for detalle in detalles:
+        items.append(
+            {
+                "key": str(detalle.id),
+                "detalle": detalle,
+                "kit": detalle.kit,
+                "cantidad": detalle.cantidad,
+                "componentes": [
+                    {
+                        "producto": componente.producto,
+                        "cantidad": componente.cantidad,
+                    }
+                    for componente in detalle.productos_kit.all()
+                ],
+            }
+        )
+    return items
+
+
+def aplicar_precio_volumen_pedido(pedido):
+    """Recalcula y persiste únicamente el precio de las líneas KIT."""
+    resumen = calcular_precio_volumen_kits(items_desde_pedido(pedido))
+
+    for linea in resumen["lineas"]:
+        detalle = linea.get("detalle")
+        if not detalle:
+            continue
+
+        nuevo_precio = _redondear_centavos(linea["precio_unitario_final"])
+        if detalle.precio_unitario != nuevo_precio:
+            detalle.precio_unitario = nuevo_precio
+            detalle.save(update_fields=["precio_unitario"])
+
+    return resumen
+
+
+def items_desde_payload(payload):
+    """Valida la selección actual del formulario para la vista previa."""
+    items_payload = payload.get("items") if isinstance(payload, dict) else None
+    if not isinstance(items_payload, list):
+        raise ValueError("Formato de items no válido.")
+
+    items = []
+
+    for bruto in items_payload:
+        if not isinstance(bruto, dict):
+            raise ValueError("Existe un item de kit no válido.")
+
+        key = str(bruto.get("key") or "")
+        kit_id = bruto.get("kit_id")
+        try:
+            cantidad = int(bruto.get("cantidad") or 0)
+            kit_id = int(kit_id)
+        except (TypeError, ValueError):
+            raise ValueError("Kit o cantidad no válidos.")
+
+        if cantidad <= 0:
+            raise ValueError("La cantidad de kits debe ser mayor a cero.")
+
+        kit = (
+            Kit.objects
+            .filter(id=kit_id, activo=True)
+            .select_related("tipo_producto")
+            .prefetch_related("componentes__producto")
+            .first()
+        )
+        if not kit:
+            raise ValueError("No se encontró uno de los kits seleccionados.")
+
+        componentes = []
+
+        if kit.modalidad == "FIJO":
+            componentes_fijos = list(kit.componentes.all())
+            if not componentes_fijos:
+                raise ValueError(f"El kit {kit.nombre} no tiene componentes.")
+
+            componentes = [
+                {
+                    "producto": componente.producto,
+                    "cantidad": componente.cantidad * cantidad,
+                }
+                for componente in componentes_fijos
+            ]
+        else:
+            seleccion = bruto.get("productos") or []
+            if not isinstance(seleccion, list):
+                raise ValueError("La selección del kit no es válida.")
+
+            try:
+                ids = [int(producto_id) for producto_id in seleccion]
+            except (TypeError, ValueError):
+                raise ValueError("La selección del kit contiene productos inválidos.")
+
+            if len(ids) != int(kit.cantidad_productos or 0):
+                raise ValueError(
+                    f"Completá los {kit.cantidad_productos} productos de {kit.nombre}."
+                )
+
+            productos = {
+                producto.id: producto
+                for producto in Producto.objects.filter(
+                    id__in=set(ids),
+                    activo=True,
+                    tipo=kit.tipo_producto,
+                )
+            }
+            if len(productos) != len(set(ids)):
+                raise ValueError(
+                    f"Hay productos inválidos en la selección de {kit.nombre}."
+                )
+
+            conteo = Counter(ids)
+            componentes = [
+                {
+                    "producto": productos[producto_id],
+                    "cantidad": veces * cantidad,
+                }
+                for producto_id, veces in conteo.items()
+            ]
+
+        items.append(
+            {
+                "key": key,
+                "kit": kit,
+                "cantidad": cantidad,
+                "componentes": componentes,
+            }
+        )
+
+    return items
+
+
+def resumen_json(resumen):
+    return {
+        "elegible": bool(resumen["elegible"]),
+        "cantidad_minima_kits": resumen["cantidad_minima_kits"],
+        "total_kits": resumen["total_kits"],
+        "total_piezas": resumen["total_piezas"],
+        "precio_lista_total": float(resumen["precio_lista_total"]),
+        "costo_total": float(resumen["costo_total"]),
+        "margen_tope_ponderado": float(resumen["margen_tope_ponderado"]),
+        "margen_objetivo": float(resumen["margen_objetivo"]),
+        "margen_minimo": float(resumen["margen_minimo"]),
+        "precio_objetivo_total": float(resumen["precio_objetivo_total"]),
+        "precio_final_total": float(resumen["precio_final_total"]),
+        "ahorro": float(resumen["ahorro"]),
+        "descuento_porcentaje": float(resumen["descuento_porcentaje"]),
+        "margen_real": float(resumen["margen_real"]),
+        "limitado_por_margen": bool(resumen["limitado_por_margen"]),
+        "lineas": [
+            {
+                "key": linea["key"],
+                "kit_id": linea["kit"].id,
+                "kit_nombre": linea["kit"].nombre,
+                "cantidad": linea["cantidad_kits"],
+                "piezas": linea["piezas"],
+                "precio_unitario_lista": float(linea["precio_unitario_lista"]),
+                "precio_unitario_final": float(linea["precio_unitario_final"]),
+                "precio_lista_total": float(linea["precio_lista_total"]),
+                "precio_final_total": float(linea["precio_final_total"]),
+                "ahorro": float(linea["ahorro"]),
+                "descuento_porcentaje": float(linea["descuento_porcentaje"]),
+            }
+            for linea in resumen["lineas"]
+        ],
+    }
