@@ -10,9 +10,9 @@ from .models import Cliente
 
 
 def _pedidos_cliente_queryset():
+    """Todos los pedidos existentes forman parte del historial del cliente."""
     return (
         Pedido.objects
-        .exclude(estado="CANCELADO")
         .prefetch_related(
             "detalles__producto",
             "detalles__kit",
@@ -21,6 +21,10 @@ def _pedidos_cliente_queryset():
         )
         .order_by("-id")
     )
+
+
+def _pedido_vigente(pedido):
+    return pedido.estado != "CANCELADO"
 
 
 def lista_clientes(request):
@@ -33,7 +37,7 @@ def lista_clientes(request):
             Prefetch(
                 "pedidos",
                 queryset=_pedidos_cliente_queryset(),
-                to_attr="pedidos_activos_cache",
+                to_attr="pedidos_historial_cache",
             )
         )
         .order_by("nombre")
@@ -52,13 +56,17 @@ def lista_clientes(request):
     clientes_con_saldo = 0
 
     for cliente in clientes:
-        pedidos = cliente.pedidos_activos_cache
+        pedidos = cliente.pedidos_historial_cache
+        pedidos_vigentes = [
+            pedido for pedido in pedidos
+            if _pedido_vigente(pedido)
+        ]
 
         total_comprado = Decimal("0")
         total_pagado = Decimal("0")
         saldo_pendiente = Decimal("0")
 
-        for pedido in pedidos:
+        for pedido in pedidos_vigentes:
             total_comprado += pedido.total
             total_pagado += pedido.total_pagado
             saldo_pendiente += pedido.saldo_pendiente
@@ -73,6 +81,10 @@ def lista_clientes(request):
             {
                 "cliente": cliente,
                 "cantidad_pedidos": len(pedidos),
+                "cantidad_cancelados": sum(
+                    1 for pedido in pedidos
+                    if pedido.estado == "CANCELADO"
+                ),
                 "total_comprado": total_comprado,
                 "total_pagado": total_pagado,
                 "saldo_pendiente": saldo_pendiente,
@@ -152,20 +164,28 @@ def detalle_cliente(request, cliente_id):
     for pedido in pedidos:
         total = pedido.total
         pagado = pedido.total_pagado
-        saldo = pedido.saldo_pendiente
+        cancelado = pedido.estado == "CANCELADO"
+        saldo_modelo = pedido.saldo_pendiente
 
-        total_comprado += total
-        total_pagado += pagado
-        saldo_pendiente += saldo
+        if not cancelado:
+            total_comprado += total
+            total_pagado += pagado
+            saldo_pendiente += saldo_modelo
 
         filas_pedidos.append(
             {
                 "pedido": pedido,
                 "total": total,
                 "pagado": pagado,
-                "saldo": saldo,
-                "estado_pago": pedido.estado_pago,
-                "estado_pago_display": pedido.estado_pago_display,
+                # Los cancelados quedan visibles, pero ya no integran
+                # la cuenta corriente ni habilitan nuevos pagos.
+                "saldo": Decimal("0") if cancelado else saldo_modelo,
+                "saldo_historico": saldo_modelo,
+                "estado_pago": "CANCELADO" if cancelado else pedido.estado_pago,
+                "estado_pago_display": (
+                    "Cancelado" if cancelado else pedido.estado_pago_display
+                ),
+                "cancelado": cancelado,
             }
         )
 
@@ -176,6 +196,10 @@ def detalle_cliente(request, cliente_id):
             "cliente": cliente,
             "filas_pedidos": filas_pedidos,
             "cantidad_pedidos": len(filas_pedidos),
+            "cantidad_cancelados": sum(
+                1 for fila in filas_pedidos
+                if fila["cancelado"]
+            ),
             "total_comprado": total_comprado,
             "total_pagado": total_pagado,
             "saldo_pendiente": saldo_pendiente,
