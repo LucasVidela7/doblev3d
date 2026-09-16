@@ -5,6 +5,7 @@ from django.shortcuts import render
 from productos.models import Producto
 
 from .economia import recomendacion_kit
+from .imagenes import adjuntar_imagenes_reutilizadas
 from .models import Kit
 
 
@@ -35,12 +36,17 @@ def lista_kits(request):
                 solo_produccion=False,
             )
             .select_related("tipo")
-            .order_by("id")
+            .order_by("nombre", "id")
         )
         for producto in productos:
             productos_por_tipo[producto.tipo_id].append(
                 producto
             )
+
+    adjuntar_imagenes_reutilizadas(
+        kits,
+        productos_por_tipo=productos_por_tipo,
+    )
 
     for kit in kits:
         productos_categoria = None
