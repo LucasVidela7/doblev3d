@@ -6,8 +6,23 @@ from productos.catalogo import catalogo
 
 
 urlpatterns = [
+    # Sitio publico
     path(
-        "login/",
+        "",
+        catalogo,
+        name="catalogo",
+    ),
+
+    # Alias historico para no romper URLs ya compartidas.
+    path(
+        "catalogo/",
+        catalogo,
+        name="catalogo_legacy",
+    ),
+
+    # Sistema interno
+    path(
+        "gestion/login/",
         auth_views.LoginView.as_view(
             template_name="registration/login.html",
             redirect_authenticated_user=True,
@@ -16,54 +31,48 @@ urlpatterns = [
     ),
 
     path(
-        "logout/",
+        "gestion/logout/",
         auth_views.LogoutView.as_view(),
         name="logout",
     ),
 
     path(
-        "catalogo/",
-        catalogo,
-        name="catalogo",
-    ),
-
-    path(
-        "",
+        "gestion/",
         include("dashboard.urls"),
     ),
 
     path(
-        "admin/",
+        "gestion/admin/",
         admin.site.urls,
     ),
 
     path(
-        "productos/",
+        "gestion/productos/",
         include("productos.urls"),
     ),
 
     path(
-        "kits/",
+        "gestion/kits/",
         include("kits.urls"),
     ),
 
     path(
-        "pedidos/",
+        "gestion/pedidos/",
         include("pedidos.urls"),
     ),
 
     path(
-        "produccion/",
+        "gestion/produccion/",
         include("produccion.urls"),
     ),
 
     path(
-        "clientes/",
+        "gestion/clientes/",
         include("clientes.urls"),
     ),
 
     path(
-        "calculadora/",
+        "gestion/calculadora/",
         include("calculadora.urls"),
     ),
 ]
