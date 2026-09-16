@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 
-from . import views
+from . import pedido_form_views, views
 from .models import Pedido
 
 
@@ -46,7 +46,7 @@ def editar_pedido(request, pedido_id):
         )
         return _volver(request)
 
-    return views.editar_pedido(request, pedido_id)
+    return pedido_form_views.editar_pedido(request, pedido_id)
 
 
 @transaction.atomic
