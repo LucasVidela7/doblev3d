@@ -15,6 +15,10 @@ def cambiar_listo_impresion(request):
     Los personalizados no consumen stock general: su confirmación actualiza
     directamente DetallePedido. Para productos normales/kits se delega en la
     lógica histórica, que mantiene el descuento/restauración de stock.
+
+    El detalle se bloquea sin select_related() porque producto es una FK
+    nullable. PostgreSQL no permite FOR UPDATE sobre el lado nullable de un
+    outer join, que era la causa del error 500 al confirmar personalizados.
     """
     if request.method != "POST":
         return redirect("pedidos:impresiones")
@@ -24,9 +28,7 @@ def cambiar_listo_impresion(request):
         return views.cambiar_listo_impresion(request)
 
     detalle = get_object_or_404(
-        DetallePedido.objects
-        .select_for_update()
-        .select_related("pedido", "producto"),
+        DetallePedido.objects.select_for_update(),
         id=detalle_id,
         tipo_item="PERSONALIZADO",
     )
@@ -49,10 +51,11 @@ def cambiar_listo_impresion(request):
 
     actualizar_estado_general_pedido(pedido)
 
+    nombre_producto = detalle.producto.nombre if detalle.producto else "Personalizado"
     messages.success(
         request,
         (
-            f"{detalle.producto.nombre} personalizado marcado como "
+            f"{nombre_producto} personalizado marcado como "
             f"{'LISTO' if marcar_listo else 'PENDIENTE'}."
         ),
     )
