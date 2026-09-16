@@ -1,803 +1,237 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
-<link rel="apple-touch-icon" href="{% static 'brand/apple-touch-icon.png' %}">
-<link rel="stylesheet" href="{% static 'brand/brand.css' %}">
-    <meta charset="UTF-8">
-    <title><!DOCTYPE html>
 <html lang="es">
 <head>
+    <link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
+    <link rel="apple-touch-icon" href="{% static 'brand/apple-touch-icon.png' %}">
+    <link rel="stylesheet" href="{% static 'brand/brand.css' %}">
     <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Pagos | Doble V 3D</title>
 
     <style>
-        :root {
-            --fondo:#f4f5f7;
-            --tarjeta:#fff;
-            --texto:#24272b;
-            --muted:#73777f;
-            --borde:#e5e7eb;
-            --oscuro:#24272b;
-            --verde:#dff4e5;
-            --verde-texto:#24633a;
-            --azul:#e3efff;
-            --azul-texto:#245a9b;
-            --amarillo:#fff2c7;
-            --amarillo-texto:#765b00;
-            --rojo:#fde5e5;
-            --rojo-texto:#9a3030;
+        :root{
+            --fondo:#f4f5f7;--tarjeta:#fff;--texto:#24272b;--muted:#73777f;--borde:#e5e7eb;--oscuro:#24272b;
+            --verde:#dff4e5;--verde-texto:#24633a;--azul:#e3efff;--azul-texto:#245a9b;
+            --amarillo:#fff2c7;--amarillo-texto:#765b00;--rojo:#fde5e5;--rojo-texto:#9a3030;
             --sombra:0 4px 18px rgba(20,25,35,.07);
         }
-
         *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-        body{
-            margin:0;
-            padding:0 0 calc(94px + env(safe-area-inset-bottom));
-            font-family:Arial,sans-serif;
-            background:var(--fondo);
-            color:var(--texto);
-        }
+        body{margin:0;padding:0 0 calc(94px + env(safe-area-inset-bottom));font-family:Arial,sans-serif;background:var(--fondo);color:var(--texto)}
         button,a,input,select,textarea{touch-action:manipulation}
-        .contenedor{
-            width:min(1180px,100%);
-            margin:auto;
-            padding:22px 18px 34px;
-        }
-
-        .encabezado{
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            gap:18px;
-            margin-bottom:18px;
-        }
+        .contenedor{width:min(1180px,100%);margin:auto;padding:22px 18px 34px}
+        .encabezado{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:18px}
         h1{margin:0 0 5px;font-size:clamp(26px,4vw,34px)}
         .subtitulo{color:var(--muted);font-size:13px}
         .acciones-encabezado{display:flex;gap:9px}
-        .boton-volver,.boton-inicio{
-            min-height:50px;
-            display:inline-flex;
-            align-items:center;
-            justify-content:center;
-            padding:0 18px;
-            border-radius:14px;
-            font-size:11px;
-            font-weight:900;
-            text-decoration:none;
-            cursor:pointer;
-        }
+        .boton-volver,.boton-inicio{min-height:50px;display:inline-flex;align-items:center;justify-content:center;padding:0 18px;border-radius:14px;font-size:11px;font-weight:900;text-decoration:none;cursor:pointer}
         .boton-volver{border:1px solid var(--borde);background:#fff;color:var(--texto)}
         .boton-inicio{border:1px solid var(--oscuro);background:var(--oscuro);color:#fff}
 
         .mensajes{margin-bottom:15px}
-        .mensaje{
-            padding:14px 16px;
-            margin-bottom:8px;
-            border-radius:14px;
-            font-size:12px;
-            font-weight:800;
-        }
+        .mensaje{padding:14px 16px;margin-bottom:8px;border-radius:14px;font-size:12px;font-weight:800}
         .mensaje.success{background:var(--verde);color:var(--verde-texto)}
         .mensaje.error{background:var(--rojo);color:var(--rojo-texto)}
         .mensaje.warning{background:var(--amarillo);color:var(--amarillo-texto)}
         .mensaje.info{background:var(--azul);color:var(--azul-texto)}
 
-        .metricas{
-            display:grid;
-            grid-template-columns:repeat(4,1fr);
-            gap:12px;
-            margin-bottom:16px;
-        }
-        .metrica{
-            min-height:110px;
-            padding:17px;
-            border:1px solid var(--borde);
-            border-radius:18px;
-            background:#fff;
-            box-shadow:var(--sombra);
-        }
-        .metrica-label{
-            color:var(--muted);
-            font-size:9px;
-            font-weight:900;
-            letter-spacing:.4px;
-        }
-        .metrica-valor{
-            margin-top:10px;
-            font-size:clamp(21px,3vw,29px);
-            font-weight:900;
-        }
-        .metrica-nota{
-            margin-top:6px;
-            color:var(--muted);
-            font-size:10px;
-        }
+        .metricas{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+        .metrica{min-height:110px;padding:17px;border:1px solid var(--borde);border-radius:18px;background:#fff;box-shadow:var(--sombra)}
+        .metrica-label{color:var(--muted);font-size:9px;font-weight:900;letter-spacing:.4px}
+        .metrica-valor{margin-top:10px;font-size:clamp(21px,3vw,29px);font-weight:900}
+        .metrica-nota{margin-top:6px;color:var(--muted);font-size:10px}
 
-        .filtros{
-            display:flex;
-            align-items:center;
-            gap:10px;
-            flex-wrap:wrap;
-            margin-bottom:16px;
-            padding:12px;
-            border:1px solid var(--borde);
-            border-radius:17px;
-            background:#fff;
-            box-shadow:var(--sombra);
-        }
-        .buscar{
-            flex:1 1 250px;
-            min-height:48px;
-            padding:0 14px;
-            border:1px solid var(--borde);
-            border-radius:12px;
-            font-size:14px;
-            outline:none;
-        }
+        .filtros{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:12px;border:1px solid var(--borde);border-radius:17px;background:#fff;box-shadow:var(--sombra)}
+        .buscar{flex:1 1 250px;min-height:48px;padding:0 14px;border:1px solid var(--borde);border-radius:12px;font-size:14px;outline:none}
         .chips{display:flex;gap:7px;flex-wrap:wrap}
-        .chip{
-            min-height:42px;
-            display:inline-flex;
-            align-items:center;
-            justify-content:center;
-            padding:0 13px;
-            border:1px solid var(--borde);
-            border-radius:999px;
-            background:#fff;
-            color:var(--texto);
-            font-size:10px;
-            font-weight:900;
-            text-decoration:none;
-        }
+        .chip{min-height:42px;display:inline-flex;align-items:center;justify-content:center;padding:0 13px;border:1px solid var(--borde);border-radius:999px;background:#fff;color:var(--texto);font-size:10px;font-weight:900;text-decoration:none}
         .chip.activo{background:var(--oscuro);border-color:var(--oscuro);color:#fff}
+        .chip.cancelados.activo{background:var(--rojo-texto);border-color:var(--rojo-texto);color:#fff}
 
-        .grid{
-            display:grid;
-            grid-template-columns:minmax(0,1fr) 330px;
-            gap:16px;
-            align-items:start;
-        }
-
-        .lista-pedidos,.panel-ultimos{
-            border:1px solid var(--borde);
-            border-radius:20px;
-            background:#fff;
-            box-shadow:var(--sombra);
-            overflow:hidden;
-        }
-        .titulo-seccion{
-            padding:15px 18px;
-            border-bottom:1px solid var(--borde);
-            font-size:12px;
-            font-weight:900;
-            background:#fbfbfc;
-        }
-
-        .pedido{
-            padding:16px 18px;
-            border-bottom:1px solid var(--borde);
-        }
+        .grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px;align-items:start}
+        .lista-pedidos,.panel-ultimos{border:1px solid var(--borde);border-radius:20px;background:#fff;box-shadow:var(--sombra);overflow:hidden}
+        .titulo-seccion{padding:15px 18px;border-bottom:1px solid var(--borde);font-size:12px;font-weight:900;background:#fbfbfc}
+        .pedido{padding:16px 18px;border-bottom:1px solid var(--borde)}
         .pedido:last-child{border-bottom:0}
-        .pedido-arriba{
-            display:flex;
-            justify-content:space-between;
-            gap:15px;
-            align-items:flex-start;
-        }
+        .pedido.cancelado{background:#fffafa;border-left:3px solid #d69a9a}
+        .pedido-arriba{display:flex;justify-content:space-between;gap:15px;align-items:flex-start}
         .pedido-codigo{font-size:15px;font-weight:900}
         .pedido-cliente{margin-top:4px;color:#50545b;font-size:12px;font-weight:700}
         .pedido-fecha{margin-top:5px;color:var(--muted);font-size:9px}
-        .estado-pago{
-            min-height:29px;
-            display:inline-flex;
-            align-items:center;
-            justify-content:center;
-            padding:0 10px;
-            border-radius:999px;
-            font-size:9px;
-            font-weight:900;
-            white-space:nowrap;
-        }
+        .estado-pago{min-height:29px;display:inline-flex;align-items:center;justify-content:center;padding:0 10px;border-radius:999px;font-size:9px;font-weight:900;white-space:nowrap}
         .estado-SIN_PAGAR{background:var(--rojo);color:var(--rojo-texto)}
         .estado-PARCIAL{background:var(--amarillo);color:var(--amarillo-texto)}
         .estado-PAGADO{background:var(--verde);color:var(--verde-texto)}
+        .estado-CANCELADO{background:var(--rojo);color:var(--rojo-texto)}
+        .cancelado-nota{margin-top:9px;padding:8px 10px;border-radius:10px;background:var(--rojo);color:var(--rojo-texto);font-size:9px;font-weight:800;line-height:1.4}
 
-        .pedido-numeros{
-            display:grid;
-            grid-template-columns:repeat(3,1fr);
-            gap:8px;
-            margin-top:13px;
-        }
-        .numero{
-            padding:10px;
-            border-radius:12px;
-            background:#f6f7f8;
-        }
+        .pedido-numeros{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:13px}
+        .numero{padding:10px;border-radius:12px;background:#f6f7f8}
         .numero-label{color:var(--muted);font-size:8px;font-weight:900}
         .numero-valor{margin-top:4px;font-size:14px;font-weight:900}
-
-        .pedido-acciones{
-            display:flex;
-            gap:8px;
-            margin-top:12px;
-        }
-        .btn-pago,.btn-editar{
-            min-height:44px;
-            display:inline-flex;
-            align-items:center;
-            justify-content:center;
-            padding:0 15px;
-            border-radius:12px;
-            font-size:10px;
-            font-weight:900;
-            text-decoration:none;
-            cursor:pointer;
-        }
+        .pedido-acciones{display:flex;gap:8px;margin-top:12px}
+        .btn-pago,.btn-editar{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 15px;border-radius:12px;font-size:10px;font-weight:900;text-decoration:none;cursor:pointer}
         .btn-pago{border:1px solid var(--oscuro);background:var(--oscuro);color:#fff}
         .btn-pago:disabled{opacity:.38;cursor:not-allowed}
         .btn-editar{border:1px solid var(--borde);background:#fff;color:var(--texto)}
 
-        .ultimo-pago{
-            padding:13px 15px;
-            border-bottom:1px solid var(--borde);
-        }
+        .ultimo-pago{padding:13px 15px;border-bottom:1px solid var(--borde)}
         .ultimo-pago:last-child{border-bottom:0}
-        .ultimo-fila{
-            display:flex;
-            justify-content:space-between;
-            gap:10px;
-        }
-        .ultimo-codigo{font-size:11px;font-weight:900}
-        .ultimo-monto{font-size:12px;font-weight:900}
-        .ultimo-cliente,.ultimo-medio,.ultimo-fecha{
-            margin-top:3px;
-            color:var(--muted);
-            font-size:9px;
-        }
-
+        .ultimo-fila{display:flex;justify-content:space-between;gap:10px}
+        .ultimo-codigo{font-size:11px;font-weight:900}.ultimo-monto{font-size:12px;font-weight:900}
+        .ultimo-cliente,.ultimo-medio,.ultimo-fecha{margin-top:3px;color:var(--muted);font-size:9px}
         .vacio{padding:44px 20px;text-align:center;color:var(--muted);font-size:12px}
 
-        .modal-fondo{
-            display:none;
-            position:fixed;
-            inset:0;
-            z-index:1000;
-            padding:18px;
-            background:rgba(20,22,26,.55);
-            align-items:center;
-            justify-content:center;
-        }
+        .modal-fondo{display:none;position:fixed;inset:0;z-index:1000;padding:18px;background:rgba(20,22,26,.55);align-items:center;justify-content:center}
         .modal-fondo.abierto{display:flex}
-        .modal{
-            width:min(560px,100%);
-            max-height:calc(100vh - 36px);
-            overflow:auto;
-            border-radius:22px;
-            background:#fff;
-            box-shadow:0 24px 70px rgba(0,0,0,.28);
-        }
-        .modal-cabecera{
-            display:flex;
-            align-items:flex-start;
-            justify-content:space-between;
-            gap:12px;
-            padding:20px;
-            border-bottom:1px solid var(--borde);
-        }
-        .modal-titulo{font-size:20px;font-weight:900}
-        .modal-subtitulo{margin-top:4px;color:var(--muted);font-size:11px}
-        .cerrar{
-            width:44px;height:44px;
-            border:1px solid var(--borde);
-            border-radius:12px;
-            background:#fff;
-            font-size:22px;
-            cursor:pointer;
-        }
+        .modal{width:min(560px,100%);max-height:calc(100vh - 36px);overflow:auto;border-radius:22px;background:#fff;box-shadow:0 24px 70px rgba(0,0,0,.28)}
+        .modal-cabecera{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:20px;border-bottom:1px solid var(--borde)}
+        .modal-titulo{font-size:20px;font-weight:900}.modal-subtitulo{margin-top:4px;color:var(--muted);font-size:11px}
+        .cerrar{width:44px;height:44px;border:1px solid var(--borde);border-radius:12px;background:#fff;font-size:22px;cursor:pointer}
         .modal-cuerpo{padding:20px}
-        .saldo-modal{
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            gap:10px;
-            margin-bottom:17px;
-            padding:14px;
-            border-radius:14px;
-            background:#f4f5f7;
-        }
-        .saldo-modal span{color:var(--muted);font-size:11px;font-weight:800}
-        .saldo-modal strong{font-size:21px}
-        .campo{margin-bottom:14px}
-        .campo label{display:block;margin-bottom:6px;color:#555;font-size:10px;font-weight:900}
-        .campo input,.campo select,.campo textarea{
-            width:100%;
-            min-height:50px;
-            padding:10px 12px;
-            border:1px solid #d8dbe0;
-            border-radius:12px;
-            background:#fff;
-            font:inherit;
-            font-size:15px;
-        }
+        .saldo-modal{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:17px;padding:14px;border-radius:14px;background:#f4f5f7}
+        .saldo-modal span{color:var(--muted);font-size:11px;font-weight:800}.saldo-modal strong{font-size:21px}
+        .campo{margin-bottom:14px}.campo label{display:block;margin-bottom:6px;color:#555;font-size:10px;font-weight:900}
+        .campo input,.campo select,.campo textarea{width:100%;min-height:50px;padding:10px 12px;border:1px solid #d8dbe0;border-radius:12px;background:#fff;font:inherit;font-size:15px}
         .campo textarea{min-height:78px;resize:vertical}
-        .acciones-modal{
-            display:grid;
-            grid-template-columns:1fr 1fr;
-            gap:10px;
-            margin-top:18px;
-        }
-        .acciones-modal button{
-            min-height:50px;
-            border-radius:13px;
-            font-size:10px;
-            font-weight:900;
-            cursor:pointer;
-        }
-        .cancelar-modal{border:1px solid var(--borde);background:#fff}
-        .guardar-modal{border:1px solid #438d56;background:#438d56;color:#fff}
+        .acciones-modal{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+        .acciones-modal button{min-height:50px;border-radius:13px;font-size:10px;font-weight:900;cursor:pointer}
+        .cancelar-modal{border:1px solid var(--borde);background:#fff}.guardar-modal{border:1px solid #438d56;background:#438d56;color:#fff}
 
-        .nav-inferior{
-            position:fixed;
-            z-index:50;
-            left:50%;
-            bottom:max(10px,env(safe-area-inset-bottom));
-            transform:translateX(-50%);
-            width:min(720px,calc(100% - 20px));
-            display:grid;
-            grid-template-columns:repeat(5,1fr);
-            gap:4px;
-            padding:7px;
-            border-radius:20px;
-            background:rgba(35,38,43,.96);
-            box-shadow:0 12px 35px rgba(0,0,0,.22);
-            backdrop-filter:blur(14px);
-        }
-        .nav-item{
-            min-height:58px;
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            justify-content:center;
-            gap:4px;
-            border-radius:14px;
-            color:#d9dbe0;
-            text-decoration:none;
-            font-size:9px;
-            font-weight:bold;
-        }
-        .nav-item span:first-child{font-size:19px}
-        .nav-item.nuevo-nav{background:#fff;color:var(--oscuro)}
+        .nav-inferior{position:fixed;z-index:50;left:50%;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(720px,calc(100% - 20px));display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:7px;border-radius:20px;background:rgba(35,38,43,.96);box-shadow:0 12px 35px rgba(0,0,0,.22);backdrop-filter:blur(14px)}
+        .nav-item{min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:14px;color:#d9dbe0;text-decoration:none;font-size:9px;font-weight:bold}
+        .nav-item span:first-child{font-size:19px}.nav-item.nuevo-nav{background:#fff;color:var(--oscuro)}
 
-        @media(max-width:900px){
-            .metricas{grid-template-columns:repeat(2,1fr)}
-            .grid{grid-template-columns:1fr}
-            .panel-ultimos{order:-1}
-        }
+        @media(max-width:900px){.metricas{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.panel-ultimos{order:-1}}
         @media(max-width:720px){
-            .contenedor{padding:16px 11px 28px}
-            .encabezado{align-items:flex-start;flex-direction:column}
-            .acciones-encabezado{width:100%}
-            .boton-volver,.boton-inicio{flex:1}
-            .metricas{
-                display:flex;
-                overflow-x:auto;
-                scroll-snap-type:x mandatory;
-                gap:9px;
-                padding-bottom:3px;
-            }
-            .metrica{
-                min-width:205px;
-                min-height:100px;
-                scroll-snap-align:start;
-            }
-            .filtros{padding:10px}
-            .buscar{flex-basis:100%}
-            .chips{
-                width:100%;
-                overflow-x:auto;
-                flex-wrap:nowrap;
-                padding-bottom:2px;
-            }
-            .chip{flex:0 0 auto}
-            .pedido{padding:14px}
-            .pedido-numeros{gap:6px}
-            .numero{padding:8px}
-            .numero-valor{font-size:12px}
-            .pedido-acciones{display:grid;grid-template-columns:1fr 1fr}
-            .btn-pago,.btn-editar{width:100%}
-            .modal-fondo{padding:8px;align-items:flex-end}
-            .modal{max-height:92vh;border-radius:20px 20px 10px 10px}
-            .modal-cabecera,.modal-cuerpo{padding:16px}
+            .contenedor{padding:16px 11px 28px}.encabezado{align-items:flex-start;flex-direction:column}.acciones-encabezado{width:100%}.boton-volver,.boton-inicio{flex:1}
+            .metricas{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:9px;padding-bottom:3px}.metrica{min-width:205px;min-height:100px;scroll-snap-align:start}
+            .filtros{padding:10px}.buscar{flex-basis:100%}.chips{width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px}.chip{flex:0 0 auto}
+            .pedido{padding:14px}.pedido-numeros{gap:6px}.numero{padding:8px}.numero-valor{font-size:12px}.pedido-acciones{display:grid;grid-template-columns:1fr 1fr}.btn-pago,.btn-editar{width:100%}
+            .modal-fondo{padding:8px;align-items:flex-end}.modal{max-height:92vh;border-radius:20px 20px 10px 10px}.modal-cabecera,.modal-cuerpo{padding:16px}
             .nav-inferior{width:calc(100% - 12px);bottom:max(6px,env(safe-area-inset-bottom))}
         }
     </style>
 </head>
 <body>
-
-
 <div class="contenedor">
     <div class="encabezado">
         <div class="encabezado-marca">{% include 'shared/brand_bar.html' %}
             <h1>Pagos</h1>
-            <div class="subtitulo">
-                Cobros, saldos pendientes e historial
-            </div>
+            <div class="subtitulo">Cobros, saldos pendientes e historial. Los pedidos cancelados se conservan como referencia.</div>
         </div>
-
         <div class="acciones-encabezado">
-            <button
-                type="button"
-                class="boton-volver"
-                onclick="history.back()"
-            >
-                ← VOLVER
-            </button>
-
-            <a
-                href="{% url 'dashboard:inicio' %}"
-                class="boton-inicio"
-            >
-                INICIO
-            </a>
+            <button type="button" class="boton-volver" onclick="history.back()">← VOLVER</button>
+            <a href="{% url 'dashboard:inicio' %}" class="boton-inicio">INICIO</a>
         </div>
     </div>
 
-    {% if messages %}
-        <div class="mensajes">
-            {% for message in messages %}
-                <div class="mensaje {{ message.tags }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
+    {% if messages %}<div class="mensajes">{% for message in messages %}<div class="mensaje {{ message.tags }}">{{ message }}</div>{% endfor %}</div>{% endif %}
 
     <div class="metricas">
-        <div class="metrica">
-            <div class="metrica-label">COBRADO HOY</div>
-            <div class="metrica-valor">${{ cobrado_hoy|floatformat:0 }}</div>
-            <div class="metrica-nota">Pagos registrados hoy</div>
-        </div>
-
-        <div class="metrica">
-            <div class="metrica-label">COBRADO ESTE MES</div>
-            <div class="metrica-valor">${{ cobrado_mes|floatformat:0 }}</div>
-            <div class="metrica-nota">Acumulado del mes actual</div>
-        </div>
-
-        <div class="metrica">
-            <div class="metrica-label">SALDO A COBRAR</div>
-            <div class="metrica-valor">${{ saldo_total|floatformat:0 }}</div>
-            <div class="metrica-nota">Pedidos no cancelados</div>
-        </div>
-
-        <div class="metrica">
-            <div class="metrica-label">PEDIDOS CON SALDO</div>
-            <div class="metrica-valor">{{ pedidos_con_saldo }}</div>
-            <div class="metrica-nota">Pendientes de cobro</div>
-        </div>
+        <div class="metrica"><div class="metrica-label">COBRADO HOY</div><div class="metrica-valor">${{ cobrado_hoy|floatformat:0 }}</div><div class="metrica-nota">Pagos efectivamente registrados hoy</div></div>
+        <div class="metrica"><div class="metrica-label">COBRADO ESTE MES</div><div class="metrica-valor">${{ cobrado_mes|floatformat:0 }}</div><div class="metrica-nota">Acumulado del mes actual</div></div>
+        <div class="metrica"><div class="metrica-label">SALDO A COBRAR</div><div class="metrica-valor">${{ saldo_total|floatformat:0 }}</div><div class="metrica-nota">Sólo pedidos vigentes</div></div>
+        <div class="metrica"><div class="metrica-label">PEDIDOS CON SALDO</div><div class="metrica-valor">{{ pedidos_con_saldo }}</div><div class="metrica-nota">Cancelados no generan deuda</div></div>
     </div>
 
     <form method="get" class="filtros">
-        <input
-            class="buscar"
-            type="search"
-            name="q"
-            value="{{ busqueda }}"
-            placeholder="Buscar cliente o número de pedido"
-        >
-
+        <input class="buscar" type="search" name="q" value="{{ busqueda }}" placeholder="Buscar cliente o número de pedido">
         <div class="chips">
-            <a
-                class="chip {% if filtro_estado == 'TODOS' %}activo{% endif %}"
-                href="?estado=TODOS{% if busqueda %}&q={{ busqueda|urlencode }}{% endif %}"
-            >
-                TODOS
-            </a>
-            <a
-                class="chip {% if filtro_estado == 'SIN_PAGAR' %}activo{% endif %}"
-                href="?estado=SIN_PAGAR{% if busqueda %}&q={{ busqueda|urlencode }}{% endif %}"
-            >
-                SIN PAGAR
-            </a>
-            <a
-                class="chip {% if filtro_estado == 'PARCIAL' %}activo{% endif %}"
-                href="?estado=PARCIAL{% if busqueda %}&q={{ busqueda|urlencode }}{% endif %}"
-            >
-                PARCIAL
-            </a>
-            <a
-                class="chip {% if filtro_estado == 'PAGADO' %}activo{% endif %}"
-                href="?estado=PAGADO{% if busqueda %}&q={{ busqueda|urlencode }}{% endif %}"
-            >
-                PAGADO
-            </a>
+            <a class="chip {% if filtro_estado == 'TODOS' %}activo{% endif %}" href="?estado=TODOS{% if busqueda %}&q={{ busqueda|urlencode }}{% endif %}">TODOS</a>
+            <a class="chip {% if filtro_estado == 'SIN_PAGAR' %}activo{% endif %}" href="?estado=SIN_PAGAR{% if busqueda %}&q={{ busqueda|urlencode }}{% endif %}">SIN PAGAR</a>
+            <a class="chip {% if filtro_estado == 'PARCIAL' %}activo{% endif %}" href="?estado=PARCIAL{% if busqueda %}&q={{ busqueda|urlencode }}{% endif %}">PARCIAL</a>
+            <a class="chip {% if filtro_estado == 'PAGADO' %}activo{% endif %}" href="?estado=PAGADO{% if busqueda %}&q={{ busqueda|urlencode }}{% endif %}">PAGADO</a>
+            <a class="chip cancelados {% if filtro_estado == 'CANCELADOS' %}activo{% endif %}" href="?estado=CANCELADOS{% if busqueda %}&q={{ busqueda|urlencode }}{% endif %}">CANCELADOS</a>
         </div>
     </form>
 
     <div class="grid">
         <section class="lista-pedidos">
             <div class="titulo-seccion">PEDIDOS</div>
-
             {% if filas %}
                 {% for item in filas %}
-                    <article class="pedido">
+                    <article class="pedido {% if item.cancelado %}cancelado{% endif %}">
                         <div class="pedido-arriba">
                             <div>
-                                <div class="pedido-codigo">
-                                    {{ item.pedido.codigo }}
-                                </div>
-                                <div class="pedido-cliente">
-                                    {{ item.pedido.cliente.nombre }}
-                                </div>
-                                {% if item.pedido.fecha_entrega %}
-                                    <div class="pedido-fecha">
-                                        Entrega {{ item.pedido.fecha_entrega|date:"d/m/Y" }}
-                                    </div>
-                                {% endif %}
+                                <div class="pedido-codigo">{{ item.pedido.codigo }}</div>
+                                <div class="pedido-cliente">{{ item.pedido.cliente.nombre }}</div>
+                                <div class="pedido-fecha">{{ item.pedido.fecha|date:"d/m/Y" }}{% if item.pedido.fecha_entrega %} · Entrega {{ item.pedido.fecha_entrega|date:"d/m/Y" }}{% endif %}</div>
                             </div>
-
-                            <span class="estado-pago estado-{{ item.estado_pago }}">
-                                {{ item.estado_pago_display|upper }}
-                            </span>
+                            <span class="estado-pago estado-{{ item.estado_pago }}">{{ item.estado_pago_display|upper }}</span>
                         </div>
 
+                        {% if item.cancelado %}<div class="cancelado-nota">Pedido cancelado: queda visible como historial, pero su saldo no integra la cuenta por cobrar.</div>{% endif %}
+
                         <div class="pedido-numeros">
-                            <div class="numero">
-                                <div class="numero-label">TOTAL</div>
-                                <div class="numero-valor">
-                                    ${{ item.total|floatformat:0 }}
-                                </div>
-                            </div>
-
-                            <div class="numero">
-                                <div class="numero-label">PAGADO</div>
-                                <div class="numero-valor">
-                                    ${{ item.pagado|floatformat:0 }}
-                                </div>
-                            </div>
-
-                            <div class="numero">
-                                <div class="numero-label">SALDO</div>
-                                <div class="numero-valor">
-                                    ${{ item.saldo|floatformat:0 }}
-                                </div>
-                            </div>
+                            <div class="numero"><div class="numero-label">TOTAL HISTÓRICO</div><div class="numero-valor">${{ item.total|floatformat:0 }}</div></div>
+                            <div class="numero"><div class="numero-label">PAGADO</div><div class="numero-valor">${{ item.pagado|floatformat:0 }}</div></div>
+                            <div class="numero"><div class="numero-label">SALDO ACTIVO</div><div class="numero-valor">${{ item.saldo|floatformat:0 }}</div></div>
                         </div>
 
                         <div class="pedido-acciones">
-                            <button
-                                type="button"
-                                class="btn-pago"
-                                data-url="{% url 'pedidos:registrar_pago' item.pedido.id %}"
-                                data-codigo="{{ item.pedido.codigo }}"
-                                data-saldo="{{ item.saldo }}"
-                                onclick="abrirPago(this)"
-                                {% if item.saldo <= 0 %}disabled{% endif %}
-                            >
-                                + REGISTRAR PAGO
-                            </button>
-
-                            <a
-                                class="btn-editar"
-                                href="{% url 'pedidos:editar' item.pedido.id %}"
-                            >
-                                VER / EDITAR
-                            </a>
+                            {% if not item.cancelado %}
+                                <button type="button" class="btn-pago" data-url="{% url 'pedidos:registrar_pago' item.pedido.id %}" data-codigo="{{ item.pedido.codigo }}" data-saldo="{{ item.saldo }}" onclick="abrirPago(this)" {% if item.saldo <= 0 %}disabled{% endif %}>+ REGISTRAR PAGO</button>
+                                {% if item.pedido.estado == "PENDIENTE" %}<a class="btn-editar" href="{% url 'pedidos:editar' item.pedido.id %}">VER / EDITAR</a>{% else %}<a class="btn-editar" href="{% url 'clientes:detalle' item.pedido.cliente.id %}">VER CLIENTE</a>{% endif %}
+                            {% else %}
+                                <a class="btn-editar" href="{% url 'clientes:detalle' item.pedido.cliente.id %}">VER HISTORIAL DEL CLIENTE</a>
+                            {% endif %}
                         </div>
                     </article>
                 {% endfor %}
-            {% else %}
-                <div class="vacio">
-                    No hay pedidos que coincidan con este filtro.
-                </div>
-            {% endif %}
+            {% else %}<div class="vacio">No hay pedidos que coincidan con este filtro.</div>{% endif %}
         </section>
 
         <aside class="panel-ultimos">
             <div class="titulo-seccion">ÚLTIMOS PAGOS</div>
-
             {% if ultimos_pagos %}
                 {% for pago in ultimos_pagos %}
                     <div class="ultimo-pago">
-                        <div class="ultimo-fila">
-                            <div class="ultimo-codigo">
-                                {{ pago.pedido.codigo }}
-                            </div>
-                            <div class="ultimo-monto">
-                                ${{ pago.monto|floatformat:0 }}
-                            </div>
-                        </div>
-
-                        <div class="ultimo-cliente">
-                            {{ pago.pedido.cliente.nombre }}
-                        </div>
-                        <div class="ultimo-medio">
-                            {{ pago.get_medio_display }}
-                        </div>
-                        <div class="ultimo-fecha">
-                            {{ pago.fecha|date:"d/m/Y H:i" }}
-                        </div>
+                        <div class="ultimo-fila"><div class="ultimo-codigo">{{ pago.pedido.codigo }}</div><div class="ultimo-monto">${{ pago.monto|floatformat:0 }}</div></div>
+                        <div class="ultimo-cliente">{{ pago.pedido.cliente.nombre }}{% if pago.pedido.estado == "CANCELADO" %} · CANCELADO{% endif %}</div>
+                        <div class="ultimo-medio">{{ pago.get_medio_display }}</div>
+                        <div class="ultimo-fecha">{{ pago.fecha|date:"d/m/Y H:i" }}</div>
                     </div>
                 {% endfor %}
-            {% else %}
-                <div class="vacio">
-                    Todavía no hay pagos registrados.
-                </div>
-            {% endif %}
+            {% else %}<div class="vacio">Todavía no hay pagos registrados.</div>{% endif %}
         </aside>
     </div>
 </div>
 
-<div
-    id="modalPago"
-    class="modal-fondo"
-    aria-hidden="true"
-    onclick="cerrarDesdeFondo(event)"
->
+<div id="modalPago" class="modal-fondo" aria-hidden="true" onclick="cerrarDesdeFondo(event)">
     <div class="modal" role="dialog" aria-modal="true">
-        <div class="modal-cabecera">
-            <div>
-                <div class="modal-titulo">Registrar pago</div>
-                <div id="modalPedido" class="modal-subtitulo"></div>
-            </div>
-
-            <button
-                type="button"
-                class="cerrar"
-                onclick="cerrarPago()"
-                aria-label="Cerrar"
-            >
-                ×
-            </button>
-        </div>
-
+        <div class="modal-cabecera"><div><div class="modal-titulo">Registrar pago</div><div id="modalPedido" class="modal-subtitulo"></div></div><button type="button" class="cerrar" onclick="cerrarPago()" aria-label="Cerrar">×</button></div>
         <div class="modal-cuerpo">
-            <div class="saldo-modal">
-                <span>Saldo pendiente</span>
-                <strong id="modalSaldo">$0</strong>
-            </div>
-
+            <div class="saldo-modal"><span>Saldo pendiente</span><strong id="modalSaldo">$0</strong></div>
             <form id="formPago" method="post">
-                {% csrf_token %}
-                <input type="hidden" name="origen" value="pagos">
-
-                <div class="campo">
-                    <label for="montoPago">MONTO</label>
-                    <input
-                        id="montoPago"
-                        name="monto"
-                        type="number"
-                        min="0.01"
-                        step="0.01"
-                        inputmode="decimal"
-                        required
-                    >
-                </div>
-
-                <div class="campo">
-                    <label for="medioPago">MEDIO DE PAGO</label>
-                    <select id="medioPago" name="medio" required>
-                        <option value="TRANSFERENCIA">Transferencia</option>
-                        <option value="EFECTIVO">Efectivo</option>
-                        <option value="MERCADO_PAGO">Mercado Pago</option>
-                        <option value="OTRO">Otro</option>
-                    </select>
-                </div>
-
-                <div class="campo">
-                    <label for="obsPago">OBSERVACIONES</label>
-                    <textarea
-                        id="obsPago"
-                        name="observaciones"
-                        maxlength="250"
-                        placeholder="Opcional"
-                    ></textarea>
-                </div>
-
-                <div class="acciones-modal">
-                    <button
-                        type="button"
-                        class="cancelar-modal"
-                        onclick="cerrarPago()"
-                    >
-                        CANCELAR
-                    </button>
-
-                    <button
-                        type="submit"
-                        class="guardar-modal"
-                    >
-                        GUARDAR PAGO
-                    </button>
-                </div>
+                {% csrf_token %}<input type="hidden" name="origen" value="pagos">
+                <div class="campo"><label for="montoPago">MONTO</label><input id="montoPago" name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required></div>
+                <div class="campo"><label for="medioPago">MEDIO DE PAGO</label><select id="medioPago" name="medio" required><option value="TRANSFERENCIA">Transferencia</option><option value="EFECTIVO">Efectivo</option><option value="MERCADO_PAGO">Mercado Pago</option><option value="OTRO">Otro</option></select></div>
+                <div class="campo"><label for="obsPago">OBSERVACIONES</label><textarea id="obsPago" name="observaciones" maxlength="250" placeholder="Opcional"></textarea></div>
+                <div class="acciones-modal"><button type="button" class="cancelar-modal" onclick="cerrarPago()">CANCELAR</button><button type="submit" class="guardar-modal">GUARDAR PAGO</button></div>
             </form>
         </div>
     </div>
 </div>
 
 <nav class="nav-inferior" aria-label="Navegación principal">
-    <a class="nav-item" href="{% url 'dashboard:inicio' %}">
-        <span>⌂</span>
-        <span>Inicio</span>
-    </a>
-    <a class="nav-item" href="{% url 'pedidos:impresiones' %}">
-        <span>☑</span>
-        <span>Pedidos</span>
-    </a>
-    <a class="nav-item nuevo-nav" href="{% url 'pedidos:nuevo' %}">
-        <span>＋</span>
-        <span>Nuevo</span>
-    </a>
-    <a class="nav-item" href="{% url 'produccion:lista' %}">
-        <span>◫</span>
-        <span>Producción</span>
-    </a>
-    <a class="nav-item" href="{% url 'productos:lista' %}">
-        <span>◇</span>
-        <span>Productos</span>
-    </a>
+    <a class="nav-item" href="{% url 'dashboard:inicio' %}"><span>⌂</span><span>Inicio</span></a>
+    <a class="nav-item" href="{% url 'pedidos:impresiones' %}"><span>☑</span><span>Pedidos</span></a>
+    <a class="nav-item nuevo-nav" href="{% url 'pedidos:nuevo' %}"><span>＋</span><span>Nuevo</span></a>
+    <a class="nav-item" href="{% url 'produccion:lista' %}"><span>◫</span><span>Producción</span></a>
+    <a class="nav-item" href="{% url 'productos:lista' %}"><span>◇</span><span>Productos</span></a>
 </nav>
 
 <script>
-function abrirPago(boton) {
-    const modal = document.getElementById("modalPago");
-    const form = document.getElementById("formPago");
-    const pedido = document.getElementById("modalPedido");
-    const saldoTexto = document.getElementById("modalSaldo");
-    const monto = document.getElementById("montoPago");
-
-    const saldo = Number(
-        String(boton.dataset.saldo || "0").replace(",", ".")
-    );
-
-    form.action = boton.dataset.url;
-    pedido.textContent = boton.dataset.codigo;
-    saldoTexto.textContent = "$" + saldo.toLocaleString("es-AR");
-    monto.value = saldo.toFixed(2);
-    monto.max = saldo.toFixed(2);
-
-    modal.classList.add("abierto");
-    modal.setAttribute("aria-hidden", "false");
-    document.body.style.overflow = "hidden";
-
-    setTimeout(function() {
-        monto.focus();
-        monto.select();
-    }, 50);
+function abrirPago(boton){
+    const modal=document.getElementById("modalPago"),form=document.getElementById("formPago"),pedido=document.getElementById("modalPedido"),saldoTexto=document.getElementById("modalSaldo"),monto=document.getElementById("montoPago");
+    const saldo=Number(String(boton.dataset.saldo||"0").replace(",","."));
+    form.action=boton.dataset.url;pedido.textContent=boton.dataset.codigo;saldoTexto.textContent="$"+saldo.toLocaleString("es-AR");monto.value=saldo.toFixed(2);monto.max=saldo.toFixed(2);
+    modal.classList.add("abierto");modal.setAttribute("aria-hidden","false");document.body.style.overflow="hidden";setTimeout(function(){monto.focus();monto.select();},50);
 }
-
-function cerrarPago() {
-    const modal = document.getElementById("modalPago");
-    modal.classList.remove("abierto");
-    modal.setAttribute("aria-hidden", "true");
-    document.body.style.overflow = "";
-}
-
-function cerrarDesdeFondo(event) {
-    if (event.target.id === "modalPago") {
-        cerrarPago();
-    }
-}
-
-document.addEventListener("keydown", function(event) {
-    if (event.key === "Escape") {
-        cerrarPago();
-    }
-});
+function cerrarPago(){const modal=document.getElementById("modalPago");modal.classList.remove("abierto");modal.setAttribute("aria-hidden","true");document.body.style.overflow="";}
+function cerrarDesdeFondo(event){if(event.target.id==="modalPago")cerrarPago();}
+document.addEventListener("keydown",function(event){if(event.key==="Escape")cerrarPago();});
 </script>
-
-</body>
-</html>
-</title>
-</head>
-<body>
-
 </body>
 </html>
