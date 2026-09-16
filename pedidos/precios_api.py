@@ -1,3 +1,4 @@
+import json
 from decimal import Decimal, ROUND_CEILING
 
 from django.http import JsonResponse
@@ -5,6 +6,12 @@ from django.shortcuts import get_object_or_404
 
 from calculadora.precios import MARGEN_MINIMO, fila_precio, margenes_escenario
 from productos.models import Producto
+
+from .kits_volumen import (
+    calcular_precio_volumen_kits,
+    items_desde_payload,
+    resumen_json,
+)
 
 
 def _componentes_producto(producto):
@@ -174,5 +181,38 @@ def precio_producto(request):
             "margen_tope": float(margen_tope),
             "margen_piso": float(margen_piso),
             "escenarios": escenarios,
+        }
+    )
+
+
+def precio_kits_volumen(request):
+    """Vista previa del precio automático por volumen de kits del pedido."""
+    if request.method != "POST":
+        return JsonResponse(
+            {"ok": False, "mensaje": "Método no permitido."},
+            status=405,
+        )
+
+    try:
+        payload = json.loads(request.body or b"{}")
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return JsonResponse(
+            {"ok": False, "mensaje": "No se pudo leer la selección de kits."},
+            status=400,
+        )
+
+    try:
+        items = items_desde_payload(payload)
+        resumen = calcular_precio_volumen_kits(items)
+    except ValueError as exc:
+        return JsonResponse(
+            {"ok": False, "mensaje": str(exc)},
+            status=400,
+        )
+
+    return JsonResponse(
+        {
+            "ok": True,
+            **resumen_json(resumen),
         }
     )
