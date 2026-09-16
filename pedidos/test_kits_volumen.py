@@ -104,29 +104,29 @@ class PrecioVolumenKitsTests(TestCase):
             "componentes": componentes,
         }
 
-    def test_hasta_cinco_kits_mantiene_precio_de_lista(self):
+    def test_hasta_cuatro_kits_mantiene_precio_de_lista(self):
         resumen = calcular_precio_volumen_kits([
-            self._item(self.kit8, 5),
+            self._item(self.kit8, 4),
         ])
 
         self.assertFalse(resumen["elegible"])
-        self.assertEqual(CANTIDAD_MINIMA_KITS_VOLUMEN, 6)
-        self.assertEqual(resumen["total_kits"], 5)
-        self.assertEqual(resumen["total_piezas"], 40)
+        self.assertEqual(CANTIDAD_MINIMA_KITS_VOLUMEN, 5)
+        self.assertEqual(resumen["total_kits"], 4)
+        self.assertEqual(resumen["total_piezas"], 32)
         self.assertEqual(
             resumen["precio_final_total"],
             resumen["precio_lista_total"],
         )
         self.assertEqual(resumen["ahorro"], Decimal("0"))
 
-    def test_seis_kits_usan_las_piezas_agrupadas_para_el_margen(self):
+    def test_cinco_kits_usan_las_piezas_agrupadas_para_el_margen(self):
         resumen = calcular_precio_volumen_kits([
-            self._item(self.kit8, 6),
+            self._item(self.kit8, 5),
         ])
 
         self.assertTrue(resumen["elegible"])
-        self.assertEqual(resumen["total_kits"], 6)
-        self.assertEqual(resumen["total_piezas"], 48)
+        self.assertEqual(resumen["total_kits"], 5)
+        self.assertEqual(resumen["total_piezas"], 40)
         self.assertLess(
             resumen["margen_objetivo"],
             resumen["margen_tope_ponderado"],
@@ -141,28 +141,28 @@ class PrecioVolumenKitsTests(TestCase):
             resumen["margen_minimo"],
         )
 
-    def test_tres_kits_mas_tres_kits_distintos_califican_juntos(self):
+    def test_dos_kits_mas_tres_kits_distintos_califican_juntos(self):
         resumen = calcular_precio_volumen_kits([
-            self._item(self.kit8, 3),
+            self._item(self.kit8, 2),
             self._item(self.kit4, 3),
         ])
 
         self.assertTrue(resumen["elegible"])
-        self.assertEqual(resumen["total_kits"], 6)
-        self.assertEqual(resumen["total_piezas"], 36)
+        self.assertEqual(resumen["total_kits"], 5)
+        self.assertEqual(resumen["total_piezas"], 28)
         self.assertGreater(resumen["ahorro"], Decimal("0"))
 
     def test_mas_piezas_bajan_mas_el_margen_con_igual_cantidad_de_kits(self):
         poco_volumen = calcular_precio_volumen_kits([
-            self._item(self.kit4, 6),
+            self._item(self.kit4, 5),
         ])
         mucho_volumen = calcular_precio_volumen_kits([
-            self._item(self.kit8, 6),
+            self._item(self.kit8, 5),
         ])
 
         self.assertEqual(poco_volumen["total_kits"], mucho_volumen["total_kits"])
-        self.assertEqual(poco_volumen["total_piezas"], 24)
-        self.assertEqual(mucho_volumen["total_piezas"], 48)
+        self.assertEqual(poco_volumen["total_piezas"], 20)
+        self.assertEqual(mucho_volumen["total_piezas"], 40)
         self.assertLess(
             mucho_volumen["margen_objetivo"],
             poco_volumen["margen_objetivo"],
@@ -177,7 +177,7 @@ class PrecioVolumenKitsTests(TestCase):
             pedido=pedido,
             tipo_item="KIT",
             kit=self.kit8,
-            cantidad=6,
+            cantidad=5,
             precio_unitario=self.kit8.precio,
             estado="PENDIENTE",
         )
@@ -185,7 +185,7 @@ class PrecioVolumenKitsTests(TestCase):
         DetalleKitProducto.objects.create(
             detalle=detalle,
             producto=self.producto,
-            cantidad=48,
+            cantidad=40,
         )
 
         detalle.refresh_from_db()
@@ -202,7 +202,7 @@ class PrecioVolumenKitsTests(TestCase):
                     {
                         "key": "1",
                         "kit_id": self.kit8.id,
-                        "cantidad": 6,
+                        "cantidad": 5,
                         "productos": [],
                     }
                 ]
@@ -214,8 +214,8 @@ class PrecioVolumenKitsTests(TestCase):
         datos = respuesta.json()
         self.assertTrue(datos["ok"])
         self.assertTrue(datos["elegible"])
-        self.assertEqual(datos["total_kits"], 6)
-        self.assertEqual(datos["total_piezas"], 48)
+        self.assertEqual(datos["total_kits"], 5)
+        self.assertEqual(datos["total_piezas"], 40)
         self.assertGreater(datos["ahorro"], 0)
 
     def test_api_kit_libre_usa_los_productos_realmente_seleccionados(self):
@@ -236,7 +236,7 @@ class PrecioVolumenKitsTests(TestCase):
                     {
                         "key": "libre",
                         "kit_id": kit_libre.id,
-                        "cantidad": 6,
+                        "cantidad": 5,
                         "productos": [
                             self.producto.id,
                             self.producto.id,
@@ -250,8 +250,8 @@ class PrecioVolumenKitsTests(TestCase):
         self.assertEqual(respuesta.status_code, 200)
         datos = respuesta.json()
         self.assertTrue(datos["elegible"])
-        self.assertEqual(datos["total_kits"], 6)
-        self.assertEqual(datos["total_piezas"], 12)
+        self.assertEqual(datos["total_kits"], 5)
+        self.assertEqual(datos["total_piezas"], 10)
         self.assertGreater(datos["ahorro"], 0)
 
     def test_nuevo_pedido_inyecta_resumen_visual(self):
