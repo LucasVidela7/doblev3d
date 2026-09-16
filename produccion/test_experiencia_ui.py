@@ -132,3 +132,6 @@ class ExperienciaProduccionTests(TestCase):
         self.assertIn("dv-planificacion-experiencia-script", contenido)
         self.assertIn(".dv-personalizados", contenido)
         self.assertIn("grid-template-columns:110px", contenido)
+
+
+# Este módulo se ejecuta de forma aislada en QA antes de restaurar el arranque normal.
