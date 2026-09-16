@@ -13,6 +13,41 @@
         <img class="brand-bar__logo" src="{% static 'brand/logo.png' %}" alt="Logo de Doble V 3D" width="50" height="38">
     </a>
 </div>
+{% if request.resolver_match.view_name == 'calculadora:precios' and config %}
+<style>
+    .dv-calculadora-filamento-info{
+        margin-top:7px;
+        padding-top:7px;
+        border-top:1px solid #e5e7eb;
+        font-size:11px;
+        line-height:1.45;
+        font-weight:800;
+        color:#4f5660;
+    }
+</style>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const caja = document.querySelector(".config");
+        if (!caja || document.getElementById("dv-calculadora-filamento-info")) return;
+
+        const info = document.createElement("div");
+        info.id = "dv-calculadora-filamento-info";
+        info.className = "dv-calculadora-filamento-info";
+
+        {% if resultado_nuevo %}
+            info.textContent = "Esta cotización usa {% if resultado_nuevo.desglose.filamento_economico %}filamento para cantidad{% else %}filamento estándar{% endif %}: ${{ resultado_nuevo.desglose.precio_filamento_kg|floatformat:'0g' }}/kg. Regla: x1–x4 estándar · x5+ económico.";
+        {% elif resultado_existente %}
+            info.textContent = "Esta cotización usa {% if resultado_existente.desglose.filamento_economico %}filamento para cantidad{% else %}filamento estándar{% endif %}: ${{ resultado_existente.desglose.precio_filamento_kg|floatformat:'0g' }}/kg. Regla: x1–x4 estándar · x5+ económico.";
+        {% elif config.coste_plastico_kg_cantidad %}
+            info.textContent = "Regla de cantidad: x1–x4 usa el filamento estándar · x5+ y kits usan ${{ config.coste_plastico_kg_cantidad_efectivo|floatformat:'0g' }}/kg.";
+        {% else %}
+            info.textContent = "Filamento para cantidad sin configurar: x5+ y kits usan por ahora el mismo costo estándar.";
+        {% endif %}
+
+        caja.appendChild(info);
+    });
+</script>
+{% endif %}
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         function convertirEnIcono(accion, icono, etiqueta, clase) {
