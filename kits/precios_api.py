@@ -18,6 +18,18 @@ def _decimal_texto(valor, decimales="0.01"):
     )
 
 
+def _filamento_json(calculo):
+    return {
+        "tipo": calculo.get("tipo_filamento", "estandar"),
+        "economico": bool(
+            calculo.get("filamento_economico", False)
+        ),
+        "precio_kg": _decimal_texto(
+            calculo.get("precio_filamento_kg", 0)
+        ),
+    }
+
+
 @require_POST
 def recomendar_precio_fijo(request):
     producto_ids = request.POST.getlist("producto_id")
@@ -138,6 +150,7 @@ def recomendar_precio_fijo(request):
                 calculo["margen_piso"],
                 "0.1",
             ),
+            "filamento": _filamento_json(calculo),
             "escenarios": escenarios,
         }
     )
@@ -270,6 +283,7 @@ def recomendar_precio_libre(request):
                 calculo["margen_piso"],
                 "0.1",
             ),
+            "filamento": _filamento_json(calculo),
             "escenarios": escenarios,
         }
     )
