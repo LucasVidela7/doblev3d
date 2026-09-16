@@ -140,6 +140,13 @@ class DetallePedido(models.Model):
         default=0
     )
 
+    # En líneas KIT indica que el precio fue acordado explícitamente con el
+    # cliente. En ese caso el cálculo automático por volumen puede seguir
+    # mostrando una referencia, pero nunca debe sobrescribir este importe.
+    precio_kit_manual = models.BooleanField(
+        default=False
+    )
+
     # Snapshot del costo por unidad al momento de la venta.
     # NULL = detalle anterior al módulo de rentabilidad.
     costo_unitario = models.DecimalField(
