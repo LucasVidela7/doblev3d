@@ -12,7 +12,7 @@ from kits.models import Kit
 from productos.models import Producto
 
 
-CANTIDAD_MINIMA_KITS_VOLUMEN = 6
+CANTIDAD_MINIMA_KITS_VOLUMEN = 5
 
 
 def _decimal(valor):
@@ -132,7 +132,7 @@ def calcular_precio_volumen_kits(items):
     Calcula un único precio mayorista para el conjunto de kits del pedido.
 
     Reglas:
-    - La lógica se activa desde 6 kits totales.
+    - La lógica se activa desde 5 kits totales.
     - La intensidad del descuento depende de la cantidad REAL de productos
       contenidos dentro de esos kits, no sólo del número de kits.
     - El margen base se pondera por el costo real de los componentes.
