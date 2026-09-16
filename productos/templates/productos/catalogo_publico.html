@@ -599,15 +599,11 @@
                         >
                             <div class="media">
                                 <span class="badge">Kit</span>
-                                {% if kit.productos_visuales %}
-                                    <div class="kit-collage">
-                                        {% for visual in kit.productos_visuales_visibles|slice:":4" %}
+                                {% if kit.productos_visuales_collage %}
+                                    <div class="kit-collage"{% if kit.productos_visuales_collage|length == 1 %} style="grid-template-columns: 1fr;"{% endif %}>
+                                        {% for visual in kit.productos_visuales_collage %}
                                             <div class="tile">
-                                                {% if visual.imagen_url %}
-                                                    <img src="{{ visual.imagen_url }}" alt="{{ visual.producto.nombre }}" loading="lazy">
-                                                {% else %}
-                                                    <div class="placeholder" aria-hidden="true">{{ visual.producto.nombre|slice:":1"|upper }}</div>
-                                                {% endif %}
+                                                <img src="{{ visual.imagen_url }}" alt="{{ visual.producto.nombre }}" loading="lazy">
                                             </div>
                                         {% endfor %}
                                     </div>
