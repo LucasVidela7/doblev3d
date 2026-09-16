@@ -8,6 +8,7 @@ class ConfiguracionCostosAdmin(admin.ModelAdmin):
     list_display = (
         "nombre",
         "coste_plastico_kg",
+        "coste_plastico_kg_cantidad",
         "tasa_fallos",
         "coste_luz_hora",
         "coste_amortizacion_hora",
