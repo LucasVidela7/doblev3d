@@ -170,11 +170,14 @@ def sincronizar_detalle_personalizado(detalle_id):
     LISTO significa que todas sus unidades físicas ya tienen producción LISTO.
     Si una producción se revierte/cancela y deja de cubrir la necesidad, vuelve
     a PENDIENTE. Los pedidos entregados/cancelados se conservan históricos.
+
+    El bloqueo se hace sólo sobre DetallePedido. No se combina FOR UPDATE con
+    select_related(producto), porque producto es nullable y PostgreSQL rechaza
+    el bloqueo sobre el lado nullable de ese outer join.
     """
     detalle = (
         DetallePedido.objects
         .select_for_update()
-        .select_related("pedido", "producto")
         .prefetch_related("producto__componentes__componente")
         .filter(
             id=detalle_id,
