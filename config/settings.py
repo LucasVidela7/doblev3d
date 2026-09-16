@@ -113,6 +113,7 @@ MIDDLEWARE = [
     "config.auth_middleware.LoginRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "config.responsive_fixes_middleware.ResponsiveFixesMiddleware",
+    "config.production_experience_middleware.ProductionExperienceMiddleware",
     "config.operaciones_ui_middleware.OperacionesUIMiddleware",
     "config.impresiones_mensajes_middleware.MensajesImpresionesMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
