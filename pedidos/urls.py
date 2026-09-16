@@ -1,6 +1,12 @@
 from django.urls import path
 
-from . import acciones_pedido, pedido_form_views, precios_api, views
+from . import (
+    acciones_pedido,
+    historial_views,
+    pedido_form_views,
+    precios_api,
+    views,
+)
 from .impresiones_compuestas import (
     impresiones_por_producto,
     planificar_impresion_producto,
@@ -25,6 +31,12 @@ urlpatterns = [
     ),
 
     path(
+        "impresiones/cancelados/",
+        historial_views.pedidos_cancelados,
+        name="cancelados",
+    ),
+
+    path(
         "impresiones/productos/",
         impresiones_por_producto,
         name="impresiones_productos",
@@ -38,7 +50,7 @@ urlpatterns = [
 
     path(
         "pagos/",
-        views.pagos,
+        historial_views.pagos,
         name="pagos",
     ),
 
