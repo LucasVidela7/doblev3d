@@ -39,6 +39,15 @@ def _env_bool(nombre, default=False):
 # producción/QA de un runserver local sin obligar a crear un .env.
 IS_RAILWAY = bool(os.getenv("RAILWAY_ENVIRONMENT", "").strip())
 
+# APP_ENV permite forzar el entorno de forma explícita. En Railway, si no se
+# define, usamos el nombre real del environment (por ejemplo: qa/production).
+APP_ENV = (
+    os.getenv("APP_ENV", "").strip().lower()
+    or os.getenv("RAILWAY_ENVIRONMENT_NAME", "").strip().lower()
+    or ("railway" if IS_RAILWAY else "local")
+)
+IS_QA = APP_ENV in {"qa", "test", "testing", "staging"}
+
 # Local: DEBUG=True por defecto.
 # Railway: DEBUG=False por defecto.
 # En ambos casos se puede sobrescribir explícitamente con DEBUG.
@@ -108,6 +117,7 @@ MIDDLEWARE = [
     "config.impresiones_mensajes_middleware.MensajesImpresionesMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "config.ui_middleware.NormalizarNavegacionMiddleware",
+    "config.environment_ui_middleware.EnvironmentVisualMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
