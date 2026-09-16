@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 
 
@@ -12,6 +14,17 @@ class ConfiguracionCostos(models.Model):
         decimal_places=2,
         default=0,
         verbose_name="Coste plástico por kg"
+    )
+
+    coste_plastico_kg_cantidad = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        verbose_name="Coste plástico por kg para cantidad",
+        help_text=(
+            "Se usa desde 5 unidades en la calculadora y para kits. "
+            "Si queda en 0, se usa el coste estándar."
+        ),
     )
 
     tasa_fallos = models.DecimalField(
@@ -38,6 +51,28 @@ class ConfiguracionCostos(models.Model):
     fecha_desde = models.DateField()
 
     activa = models.BooleanField(default=True)
+
+    @property
+    def coste_plastico_kg_cantidad_efectivo(self):
+        """Costo económico usable, con retorno seguro al precio estándar."""
+        estandar = max(
+            Decimal(str(self.coste_plastico_kg or 0)),
+            Decimal("0"),
+        )
+        cantidad = max(
+            Decimal(str(self.coste_plastico_kg_cantidad or 0)),
+            Decimal("0"),
+        )
+
+        if cantidad <= 0:
+            return estandar
+
+        # Una configuración mayorista cargada por error nunca debe encarecer
+        # el producto respecto del costo conservador estándar.
+        if estandar > 0:
+            return min(estandar, cantidad)
+
+        return cantidad
 
     def __str__(self):
         return f"{self.nombre} - {self.fecha_desde}"
