@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
+from productos.catalogo import catalogo
+
 
 urlpatterns = [
     path(
@@ -17,6 +19,12 @@ urlpatterns = [
         "logout/",
         auth_views.LogoutView.as_view(),
         name="logout",
+    ),
+
+    path(
+        "catalogo/",
+        catalogo,
+        name="catalogo",
     ),
 
     path(

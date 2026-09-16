@@ -14,6 +14,7 @@ class LoginRequiredMiddleware:
 
     PUBLIC_URL_NAMES = {
         "login",
+        "catalogo",
     }
 
     def __init__(self, get_response):
