@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from pedidos.models import Pedido
@@ -6,6 +6,7 @@ from pedidos.models import Pedido
 from .models import Cliente
 
 
+@override_settings(SECURE_SSL_REDIRECT=False)
 class DetalleClienteAccionesPedidoTests(TestCase):
     def setUp(self):
         self.cliente = Cliente.objects.create(
@@ -89,6 +90,7 @@ class DetalleClienteAccionesPedidoTests(TestCase):
         self.assertEqual(self.cliente.observaciones, "Nueva observación")
 
 
+@override_settings(SECURE_SSL_REDIRECT=False)
 class ListaClientesUXTests(TestCase):
     def setUp(self):
         self.cliente = Cliente.objects.create(
