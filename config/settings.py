@@ -118,6 +118,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "config.ui_middleware.NormalizarNavegacionMiddleware",
     "config.kit_volume_ui_middleware.KitVolumeUIMiddleware",
+    "config.pedido_form_ui_middleware.PedidoFormUIMiddleware",
     "config.environment_ui_middleware.EnvironmentVisualMiddleware",
 ]
 
