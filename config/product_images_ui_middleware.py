@@ -112,7 +112,7 @@ class ProductImagesUIMiddleware:
             )
 
         bloque = (
-            '<div class="dv-producto-fotos">'
+            '<div id="dv-producto-fotos-panel" class="dv-producto-fotos">'
             '<div class="dv-producto-fotos-head">'
             '<div class="dv-producto-fotos-title">FOTOS DEL PRODUCTO</div>'
             f'<a class="dv-producto-fotos-link" href="{html_lib.escape(gestionar_url)}">ADMINISTRAR FOTOS</a>'
@@ -121,8 +121,15 @@ class ProductImagesUIMiddleware:
             + "</div></div>"
         )
 
-        if "dv-producto-fotos" not in contenido:
-            contenido = contenido.replace('<div class="res">', bloque + '<div class="res">', 1)
+        # La clase ``dv-producto-fotos`` también existe dentro del CSS. Usamos
+        # un id exclusivo del panel para distinguir estilo cargado de contenido
+        # realmente insertado.
+        if 'id="dv-producto-fotos-panel"' not in contenido:
+            contenido = contenido.replace(
+                '<div class="res">',
+                bloque + '<div class="res">',
+                1,
+            )
 
         encoded = contenido.encode(response.charset or "utf-8")
         response.content = encoded
