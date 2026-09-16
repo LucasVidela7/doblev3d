@@ -117,6 +117,7 @@ MIDDLEWARE = [
     "config.impresiones_mensajes_middleware.MensajesImpresionesMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "config.ui_middleware.NormalizarNavegacionMiddleware",
+    "config.kit_volume_ui_middleware.KitVolumeUIMiddleware",
     "config.environment_ui_middleware.EnvironmentVisualMiddleware",
 ]
 
