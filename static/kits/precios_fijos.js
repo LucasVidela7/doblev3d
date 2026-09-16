@@ -94,6 +94,21 @@
         return "Equilibrio sugerido por la calculadora según margen y cantidad de cada producto.";
     }
 
+    function chipFilamento(data){
+        const filamento = data.filamento;
+        if (!filamento || Number(filamento.precio_kg || 0) <= 0) return "";
+
+        const etiqueta = filamento.economico
+            ? "Filamento para cantidad"
+            : "Filamento estándar";
+
+        return `
+            <span class="dv-kit-costo-chip">
+                ${etiqueta} ${dinero(filamento.precio_kg)}/kg
+            </span>
+        `;
+    }
+
     function estadoPrecioActual(data){
         const precioActual = Number(
             document.getElementById("precio_kit")?.value || 0
@@ -174,10 +189,11 @@
                     <div class="dv-kit-escenarios-etiqueta">PRECIOS SEGÚN CALCULADORA</div>
                     <div class="dv-kit-escenarios-titulo">Composición fija</div>
                     <div class="dv-kit-escenarios-detalle">
-                        Cada producto conserva su propio margen configurado y el descuento correspondiente a la cantidad incluida en el kit.
+                        El kit usa el costo de filamento para cantidad cuando está configurado. Los productos individuales siguen conservando el costo estándar.
                     </div>
                     <div class="dv-kit-costos">
                         <span class="dv-kit-costo-chip">Costo productivo ${dinero(data.costo_total)}</span>
+                        ${chipFilamento(data)}
                         <span class="dv-kit-costo-chip">Piso calculadora ${porcentaje(data.margen_piso)}</span>
                     </div>
                 </div>
@@ -205,11 +221,12 @@
                     <div class="dv-kit-escenarios-etiqueta">PRECIOS SEGÚN CALCULADORA</div>
                     <div class="dv-kit-escenarios-titulo">Libre por categoría · ${data.categoria}</div>
                     <div class="dv-kit-escenarios-detalle">
-                        La categoría tiene ${data.productos_categoria} productos comerciales. Para ${data.cantidad} unidades, el sistema compara el comportamiento promedio con el producto más exigente de la categoría.
+                        La categoría tiene ${data.productos_categoria} productos comerciales. El kit usa el costo de filamento para cantidad y compara el comportamiento promedio con el producto más exigente.
                     </div>
                     <div class="dv-kit-costos">
                         <span class="dv-kit-costo-chip">Costo promedio ${dinero(data.costo_promedio)}</span>
                         <span class="dv-kit-costo-chip riesgo">Peor costo ${dinero(data.costo_peor_caso)}</span>
+                        ${chipFilamento(data)}
                         <span class="dv-kit-costo-chip">Piso calculadora ${porcentaje(data.margen_piso)}</span>
                     </div>
                 </div>
