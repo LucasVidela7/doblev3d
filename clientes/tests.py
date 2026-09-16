@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -6,9 +7,28 @@ from pedidos.models import Pedido
 from .models import Cliente
 
 
-@override_settings(SECURE_SSL_REDIRECT=False)
+TEST_STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
+
+@override_settings(
+    SECURE_SSL_REDIRECT=False,
+    STORAGES=TEST_STORAGES,
+)
 class DetalleClienteAccionesPedidoTests(TestCase):
     def setUp(self):
+        self.usuario = get_user_model().objects.create_user(
+            username="cliente-tests-detalle",
+            password="test-pass-seguro",
+        )
+        self.client.force_login(self.usuario)
+
         self.cliente = Cliente.objects.create(
             nombre="Cliente historial",
             telefono="1122334455",
@@ -105,9 +125,18 @@ class DetalleClienteAccionesPedidoTests(TestCase):
         self.assertEqual(self.cliente.nombre, "Cliente historial")
 
 
-@override_settings(SECURE_SSL_REDIRECT=False)
+@override_settings(
+    SECURE_SSL_REDIRECT=False,
+    STORAGES=TEST_STORAGES,
+)
 class ListaClientesUXTests(TestCase):
     def setUp(self):
+        self.usuario = get_user_model().objects.create_user(
+            username="cliente-tests-lista",
+            password="test-pass-seguro",
+        )
+        self.client.force_login(self.usuario)
+
         self.cliente = Cliente.objects.create(
             nombre="Ana Cliente",
             telefono="1144444444",
