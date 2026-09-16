@@ -1,16 +1,15 @@
 from django.urls import path
 
 from . import (
+    acciones_impresion,
     acciones_pedido,
     historial_views,
     pedido_form_views,
     precios_api,
     views,
 )
-from .impresiones_compuestas import (
-    impresiones_por_producto,
-    planificar_impresion_producto,
-)
+from .impresiones_corregidas import impresiones_por_producto
+from .planificacion_producto import planificar_impresion_producto
 
 
 app_name = "pedidos"
@@ -86,7 +85,7 @@ urlpatterns = [
 
     path(
         "impresiones/listo/",
-        views.cambiar_listo_impresion,
+        acciones_impresion.cambiar_listo_impresion,
         name="cambiar_listo",
     ),
 
