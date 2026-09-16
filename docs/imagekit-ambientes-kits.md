@@ -23,4 +23,6 @@ Los kits no almacenan imágenes propias.
 python manage.py test productos.test_imagenes productos.test_imagenes_ambiente kits.test_imagenes --verbosity 2 --keepdb
 ```
 
+Validado en QA: 13 tests ejecutados, 13 OK, sin migraciones pendientes.
+
 El test histórico `kits.test_listado_recomendaciones` conserva una expectativa HTTP sin HTTPS y en QA puede recibir el redireccionamiento 301 de `SECURE_SSL_REDIRECT`; no se usa como señal de esta integración.
