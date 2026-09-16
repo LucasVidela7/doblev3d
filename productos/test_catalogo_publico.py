@@ -66,13 +66,33 @@ class CatalogoPublicoTests(TestCase):
             cantidad=1,
         )
 
-    def test_catalogo_es_publico_y_muestra_solo_oferta_comercial(self):
+    def test_catalogo_es_la_pagina_principal_publica(self):
+        self.assertEqual(reverse("catalogo"), "/")
+
         response = self.client.get(reverse("catalogo"))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Piña sensorial")
         self.assertContains(response, "Kit sensorial")
         self.assertNotContains(response, "Pieza interna")
+
+    def test_alias_catalogo_sigue_publico_para_links_compartidos(self):
+        response = self.client.get(
+            reverse("catalogo_legacy"),
+            {"tipo": "producto", "categoria": "sensoriales"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Piña sensorial")
+
+    def test_gestion_interna_usa_prefijo_y_login_separado(self):
+        self.assertEqual(reverse("dashboard:inicio"), "/gestion/")
+        self.assertEqual(reverse("login"), "/gestion/login/")
+
+        response = self.client.get(reverse("dashboard:inicio"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/gestion/login/", response.url)
 
     def test_catalogo_respeta_aislamiento_de_imagenes_qa(self):
         response = self.client.get(reverse("catalogo"))
