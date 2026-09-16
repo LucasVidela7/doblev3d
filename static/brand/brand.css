@@ -112,6 +112,120 @@ body.modo-captura > .contenedor {
     object-fit: contain;
 }
 
+/* ---------------------------------------------------------
+   PEDIDOS · BLOQUE DE PRECIO DE KIT
+   ---------------------------------------------------------
+   Nuevo Pedido y Editar Pedido nacieron con estilos distintos.
+   Estas reglas mantienen el bloque inyectado visualmente idéntico en ambos.
+*/
+body.dv-pedido-form-page .dv-kit-price-box {
+    padding: 13px 14px !important;
+    border-color: #d8e5dc !important;
+    border-radius: 14px !important;
+    background: #f8fbf9 !important;
+}
+
+body.dv-pedido-form-page .dv-kit-price-head {
+    margin-bottom: 10px !important;
+}
+
+body.dv-pedido-form-page .dv-kit-price-title {
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    letter-spacing: .25px !important;
+}
+
+body.dv-pedido-form-page .dv-kit-price-help {
+    max-width: 620px;
+    margin-top: 3px !important;
+    font-size: 9px !important;
+    line-height: 1.35 !important;
+}
+
+body.dv-pedido-form-page .dv-kit-price-state {
+    min-height: 26px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 9px !important;
+    font-size: 8px !important;
+    line-height: 1 !important;
+}
+
+body.dv-pedido-form-page .dv-kit-price-grid {
+    grid-template-columns: minmax(180px, 220px) minmax(220px, 340px) 160px !important;
+    justify-content: start !important;
+    gap: 10px !important;
+    align-items: end !important;
+}
+
+body.dv-pedido-form-page .dv-kit-price-grid label {
+    display: block !important;
+    margin: 0 0 6px !important;
+    color: #747b84 !important;
+    font-size: 9px !important;
+    font-weight: 900 !important;
+    line-height: 1.2 !important;
+    letter-spacing: .2px !important;
+    text-transform: uppercase !important;
+}
+
+body.dv-pedido-form-page .dv-kit-price-grid input[type="number"] {
+    width: 100% !important;
+    min-height: 46px !important;
+    height: 46px !important;
+    padding: 9px 11px !important;
+    border: 1px solid #d2d9d4 !important;
+    border-radius: 11px !important;
+    background: #fff !important;
+    color: #24272b !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+}
+
+body.dv-pedido-form-page .dv-kit-price-total {
+    min-height: 46px !important;
+    height: 46px !important;
+    padding: 9px 11px !important;
+    border-color: #dce3de !important;
+    border-radius: 11px !important;
+    background: #fff !important;
+    font-size: 11px !important;
+    line-height: 1.25 !important;
+}
+
+body.dv-pedido-form-page .dv-kit-auto-btn {
+    min-height: 46px !important;
+    height: 46px !important;
+    padding: 0 12px !important;
+    border-color: #d5ddd7 !important;
+    border-radius: 11px !important;
+    background: #fff !important;
+    color: #425448 !important;
+    font-size: 8px !important;
+    letter-spacing: .1px !important;
+    box-shadow: none !important;
+}
+
+body.dv-pedido-form-page .dv-kit-auto-btn:hover {
+    background: #f1f6f3 !important;
+    border-color: #c6d3ca !important;
+}
+
+body.dv-pedido-form-page .dv-kit-reference {
+    max-width: 740px;
+    margin-top: 9px !important;
+    padding: 7px 10px !important;
+    border-radius: 9px !important;
+    background: #eef4f0 !important;
+    font-size: 8.5px !important;
+    line-height: 1.35 !important;
+}
+
+body.dv-pedido-form-page .dv-manual-volume-note {
+    max-width: 740px;
+    font-size: 8.5px !important;
+}
+
 @media (min-width: 721px) and (max-width: 1100px) {
     .contenedor,
     .c {
@@ -141,6 +255,10 @@ body.modo-captura > .contenedor {
     .h > .a,
     .topbar > .acciones {
         flex-wrap: wrap;
+    }
+
+    body.dv-pedido-form-page .dv-kit-price-grid {
+        grid-template-columns: minmax(160px, .9fr) minmax(210px, 1.25fr) 150px !important;
     }
 }
 
@@ -201,5 +319,36 @@ body.modo-captura > .contenedor {
     .brand-bar__logo {
         width: 44px;
         height: 34px;
+    }
+
+    body.dv-pedido-form-page .dv-kit-price-box {
+        padding: 12px !important;
+    }
+
+    body.dv-pedido-form-page .dv-kit-price-head {
+        gap: 7px !important;
+    }
+
+    body.dv-pedido-form-page .dv-kit-price-grid {
+        grid-template-columns: 1fr !important;
+        gap: 9px !important;
+    }
+
+    body.dv-pedido-form-page .dv-kit-price-grid input[type="number"] {
+        height: 48px !important;
+        min-height: 48px !important;
+        font-size: 16px !important;
+    }
+
+    body.dv-pedido-form-page .dv-kit-price-total,
+    body.dv-pedido-form-page .dv-kit-auto-btn {
+        width: 100% !important;
+        height: 48px !important;
+        min-height: 48px !important;
+    }
+
+    body.dv-pedido-form-page .dv-kit-reference,
+    body.dv-pedido-form-page .dv-manual-volume-note {
+        max-width: none;
     }
 }
