@@ -9,6 +9,7 @@ La pantalla **Impresiones por producto** debe mostrar y utilizar el stock real d
 - Pieza de producto compuesto: usa el `stock` real de esa pieza para reducir la necesidad estándar de impresión.
 - Personalizados: no consumen stock genérico; continúan como fabricación específica.
 - Producciones `PENDIENTE` e `IMPRIMIENDO` siguen descontándose al calcular cuánto falta iniciar/planificar.
+- La pantalla y el planificador estándar comparten el mismo cálculo corregido para evitar diferencias entre lo mostrado y lo que se planifica.
 
 Ejemplo: si un compuesto requiere 2 piezas por unidad, hay un pedido de 2 unidades y la pieza tiene stock 3, la necesidad física es 4, el stock mostrado es 3 y **A imprimir** es 1.
 
@@ -17,3 +18,5 @@ Ejemplo: si un compuesto requiere 2 piezas por unidad, hay un pedido de 2 unidad
 ```bash
 python manage.py test pedidos.test_impresiones_stock pedidos.test_planificacion_productos --verbosity 2 --keepdb
 ```
+
+La validación conjunta con las pruebas de imágenes ejecutó 16 casos correctamente en QA.
