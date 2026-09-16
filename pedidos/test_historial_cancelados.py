@@ -9,7 +9,7 @@ from clientes.models import Cliente
 from .models import DetallePedido, Pedido
 
 
-# Esta suite cubre la diferencia funcional entre cancelar (historial)
+# Esta suite cubre en QA la diferencia funcional entre cancelar (historial)
 # y eliminar (borrado definitivo) en las vistas donde se listan pedidos.
 TEST_STORAGES = {
     "default": {
