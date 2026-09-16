@@ -5,6 +5,8 @@ from uuid import uuid4
 
 from imagekitio import ImageKit
 
+from .image_environment import entorno_imagenes
+
 
 MAX_IMAGE_BYTES = 15 * 1024 * 1024
 
@@ -51,21 +53,42 @@ def validar_archivo(archivo):
         raise ImagenProductoInvalida("La imagen supera el máximo permitido de 15 MB.")
 
 
+def carpeta_producto_imagekit(producto, ambiente=None):
+    """Ruta remota aislada por ambiente para evitar mezclar QA y Production."""
+    ambiente = ambiente or entorno_imagenes()
+    carpeta_base = (
+        os.getenv("IMAGEKIT_FOLDER_ROOT", "").strip()
+        or os.getenv("IMAGEKIT_FOLDER", "").strip()
+        or "/doblev3d"
+    )
+    carpeta_base = "/" + carpeta_base.strip("/")
+
+    # Compatibilidad con la configuración inicial /doblev3d/productos.
+    if carpeta_base.endswith("/productos"):
+        carpeta_base = carpeta_base[: -len("/productos")]
+
+    return f"{carpeta_base}/{ambiente}/productos/{producto.id}"
+
+
 def subir_imagen_producto(producto, archivo):
     validar_archivo(archivo)
     cliente = _cliente()
+    ambiente = entorno_imagenes()
 
     nombre_original = _nombre_seguro(getattr(archivo, "name", "imagen.jpg"))
     nombre = f"{producto.codigo.lower()}-{uuid4().hex[:10]}-{nombre_original}"
-    carpeta_base = os.getenv("IMAGEKIT_FOLDER", "/doblev3d/productos").strip()
-    carpeta_base = "/" + carpeta_base.strip("/")
-    carpeta = f"{carpeta_base}/{producto.id}"
+    carpeta = carpeta_producto_imagekit(producto, ambiente=ambiente)
 
     respuesta = cliente.files.upload(
         file=archivo.read(),
         file_name=nombre,
         folder=carpeta,
-        tags=["doblev3d", "producto", producto.codigo.lower()],
+        tags=[
+            "doblev3d",
+            "producto",
+            producto.codigo.lower(),
+            f"ambiente:{ambiente}",
+        ],
         use_unique_file_name=True,
     )
 
