@@ -59,3 +59,7 @@ Los kits no deben almacenar copias de imágenes propias cuando las fotos corresp
 - **LIBRE_CATEGORIA:** utilizará las fotos de los productos activos disponibles en `tipo_producto`.
 
 Esto evita duplicados y hace que actualizar la foto de un producto actualice también su representación en los kits.
+
+## Validación en QA
+
+La suite `productos.test_imagenes` cubre el límite de dos fotos, carga de referencias, cambio de principal, eliminación y visualización en el detalle del producto. Los servicios externos se simulan durante estos tests para no crear ni borrar archivos reales en ImageKit.
