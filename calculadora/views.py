@@ -1,5 +1,4 @@
-from decimal import Decimal, InvalidOperation, ROUND_CEILING
-from math import log10
+from decimal import Decimal, InvalidOperation
 
 from django.shortcuts import render
 
@@ -8,6 +7,7 @@ from productos.models import Producto
 
 from calculadora.precios import (
     MARGEN_MINIMO as MARGEN_MINIMO_COMPARTIDO,
+    calcular_costo_productivo_producto,
     redondear_arriba as redondear_arriba_compartido,
     margen_sugerido as margen_sugerido_compartido,
     precio_mayorista as precio_mayorista_compartido,
@@ -52,11 +52,14 @@ def _entero(valor, default=0):
 def _redondear_arriba(valor, multiplo=Decimal("100")):
     return redondear_arriba_compartido(valor, multiplo)
 
+
 def _margen_sugerido(cantidad, margen_tope):
     return margen_sugerido_compartido(cantidad, margen_tope)
 
+
 def _precio_mayorista(costo_productivo, margen):
     return precio_mayorista_compartido(costo_productivo, margen)
+
 
 def _margen_real(precio_unitario, costo_productivo):
     precio_unitario = Decimal(precio_unitario)
@@ -72,46 +75,11 @@ def _margen_real(precio_unitario, costo_productivo):
     )
 
 
-def _desglose_producto(producto):
-    config = producto.obtener_configuracion()
-
-    if not config:
-        return {
-            "config": None,
-            "horas_totales": Decimal("0"),
-            "costo_luz": Decimal("0"),
-            "costo_material": Decimal("0"),
-            "amortizacion": Decimal("0"),
-            "provision_fallos": Decimal("0"),
-            "costo": Decimal("0"),
-            "seguro": Decimal("0"),
-            "costo_productivo": Decimal("0"),
-        }
-
-    horas_totales = producto.horas_totales
-    costo_luz = horas_totales * config.coste_luz_hora
-    costo_material = (
-        producto.peso_gramos
-        * config.coste_plastico_kg
-        / Decimal("1000")
+def _desglose_producto(producto, cantidad=1):
+    return calcular_costo_productivo_producto(
+        producto,
+        cantidad,
     )
-    costo = costo_luz + costo_material
-    amortizacion = horas_totales * config.coste_amortizacion_hora
-    tasa_fallos = config.tasa_fallos / Decimal("100")
-    provision_fallos = (amortizacion + costo) * tasa_fallos
-    seguro = amortizacion + provision_fallos
-
-    return {
-        "config": config,
-        "horas_totales": horas_totales,
-        "costo_luz": costo_luz,
-        "costo_material": costo_material,
-        "amortizacion": amortizacion,
-        "provision_fallos": provision_fallos,
-        "costo": costo,
-        "seguro": seguro,
-        "costo_productivo": costo + seguro,
-    }
 
 
 def _parsear_cantidades(texto):
@@ -192,6 +160,7 @@ def _fila_precio(
         ),
     }
 
+
 def _lista_precios(costo_productivo, cantidades, margen_tope):
     return [
         _fila_precio(
@@ -206,14 +175,19 @@ def _lista_precios(costo_productivo, cantidades, margen_tope):
 def _margenes_escenario(cantidad, margen_tope):
     return margenes_escenario_compartido(cantidad, margen_tope)
 
-def _lista_precios_escenarios(costo_productivo, cantidades, margen_tope):
+
+def _lista_precios_escenarios(producto, cantidades, margen_tope):
+    """Cada cantidad recalcula su costo para elegir el filamento correcto."""
     filas = []
 
     for cantidad in cantidades:
+        desglose = _desglose_producto(producto, cantidad)
+        costo_productivo = desglose["costo_productivo"]
         margenes = _margenes_escenario(cantidad, margen_tope)
         filas.append(
             {
                 "cantidad": cantidad,
+                "desglose": desglose,
                 "conservador": _fila_precio(
                     costo_productivo,
                     cantidad,
@@ -416,7 +390,14 @@ def calculadora_precios(request):
                     activo=True,
                 )
 
-                desglose = _desglose_producto(producto_temporal)
+                desglose = _desglose_producto(
+                    producto_temporal,
+                    cantidad,
+                )
+                desglose_lista = _desglose_producto(
+                    producto_temporal,
+                    1,
+                )
                 costo_productivo = desglose["costo_productivo"]
                 precio_lista = producto_temporal.subtotal
                 margen_cantidad = _margen_sugerido(
@@ -432,7 +413,7 @@ def calculadora_precios(request):
                     ),
                 )
                 lista_escenarios = _lista_precios_escenarios(
-                    costo_productivo,
+                    producto_temporal,
                     cantidades_lista,
                     margen_minorista,
                 )
@@ -454,7 +435,7 @@ def calculadora_precios(request):
                     "precio_lista": precio_lista,
                     "margen_lista_real": _margen_real(
                         precio_lista,
-                        costo_productivo,
+                        desglose_lista["costo_productivo"],
                     ),
                     "fila_cantidad": fila_cantidad,
                     "lista_precios": lista,
@@ -510,7 +491,14 @@ def calculadora_precios(request):
                 )
 
             if not errores:
-                desglose = _desglose_producto(producto)
+                desglose = _desglose_producto(
+                    producto,
+                    cantidad,
+                )
+                desglose_lista = _desglose_producto(
+                    producto,
+                    1,
+                )
                 costo_productivo = desglose["costo_productivo"]
                 margen_tope = max(
                     Decimal(producto.margen_ganancia),
@@ -552,7 +540,7 @@ def calculadora_precios(request):
                         ),
                     )
                     lista_escenarios = _lista_precios_escenarios(
-                        costo_productivo,
+                        producto,
                         cantidades_lista,
                         margen_tope,
                     )
@@ -566,6 +554,10 @@ def calculadora_precios(request):
                         "cantidad": cantidad,
                         "desglose": desglose,
                         "precio_lista": producto.subtotal,
+                        "margen_lista_real": _margen_real(
+                            producto.subtotal,
+                            desglose_lista["costo_productivo"],
+                        ),
                         "margen_recomendado": recomendado,
                         "margen_tope": margen_tope,
                         "margen_piso": MARGEN_MINIMO_ADVERTENCIA,
