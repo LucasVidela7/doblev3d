@@ -17,8 +17,10 @@ Los kits no almacenan imágenes propias.
 - En ambos casos se usa sólo la imagen del ambiente actual.
 - El listado interno muestra hasta 8 productos por kit para mantener una interfaz compacta; el conjunto completo queda disponible en la preparación de datos para un catálogo futuro.
 
-## Regresión
+## Regresión específica
 
 ```bash
-python manage.py test productos.test_imagenes productos.test_imagenes_ambiente kits.test_imagenes kits.test_listado_recomendaciones --verbosity 2 --keepdb
+python manage.py test productos.test_imagenes productos.test_imagenes_ambiente kits.test_imagenes --verbosity 2 --keepdb
 ```
+
+El test histórico `kits.test_listado_recomendaciones` conserva una expectativa HTTP sin HTTPS y en QA puede recibir el redireccionamiento 301 de `SECURE_SSL_REDIRECT`; no se usa como señal de esta integración.
