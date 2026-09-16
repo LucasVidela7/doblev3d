@@ -642,7 +642,48 @@
                     .replace(/[\u0300-\u036f]/g, "")
                     .trim();
 
-            const apply = () => {
+            const syncUrl = () => {
+                const url = new URL(window.location.href);
+                const rawQuery = search.value.trim();
+
+                if (activeKind && activeKind !== "all") {
+                    url.searchParams.set("tipo", activeKind);
+                } else {
+                    url.searchParams.delete("tipo");
+                }
+
+                if (activeCategory) {
+                    url.searchParams.set("categoria", activeCategory);
+                } else {
+                    url.searchParams.delete("categoria");
+                }
+
+                if (rawQuery) {
+                    url.searchParams.set("q", rawQuery);
+                } else {
+                    url.searchParams.delete("q");
+                }
+
+                window.history.replaceState({}, "", url);
+            };
+
+            const refreshButtons = () => {
+                kindButtons.forEach((button) => {
+                    button.classList.toggle(
+                        "is-active",
+                        button.dataset.kind === activeKind,
+                    );
+                });
+
+                categoryButtons.forEach((button) => {
+                    button.classList.toggle(
+                        "is-active",
+                        normalize(button.dataset.category) === normalize(activeCategory),
+                    );
+                });
+            };
+
+            const apply = ({ updateUrl = true } = {}) => {
                 const query = normalize(search.value);
                 let visible = 0;
 
@@ -664,12 +705,36 @@
                 });
 
                 noResults.style.display = visible ? "none" : "block";
+                refreshButtons();
+
+                if (updateUrl) {
+                    syncUrl();
+                }
+            };
+
+            const restoreFromUrl = () => {
+                const params = new URLSearchParams(window.location.search);
+                const requestedKind = normalize(params.get("tipo"));
+                const requestedCategory = params.get("categoria") || "";
+                const requestedQuery = params.get("q") || "";
+                const validKinds = new Set(kindButtons.map((button) => button.dataset.kind));
+
+                activeKind = validKinds.has(requestedKind) ? requestedKind : "all";
+
+                const matchingCategory = categoryButtons.find(
+                    (button) => normalize(button.dataset.category) === normalize(requestedCategory),
+                );
+                activeCategory = matchingCategory
+                    ? (matchingCategory.dataset.category || "")
+                    : "";
+
+                search.value = requestedQuery;
+                apply({ updateUrl: false });
             };
 
             kindButtons.forEach((button) => {
                 button.addEventListener("click", () => {
                     activeKind = button.dataset.kind;
-                    kindButtons.forEach((candidate) => candidate.classList.toggle("is-active", candidate === button));
                     apply();
                 });
             });
@@ -677,12 +742,12 @@
             categoryButtons.forEach((button) => {
                 button.addEventListener("click", () => {
                     activeCategory = button.dataset.category || "";
-                    categoryButtons.forEach((candidate) => candidate.classList.toggle("is-active", candidate === button));
                     apply();
                 });
             });
 
-            search.addEventListener("input", apply);
+            search.addEventListener("input", () => apply());
+            restoreFromUrl();
         })();
     </script>
 </body>
