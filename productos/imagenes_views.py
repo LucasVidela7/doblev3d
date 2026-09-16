@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 
+from .image_environment import entorno_imagenes
 from .image_models import ProductoImagen
 from .imagekit_service import (
     ImagenProductoInvalida,
@@ -14,15 +15,22 @@ from .models import Producto
 
 
 def _producto_con_imagenes(producto_id):
-    return get_object_or_404(
-        Producto.objects.prefetch_related("imagenes"),
-        id=producto_id,
-    )
+    return get_object_or_404(Producto, id=producto_id)
+
+
+def _imagenes_del_entorno(producto, bloquear=False):
+    queryset = ProductoImagen.objects.filter(
+        producto=producto,
+        ambiente=entorno_imagenes(),
+    ).order_by("orden")
+    if bloquear:
+        queryset = queryset.select_for_update()
+    return queryset
 
 
 def imagenes_producto(request, producto_id):
     producto = _producto_con_imagenes(producto_id)
-    imagenes = list(producto.imagenes.all())
+    imagenes = list(_imagenes_del_entorno(producto))
     return render(
         request,
         "productos/imagenes.html",
@@ -31,6 +39,7 @@ def imagenes_producto(request, producto_id):
             "imagenes": imagenes,
             "cantidad_imagenes": len(imagenes),
             "imagekit_configurado": imagekit_configurado(),
+            "ambiente_imagenes": entorno_imagenes(),
         },
     )
 
@@ -41,12 +50,8 @@ def subir_imagen(request, producto_id):
         return redirect("productos:imagenes", producto_id=producto_id)
 
     producto = get_object_or_404(Producto, id=producto_id)
-    existentes = list(
-        ProductoImagen.objects
-        .select_for_update()
-        .filter(producto=producto)
-        .order_by("orden")
-    )
+    ambiente = entorno_imagenes()
+    existentes = list(_imagenes_del_entorno(producto, bloquear=True))
 
     if len(existentes) >= 2:
         messages.error(request, "Este producto ya tiene el máximo de 2 fotos.")
@@ -60,6 +65,7 @@ def subir_imagen(request, producto_id):
         orden = 1 if 1 not in orden_ocupado else 2
         ProductoImagen.objects.create(
             producto=producto,
+            ambiente=ambiente,
             orden=orden,
             **datos,
         )
@@ -68,7 +74,8 @@ def subir_imagen(request, producto_id):
         return redirect("productos:imagenes", producto_id=producto.id)
     except Exception:
         # Si ImageKit subió el archivo pero falló el guardado local, intentamos
-        # limpiar el remoto para no dejar archivos huérfanos.
+        # limpiar el remoto recién creado. Ese archivo siempre pertenece al
+        # ambiente actual porque la carpeta se define antes de la subida.
         if datos and datos.get("file_id"):
             try:
                 eliminar_imagen_imagekit(datos["file_id"])
@@ -95,10 +102,12 @@ def eliminar_imagen(request, producto_id, imagen_id):
         return redirect("productos:imagenes", producto_id=producto_id)
 
     producto = get_object_or_404(Producto, id=producto_id)
+    ambiente = entorno_imagenes()
     imagen = get_object_or_404(
         ProductoImagen.objects.select_for_update(),
         id=imagen_id,
         producto=producto,
+        ambiente=ambiente,
     )
     era_principal = imagen.orden == 1
 
@@ -120,7 +129,7 @@ def eliminar_imagen(request, producto_id, imagen_id):
         secundaria = (
             ProductoImagen.objects
             .select_for_update()
-            .filter(producto=producto, orden=2)
+            .filter(producto=producto, ambiente=ambiente, orden=2)
             .first()
         )
         if secundaria:
@@ -137,10 +146,12 @@ def hacer_principal(request, producto_id, imagen_id):
         return redirect("productos:imagenes", producto_id=producto_id)
 
     producto = get_object_or_404(Producto, id=producto_id)
+    ambiente = entorno_imagenes()
     imagen = get_object_or_404(
         ProductoImagen.objects.select_for_update(),
         id=imagen_id,
         producto=producto,
+        ambiente=ambiente,
     )
 
     if imagen.orden == 1:
@@ -149,12 +160,12 @@ def hacer_principal(request, producto_id, imagen_id):
     principal = (
         ProductoImagen.objects
         .select_for_update()
-        .filter(producto=producto, orden=1)
+        .filter(producto=producto, ambiente=ambiente, orden=1)
         .first()
     )
 
     # Se usa una posición temporal únicamente dentro de la transacción para
-    # evitar chocar con la restricción UNIQUE(producto, orden) durante el swap.
+    # evitar chocar con la restricción UNIQUE(producto, ambiente, orden).
     ProductoImagen.objects.filter(pk=imagen.pk).update(orden=99)
     if principal:
         ProductoImagen.objects.filter(pk=principal.pk).update(orden=2)
