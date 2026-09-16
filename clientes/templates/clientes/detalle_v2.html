@@ -1,0 +1,920 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
+    <link rel="apple-touch-icon" href="{% static 'brand/apple-touch-icon.png' %}">
+    <link rel="stylesheet" href="{% static 'brand/brand.css' %}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>{{ cliente.nombre }} | Doble V 3D</title>
+
+    <style>
+        :root{
+            --bg:#f5f6f8;
+            --surface:#fff;
+            --surface-soft:#f8f9fb;
+            --text:#25282d;
+            --muted:#777d86;
+            --line:#e3e6ea;
+            --dark:#25282d;
+            --green:#eaf7ee;
+            --green-text:#28633c;
+            --amber:#fff5d8;
+            --amber-text:#775a13;
+            --red:#fdeaea;
+            --red-text:#913b3b;
+            --blue:#edf4ff;
+            --blue-text:#315f9f;
+            --shadow:0 5px 20px rgba(28,33,40,.055);
+        }
+
+        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{
+            margin:0;
+            padding:0 0 calc(94px + env(safe-area-inset-bottom));
+            font-family:Arial,sans-serif;
+            background:var(--bg);
+            color:var(--text);
+        }
+        a,button,input,textarea,select{touch-action:manipulation}
+        .contenedor{
+            width:min(1120px,100%);
+            margin:auto;
+            padding:22px 18px 34px;
+        }
+
+        .encabezado{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:18px;
+            margin-bottom:18px;
+        }
+        .titulo-linea{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+        h1{margin:0;font-size:clamp(26px,4vw,34px)}
+        .codigo-cliente{
+            padding:5px 8px;
+            border-radius:999px;
+            background:#e9ebee;
+            color:#666c74;
+            font-size:8px;
+            font-weight:900;
+        }
+        .subtitulo{margin-top:5px;color:var(--muted);font-size:13px}
+        .acciones-encabezado{display:flex;gap:9px}
+        .btn-secundario,.btn-principal{
+            min-height:48px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            padding:0 17px;
+            border-radius:13px;
+            font-size:10px;
+            font-weight:900;
+            text-decoration:none;
+            cursor:pointer;
+        }
+        .btn-secundario{border:1px solid var(--line);background:#fff;color:var(--text)}
+        .btn-principal{border:1px solid var(--dark);background:var(--dark);color:#fff}
+
+        .mensajes{margin-bottom:14px}
+        .mensaje{
+            padding:12px 14px;
+            margin-bottom:7px;
+            border-radius:13px;
+            font-size:11px;
+            font-weight:800;
+        }
+        .mensaje.success{background:var(--green);color:var(--green-text)}
+        .mensaje.error{background:var(--red);color:var(--red-text)}
+
+        .metricas{
+            display:grid;
+            grid-template-columns:repeat(4,minmax(0,1fr));
+            gap:10px;
+            margin-bottom:15px;
+        }
+        .metrica{
+            padding:14px 15px;
+            border:1px solid var(--line);
+            border-radius:16px;
+            background:#fff;
+            box-shadow:var(--shadow);
+        }
+        .metrica-label{
+            color:var(--muted);
+            font-size:8px;
+            font-weight:900;
+            letter-spacing:.2px;
+        }
+        .metrica-valor{
+            margin-top:6px;
+            font-size:19px;
+            font-weight:900;
+            line-height:1.15;
+        }
+        .metrica.saldo-activo{background:var(--amber);border-color:#efdda3}
+        .metrica.saldo-activo .metrica-label,
+        .metrica.saldo-activo .metrica-valor{color:var(--amber-text)}
+
+        .layout{
+            display:grid;
+            grid-template-columns:340px minmax(0,1fr);
+            gap:14px;
+            align-items:start;
+        }
+        .panel{
+            border:1px solid var(--line);
+            border-radius:18px;
+            background:#fff;
+            box-shadow:var(--shadow);
+            overflow:hidden;
+        }
+        .panel-cabecera{
+            min-height:55px;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+            padding:10px 15px;
+            border-bottom:1px solid var(--line);
+            background:#fbfbfc;
+        }
+        .panel-titulo{font-size:11px;font-weight:900;letter-spacing:.2px}
+        .panel-subtitulo{margin-top:3px;color:var(--muted);font-size:8px}
+        .panel-cuerpo{padding:15px}
+
+        .btn-lapiz{
+            width:38px;
+            height:38px;
+            flex:0 0 38px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            border:1px solid var(--line);
+            border-radius:11px;
+            background:#fff;
+            color:var(--text);
+            font-size:17px;
+            cursor:pointer;
+        }
+        .btn-lapiz:hover{background:var(--dark);border-color:var(--dark);color:#fff}
+
+        .perfil-resumen{display:grid;gap:7px}
+        .dato-cliente{
+            padding:11px 12px;
+            border-radius:12px;
+            background:var(--surface-soft);
+        }
+        .dato-label{
+            color:var(--muted);
+            font-size:7px;
+            font-weight:900;
+            letter-spacing:.2px;
+        }
+        .dato-valor{
+            margin-top:5px;
+            color:var(--text);
+            font-size:12px;
+            font-weight:800;
+            line-height:1.4;
+            overflow-wrap:anywhere;
+        }
+        .dato-valor.vacio{color:#a1a6ad;font-weight:700}
+        .dato-valor a{color:inherit;text-decoration:none}
+        .observacion-valor{white-space:pre-wrap;font-weight:600}
+
+        .acciones-perfil{
+            display:grid;
+            gap:8px;
+            margin-top:12px;
+        }
+        .btn-nuevo-pedido{
+            min-height:46px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            border:1px solid var(--dark);
+            border-radius:12px;
+            background:var(--dark);
+            color:#fff;
+            font-size:9px;
+            font-weight:900;
+            text-decoration:none;
+        }
+
+        .editor-cliente[hidden],.perfil-resumen[hidden]{display:none!important}
+        .campo{margin-bottom:11px}
+        .campo label{
+            display:block;
+            margin-bottom:5px;
+            color:var(--muted);
+            font-size:8px;
+            font-weight:900;
+        }
+        .campo input,.campo textarea{
+            width:100%;
+            min-height:46px;
+            padding:9px 11px;
+            border:1px solid var(--line);
+            border-radius:11px;
+            background:#fff;
+            color:var(--text);
+            font:inherit;
+            font-size:13px;
+            outline:none;
+        }
+        .campo textarea{min-height:90px;resize:vertical}
+        .campo input:focus,.campo textarea:focus{
+            border-color:#9aacc1;
+            box-shadow:0 0 0 3px rgba(72,111,154,.10);
+        }
+        .acciones-edicion{
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:8px;
+            margin-top:4px;
+        }
+        .btn-cancelar-edicion,.btn-guardar{
+            min-height:45px;
+            border-radius:11px;
+            font-size:9px;
+            font-weight:900;
+            cursor:pointer;
+        }
+        .btn-cancelar-edicion{border:1px solid var(--line);background:#fff;color:var(--text)}
+        .btn-guardar{border:1px solid var(--dark);background:var(--dark);color:#fff}
+        .edicion-aviso{
+            margin-bottom:11px;
+            padding:9px 10px;
+            border-radius:10px;
+            background:var(--blue);
+            color:var(--blue-text);
+            font-size:8px;
+            line-height:1.4;
+        }
+
+        .pedidos-lista{display:grid}
+        .pedido{
+            padding:15px;
+            border-bottom:1px solid var(--line);
+        }
+        .pedido:last-child{border-bottom:0}
+        .pedido-arriba{
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            gap:12px;
+        }
+        .pedido-codigo{font-size:14px;font-weight:900}
+        .pedido-meta{margin-top:4px;color:var(--muted);font-size:9px}
+        .estado-pago{
+            min-height:27px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            padding:0 9px;
+            border-radius:999px;
+            font-size:7px;
+            font-weight:900;
+            white-space:nowrap;
+        }
+        .estado-SIN_PAGAR{background:var(--red);color:var(--red-text)}
+        .estado-PARCIAL{background:var(--amber);color:var(--amber-text)}
+        .estado-PAGADO{background:var(--green);color:var(--green-text)}
+
+        .pedido-numeros{
+            display:grid;
+            grid-template-columns:repeat(3,minmax(0,1fr));
+            gap:7px;
+            margin-top:10px;
+        }
+        .numero{
+            padding:8px 9px;
+            border-radius:10px;
+            background:var(--surface-soft);
+        }
+        .numero-label{color:var(--muted);font-size:7px;font-weight:900}
+        .numero-valor{margin-top:4px;font-size:11px;font-weight:900}
+        .numero.saldo-activo{background:var(--amber);color:var(--amber-text)}
+        .numero.saldo-activo .numero-label{color:var(--amber-text);opacity:.75}
+
+        .pedido-acciones{
+            display:flex;
+            flex-wrap:wrap;
+            gap:7px;
+            margin-top:10px;
+        }
+        .pedido-acciones form,.pedido-accion{margin:0}
+        .pedido-acciones button,.pedido-acciones a{
+            min-height:38px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            padding:0 11px;
+            border-radius:10px;
+            font-size:8px;
+            font-weight:900;
+            text-decoration:none;
+            cursor:pointer;
+        }
+        .btn-editar-pedido{border:1px solid var(--line);background:#fff;color:var(--text)}
+        .btn-entregar-pedido{border:1px solid #438d56;background:#438d56;color:#fff}
+        .btn-cancelar-pedido{border:1px solid #e0c36c;background:#fff;color:var(--amber-text)}
+        .btn-eliminar-pedido{border:1px solid #e2bcbc;background:#fff;color:var(--red-text)}
+        .btn-pagar{border:1px solid var(--dark);background:var(--dark);color:#fff}
+
+        .resumen-pedido{
+            margin-top:10px;
+            border:1px solid var(--line);
+            border-radius:11px;
+            background:#fafbfc;
+            overflow:hidden;
+        }
+        .resumen-pedido summary{
+            min-height:40px;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+            padding:0 11px;
+            list-style:none;
+            cursor:pointer;
+            user-select:none;
+            color:#525860;
+            font-size:8px;
+            font-weight:900;
+        }
+        .resumen-pedido summary::-webkit-details-marker{display:none}
+        .resumen-pedido summary::after{content:"＋";font-size:15px}
+        .resumen-pedido[open] summary::after{content:"−"}
+        .resumen-contenido{padding:0 11px 11px;border-top:1px solid var(--line)}
+        .item-resumen{padding:10px 0;border-bottom:1px solid var(--line)}
+        .item-resumen:last-child{border-bottom:0}
+        .item-resumen-arriba{display:flex;justify-content:space-between;gap:10px}
+        .item-resumen-nombre{font-size:10px;font-weight:900}
+        .item-resumen-subtotal{flex:0 0 auto;font-size:10px;font-weight:900}
+        .item-resumen-meta{margin-top:4px;color:var(--muted);font-size:8px;line-height:1.4}
+        .kit-componentes{
+            margin-top:6px;
+            padding:8px 9px;
+            border-radius:9px;
+            background:#eef0f2;
+        }
+        .kit-componentes-titulo{margin-bottom:4px;color:var(--muted);font-size:7px;font-weight:900}
+        .kit-componente{display:flex;justify-content:space-between;gap:8px;padding:2px 0;font-size:8px}
+        .personalizacion{
+            margin-top:6px;
+            padding:8px 9px;
+            border-radius:9px;
+            background:var(--amber);
+            color:var(--amber-text);
+            font-size:8px;
+            line-height:1.4;
+        }
+        .resumen-total{
+            display:flex;
+            justify-content:space-between;
+            gap:10px;
+            padding-top:10px;
+            border-top:1px solid var(--line);
+            font-size:10px;
+            font-weight:900;
+        }
+        .sin-pedidos{padding:44px 18px;color:var(--muted);text-align:center;font-size:10px}
+
+        .modal-fondo{
+            display:none;
+            position:fixed;
+            inset:0;
+            z-index:1000;
+            padding:18px;
+            background:rgba(20,22,26,.55);
+            align-items:center;
+            justify-content:center;
+        }
+        .modal-fondo.abierto{display:flex}
+        .modal{
+            width:min(520px,100%);
+            max-height:calc(100vh - 36px);
+            overflow:auto;
+            border-radius:20px;
+            background:#fff;
+            box-shadow:0 24px 70px rgba(0,0,0,.28);
+        }
+        .modal-cabecera{
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap:12px;
+            padding:18px;
+            border-bottom:1px solid var(--line);
+        }
+        .modal-titulo{font-size:18px;font-weight:900}
+        .modal-subtitulo{margin-top:4px;color:var(--muted);font-size:10px}
+        .cerrar{
+            width:40px;
+            height:40px;
+            border:1px solid var(--line);
+            border-radius:11px;
+            background:#fff;
+            font-size:20px;
+            cursor:pointer;
+        }
+        .modal-cuerpo{padding:18px}
+        .saldo-modal{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:10px;
+            margin-bottom:15px;
+            padding:12px;
+            border-radius:12px;
+            background:var(--surface-soft);
+        }
+        .saldo-modal span{color:var(--muted);font-size:10px;font-weight:800}
+        .saldo-modal strong{font-size:19px}
+        .campo-pago{margin-bottom:12px}
+        .campo-pago label{display:block;margin-bottom:5px;color:#555;font-size:8px;font-weight:900}
+        .campo-pago input,.campo-pago select,.campo-pago textarea{
+            width:100%;
+            min-height:48px;
+            padding:9px 11px;
+            border:1px solid #d8dbe0;
+            border-radius:11px;
+            background:#fff;
+            font:inherit;
+            font-size:14px;
+        }
+        .campo-pago textarea{min-height:74px;resize:vertical}
+        .acciones-modal{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:16px}
+        .acciones-modal button{min-height:48px;border-radius:12px;font-size:9px;font-weight:900;cursor:pointer}
+        .cancelar-modal{border:1px solid var(--line);background:#fff}
+        .guardar-modal{border:1px solid #438d56;background:#438d56;color:#fff}
+
+        .nav-inferior{
+            position:fixed;
+            z-index:50;
+            left:50%;
+            bottom:max(10px,env(safe-area-inset-bottom));
+            transform:translateX(-50%);
+            width:min(720px,calc(100% - 20px));
+            display:grid;
+            grid-template-columns:repeat(5,1fr);
+            gap:4px;
+            padding:7px;
+            border-radius:20px;
+            background:rgba(35,38,43,.96);
+            box-shadow:0 12px 35px rgba(0,0,0,.22);
+            backdrop-filter:blur(14px);
+        }
+        .nav-item{
+            min-height:58px;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            gap:4px;
+            border-radius:14px;
+            color:#d9dbe0;
+            text-decoration:none;
+            font-size:9px;
+            font-weight:bold;
+        }
+        .nav-item span:first-child{font-size:19px}
+        .nav-item.nuevo-nav{background:#fff;color:var(--dark)}
+
+        @media(max-width:850px){
+            .metricas{grid-template-columns:repeat(2,1fr)}
+            .layout{grid-template-columns:1fr}
+            .perfil-panel{order:1}
+            .pedidos-panel{order:2}
+        }
+        @media(max-width:620px){
+            .contenedor{padding:16px 10px 28px}
+            .encabezado{align-items:flex-start;flex-direction:column}
+            .acciones-encabezado{width:100%}
+            .btn-secundario,.btn-principal{flex:1}
+            .metricas{
+                display:flex;
+                overflow-x:auto;
+                gap:8px;
+                padding-bottom:2px;
+                scrollbar-width:none;
+            }
+            .metricas::-webkit-scrollbar{display:none}
+            .metrica{min-width:155px}
+            .pedido-numeros{grid-template-columns:repeat(3,1fr)}
+            .pedido-acciones{display:grid;grid-template-columns:1fr}
+            .pedido-acciones form,.pedido-accion,.pedido-acciones button,.pedido-acciones a{width:100%}
+            .modal-fondo{padding:8px;align-items:flex-end}
+            .modal{max-height:92vh;border-radius:19px 19px 9px 9px}
+            .acciones-edicion,.acciones-modal{grid-template-columns:1fr}
+            .nav-inferior{width:calc(100% - 12px);bottom:max(6px,env(safe-area-inset-bottom))}
+        }
+    </style>
+</head>
+<body>
+<div class="contenedor">
+    <header class="encabezado">
+        <div class="encabezado-marca">
+            {% include 'shared/brand_bar.html' %}
+            <div class="titulo-linea">
+                <h1>{{ cliente.nombre }}</h1>
+                <span class="codigo-cliente">{{ cliente.codigo }}</span>
+            </div>
+            <div class="subtitulo">Ficha del cliente, cuenta corriente e historial de pedidos.</div>
+        </div>
+
+        <div class="acciones-encabezado">
+            <a href="{% url 'clientes:lista' %}" class="btn-secundario">← CLIENTES</a>
+            <a href="{% url 'pedidos:nuevo' %}?cliente={{ cliente.id }}" class="btn-principal">+ NUEVO PEDIDO</a>
+        </div>
+    </header>
+
+    {% if messages %}
+        <div class="mensajes">
+            {% for message in messages %}
+                <div class="mensaje {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <section class="metricas" aria-label="Resumen del cliente">
+        <div class="metrica">
+            <div class="metrica-label">PEDIDOS</div>
+            <div class="metrica-valor">{{ cantidad_pedidos }}</div>
+        </div>
+        <div class="metrica">
+            <div class="metrica-label">TOTAL COMPRADO</div>
+            <div class="metrica-valor">${{ total_comprado|floatformat:0 }}</div>
+        </div>
+        <div class="metrica">
+            <div class="metrica-label">TOTAL PAGADO</div>
+            <div class="metrica-valor">${{ total_pagado|floatformat:0 }}</div>
+        </div>
+        <div class="metrica {% if saldo_pendiente > 0 %}saldo-activo{% endif %}">
+            <div class="metrica-label">SALDO PENDIENTE</div>
+            <div class="metrica-valor">${{ saldo_pendiente|floatformat:0 }}</div>
+        </div>
+    </section>
+
+    <div class="layout">
+        <section class="panel perfil-panel">
+            <div class="panel-cabecera">
+                <div>
+                    <div class="panel-titulo">DATOS DEL CLIENTE</div>
+                    <div class="panel-subtitulo" id="modoClienteTexto">
+                        {% if modo_edicion %}Editando datos{% else %}Modo consulta{% endif %}
+                    </div>
+                </div>
+                <button
+                    type="button"
+                    class="btn-lapiz"
+                    id="btnEditarCliente"
+                    onclick="abrirEdicionCliente()"
+                    aria-label="Editar cliente"
+                    title="Editar cliente"
+                    {% if modo_edicion %}hidden{% endif %}
+                >✎</button>
+            </div>
+
+            <div class="panel-cuerpo">
+                <div class="perfil-resumen" id="perfilResumen" {% if modo_edicion %}hidden{% endif %}>
+                    <div class="dato-cliente">
+                        <div class="dato-label">TELÉFONO</div>
+                        <div class="dato-valor {% if not cliente.telefono %}vacio{% endif %}">
+                            {% if cliente.telefono %}<a href="tel:{{ cliente.telefono }}">{{ cliente.telefono }}</a>{% else %}Sin teléfono cargado{% endif %}
+                        </div>
+                    </div>
+                    <div class="dato-cliente">
+                        <div class="dato-label">EMAIL</div>
+                        <div class="dato-valor {% if not cliente.email %}vacio{% endif %}">
+                            {% if cliente.email %}<a href="mailto:{{ cliente.email }}">{{ cliente.email }}</a>{% else %}Sin email cargado{% endif %}
+                        </div>
+                    </div>
+                    <div class="dato-cliente">
+                        <div class="dato-label">OBSERVACIONES</div>
+                        <div class="dato-valor observacion-valor {% if not cliente.observaciones %}vacio{% endif %}">{% if cliente.observaciones %}{{ cliente.observaciones }}{% else %}Sin observaciones{% endif %}</div>
+                    </div>
+
+                    <div class="acciones-perfil">
+                        <a href="{% url 'pedidos:nuevo' %}?cliente={{ cliente.id }}" class="btn-nuevo-pedido">+ CREAR PEDIDO PARA ESTE CLIENTE</a>
+                    </div>
+                </div>
+
+                <form method="post" class="editor-cliente" id="editorCliente" {% if not modo_edicion %}hidden{% endif %}>
+                    {% csrf_token %}
+                    <div class="edicion-aviso">Estás editando la ficha. Los cambios se guardan únicamente al presionar “Guardar”.</div>
+                    <div class="campo">
+                        <label for="nombre">NOMBRE</label>
+                        <input id="nombre" name="nombre" type="text" value="{{ cliente.nombre }}" required>
+                    </div>
+                    <div class="campo">
+                        <label for="telefono">TELÉFONO</label>
+                        <input id="telefono" name="telefono" type="text" value="{{ cliente.telefono }}">
+                    </div>
+                    <div class="campo">
+                        <label for="email">EMAIL</label>
+                        <input id="email" name="email" type="email" value="{{ cliente.email }}">
+                    </div>
+                    <div class="campo">
+                        <label for="observaciones">OBSERVACIONES</label>
+                        <textarea id="observaciones" name="observaciones">{{ cliente.observaciones }}</textarea>
+                    </div>
+                    <div class="acciones-edicion">
+                        <button type="button" class="btn-cancelar-edicion" onclick="cancelarEdicionCliente()">CANCELAR</button>
+                        <button type="submit" class="btn-guardar">GUARDAR CAMBIOS</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <section class="panel pedidos-panel">
+            <div class="panel-cabecera">
+                <div>
+                    <div class="panel-titulo">PEDIDOS DEL CLIENTE</div>
+                    <div class="panel-subtitulo">{{ cantidad_pedidos }} pedido{{ cantidad_pedidos|pluralize:"s" }} registrado{{ cantidad_pedidos|pluralize:"s" }}</div>
+                </div>
+            </div>
+
+            {% if filas_pedidos %}
+                <div class="pedidos-lista">
+                    {% for item in filas_pedidos %}
+                        <article class="pedido">
+                            <div class="pedido-arriba">
+                                <div>
+                                    <div class="pedido-codigo">{{ item.pedido.codigo }}</div>
+                                    <div class="pedido-meta">{{ item.pedido.fecha|date:"d/m/Y" }} · {{ item.pedido.get_estado_display|upper }}</div>
+                                </div>
+                                <span class="estado-pago estado-{{ item.estado_pago }}">{{ item.estado_pago_display|upper }}</span>
+                            </div>
+
+                            <div class="pedido-numeros">
+                                <div class="numero">
+                                    <div class="numero-label">TOTAL</div>
+                                    <div class="numero-valor">${{ item.total|floatformat:0 }}</div>
+                                </div>
+                                <div class="numero">
+                                    <div class="numero-label">PAGADO</div>
+                                    <div class="numero-valor">${{ item.pagado|floatformat:0 }}</div>
+                                </div>
+                                <div class="numero {% if item.saldo > 0 %}saldo-activo{% endif %}">
+                                    <div class="numero-label">SALDO</div>
+                                    <div class="numero-valor">${{ item.saldo|floatformat:0 }}</div>
+                                </div>
+                            </div>
+
+                            <div class="pedido-acciones">
+                                {% if item.pedido.estado == "PENDIENTE" %}
+                                    <a href="{% url 'pedidos:editar' item.pedido.id %}?volver=cliente&cliente_id={{ cliente.id }}" class="btn-editar-pedido">✎ EDITAR PEDIDO</a>
+                                    <form method="post" action="{% url 'pedidos:cancelar' item.pedido.id %}" onsubmit="return confirmarCancelacionCliente();">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="origen" value="cliente">
+                                        <input type="hidden" name="cliente_id" value="{{ cliente.id }}">
+                                        <button type="submit" class="btn-cancelar-pedido">CANCELAR PEDIDO</button>
+                                    </form>
+                                    {% if item.pagado <= 0 %}
+                                        <form method="post" action="{% url 'pedidos:eliminar' item.pedido.id %}" onsubmit="return confirmarEliminacionCliente();">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="origen" value="cliente">
+                                            <input type="hidden" name="cliente_id" value="{{ cliente.id }}">
+                                            <button type="submit" class="btn-eliminar-pedido">ELIMINAR PEDIDO</button>
+                                        </form>
+                                    {% endif %}
+                                {% elif item.pedido.estado == "LISTO" %}
+                                    <form method="post" action="{% url 'pedidos:entregar' item.pedido.id %}" data-saldo="{{ item.saldo }}" onsubmit="return confirmarEntregaCliente(this);">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="origen" value="cliente">
+                                        <input type="hidden" name="cliente_id" value="{{ cliente.id }}">
+                                        <button type="submit" class="btn-entregar-pedido">✓ ENTREGAR PEDIDO</button>
+                                    </form>
+                                {% endif %}
+
+                                {% if item.saldo > 0 %}
+                                    <div class="pedido-accion">
+                                        <button
+                                            type="button"
+                                            class="btn-pagar"
+                                            data-url="{% url 'pedidos:registrar_pago' item.pedido.id %}"
+                                            data-codigo="{{ item.pedido.codigo }}"
+                                            data-saldo="{{ item.saldo }}"
+                                            onclick="abrirPagoCliente(this)"
+                                        >+ REGISTRAR PAGO</button>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <details class="resumen-pedido">
+                                <summary>VER QUÉ COMPRÓ</summary>
+                                <div class="resumen-contenido">
+                                    {% for detalle in item.pedido.detalles.all %}
+                                        {% if detalle.estado != "CANCELADO" %}
+                                            <div class="item-resumen">
+                                                <div class="item-resumen-arriba">
+                                                    <div class="item-resumen-nombre">
+                                                        {% if detalle.tipo_item == "KIT" and detalle.kit %}
+                                                            {{ detalle.kit.nombre }}
+                                                        {% elif detalle.producto %}
+                                                            {{ detalle.producto.nombre }}
+                                                        {% else %}
+                                                            {{ detalle.get_tipo_item_display }}
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="item-resumen-subtotal">${{ detalle.subtotal|floatformat:0 }}</div>
+                                                </div>
+                                                <div class="item-resumen-meta">
+                                                    Cantidad: {{ detalle.cantidad }} · ${{ detalle.precio_unitario|floatformat:0 }} c/u
+                                                    {% if detalle.tipo_item == "PERSONALIZADO" %} · PERSONALIZADO{% elif detalle.tipo_item == "KIT" %} · KIT{% endif %}
+                                                </div>
+
+                                                {% if detalle.tipo_item == "KIT" %}
+                                                    <div class="kit-componentes">
+                                                        <div class="kit-componentes-titulo">PRODUCTOS DEL KIT</div>
+                                                        {% for componente in detalle.productos_kit.all %}
+                                                            <div class="kit-componente">
+                                                                <span>{{ componente.producto.nombre }}</span>
+                                                                <strong>x{{ componente.cantidad }}</strong>
+                                                            </div>
+                                                        {% empty %}
+                                                            <div class="item-resumen-meta">Sin detalle de componentes guardado.</div>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+
+                                                {% if detalle.tipo_item == "PERSONALIZADO" and detalle.detalle_personalizacion or detalle.tipo_item == "PERSONALIZADO" and detalle.color_personalizacion %}
+                                                    <div class="personalizacion">
+                                                        {% if detalle.detalle_personalizacion %}<div><strong>Detalle:</strong> {{ detalle.detalle_personalizacion }}</div>{% endif %}
+                                                        {% if detalle.color_personalizacion %}<div><strong>Color:</strong> {{ detalle.color_personalizacion }}</div>{% endif %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                    {% empty %}
+                                        <div class="sin-pedidos">Este pedido no tiene productos cargados.</div>
+                                    {% endfor %}
+                                    <div class="resumen-total">
+                                        <span>TOTAL DEL PEDIDO</span>
+                                        <span>${{ item.total|floatformat:0 }}</span>
+                                    </div>
+                                </div>
+                            </details>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="sin-pedidos">Este cliente todavía no tiene pedidos.</div>
+            {% endif %}
+        </section>
+    </div>
+</div>
+
+<div id="modalPagoCliente" class="modal-fondo" aria-hidden="true" onclick="cerrarPagoClienteDesdeFondo(event)">
+    <div class="modal" role="dialog" aria-modal="true">
+        <div class="modal-cabecera">
+            <div>
+                <div class="modal-titulo">Registrar pago</div>
+                <div id="modalPagoClientePedido" class="modal-subtitulo"></div>
+            </div>
+            <button type="button" class="cerrar" onclick="cerrarPagoCliente()" aria-label="Cerrar">×</button>
+        </div>
+        <div class="modal-cuerpo">
+            <div class="saldo-modal">
+                <span>Saldo pendiente</span>
+                <strong id="modalPagoClienteSaldo">$0</strong>
+            </div>
+            <form id="formPagoCliente" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="origen" value="cliente">
+                <input type="hidden" name="cliente_id" value="{{ cliente.id }}">
+                <div class="campo-pago">
+                    <label for="montoPagoCliente">MONTO</label>
+                    <input id="montoPagoCliente" name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required>
+                </div>
+                <div class="campo-pago">
+                    <label for="medioPagoCliente">MEDIO DE PAGO</label>
+                    <select id="medioPagoCliente" name="medio" required>
+                        <option value="TRANSFERENCIA">Transferencia</option>
+                        <option value="EFECTIVO">Efectivo</option>
+                        <option value="MERCADO_PAGO">Mercado Pago</option>
+                        <option value="OTRO">Otro</option>
+                    </select>
+                </div>
+                <div class="campo-pago">
+                    <label for="obsPagoCliente">OBSERVACIONES</label>
+                    <textarea id="obsPagoCliente" name="observaciones" maxlength="250" placeholder="Opcional"></textarea>
+                </div>
+                <div class="acciones-modal">
+                    <button type="button" class="cancelar-modal" onclick="cerrarPagoCliente()">CANCELAR</button>
+                    <button type="submit" class="guardar-modal">GUARDAR PAGO</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<nav class="nav-inferior" aria-label="Navegación principal">
+    <a class="nav-item" href="{% url 'dashboard:inicio' %}"><span>⌂</span><span>Inicio</span></a>
+    <a class="nav-item" href="{% url 'pedidos:impresiones' %}"><span>📦</span><span>Pedidos</span></a>
+    <a class="nav-item nuevo-nav" href="{% url 'pedidos:nuevo' %}"><span>＋</span><span>Nuevo</span></a>
+    <a class="nav-item" href="{% url 'produccion:lista' %}"><span>⚙</span><span>Producción</span></a>
+    <a class="nav-item" href="{% url 'productos:lista' %}"><span>▦</span><span>Productos</span></a>
+</nav>
+
+<script>
+function abrirEdicionCliente(){
+    const resumen = document.getElementById("perfilResumen");
+    const editor = document.getElementById("editorCliente");
+    const lapiz = document.getElementById("btnEditarCliente");
+    const modo = document.getElementById("modoClienteTexto");
+
+    resumen.hidden = true;
+    editor.hidden = false;
+    lapiz.hidden = true;
+    modo.textContent = "Editando datos";
+
+    const nombre = document.getElementById("nombre");
+    if (nombre) {
+        setTimeout(function(){ nombre.focus(); nombre.select(); }, 30);
+    }
+}
+
+function cancelarEdicionCliente(){
+    const resumen = document.getElementById("perfilResumen");
+    const editor = document.getElementById("editorCliente");
+    const lapiz = document.getElementById("btnEditarCliente");
+    const modo = document.getElementById("modoClienteTexto");
+
+    editor.reset();
+    editor.hidden = true;
+    resumen.hidden = false;
+    lapiz.hidden = false;
+    modo.textContent = "Modo consulta";
+
+    if (window.history.replaceState && window.location.search.includes("editar=1")) {
+        window.history.replaceState({}, "", window.location.pathname);
+    }
+}
+
+function confirmarEntregaCliente(formulario) {
+    const saldo = Number(String(formulario.dataset.saldo || "0").replace(",", "."));
+    if (saldo > 0) {
+        return confirm(
+            "ATENCIÓN: este pedido todavía tiene un saldo pendiente de $" +
+            saldo.toLocaleString("es-AR") +
+            ".\n\n¿Querés ENTREGARLO IGUAL?"
+        );
+    }
+    return confirm("¿Confirmás que el pedido fue entregado al cliente?");
+}
+
+function confirmarCancelacionCliente() {
+    return confirm("¿Seguro que querés CANCELAR este pedido?\n\nEsta acción solo está disponible mientras el pedido está PENDIENTE.");
+}
+
+function confirmarEliminacionCliente() {
+    return confirm("¿Seguro que querés ELIMINAR este pedido?\n\nUsá esta opción solamente si fue cargado por error. Esta acción no se puede deshacer.");
+}
+
+function abrirPagoCliente(boton) {
+    const modal = document.getElementById("modalPagoCliente");
+    const form = document.getElementById("formPagoCliente");
+    const pedido = document.getElementById("modalPagoClientePedido");
+    const saldoTexto = document.getElementById("modalPagoClienteSaldo");
+    const monto = document.getElementById("montoPagoCliente");
+    const saldo = Number(String(boton.dataset.saldo || "0").replace(",", "."));
+
+    form.action = boton.dataset.url;
+    pedido.textContent = boton.dataset.codigo;
+    saldoTexto.textContent = "$" + saldo.toLocaleString("es-AR");
+    monto.value = saldo.toFixed(2);
+    monto.max = saldo.toFixed(2);
+
+    modal.classList.add("abierto");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    setTimeout(function(){ monto.focus(); monto.select(); }, 50);
+}
+
+function cerrarPagoCliente() {
+    const modal = document.getElementById("modalPagoCliente");
+    modal.classList.remove("abierto");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+}
+
+function cerrarPagoClienteDesdeFondo(event) {
+    if (event.target.id === "modalPagoCliente") cerrarPagoCliente();
+}
+
+document.addEventListener("keydown", function(event) {
+    if (event.key === "Escape") {
+        const editor = document.getElementById("editorCliente");
+        if (editor && !editor.hidden) cancelarEdicionCliente();
+        else cerrarPagoCliente();
+    }
+});
+</script>
+</body>
+</html>
