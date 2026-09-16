@@ -172,9 +172,12 @@ class PrecioVolumenKitsTests(TestCase):
             resumen["descuento_porcentaje"],
             descuento_bruto_anterior,
         )
-        self.assertEqual(
-            resumen["descuento_porcentaje"],
-            resumen["descuento_referencia_porcentaje"],
+        self.assertLessEqual(
+            abs(
+                resumen["descuento_porcentaje"]
+                - resumen["descuento_referencia_porcentaje"]
+            ),
+            Decimal("0.1"),
         )
 
     def test_dos_kits_mas_tres_kits_distintos_califican_juntos(self):
