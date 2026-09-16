@@ -22,6 +22,8 @@
             --green-text:#28633c;
             --amber:#fff5d8;
             --amber-text:#775a13;
+            --red:#fdeaea;
+            --red-text:#913b3b;
             --blue:#edf4ff;
             --blue-text:#315f9f;
             --shadow:0 5px 20px rgba(28,33,40,.055);
@@ -157,10 +159,7 @@
             font-weight:900;
         }
 
-        .lista{
-            display:grid;
-            gap:9px;
-        }
+        .lista{display:grid;gap:9px}
         .cliente{
             display:grid;
             grid-template-columns:minmax(280px,1.5fr) 100px 145px 145px 50px;
@@ -178,192 +177,96 @@
             border-color:#ced4db;
             box-shadow:0 7px 22px rgba(28,33,40,.07);
         }
-        .cliente-identidad{
-            min-width:0;
-            display:flex;
-            align-items:center;
-            gap:12px;
-        }
+        .cliente-identidad{min-width:0;display:flex;align-items:center;gap:12px}
         .avatar{
-            width:42px;
-            height:42px;
-            flex:0 0 42px;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            border-radius:13px;
-            background:#eef0f3;
-            color:#4e545c;
-            font-size:15px;
-            font-weight:900;
+            width:42px;height:42px;flex:0 0 42px;
+            display:flex;align-items:center;justify-content:center;
+            border-radius:13px;background:#eef0f3;color:#4e545c;
+            font-size:15px;font-weight:900;
         }
         .cliente-texto{min-width:0}
         .cliente-nombre{
-            display:block;
-            overflow:hidden;
-            color:var(--text);
-            font-size:14px;
-            font-weight:900;
-            text-decoration:none;
-            text-overflow:ellipsis;
-            white-space:nowrap;
+            display:block;overflow:hidden;color:var(--text);
+            font-size:14px;font-weight:900;text-decoration:none;
+            text-overflow:ellipsis;white-space:nowrap;
         }
-        .cliente-codigo{
-            margin-left:5px;
-            color:#a0a5ad;
-            font-size:8px;
-            font-weight:900;
-        }
+        .cliente-codigo{margin-left:5px;color:#a0a5ad;font-size:8px;font-weight:900}
         .cliente-contacto{
-            margin-top:4px;
-            display:flex;
-            gap:8px;
-            flex-wrap:wrap;
-            color:var(--muted);
-            font-size:9px;
-            line-height:1.35;
+            margin-top:4px;display:flex;gap:8px;flex-wrap:wrap;
+            color:var(--muted);font-size:9px;line-height:1.35;
         }
         .cliente-contacto span{
-            max-width:240px;
-            overflow:hidden;
-            text-overflow:ellipsis;
-            white-space:nowrap;
+            max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
         }
-        .ultima-compra{
-            margin-top:4px;
-            color:#9a9fa7;
-            font-size:8px;
+        .ultima-compra{margin-top:4px;color:#9a9fa7;font-size:8px}
+        .badge-cancelado{
+            display:inline-flex;align-items:center;min-height:18px;margin-left:5px;
+            padding:0 6px;border-radius:999px;background:var(--red);color:var(--red-text);
+            font-size:7px;font-weight:900;vertical-align:middle;
         }
+        .historial-nota{margin-top:3px;color:#a0a5ad;font-size:7px;font-weight:800}
 
-        .columna{
-            min-width:0;
-            padding:5px 6px;
-        }
-        .columna-label{
-            color:var(--muted);
-            font-size:7px;
-            font-weight:900;
-            letter-spacing:.2px;
-        }
+        .columna{min-width:0;padding:5px 6px}
+        .columna-label{color:var(--muted);font-size:7px;font-weight:900;letter-spacing:.2px}
         .columna-valor{
-            margin-top:4px;
-            overflow:hidden;
-            font-size:12px;
-            font-weight:900;
-            text-overflow:ellipsis;
-            white-space:nowrap;
+            margin-top:4px;overflow:hidden;font-size:12px;font-weight:900;
+            text-overflow:ellipsis;white-space:nowrap;
         }
         .columna.saldo-activo{
-            padding:9px 10px;
-            border-radius:11px;
-            background:var(--amber);
-            color:var(--amber-text);
+            padding:9px 10px;border-radius:11px;background:var(--amber);color:var(--amber-text);
         }
         .columna.saldo-activo .columna-label{color:var(--amber-text);opacity:.75}
         .btn-ver{
-            width:42px;
-            height:42px;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            border:1px solid var(--line);
-            border-radius:12px;
-            background:#fff;
-            color:var(--text);
-            text-decoration:none;
-            font-size:18px;
-            font-weight:900;
+            width:42px;height:42px;display:flex;align-items:center;justify-content:center;
+            border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--text);
+            text-decoration:none;font-size:18px;font-weight:900;
         }
         .btn-ver:hover{background:var(--dark);border-color:var(--dark);color:#fff}
 
         .vacio{
-            padding:54px 20px;
-            border:1px dashed #d7dbe0;
-            border-radius:18px;
-            background:#fff;
-            color:var(--muted);
-            text-align:center;
+            padding:54px 20px;border:1px dashed #d7dbe0;border-radius:18px;
+            background:#fff;color:var(--muted);text-align:center;
         }
         .vacio strong{display:block;margin-bottom:6px;color:var(--text);font-size:14px}
 
         .nav-inferior{
-            position:fixed;
-            z-index:50;
-            left:50%;
-            bottom:max(10px,env(safe-area-inset-bottom));
-            transform:translateX(-50%);
-            width:min(720px,calc(100% - 20px));
-            display:grid;
-            grid-template-columns:repeat(5,1fr);
-            gap:4px;
-            padding:7px;
-            border-radius:20px;
-            background:rgba(35,38,43,.96);
-            box-shadow:0 12px 35px rgba(0,0,0,.22);
-            backdrop-filter:blur(14px);
+            position:fixed;z-index:50;left:50%;bottom:max(10px,env(safe-area-inset-bottom));
+            transform:translateX(-50%);width:min(720px,calc(100% - 20px));
+            display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:7px;
+            border-radius:20px;background:rgba(35,38,43,.96);
+            box-shadow:0 12px 35px rgba(0,0,0,.22);backdrop-filter:blur(14px);
         }
         .nav-item{
-            min-height:58px;
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            justify-content:center;
-            gap:4px;
-            border-radius:14px;
-            color:#d9dbe0;
-            text-decoration:none;
-            font-size:9px;
-            font-weight:bold;
+            min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+            gap:4px;border-radius:14px;color:#d9dbe0;text-decoration:none;font-size:9px;font-weight:bold;
         }
         .nav-item span:first-child{font-size:19px}
         .nav-item.nuevo-nav{background:#fff;color:var(--dark)}
 
         @media(max-width:900px){
             .resumen{grid-template-columns:repeat(2,1fr)}
-            .cliente{
-                grid-template-columns:minmax(0,1fr) 90px 125px 44px;
-            }
+            .cliente{grid-template-columns:minmax(0,1fr) 90px 125px 44px}
             .cliente .comprado{display:none}
         }
-
         @media(max-width:650px){
             .contenedor{padding:16px 10px 28px}
             .encabezado{align-items:flex-start;flex-direction:column}
             .acciones-encabezado{width:100%}
             .btn-secundario,.btn-principal{flex:1}
-            .resumen{
-                display:flex;
-                overflow-x:auto;
-                gap:8px;
-                padding-bottom:2px;
-                scrollbar-width:none;
-            }
+            .resumen{display:flex;overflow-x:auto;gap:8px;padding-bottom:2px;scrollbar-width:none}
             .resumen::-webkit-scrollbar{display:none}
             .resumen-card{min-width:155px}
             .herramientas{align-items:stretch;flex-direction:column;gap:7px}
             .resultado-busqueda{padding-left:2px}
-            .cliente{
-                position:relative;
-                grid-template-columns:1fr;
-                gap:10px;
-                padding:14px;
-            }
+            .cliente{position:relative;grid-template-columns:1fr;gap:10px;padding:14px}
             .cliente-identidad{padding-right:50px}
             .cliente .columna{
-                display:inline-block;
-                width:calc(33.333% - 5px);
-                padding:9px;
-                vertical-align:top;
-                border-radius:10px;
-                background:var(--surface-soft);
+                display:inline-block;width:calc(33.333% - 5px);padding:9px;vertical-align:top;
+                border-radius:10px;background:var(--surface-soft);
             }
             .cliente .comprado{display:inline-block}
             .cliente .columna.saldo-activo{background:var(--amber)}
-            .btn-ver{
-                position:absolute;
-                top:14px;
-                right:14px;
-            }
+            .btn-ver{position:absolute;top:14px;right:14px}
             .cliente-contacto{display:grid;gap:3px}
             .nav-inferior{width:calc(100% - 12px);bottom:max(6px,env(safe-area-inset-bottom))}
         }
@@ -405,17 +308,8 @@
 
     <div class="herramientas">
         <form method="get" class="buscador">
-            <input
-                type="search"
-                name="q"
-                value="{{ busqueda }}"
-                placeholder="Buscar cliente, teléfono o email..."
-                aria-label="Buscar clientes"
-                autocomplete="off"
-            >
-            {% if busqueda %}
-                <a class="limpiar" href="{% url 'clientes:lista' %}" aria-label="Limpiar búsqueda">×</a>
-            {% endif %}
+            <input type="search" name="q" value="{{ busqueda }}" placeholder="Buscar cliente, teléfono o email..." aria-label="Buscar clientes" autocomplete="off">
+            {% if busqueda %}<a class="limpiar" href="{% url 'clientes:lista' %}" aria-label="Limpiar búsqueda">×</a>{% endif %}
         </form>
         <div class="resultado-busqueda">
             {% if busqueda %}{{ cantidad_clientes }} RESULTADO{{ cantidad_clientes|pluralize:"S" }}{% else %}ORDENADOS POR NOMBRE{% endif %}
@@ -441,10 +335,14 @@
                             <div class="ultima-compra">
                                 {% if item.ultimo_pedido %}
                                     Último pedido {{ item.ultimo_pedido.codigo }} · {{ item.ultimo_pedido.fecha|date:"d/m/Y" }}
+                                    {% if item.ultimo_pedido.estado == "CANCELADO" %}<span class="badge-cancelado">CANCELADO</span>{% endif %}
                                 {% else %}
                                     Sin pedidos todavía
                                 {% endif %}
                             </div>
+                            {% if item.cantidad_cancelados %}
+                                <div class="historial-nota">{{ item.cantidad_cancelados }} cancelado{{ item.cantidad_cancelados|pluralize:"s" }} conservado{{ item.cantidad_cancelados|pluralize:"s" }} en historial</div>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -452,17 +350,14 @@
                         <div class="columna-label">PEDIDOS</div>
                         <div class="columna-valor">{{ item.cantidad_pedidos }}</div>
                     </div>
-
                     <div class="columna comprado">
                         <div class="columna-label">COMPRADO</div>
                         <div class="columna-valor">${{ item.total_comprado|floatformat:0 }}</div>
                     </div>
-
                     <div class="columna {% if item.saldo_pendiente > 0 %}saldo-activo{% endif %}">
                         <div class="columna-label">SALDO</div>
                         <div class="columna-valor">${{ item.saldo_pendiente|floatformat:0 }}</div>
                     </div>
-
                     <a class="btn-ver" href="{% url 'clientes:detalle' item.cliente.id %}" aria-label="Ver {{ item.cliente.nombre }}">›</a>
                 </article>
             {% endfor %}
@@ -470,11 +365,7 @@
     {% else %}
         <div class="vacio">
             <strong>No encontramos clientes</strong>
-            {% if busqueda %}
-                Probá con otro nombre, teléfono o email.
-            {% else %}
-                Los clientes aparecerán acá cuando los cargues desde un pedido.
-            {% endif %}
+            {% if busqueda %}Probá con otro nombre, teléfono o email.{% else %}Los clientes aparecerán acá cuando los cargues desde un pedido.{% endif %}
         </div>
     {% endif %}
 </div>
