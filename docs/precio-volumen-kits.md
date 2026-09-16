@@ -10,6 +10,7 @@ El volumen se calcula con la cantidad real de productos contenidos en los kits d
 - El margen objetivo se obtiene de la curva de cantidad usando el total de piezas agrupadas.
 - La recomendación conservadora de una unidad de cada kit funciona como referencia técnica para obtener el porcentaje de descuento por volumen.
 - Ese porcentaje se aplica sobre el precio real configurado del kit. Si el precio fue fijado por comparación de mercado por encima de la referencia técnica, el diferencial de mercado se conserva y no se transforma automáticamente en descuento.
+- El precio final se redondea monetariamente; por eso el porcentaje efectivo mostrado puede variar una décima respecto del porcentaje técnico de referencia.
 - Ninguna línea se descuenta por debajo del margen mínimo operativo.
 - Si un precio de lista ya está por debajo del piso rentable, el sistema no lo aumenta automáticamente y tampoco le aplica un descuento adicional.
 
