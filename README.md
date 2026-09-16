@@ -17,6 +17,14 @@ Sistema interno de gestión para **Doble V 3D**, desarrollado con Django para ce
 - Auditoría de operaciones.
 - Interfaz responsive para escritorio, tablet y móvil.
 
+## Clientes
+
+El módulo de clientes concentra contacto, historial de compra, pagos y saldo pendiente.
+
+El listado precarga los pedidos de todos los clientes para evitar consultas repetidas por cliente y muestra un resumen operativo de cantidad de clientes, clientes con saldo, total comprado y saldo pendiente.
+
+El detalle abre por defecto en **modo consulta**. Los datos personales no aparecen como formulario editable hasta que el usuario presiona el botón con lápiz. La edición se realiza inline, con opción de cancelar sin guardar. Desde la misma ficha se puede crear un nuevo pedido, gestionar pedidos existentes y registrar pagos.
+
 ## Precios, costos y rentabilidad
 
 El sistema calcula costos productivos considerando, entre otros datos configurados:
@@ -176,6 +184,12 @@ Para ejecutar los tests de Django:
 python manage.py test
 ```
 
+Para validar el módulo de clientes:
+
+```bash
+python manage.py test clientes --verbosity 2
+```
+
 Para validar específicamente la lógica de precio por volumen de kits:
 
 ```bash
@@ -190,6 +204,8 @@ python manage.py test pedidos.test_precio_acordado_kits --verbosity 2
 
 Estos conjuntos cubren, entre otros casos:
 
+- listado, búsqueda, vista y edición de clientes;
+- acciones disponibles según el estado de los pedidos del cliente;
 - activación del precio mayorista desde 5 kits;
 - combinación de distintos kits en un mismo pedido;
 - cálculo según cantidad real de piezas;
