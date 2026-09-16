@@ -5,6 +5,7 @@ from calculadora.precios import (
     MARGEN_MINIMO,
     calcular_costo_productivo_producto,
     margen_sugerido,
+    margenes_escenario,
     precio_mayorista,
     redondear_arriba,
 )
@@ -102,6 +103,36 @@ def _preparar_linea(item):
         Decimal("100"),
     )
 
+    # Referencia técnica de una unidad del kit. La usamos únicamente para
+    # determinar qué porcentaje de descuento corresponde por volumen. El
+    # importe final se calcula sobre el precio real configurado del kit.
+    precio_referencia_conservador_unitario = Decimal("0")
+    precio_referencia_conservador_total = Decimal("0")
+    margen_conservador_referencia = margen_ponderado
+
+    if cantidad_kits > 0 and piezas > 0 and costo_total > 0:
+        divisor = Decimal(cantidad_kits)
+        costo_por_kit = costo_total / divisor
+        piezas_por_kit = max(
+            int(
+                (Decimal(piezas) / divisor).to_integral_value(
+                    rounding=ROUND_CEILING
+                )
+            ),
+            1,
+        )
+        margen_conservador_referencia = margenes_escenario(
+            piezas_por_kit,
+            margen_ponderado,
+        )["conservador"]
+        precio_referencia_conservador_unitario = redondear_arriba(
+            precio_mayorista(costo_por_kit, margen_conservador_referencia),
+            Decimal("100"),
+        )
+        precio_referencia_conservador_total = (
+            precio_referencia_conservador_unitario * divisor
+        )
+
     # Nunca se sube automáticamente un precio de lista que ya esté por debajo
     # del piso. En ese caso la línea simplemente no tiene capacidad de descuento.
     piso_aplicable = min(precio_piso_total, precio_lista_total)
@@ -109,6 +140,20 @@ def _preparar_linea(item):
         precio_lista_total - piso_aplicable,
         Decimal("0"),
     )
+
+    premium_mercado_porcentaje = Decimal("0")
+    if (
+        precio_referencia_conservador_unitario > 0
+        and precio_unitario_lista > precio_referencia_conservador_unitario
+    ):
+        premium_mercado_porcentaje = (
+            (
+                precio_unitario_lista
+                / precio_referencia_conservador_unitario
+                - Decimal("1")
+            )
+            * Decimal("100")
+        ).quantize(Decimal("0.1"))
 
     return {
         "key": str(item.get("key") or ""),
@@ -121,6 +166,14 @@ def _preparar_linea(item):
         "precio_lista_total": precio_lista_total,
         "costo_total": costo_total,
         "margen_ponderado": margen_ponderado,
+        "margen_conservador_referencia": margen_conservador_referencia,
+        "precio_referencia_conservador_unitario": (
+            precio_referencia_conservador_unitario
+        ),
+        "precio_referencia_conservador_total": (
+            precio_referencia_conservador_total
+        ),
+        "premium_mercado_porcentaje": premium_mercado_porcentaje,
         "precio_piso_total": precio_piso_total,
         "piso_aplicable": piso_aplicable,
         "capacidad_descuento": capacidad_descuento,
@@ -135,7 +188,9 @@ def calcular_precio_volumen_kits(items):
     - La lógica se activa desde 5 kits totales.
     - La intensidad del descuento depende de la cantidad REAL de productos
       contenidos dentro de esos kits, no sólo del número de kits.
-    - El margen base se pondera por el costo real de los componentes.
+    - La curva de costos/margen determina el PORCENTAJE de descuento técnico.
+    - Ese porcentaje se aplica sobre el precio real configurado de los kits,
+      conservando así su posicionamiento de mercado.
     - El descuento nunca baja una línea por debajo de MARGEN_MINIMO.
     - Si el precio actual ya está por debajo del piso, no se lo aumenta ni se
       lo descuenta automáticamente.
@@ -154,6 +209,13 @@ def calcular_precio_volumen_kits(items):
     )
     costo_total = sum(
         (linea["costo_total"] for linea in lineas),
+        Decimal("0"),
+    )
+    precio_referencia_conservador_total = sum(
+        (
+            linea["precio_referencia_conservador_total"]
+            for linea in lineas
+        ),
         Decimal("0"),
     )
 
@@ -189,13 +251,56 @@ def calcular_precio_volumen_kits(items):
         else margen_tope_ponderado
     )
 
-    precio_objetivo_total = (
+    # Precio técnico puro: es lo que daría el cálculo anterior mirando sólo
+    # costo + margen. Se conserva como piso de referencia, pero ya no reemplaza
+    # directamente al precio real fijado por mercado.
+    precio_objetivo_tecnico_total = (
         redondear_arriba(
             precio_mayorista(costo_total, margen_objetivo),
             Decimal("100"),
         )
         if elegible
         else precio_lista_total
+    )
+
+    descuento_referencia = Decimal("0")
+    if (
+        elegible
+        and precio_referencia_conservador_total > 0
+        and precio_objetivo_tecnico_total < precio_referencia_conservador_total
+    ):
+        descuento_referencia = (
+            precio_referencia_conservador_total
+            - precio_objetivo_tecnico_total
+        ) / precio_referencia_conservador_total
+        descuento_referencia = max(
+            min(descuento_referencia, Decimal("1")),
+            Decimal("0"),
+        )
+
+    descuento_referencia_porcentaje = (
+        descuento_referencia * Decimal("100")
+    ).quantize(Decimal("0.1"))
+
+    # El mismo porcentaje técnico se aplica al precio de lista REAL. Así, si
+    # un kit se vende por encima de la recomendación conservadora porque el
+    # mercado valida ese valor, ese diferencial no se regala por cantidad.
+    if elegible and descuento_referencia > 0:
+        objetivo_desde_precio_real = redondear_arriba(
+            precio_lista_total * (Decimal("1") - descuento_referencia),
+            Decimal("100"),
+        )
+        precio_objetivo_total = min(
+            precio_lista_total,
+            max(precio_objetivo_tecnico_total, objetivo_desde_precio_real),
+        )
+    else:
+        precio_objetivo_total = precio_lista_total
+
+    ajustado_por_precio_real = (
+        elegible
+        and precio_objetivo_total > precio_objetivo_tecnico_total
+        and precio_lista_total > precio_referencia_conservador_total
     )
 
     ahorro_deseado = (
@@ -292,6 +397,12 @@ def calcular_precio_volumen_kits(items):
         "margen_tope_ponderado": margen_tope_ponderado,
         "margen_objetivo": margen_objetivo,
         "margen_minimo": MARGEN_MINIMO,
+        "precio_referencia_conservador_total": (
+            precio_referencia_conservador_total
+        ),
+        "precio_objetivo_tecnico_total": precio_objetivo_tecnico_total,
+        "descuento_referencia_porcentaje": descuento_referencia_porcentaje,
+        "ajustado_por_precio_real": ajustado_por_precio_real,
         "precio_objetivo_total": precio_objetivo_total,
         "precio_final_total": precio_final_total,
         "ahorro": ahorro,
@@ -455,6 +566,16 @@ def resumen_json(resumen):
         "margen_tope_ponderado": float(resumen["margen_tope_ponderado"]),
         "margen_objetivo": float(resumen["margen_objetivo"]),
         "margen_minimo": float(resumen["margen_minimo"]),
+        "precio_referencia_conservador_total": float(
+            resumen["precio_referencia_conservador_total"]
+        ),
+        "precio_objetivo_tecnico_total": float(
+            resumen["precio_objetivo_tecnico_total"]
+        ),
+        "descuento_referencia_porcentaje": float(
+            resumen["descuento_referencia_porcentaje"]
+        ),
+        "ajustado_por_precio_real": bool(resumen["ajustado_por_precio_real"]),
         "precio_objetivo_total": float(resumen["precio_objetivo_total"]),
         "precio_final_total": float(resumen["precio_final_total"]),
         "ahorro": float(resumen["ahorro"]),
@@ -472,6 +593,12 @@ def resumen_json(resumen):
                 "precio_unitario_final": float(linea["precio_unitario_final"]),
                 "precio_lista_total": float(linea["precio_lista_total"]),
                 "precio_final_total": float(linea["precio_final_total"]),
+                "precio_referencia_conservador_unitario": float(
+                    linea["precio_referencia_conservador_unitario"]
+                ),
+                "premium_mercado_porcentaje": float(
+                    linea["premium_mercado_porcentaje"]
+                ),
                 "ahorro": float(linea["ahorro"]),
                 "descuento_porcentaje": float(linea["descuento_porcentaje"]),
             }
