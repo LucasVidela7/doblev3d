@@ -198,8 +198,6 @@ body.dv-pedido-form-page textarea:focus{
     line-height:1.4;
 }
 
-/* Editar Pedido históricamente tenía Tipo/Cantidad arriba y selector abajo.
-   En escritorio lo compactamos y damos una jerarquía equivalente a Nuevo. */
 body.dv-pedido-form-page .item > .grid{
     align-items:start!important;
 }
@@ -257,6 +255,18 @@ PEDIDO_FORM_SCRIPT = r"""
         }).format(Number(valor || 0));
     }
 
+    function textoSiCambio(elemento, texto){
+        if (elemento && elemento.textContent !== texto) {
+            elemento.textContent = texto;
+        }
+    }
+
+    function htmlSiCambio(elemento, html){
+        if (elemento && elemento.innerHTML !== html) {
+            elemento.innerHTML = html;
+        }
+    }
+
     function indiceDe(item){
         const campo = item.querySelector('input[name="item_indice"]');
         return campo ? String(campo.value || '') : '';
@@ -306,11 +316,10 @@ PEDIDO_FORM_SCRIPT = r"""
             item.querySelector(`#precio_unitario_kit_${indice}`)?.value || 0
         );
         const total = item.querySelector(`#dv_kit_total_${indice}`);
-        if (!total) return;
-
-        total.textContent = cantidad > 0 && precio > 0
+        const texto = cantidad > 0 && precio > 0
             ? `Total del kit: $${moneda(cantidad * precio)}`
             : 'Total del kit: —';
+        textoSiCambio(total, texto);
     }
 
     function pintarEstado(item, indice){
@@ -318,7 +327,7 @@ PEDIDO_FORM_SCRIPT = r"""
         const estado = item.querySelector(`#dv_kit_estado_${indice}`);
         if (!estado) return;
 
-        estado.textContent = manual ? 'PRECIO ACORDADO' : 'AUTOMÁTICO';
+        textoSiCambio(estado, manual ? 'PRECIO ACORDADO' : 'AUTOMÁTICO');
         estado.classList.toggle('manual', manual);
     }
 
@@ -407,22 +416,27 @@ PEDIDO_FORM_SCRIPT = r"""
 
         const esKit = !!tipo && tipo.value === 'KIT';
         caja.classList.toggle('dv-hidden', !esKit);
-        item.dataset.dvKind = tipo?.value || '';
-        actualizarBadge(item, tipo?.value || '');
+
+        const kind = tipo?.value || '';
+        if (item.dataset.dvKind !== kind) item.dataset.dvKind = kind;
+        actualizarBadge(item, kind);
 
         if (!esKit || !selector || !selector.value){
             return;
         }
 
         const kitId = String(selector.value);
-        const cambioKit = caja.dataset.kitId && caja.dataset.kitId !== kitId;
+        const cambioKit = !!caja.dataset.kitId && caja.dataset.kitId !== kitId;
 
         try{
             const data = await datosKit(kitId);
             if (!data || String(selector.value) !== kitId) return;
 
             const precioLista = Number(data.kit?.precio || 0);
-            caja.dataset.precioLista = String(precioLista || 0);
+            const precioListaTexto = String(precioLista || 0);
+            if (caja.dataset.precioLista !== precioListaTexto) {
+                caja.dataset.precioLista = precioListaTexto;
+            }
 
             const precio = caja.querySelector(`#precio_unitario_kit_${indice}`);
             const manual = caja.querySelector(`#precio_kit_manual_${indice}`);
@@ -444,18 +458,22 @@ PEDIDO_FORM_SCRIPT = r"""
                 caja.dataset.kitId = kitId;
             }
 
-            referencia.innerHTML = precioLista > 0
+            const refHtml = precioLista > 0
                 ? `Precio configurado del kit: <strong>$${moneda(precioLista)}/u</strong>. `
                     + (manual.value === '1'
                         ? 'El importe acordado prevalece sobre el descuento automático.'
                         : 'Si el pedido califica por volumen, el sistema puede recalcularlo al guardar.')
                 : 'Este kit no tiene un precio de lista válido.';
+            htmlSiCambio(referencia, refHtml);
 
             pintarEstado(item, indice);
             actualizarTotal(item, indice);
         }catch(error){
             const referencia = caja.querySelector(`#dv_kit_ref_${indice}`);
-            if (referencia) referencia.textContent = 'No se pudo cargar la referencia de precio del kit.';
+            textoSiCambio(
+                referencia,
+                'No se pudo cargar la referencia de precio del kit.'
+            );
         }
     }
 
@@ -470,16 +488,20 @@ PEDIDO_FORM_SCRIPT = r"""
             if (titulo) titulo.insertAdjacentElement('afterend', badge);
             else head.prepend(badge);
         }
-        badge.textContent = tipo === 'KIT'
+        const texto = tipo === 'KIT'
             ? 'KIT'
             : (tipo === 'PERSONALIZADO' ? 'PERSONALIZADO' : 'PRODUCTO');
+        textoSiCambio(badge, texto);
     }
 
     function actualizarContador(){
         const contador = document.querySelector('.dv-items-count');
         if (!contador) return;
         const cantidad = document.querySelectorAll('#items .item').length;
-        contador.textContent = `${cantidad} ${cantidad === 1 ? 'ITEM' : 'ITEMS'}`;
+        textoSiCambio(
+            contador,
+            `${cantidad} ${cantidad === 1 ? 'ITEM' : 'ITEMS'}`
+        );
     }
 
     function asegurarEncabezadoItems(){
@@ -520,9 +542,10 @@ PEDIDO_FORM_SCRIPT = r"""
                 nota.className = 'dv-manual-volume-note';
                 panel.appendChild(nota);
             }
-            nota.textContent = manuales === 1
+            const texto = manuales === 1
                 ? 'Hay un kit con precio acordado manualmente. Ese importe prevalece al guardar; el cálculo mayorista se mantiene como referencia.'
                 : `Hay ${manuales} kits con precio acordado manualmente. Esos importes prevalecen al guardar; el cálculo mayorista se mantiene como referencia.`;
+            textoSiCambio(nota, texto);
         } else if (nota){
             nota.remove();
         }
