@@ -1,0 +1,490 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
+    <link rel="apple-touch-icon" href="{% static 'brand/apple-touch-icon.png' %}">
+    <link rel="stylesheet" href="{% static 'brand/brand.css' %}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Clientes | Doble V 3D</title>
+
+    <style>
+        :root{
+            --bg:#f5f6f8;
+            --surface:#fff;
+            --surface-soft:#f8f9fb;
+            --text:#25282d;
+            --muted:#777d86;
+            --line:#e3e6ea;
+            --dark:#25282d;
+            --green:#eaf7ee;
+            --green-text:#28633c;
+            --amber:#fff5d8;
+            --amber-text:#775a13;
+            --blue:#edf4ff;
+            --blue-text:#315f9f;
+            --shadow:0 5px 20px rgba(28,33,40,.055);
+        }
+
+        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{
+            margin:0;
+            padding:0 0 calc(94px + env(safe-area-inset-bottom));
+            font-family:Arial,sans-serif;
+            background:var(--bg);
+            color:var(--text);
+        }
+        a,button,input{touch-action:manipulation}
+        .contenedor{
+            width:min(1180px,100%);
+            margin:auto;
+            padding:22px 18px 34px;
+        }
+
+        .encabezado{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:18px;
+            margin-bottom:18px;
+        }
+        h1{margin:0 0 5px;font-size:clamp(26px,4vw,34px)}
+        .subtitulo{color:var(--muted);font-size:13px}
+        .acciones-encabezado{display:flex;gap:9px}
+        .btn-secundario,.btn-principal{
+            min-height:48px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            padding:0 17px;
+            border-radius:13px;
+            font-size:10px;
+            font-weight:900;
+            text-decoration:none;
+            cursor:pointer;
+        }
+        .btn-secundario{border:1px solid var(--line);background:#fff;color:var(--text)}
+        .btn-principal{border:1px solid var(--dark);background:var(--dark);color:#fff}
+
+        .resumen{
+            display:grid;
+            grid-template-columns:repeat(4,minmax(0,1fr));
+            gap:10px;
+            margin-bottom:14px;
+        }
+        .resumen-card{
+            padding:14px 15px;
+            border:1px solid var(--line);
+            border-radius:16px;
+            background:#fff;
+            box-shadow:var(--shadow);
+        }
+        .resumen-label{
+            color:var(--muted);
+            font-size:8px;
+            font-weight:900;
+            letter-spacing:.25px;
+        }
+        .resumen-valor{
+            margin-top:6px;
+            font-size:19px;
+            font-weight:900;
+            line-height:1.15;
+        }
+        .resumen-card.saldo{
+            background:var(--amber);
+            border-color:#efdda3;
+        }
+        .resumen-card.saldo .resumen-label,
+        .resumen-card.saldo .resumen-valor{color:var(--amber-text)}
+
+        .herramientas{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            margin-bottom:14px;
+        }
+        .buscador{
+            flex:1;
+            position:relative;
+            margin:0;
+        }
+        .buscador::before{
+            content:"⌕";
+            position:absolute;
+            left:14px;
+            top:50%;
+            transform:translateY(-50%);
+            color:#8b9199;
+            font-size:22px;
+            pointer-events:none;
+        }
+        .buscador input{
+            width:100%;
+            min-height:50px;
+            padding:0 46px 0 43px;
+            border:1px solid var(--line);
+            border-radius:14px;
+            background:#fff;
+            font-size:14px;
+            outline:none;
+            box-shadow:var(--shadow);
+        }
+        .buscador input:focus{
+            border-color:#aab9ca;
+            box-shadow:0 0 0 3px rgba(84,119,157,.10),var(--shadow);
+        }
+        .limpiar{
+            position:absolute;
+            right:8px;
+            top:50%;
+            transform:translateY(-50%);
+            width:34px;
+            height:34px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            border-radius:10px;
+            color:#6f747b;
+            text-decoration:none;
+            font-size:16px;
+        }
+        .resultado-busqueda{
+            flex:0 0 auto;
+            color:var(--muted);
+            font-size:9px;
+            font-weight:900;
+        }
+
+        .lista{
+            display:grid;
+            gap:9px;
+        }
+        .cliente{
+            display:grid;
+            grid-template-columns:minmax(280px,1.5fr) 100px 145px 145px 50px;
+            align-items:center;
+            gap:10px;
+            padding:13px 14px;
+            border:1px solid var(--line);
+            border-radius:16px;
+            background:#fff;
+            box-shadow:0 3px 14px rgba(28,33,40,.04);
+            transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease;
+        }
+        .cliente:hover{
+            transform:translateY(-1px);
+            border-color:#ced4db;
+            box-shadow:0 7px 22px rgba(28,33,40,.07);
+        }
+        .cliente-identidad{
+            min-width:0;
+            display:flex;
+            align-items:center;
+            gap:12px;
+        }
+        .avatar{
+            width:42px;
+            height:42px;
+            flex:0 0 42px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            border-radius:13px;
+            background:#eef0f3;
+            color:#4e545c;
+            font-size:15px;
+            font-weight:900;
+        }
+        .cliente-texto{min-width:0}
+        .cliente-nombre{
+            display:block;
+            overflow:hidden;
+            color:var(--text);
+            font-size:14px;
+            font-weight:900;
+            text-decoration:none;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+        .cliente-codigo{
+            margin-left:5px;
+            color:#a0a5ad;
+            font-size:8px;
+            font-weight:900;
+        }
+        .cliente-contacto{
+            margin-top:4px;
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+            color:var(--muted);
+            font-size:9px;
+            line-height:1.35;
+        }
+        .cliente-contacto span{
+            max-width:240px;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+        .ultima-compra{
+            margin-top:4px;
+            color:#9a9fa7;
+            font-size:8px;
+        }
+
+        .columna{
+            min-width:0;
+            padding:5px 6px;
+        }
+        .columna-label{
+            color:var(--muted);
+            font-size:7px;
+            font-weight:900;
+            letter-spacing:.2px;
+        }
+        .columna-valor{
+            margin-top:4px;
+            overflow:hidden;
+            font-size:12px;
+            font-weight:900;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+        .columna.saldo-activo{
+            padding:9px 10px;
+            border-radius:11px;
+            background:var(--amber);
+            color:var(--amber-text);
+        }
+        .columna.saldo-activo .columna-label{color:var(--amber-text);opacity:.75}
+        .btn-ver{
+            width:42px;
+            height:42px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            border:1px solid var(--line);
+            border-radius:12px;
+            background:#fff;
+            color:var(--text);
+            text-decoration:none;
+            font-size:18px;
+            font-weight:900;
+        }
+        .btn-ver:hover{background:var(--dark);border-color:var(--dark);color:#fff}
+
+        .vacio{
+            padding:54px 20px;
+            border:1px dashed #d7dbe0;
+            border-radius:18px;
+            background:#fff;
+            color:var(--muted);
+            text-align:center;
+        }
+        .vacio strong{display:block;margin-bottom:6px;color:var(--text);font-size:14px}
+
+        .nav-inferior{
+            position:fixed;
+            z-index:50;
+            left:50%;
+            bottom:max(10px,env(safe-area-inset-bottom));
+            transform:translateX(-50%);
+            width:min(720px,calc(100% - 20px));
+            display:grid;
+            grid-template-columns:repeat(5,1fr);
+            gap:4px;
+            padding:7px;
+            border-radius:20px;
+            background:rgba(35,38,43,.96);
+            box-shadow:0 12px 35px rgba(0,0,0,.22);
+            backdrop-filter:blur(14px);
+        }
+        .nav-item{
+            min-height:58px;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            gap:4px;
+            border-radius:14px;
+            color:#d9dbe0;
+            text-decoration:none;
+            font-size:9px;
+            font-weight:bold;
+        }
+        .nav-item span:first-child{font-size:19px}
+        .nav-item.nuevo-nav{background:#fff;color:var(--dark)}
+
+        @media(max-width:900px){
+            .resumen{grid-template-columns:repeat(2,1fr)}
+            .cliente{
+                grid-template-columns:minmax(0,1fr) 90px 125px 44px;
+            }
+            .cliente .comprado{display:none}
+        }
+
+        @media(max-width:650px){
+            .contenedor{padding:16px 10px 28px}
+            .encabezado{align-items:flex-start;flex-direction:column}
+            .acciones-encabezado{width:100%}
+            .btn-secundario,.btn-principal{flex:1}
+            .resumen{
+                display:flex;
+                overflow-x:auto;
+                gap:8px;
+                padding-bottom:2px;
+                scrollbar-width:none;
+            }
+            .resumen::-webkit-scrollbar{display:none}
+            .resumen-card{min-width:155px}
+            .herramientas{align-items:stretch;flex-direction:column;gap:7px}
+            .resultado-busqueda{padding-left:2px}
+            .cliente{
+                position:relative;
+                grid-template-columns:1fr;
+                gap:10px;
+                padding:14px;
+            }
+            .cliente-identidad{padding-right:50px}
+            .cliente .columna{
+                display:inline-block;
+                width:calc(33.333% - 5px);
+                padding:9px;
+                vertical-align:top;
+                border-radius:10px;
+                background:var(--surface-soft);
+            }
+            .cliente .comprado{display:inline-block}
+            .cliente .columna.saldo-activo{background:var(--amber)}
+            .btn-ver{
+                position:absolute;
+                top:14px;
+                right:14px;
+            }
+            .cliente-contacto{display:grid;gap:3px}
+            .nav-inferior{width:calc(100% - 12px);bottom:max(6px,env(safe-area-inset-bottom))}
+        }
+    </style>
+</head>
+<body>
+<div class="contenedor">
+    <header class="encabezado">
+        <div class="encabezado-marca">
+            {% include 'shared/brand_bar.html' %}
+            <h1>Clientes</h1>
+            <div class="subtitulo">Contactos, historial de compra y saldos en un solo lugar.</div>
+        </div>
+
+        <div class="acciones-encabezado">
+            <button type="button" class="btn-secundario" onclick="history.back()">← VOLVER</button>
+            <a href="{% url 'dashboard:inicio' %}" class="btn-principal">INICIO</a>
+        </div>
+    </header>
+
+    <section class="resumen" aria-label="Resumen de clientes">
+        <div class="resumen-card">
+            <div class="resumen-label">CLIENTES</div>
+            <div class="resumen-valor">{{ cantidad_clientes }}</div>
+        </div>
+        <div class="resumen-card">
+            <div class="resumen-label">CON SALDO</div>
+            <div class="resumen-valor">{{ clientes_con_saldo }}</div>
+        </div>
+        <div class="resumen-card">
+            <div class="resumen-label">TOTAL COMPRADO</div>
+            <div class="resumen-valor">${{ total_comprado_general|floatformat:0 }}</div>
+        </div>
+        <div class="resumen-card saldo">
+            <div class="resumen-label">SALDO PENDIENTE</div>
+            <div class="resumen-valor">${{ saldo_pendiente_general|floatformat:0 }}</div>
+        </div>
+    </section>
+
+    <div class="herramientas">
+        <form method="get" class="buscador">
+            <input
+                type="search"
+                name="q"
+                value="{{ busqueda }}"
+                placeholder="Buscar cliente, teléfono o email..."
+                aria-label="Buscar clientes"
+                autocomplete="off"
+            >
+            {% if busqueda %}
+                <a class="limpiar" href="{% url 'clientes:lista' %}" aria-label="Limpiar búsqueda">×</a>
+            {% endif %}
+        </form>
+        <div class="resultado-busqueda">
+            {% if busqueda %}{{ cantidad_clientes }} RESULTADO{{ cantidad_clientes|pluralize:"S" }}{% else %}ORDENADOS POR NOMBRE{% endif %}
+        </div>
+    </div>
+
+    {% if filas %}
+        <div class="lista">
+            {% for item in filas %}
+                <article class="cliente">
+                    <div class="cliente-identidad">
+                        <div class="avatar">{{ item.cliente.nombre|first|upper }}</div>
+                        <div class="cliente-texto">
+                            <a class="cliente-nombre" href="{% url 'clientes:detalle' item.cliente.id %}">
+                                {{ item.cliente.nombre }}
+                                <span class="cliente-codigo">{{ item.cliente.codigo }}</span>
+                            </a>
+                            <div class="cliente-contacto">
+                                {% if item.cliente.telefono %}<span>{{ item.cliente.telefono }}</span>{% endif %}
+                                {% if item.cliente.email %}<span>{{ item.cliente.email }}</span>{% endif %}
+                                {% if not item.cliente.telefono and not item.cliente.email %}<span>Sin datos de contacto</span>{% endif %}
+                            </div>
+                            <div class="ultima-compra">
+                                {% if item.ultimo_pedido %}
+                                    Último pedido {{ item.ultimo_pedido.codigo }} · {{ item.ultimo_pedido.fecha|date:"d/m/Y" }}
+                                {% else %}
+                                    Sin pedidos todavía
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="columna">
+                        <div class="columna-label">PEDIDOS</div>
+                        <div class="columna-valor">{{ item.cantidad_pedidos }}</div>
+                    </div>
+
+                    <div class="columna comprado">
+                        <div class="columna-label">COMPRADO</div>
+                        <div class="columna-valor">${{ item.total_comprado|floatformat:0 }}</div>
+                    </div>
+
+                    <div class="columna {% if item.saldo_pendiente > 0 %}saldo-activo{% endif %}">
+                        <div class="columna-label">SALDO</div>
+                        <div class="columna-valor">${{ item.saldo_pendiente|floatformat:0 }}</div>
+                    </div>
+
+                    <a class="btn-ver" href="{% url 'clientes:detalle' item.cliente.id %}" aria-label="Ver {{ item.cliente.nombre }}">›</a>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="vacio">
+            <strong>No encontramos clientes</strong>
+            {% if busqueda %}
+                Probá con otro nombre, teléfono o email.
+            {% else %}
+                Los clientes aparecerán acá cuando los cargues desde un pedido.
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<nav class="nav-inferior" aria-label="Navegación principal">
+    <a class="nav-item" href="{% url 'dashboard:inicio' %}"><span>⌂</span><span>Inicio</span></a>
+    <a class="nav-item" href="{% url 'pedidos:impresiones' %}"><span>📦</span><span>Pedidos</span></a>
+    <a class="nav-item nuevo-nav" href="{% url 'pedidos:nuevo' %}"><span>＋</span><span>Nuevo</span></a>
+    <a class="nav-item" href="{% url 'produccion:lista' %}"><span>⚙</span><span>Producción</span></a>
+    <a class="nav-item" href="{% url 'productos:lista' %}"><span>▦</span><span>Productos</span></a>
+</nav>
+</body>
+</html>
