@@ -4,6 +4,7 @@ from math import log10
 MARGEN_MINIMO = Decimal("22.5")
 CANTIDAD_PISO_MARGEN = Decimal("1500")
 DIFERENCIA_ESCENARIO = Decimal("4")
+CANTIDAD_FILAMENTO_ECONOMICO = 5
 
 
 def redondear_arriba(valor, multiplo=Decimal("100")):
@@ -126,13 +127,147 @@ def margenes_escenario(cantidad, margen_tope):
     }
 
 
-def calcular_escenarios_producto(producto, cantidad):
+def calcular_costo_productivo_producto(
+    producto,
+    cantidad=1,
+    forzar_filamento_economico=False,
+):
+    """Recalcula el costo sin modificar el costo minorista del producto.
+
+    El precio estándar de filamento sigue siendo la referencia de lista.
+    La calculadora usa el precio económico desde 5 unidades, y los kits
+    pueden forzarlo aunque cada componente aparezca una sola vez.
+    """
+    cantidad = max(int(cantidad or 1), 1)
+    cero = Decimal("0")
+
+    if not producto.requiere_impresion:
+        return {
+            "config": None,
+            "cantidad": cantidad,
+            "horas_totales": cero,
+            "peso_gramos": cero,
+            "precio_filamento_kg": cero,
+            "filamento_economico": False,
+            "tipo_filamento": "estandar",
+            "costo_luz": cero,
+            "costo_material": cero,
+            "amortizacion": cero,
+            "provision_fallos": cero,
+            "costo": cero,
+            "seguro": cero,
+            "costo_productivo": cero,
+        }
+
+    config = producto.obtener_configuracion()
+    if not config:
+        return {
+            "config": None,
+            "cantidad": cantidad,
+            "horas_totales": cero,
+            "peso_gramos": Decimal(str(producto.peso_gramos or 0)),
+            "precio_filamento_kg": cero,
+            "filamento_economico": False,
+            "tipo_filamento": "estandar",
+            "costo_luz": cero,
+            "costo_material": cero,
+            "amortizacion": cero,
+            "provision_fallos": cero,
+            "costo": cero,
+            "seguro": cero,
+            "costo_productivo": cero,
+        }
+
+    precio_estandar = max(
+        Decimal(str(config.coste_plastico_kg or 0)),
+        cero,
+    )
+    precio_cantidad_configurado = max(
+        Decimal(str(config.coste_plastico_kg_cantidad or 0)),
+        cero,
+    )
+    precio_cantidad = Decimal(
+        str(config.coste_plastico_kg_cantidad_efectivo)
+    )
+
+    solicitar_economico = (
+        bool(forzar_filamento_economico)
+        or cantidad >= CANTIDAD_FILAMENTO_ECONOMICO
+    )
+    filamento_economico = (
+        solicitar_economico
+        and precio_cantidad_configurado > 0
+        and (
+            precio_estandar <= 0
+            or precio_cantidad < precio_estandar
+        )
+    )
+    precio_filamento = (
+        precio_cantidad
+        if filamento_economico
+        else precio_estandar
+    )
+
+    horas_totales = Decimal(str(producto.horas_totales or 0))
+    peso_gramos = max(
+        Decimal(str(producto.peso_gramos or 0)),
+        cero,
+    )
+    costo_luz = horas_totales * Decimal(str(config.coste_luz_hora or 0))
+    costo_material = (
+        peso_gramos
+        * precio_filamento
+        / Decimal("1000")
+    )
+    costo = costo_luz + costo_material
+    amortizacion = (
+        horas_totales
+        * Decimal(str(config.coste_amortizacion_hora or 0))
+    )
+    tasa_fallos = (
+        Decimal(str(config.tasa_fallos or 0))
+        / Decimal("100")
+    )
+    provision_fallos = (amortizacion + costo) * tasa_fallos
+    seguro = amortizacion + provision_fallos
+
+    return {
+        "config": config,
+        "cantidad": cantidad,
+        "horas_totales": horas_totales,
+        "peso_gramos": peso_gramos,
+        "precio_filamento_kg": precio_filamento,
+        "precio_filamento_estandar_kg": precio_estandar,
+        "precio_filamento_cantidad_kg": precio_cantidad,
+        "filamento_economico": filamento_economico,
+        "tipo_filamento": (
+            "cantidad"
+            if filamento_economico
+            else "estandar"
+        ),
+        "costo_luz": costo_luz,
+        "costo_material": costo_material,
+        "amortizacion": amortizacion,
+        "provision_fallos": provision_fallos,
+        "costo": costo,
+        "seguro": seguro,
+        "costo_productivo": costo + seguro,
+    }
+
+
+def calcular_escenarios_producto(
+    producto,
+    cantidad,
+    forzar_filamento_economico=False,
+):
     cantidad = max(int(cantidad or 1), 1)
 
-    costo_productivo = (
-        Decimal(str(producto.costo))
-        + Decimal(str(producto.seguro))
+    desglose = calcular_costo_productivo_producto(
+        producto,
+        cantidad,
+        forzar_filamento_economico=forzar_filamento_economico,
     )
+    costo_productivo = desglose["costo_productivo"]
 
     margen_tope = max(
         Decimal(str(producto.margen_ganancia)),
@@ -157,6 +292,10 @@ def calcular_escenarios_producto(producto, cantidad):
         "cantidad": cantidad,
         "precio_lista": Decimal(str(producto.subtotal)),
         "costo_productivo": costo_productivo,
+        "precio_filamento_kg": desglose["precio_filamento_kg"],
+        "filamento_economico": desglose["filamento_economico"],
+        "tipo_filamento": desglose["tipo_filamento"],
+        "desglose": desglose,
         "margen_tope": margen_tope,
         "margen_piso": MARGEN_MINIMO,
         "escenarios": escenarios,
@@ -164,12 +303,10 @@ def calcular_escenarios_producto(producto, cantidad):
 
 
 def calcular_escenarios_kit_fijo(componentes):
-    """Calcula un kit fijo usando exactamente la lógica de la calculadora.
+    """Calcula un kit fijo con la misma lógica comercial de la calculadora.
 
-    ``componentes`` es un iterable de diccionarios con ``producto`` y
-    ``cantidad``. Cada producto conserva su propio margen configurado y su
-    descuento por cantidad. El precio final del kit es la suma de los totales
-    recomendados de sus componentes para cada escenario.
+    Los kits usan siempre el costo de filamento para cantidad cuando está
+    configurado, aunque un componente aparezca sólo una vez.
     """
     acumulados = {
         "agresivo": Decimal("0"),
@@ -178,6 +315,8 @@ def calcular_escenarios_kit_fijo(componentes):
     }
     costo_total = Decimal("0")
     detalle = []
+    precio_filamento_kg = Decimal("0")
+    filamento_economico = False
 
     for componente in componentes:
         producto = componente["producto"]
@@ -189,12 +328,20 @@ def calcular_escenarios_kit_fijo(componentes):
         calculo = calcular_escenarios_producto(
             producto,
             cantidad,
+            forzar_filamento_economico=True,
         )
         costo_componente = (
             calculo["costo_productivo"]
             * Decimal(cantidad)
         )
         costo_total += costo_componente
+
+        if calculo["precio_filamento_kg"] > 0:
+            precio_filamento_kg = calculo["precio_filamento_kg"]
+        filamento_economico = (
+            filamento_economico
+            or calculo["filamento_economico"]
+        )
 
         for clave in acumulados:
             acumulados[clave] += calculo[
@@ -208,6 +355,8 @@ def calcular_escenarios_kit_fijo(componentes):
                 "nombre": producto.nombre,
                 "cantidad": cantidad,
                 "costo_total": costo_componente,
+                "precio_filamento_kg": calculo["precio_filamento_kg"],
+                "filamento_economico": calculo["filamento_economico"],
                 "escenarios": calculo["escenarios"],
             }
         )
@@ -232,6 +381,13 @@ def calcular_escenarios_kit_fijo(componentes):
     return {
         "costo_total": costo_total,
         "margen_piso": MARGEN_MINIMO,
+        "precio_filamento_kg": precio_filamento_kg,
+        "filamento_economico": filamento_economico,
+        "tipo_filamento": (
+            "cantidad"
+            if filamento_economico
+            else "estandar"
+        ),
         "escenarios": escenarios,
         "componentes": detalle,
     }
@@ -249,17 +405,8 @@ def calcular_escenarios_kit_libre(productos, cantidad):
     """Sugiere precios para un kit libre por categoría.
 
     Como todavía no sabemos qué productos elegirá el cliente, se calculan dos
-    referencias de costo: el promedio de la categoría y el peor caso. Cada
-    producto se evalúa con la misma calculadora y con la cantidad total del kit.
-
-    - Agresivo: promedio de los escenarios agresivos de la categoría.
-    - Recomendado: promedio recomendado, pero nunca por debajo del precio
-      agresivo del producto más exigente de la categoría.
-    - Conservador: escenario conservador más alto de toda la categoría.
-
-    Así el recomendado sigue siendo competitivo en una selección promedio y,
-    al mismo tiempo, mantiene una protección mínima si el cliente elige la
-    combinación más costosa.
+    referencias de costo: el promedio de la categoría y el peor caso. Todos
+    los productos se valorizan con el filamento para cantidad cuando existe.
     """
     cantidad = max(int(cantidad or 1), 1)
     productos = list(productos)
@@ -271,12 +418,19 @@ def calcular_escenarios_kit_libre(productos, cantidad):
             "costo_promedio": Decimal("0"),
             "costo_peor_caso": Decimal("0"),
             "margen_piso": MARGEN_MINIMO,
+            "precio_filamento_kg": Decimal("0"),
+            "filamento_economico": False,
+            "tipo_filamento": "estandar",
             "escenarios": {},
             "productos": [],
         }
 
     calculos = [
-        calcular_escenarios_producto(producto, cantidad)
+        calcular_escenarios_producto(
+            producto,
+            cantidad,
+            forzar_filamento_economico=True,
+        )
         for producto in productos
     ]
     divisor = Decimal(len(calculos))
@@ -337,12 +491,32 @@ def calcular_escenarios_kit_libre(productos, cantidad):
             "ganancia_peor_caso": precio - costo_peor,
         }
 
+    precio_filamento_kg = next(
+        (
+            calculo["precio_filamento_kg"]
+            for calculo in calculos
+            if calculo["precio_filamento_kg"] > 0
+        ),
+        Decimal("0"),
+    )
+    filamento_economico = any(
+        calculo["filamento_economico"]
+        for calculo in calculos
+    )
+
     return {
         "cantidad": cantidad,
         "cantidad_productos_categoria": len(calculos),
         "costo_promedio": costo_promedio,
         "costo_peor_caso": costo_peor,
         "margen_piso": MARGEN_MINIMO,
+        "precio_filamento_kg": precio_filamento_kg,
+        "filamento_economico": filamento_economico,
+        "tipo_filamento": (
+            "cantidad"
+            if filamento_economico
+            else "estandar"
+        ),
         "escenarios": escenarios,
         "productos": calculos,
     }
