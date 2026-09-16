@@ -3,6 +3,7 @@ import re
 
 from django.urls import reverse
 
+from productos.image_environment import entorno_imagenes
 from productos.image_models import ProductoImagen
 
 
@@ -48,7 +49,7 @@ STYLE = r"""
 
 
 class ProductImagesUIMiddleware:
-    """Muestra las fotos del producto sin acoplarlas al template histórico."""
+    """Muestra únicamente las fotos del producto del ambiente actual."""
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -71,7 +72,10 @@ class ProductImagesUIMiddleware:
 
         imagenes = list(
             ProductoImagen.objects
-            .filter(producto_id=producto_id)
+            .filter(
+                producto_id=producto_id,
+                ambiente=entorno_imagenes(),
+            )
             .order_by("orden")[:2]
         )
         gestionar_url = reverse("productos:imagenes", args=[producto_id])
@@ -121,9 +125,6 @@ class ProductImagesUIMiddleware:
             + "</div></div>"
         )
 
-        # La clase ``dv-producto-fotos`` también existe dentro del CSS. Usamos
-        # un id exclusivo del panel para distinguir estilo cargado de contenido
-        # realmente insertado.
         if 'id="dv-producto-fotos-panel"' not in contenido:
             contenido = contenido.replace(
                 '<div class="res">',
