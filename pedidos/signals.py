@@ -1,8 +1,14 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from produccion.models import Produccion
+
 from .kits_volumen import aplicar_precio_volumen_pedido
 from .models import DetalleKitProducto, DetallePedido
+from .personalizados_produccion import (
+    detalle_id_desde_observaciones,
+    sincronizar_detalle_personalizado,
+)
 
 
 @receiver(post_save, sender=DetalleKitProducto)
@@ -40,3 +46,19 @@ def recalcular_precio_volumen_kits(sender, instance, **kwargs):
             tipo_item="KIT",
             precio_kit_manual=True,
         ).update(precio_unitario=precio_unitario)
+
+
+@receiver(post_save, sender=Produccion)
+def sincronizar_personalizado_con_produccion(sender, instance, **kwargs):
+    """
+    Una producción asociada a un personalizado lleva la marca
+    PERSONALIZADO:<detalle_id> en observaciones.
+
+    Cada cambio de estado vuelve a comprobar la cobertura física completa. De
+    esta forma, al pasar la última placa necesaria a LISTO el detalle también
+    queda LISTO y desaparece de la necesidad de planificación. Si se revierte o
+    cancela una placa finalizada, la necesidad puede volver a PENDIENTE.
+    """
+    detalle_id = detalle_id_desde_observaciones(instance.observaciones)
+    if detalle_id:
+        sincronizar_detalle_personalizado(detalle_id)
