@@ -2,10 +2,11 @@ from decimal import Decimal
 
 from calculadora.precios import (
     MARGEN_MINIMO,
-    calcular_escenarios_kit_fijo,
     calcular_escenarios_kit_libre,
 )
 from productos.models import Producto
+
+from .precio_fijo_combinado import calcular_escenarios_kit_fijo
 
 
 ESCENARIOS = (
@@ -103,6 +104,8 @@ def recomendacion_kit(kit, productos_categoria=None):
         "margen_actual": None,
         "margen_peor_caso": None,
         "margen_piso": MARGEN_MINIMO,
+        "cantidad_total_calculada": 0,
+        "margen_tope_ponderado": None,
         "estado": "SIN_DATOS",
         "alerta": True,
         "critico": False,
@@ -129,6 +132,12 @@ def recomendacion_kit(kit, productos_categoria=None):
             )
             return resultado
 
+        resultado["cantidad_total_calculada"] = int(
+            calculo.get("cantidad_total", 0)
+        )
+        resultado["margen_tope_ponderado"] = _decimal(
+            calculo.get("margen_tope_ponderado", MARGEN_MINIMO)
+        ).quantize(Decimal("0.1"))
         resultado["costo_estimado"] = costo
         resultado["costo_peor_caso"] = costo
         resultado["margen_actual"] = _margen(
@@ -151,6 +160,12 @@ def recomendacion_kit(kit, productos_categoria=None):
                 "margen_peor_caso": _decimal(
                     escenario["margen_real"]
                 ).quantize(Decimal("0.1")),
+                "referencia_separada": _decimal(
+                    escenario.get("referencia_separada", 0)
+                ),
+                "ahorro_combo": _decimal(
+                    escenario.get("ahorro_combo", 0)
+                ),
             }
 
     else:
