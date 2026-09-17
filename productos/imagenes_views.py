@@ -75,6 +75,18 @@ def _json_error(producto, mensaje, status=400):
     )
 
 
+def _eliminar_remoto_silencioso(file_id):
+    if not file_id:
+        return
+    try:
+        eliminar_imagen_imagekit(file_id)
+    except Exception:
+        # El reemplazo ya quedó confirmado localmente. Si ImageKit no permite
+        # limpiar el archivo anterior, preferimos un huérfano remoto antes que
+        # perder la nueva foto válida del producto.
+        pass
+
+
 def imagenes_producto(request, producto_id):
     producto = _producto_con_imagenes(producto_id)
     imagenes = list(_imagenes_del_entorno(producto))
@@ -130,14 +142,8 @@ def subir_imagen(request, producto_id):
         messages.error(request, mensaje)
         return redirect("productos:imagenes", producto_id=producto.id)
     except Exception:
-        # Si ImageKit subió el archivo pero falló el guardado local, intentamos
-        # limpiar el remoto recién creado. Ese archivo siempre pertenece al
-        # ambiente actual porque la carpeta se define antes de la subida.
         if datos and datos.get("file_id"):
-            try:
-                eliminar_imagen_imagekit(datos["file_id"])
-            except Exception:
-                pass
+            _eliminar_remoto_silencioso(datos["file_id"])
         mensaje = (
             "No se pudo subir la imagen a ImageKit. "
             "Revisá la configuración e intentá nuevamente."
@@ -156,6 +162,80 @@ def subir_imagen(request, producto_id):
         return _json_ok(producto, mensaje)
     messages.success(request, mensaje)
     return redirect("productos:imagenes", producto_id=producto.id)
+
+
+@transaction.atomic
+def reemplazar_imagen(request, producto_id, orden):
+    """Reemplaza una posición conservando la foto anterior si la nueva falla."""
+    producto = get_object_or_404(Producto, id=producto_id)
+    quiere_json = _quiere_json(request)
+
+    if request.method != "POST":
+        if quiere_json:
+            return _json_error(producto, "Método no permitido.", status=405)
+        return redirect("productos:editar", producto_id=producto_id)
+
+    if orden not in (1, 2):
+        return _json_error(producto, "Posición de foto inválida.", status=400)
+
+    ambiente = entorno_imagenes()
+    actual = get_object_or_404(
+        ProductoImagen.objects.select_for_update(),
+        producto=producto,
+        ambiente=ambiente,
+        orden=orden,
+    )
+    archivo = request.FILES.get("imagen")
+    datos = None
+
+    try:
+        # 1) Subimos primero la nueva. Hasta acá la foto actual sigue intacta.
+        datos = subir_imagen_producto(producto, archivo)
+        file_id_anterior = actual.file_id
+
+        # 2) Reutilizamos el mismo registro y posición para no abrir una ventana
+        #    sin principal/secundaria ni chocar con la restricción UNIQUE.
+        actual.file_id = datos["file_id"]
+        actual.url = datos["url"]
+        actual.thumbnail_url = datos.get("thumbnail_url", "")
+        actual.nombre_archivo = datos.get("nombre_archivo", "")
+        actual.ancho = datos.get("ancho")
+        actual.alto = datos.get("alto")
+        actual.tamano_bytes = datos.get("tamano_bytes")
+        actual.save(
+            update_fields=[
+                "file_id",
+                "url",
+                "thumbnail_url",
+                "nombre_archivo",
+                "ancho",
+                "alto",
+                "tamano_bytes",
+            ]
+        )
+
+        # 3) Recién después del COMMIT intentamos limpiar el archivo anterior.
+        transaction.on_commit(
+            lambda old_id=file_id_anterior: _eliminar_remoto_silencioso(old_id),
+            robust=True,
+        )
+    except (ImagenProductoInvalida, ImageKitNoConfigurado) as error:
+        return _json_error(producto, str(error), status=400)
+    except Exception:
+        if datos and datos.get("file_id"):
+            _eliminar_remoto_silencioso(datos["file_id"])
+        return _json_error(
+            producto,
+            "No se pudo reemplazar la foto. La imagen anterior se conservó.",
+            status=502,
+        )
+
+    rol = "principal" if orden == 1 else "secundaria"
+    mensaje = f"Foto {rol} reemplazada correctamente."
+    if quiere_json:
+        return _json_ok(producto, mensaje)
+    messages.success(request, mensaje)
+    return redirect("productos:editar", producto_id=producto.id)
 
 
 @transaction.atomic
@@ -242,8 +322,6 @@ def hacer_principal(request, producto_id, imagen_id):
         .first()
     )
 
-    # Se usa una posición temporal únicamente dentro de la transacción para
-    # evitar chocar con la restricción UNIQUE(producto, ambiente, orden).
     ProductoImagen.objects.filter(pk=imagen.pk).update(orden=99)
     if principal:
         ProductoImagen.objects.filter(pk=principal.pk).update(orden=2)
