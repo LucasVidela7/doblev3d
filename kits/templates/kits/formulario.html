@@ -38,6 +38,16 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
 .recomendacion-precio strong{display:block;margin-top:4px;font-size:24px;line-height:1}
 .recomendacion-estado{display:inline-flex;margin-top:7px;padding:4px 7px;border-radius:999px;background:var(--verde);color:var(--verde-t);font-size:7px;font-weight:900}
 .recomendacion.revisar .recomendacion-estado{background:var(--amarillo);color:var(--amarillo-t)}
+.elegibilidad{border-color:#d9e1db;background:#fbfdfb}
+.elegibilidad.revisar{border-color:#ead89d;background:#fffdf5}
+.elegibilidad-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.elegibilidad-titulo{font-size:10px;font-weight:900}
+.elegibilidad-resumen{margin-top:5px;color:var(--muted);font-size:9px;line-height:1.45}
+.elegibilidad-limite{white-space:nowrap;text-align:right}
+.elegibilidad-limite span{display:block;color:var(--muted);font-size:8px;font-weight:900}
+.elegibilidad-limite strong{display:block;margin-top:4px;font-size:18px}
+.elegibilidad-opciones{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.elegibilidad-opcion{padding:6px 8px;border:1px solid #dfe4e8;border-radius:999px;background:#fff;font-size:8px;font-weight:800}
 .nav{position:fixed;z-index:30;bottom:8px;left:50%;transform:translateX(-50%);width:min(720px,calc(100% - 16px));display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:#25282d;padding:7px;border-radius:19px}.nav a{min-height:57px;color:#ddd;text-decoration:none;font-size:9px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:13px}.nav b{font-size:18px}
 @media(max-width:700px){.header{align-items:flex-start;flex-direction:column}.acciones{width:100%}.btn{flex:1}.grid,.modalidades{grid-template-columns:1fr}.full{grid-column:auto}.componente{grid-template-columns:1fr 90px 42px}.recomendacion{grid-template-columns:1fr}.recomendacion-precio{text-align:left}.recomendacion-precio strong{font-size:22px}}
 </style>
@@ -169,6 +179,22 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
             <div class="ayuda">
                 La recomendación usa el costo promedio de la categoría para estimar y el producto más costoso como escenario conservador.
             </div>
+        </div>
+
+        <div class="card elegibilidad" id="elegibilidad_libre">
+            <div class="elegibilidad-head">
+                <div>
+                    <div class="elegibilidad-titulo">PRODUCTOS HABILITADOS PARA ESTE KIT</div>
+                    <div class="elegibilidad-resumen" id="elegibilidad_resumen">
+                        Completá precio, categoría y cantidad para calcular las opciones.
+                    </div>
+                </div>
+                <div class="elegibilidad-limite">
+                    <span>COSTO MÁXIMO / PRODUCTO</span>
+                    <strong id="elegibilidad_limite">—</strong>
+                </div>
+            </div>
+            <div class="elegibilidad-opciones" id="elegibilidad_opciones"></div>
         </div>
 
         <div class="card" id="bloque_fijo">
@@ -327,7 +353,75 @@ function datosEconomicosActuales(){
     };
 }
 
+function actualizarOpcionesRentables(){
+    const panel = document.getElementById("elegibilidad_libre");
+    const resumen = document.getElementById("elegibilidad_resumen");
+    const limiteNodo = document.getElementById("elegibilidad_limite");
+    const opciones = document.getElementById("elegibilidad_opciones");
+
+    if (!panel || !resumen || !limiteNodo || !opciones) {
+        return;
+    }
+
+    const esLibre = modalidadActual() === "LIBRE_CATEGORIA";
+    panel.classList.toggle("oculto", !esLibre);
+    if (!esLibre) {
+        return;
+    }
+
+    const tipoId = document.getElementById("tipo_producto").value;
+    const cantidad = Number(
+        document.getElementById("cantidad_productos").value || 0
+    );
+    const precio = Number(
+        document.getElementById("precio_kit").value || 0
+    );
+
+    panel.classList.remove("revisar");
+    opciones.replaceChildren();
+
+    if (!tipoId || cantidad <= 0 || precio <= 0) {
+        resumen.textContent =
+            "Completá precio, categoría y cantidad para calcular las opciones.";
+        limiteNodo.textContent = "—";
+        return;
+    }
+
+    const candidatos = productos.filter(
+        producto =>
+            String(producto.tipoId) === String(tipoId)
+            && !producto.soloProduccion
+    );
+    const limite = precio * (1 - MARGEN_MINIMO / 100) / cantidad;
+    const elegibles = candidatos.filter(
+        producto => (producto.costo + producto.seguro) <= limite
+    );
+    const excluidos = Math.max(candidatos.length - elegibles.length, 0);
+
+    limiteNodo.textContent = dinero(limite);
+    resumen.textContent =
+        `${elegibles.length} de ${candidatos.length} productos quedan habilitados · `
+        + `${excluidos} fuera de margen con el precio actual.`;
+
+    if (!elegibles.length) {
+        panel.classList.add("revisar");
+        const vacio = document.createElement("span");
+        vacio.className = "elegibilidad-opcion";
+        vacio.textContent = "No hay opciones rentables con esta configuración";
+        opciones.appendChild(vacio);
+        return;
+    }
+
+    elegibles.forEach(producto => {
+        const chip = document.createElement("span");
+        chip.className = "elegibilidad-opcion";
+        chip.textContent = producto.nombre;
+        opciones.appendChild(chip);
+    });
+}
+
 function actualizarRecomendacion(){
+    actualizarOpcionesRentables();
     const panel = document.getElementById("recomendacion_precio");
     const detalle = document.getElementById("recomendacion_detalle");
     const estado = document.getElementById("recomendacion_estado");
