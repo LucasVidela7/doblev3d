@@ -1072,7 +1072,7 @@ async function cargarKit(
                             : ""
                         }
                     >
-                        ${p.nombre}${Number(p.adicional || 0) > 0 ? ` · +${moneda(p.adicional)}` : " · INCLUIDO"}
+                        ${p.nombre}${Number(p.adicional || 0) > 0 ? ` · +ARS ${moneda(p.adicional)}` : " · INCLUIDO"}
                     </option>
                 `
             ).join("");
