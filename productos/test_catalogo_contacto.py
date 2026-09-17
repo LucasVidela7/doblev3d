@@ -4,6 +4,8 @@ from unittest.mock import patch
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from auditoria.models import RegistroAuditoria
+
 from .models import ConfiguracionCatalogo
 
 
@@ -25,18 +27,64 @@ class CatalogoContactoTests(TestCase):
             },
         )
 
-    def test_catalogo_muestra_instagram_y_whatsapp_configurados(self):
+    def test_catalogo_muestra_contactos_flotantes_con_rutas_auditables(self):
         response = self.client.get(reverse("catalogo"))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'id="dv-catalog-contact-links"')
-        self.assertContains(response, "https://www.instagram.com/doblev3d/")
-        self.assertContains(response, "@doblev3d")
-        self.assertContains(response, "https://wa.me/5491164760709")
+        self.assertContains(
+            response,
+            reverse("catalogo_contacto", kwargs={"canal": "instagram"}),
+        )
+        self.assertContains(
+            response,
+            reverse("catalogo_contacto", kwargs={"canal": "whatsapp"}),
+        )
         self.assertContains(response, "dv-catalog-contact__link--instagram")
         self.assertContains(response, "dv-catalog-contact__link--whatsapp")
+        self.assertContains(response, "position:fixed")
+        self.assertContains(response, "bottom:calc(18px")
         self.assertContains(response, 'aria-label="Abrir Instagram @doblev3d"')
         self.assertContains(response, 'aria-label="Escribir por WhatsApp"')
+
+    def test_clicks_de_instagram_y_whatsapp_se_registran_en_auditoria(self):
+        instagram = self.client.get(
+            reverse("catalogo_contacto", kwargs={"canal": "instagram"}),
+            REMOTE_ADDR="127.0.0.8",
+        )
+        whatsapp = self.client.get(
+            reverse("catalogo_contacto", kwargs={"canal": "whatsapp"}),
+            REMOTE_ADDR="127.0.0.9",
+        )
+
+        self.assertEqual(instagram.status_code, 302)
+        self.assertEqual(instagram["Location"], "https://www.instagram.com/doblev3d/")
+        self.assertEqual(whatsapp.status_code, 302)
+        self.assertTrue(whatsapp["Location"].startswith("https://wa.me/5491164760709"))
+
+        registros = RegistroAuditoria.objects.filter(
+            accion="CLICK_CONTACTO_CATALOGO",
+        ).order_by("fecha", "id")
+        self.assertEqual(registros.count(), 2)
+        self.assertEqual(registros[0].usuario_nombre, "Visitante")
+        self.assertEqual(registros[0].objeto_representacion, "Catálogo · Instagram")
+        self.assertEqual(registros[0].cambios["canal"], "Instagram")
+        self.assertEqual(registros[0].ruta, "/contacto/instagram/")
+        self.assertEqual(registros[0].ip, "127.0.0.8")
+        self.assertEqual(registros[1].objeto_representacion, "Catálogo · WhatsApp")
+        self.assertEqual(registros[1].cambios["canal"], "WhatsApp")
+
+    def test_head_no_se_cuenta_como_click(self):
+        response = self.client.head(
+            reverse("catalogo_contacto", kwargs={"canal": "instagram"}),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(
+            RegistroAuditoria.objects.filter(
+                accion="CLICK_CONTACTO_CATALOGO",
+            ).exists()
+        )
 
     def test_catalogo_permite_ocultar_cada_canal_desde_configuracion(self):
         self.config.mostrar_instagram = False
@@ -48,6 +96,11 @@ class CatalogoContactoTests(TestCase):
         self.assertNotContains(response, 'id="dv-catalog-contact-links"')
         self.assertNotContains(response, "dv-catalog-contact__link--instagram")
         self.assertNotContains(response, "dv-catalog-contact__link--whatsapp")
+
+        instagram = self.client.get(
+            reverse("catalogo_contacto", kwargs={"canal": "instagram"}),
+        )
+        self.assertEqual(instagram.status_code, 404)
 
     def test_configuracion_normaliza_usuario_y_numero(self):
         self.config.instagram_usuario = "@doblev3d"
