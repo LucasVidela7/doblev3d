@@ -631,7 +631,20 @@
                                     <p class="detail">
                                         Elegí {{ kit.cantidad_productos }} producto{{ kit.cantidad_productos|pluralize }}
                                         {% if kit.tipo_producto %}de {{ kit.tipo_producto.nombre }}{% endif %}.
+                                        {% if kit.catalogo_cantidad_opciones %}
+                                            {{ kit.catalogo_cantidad_opciones }} opción{{ kit.catalogo_cantidad_opciones|pluralize:"es" }} disponible{{ kit.catalogo_cantidad_opciones|pluralize }}.
+                                        {% endif %}
                                     </p>
+                                    {% if kit.productos_visuales_visibles %}
+                                        <div class="mini-list" aria-label="Opciones disponibles para este kit">
+                                            {% for visual in kit.productos_visuales_visibles %}
+                                                <span class="mini">{{ visual.producto.nombre }}</span>
+                                            {% endfor %}
+                                            {% if kit.productos_visuales_extra %}
+                                                <span class="mini">+{{ kit.productos_visuales_extra }} más</span>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
                                 {% endif %}
 
                                 <div class="price-row">
