@@ -1,3 +1,6 @@
+from config.catalog_contact_middleware import CONTACT_STYLE, _contactos_html
+
+
 CATALOG_GRID_STYLE = r"""
 <style id="dv-catalog-grid-density-fix">
 /*
@@ -21,7 +24,7 @@ CATALOG_GRID_STYLE = r"""
 
 
 class CatalogGridMiddleware:
-    """Mantiene una densidad consistente del catálogo al aplicar filtros."""
+    """Densidad consistente y accesos de contacto del catálogo público."""
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -50,6 +53,22 @@ class CatalogGridMiddleware:
                 CATALOG_GRID_STYLE + "\n</head>",
                 1,
             )
+
+        contactos = _contactos_html()
+        if contactos:
+            if "dv-catalog-contact-style" not in html and "</head>" in html:
+                html = html.replace(
+                    "</head>",
+                    CONTACT_STYLE + "\n</head>",
+                    1,
+                )
+
+            if "dv-catalog-contact" not in html and "</header>" in html:
+                html = html.replace(
+                    "</header>",
+                    contactos + "\n</header>",
+                    1,
+                )
 
         encoded = html.encode(response.charset or "utf-8")
         response.content = encoded
