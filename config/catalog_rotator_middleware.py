@@ -1,6 +1,7 @@
 import json
 from collections import defaultdict
 
+from kits.elegibilidad_catalogo import preparar_kits_catalogo
 from kits.models import Kit
 from productos.image_environment import entorno_imagenes
 from productos.image_models import ProductoImagen
@@ -396,6 +397,11 @@ def _kit_image_pools(grouped=None):
         ):
             productos_por_tipo[producto.tipo_id].append(producto)
 
+    kits, productos_por_kit = preparar_kits_catalogo(
+        kits,
+        productos_por_tipo,
+    )
+
     pools = []
     for kit in kits:
         if kit.modalidad == 'FIJO':
@@ -405,7 +411,7 @@ def _kit_image_pools(grouped=None):
                 if componente.producto_id
             ]
         else:
-            productos = productos_por_tipo.get(kit.tipo_producto_id, [])
+            productos = productos_por_kit.get(kit.id, [])
 
         seen_urls = set()
         fotos = []
