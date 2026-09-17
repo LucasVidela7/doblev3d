@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, render
 
 from kits.elegibilidad_catalogo import (
     preparar_kits_catalogo,
-    productos_elegibles_para_kit,
+    resumen_elegibilidad_kit,
 )
 from kits.imagenes import adjuntar_imagenes_reutilizadas
 from kits.models import Kit
@@ -157,15 +157,22 @@ def detalle_kit_catalogo(request, kit_id):
             .select_related("tipo")
             .order_by("nombre")
         )
-        elegibles = productos_elegibles_para_kit(
+        resumen = resumen_elegibilidad_kit(
             kit,
             candidatos,
         )
-        if not elegibles:
+        if not resumen["opciones"]:
             raise Http404("Kit sin opciones disponibles.")
 
         productos_por_tipo[kit.tipo_producto_id] = candidatos
-        productos_por_kit[kit.id] = elegibles
+        productos_por_kit[kit.id] = [
+            opcion["producto"]
+            for opcion in resumen["opciones"]
+        ]
+        kit.catalogo_opciones = resumen["opciones"]
+        kit.catalogo_cantidad_opciones = resumen["cantidad"]
+        kit.catalogo_cantidad_premium = resumen["cantidad_premium"]
+        kit.catalogo_cantidad_total = resumen["cantidad_total"]
 
     adjuntar_imagenes_reutilizadas(
         [kit],
@@ -173,7 +180,28 @@ def detalle_kit_catalogo(request, kit_id):
         productos_por_kit=productos_por_kit,
     )
 
-    opciones = list(kit.productos_visuales)
+    if kit.modalidad == "LIBRE_CATEGORIA":
+        opciones_por_id = {
+            opcion["producto"].id: opcion
+            for opcion in getattr(kit, "catalogo_opciones", [])
+        }
+        opciones = []
+        for visual in kit.productos_visuales:
+            opcion = opciones_por_id.get(visual["producto"].id)
+            if not opcion:
+                continue
+            opciones.append(
+                {
+                    **visual,
+                    "incluido": opcion["incluido"],
+                    "adicional": opcion["adicional"],
+                    "precio_equivalente": opcion["precio_equivalente"],
+                    "ahorro_vs_individual": opcion["ahorro_vs_individual"],
+                }
+            )
+    else:
+        opciones = list(kit.productos_visuales)
+
     return render(
         request,
         "productos/catalogo_kit_detalle.html",
