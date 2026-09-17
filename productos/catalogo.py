@@ -1,8 +1,12 @@
 from collections import defaultdict
 
-from django.shortcuts import render
+from django.http import Http404
+from django.shortcuts import get_object_or_404, render
 
-from kits.elegibilidad_catalogo import preparar_kits_catalogo
+from kits.elegibilidad_catalogo import (
+    preparar_kits_catalogo,
+    productos_elegibles_para_kit,
+)
 from kits.imagenes import adjuntar_imagenes_reutilizadas
 from kits.models import Kit
 
