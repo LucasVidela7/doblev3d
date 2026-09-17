@@ -2,6 +2,8 @@ import re
 
 from django.urls import reverse
 
+from .environment_ui_middleware import _inyectar_menu_dashboard
+
 
 DASHBOARD_REFINEMENTS_STYLE = r"""
 <style id="dv-dashboard-refinements-style">
@@ -141,6 +143,11 @@ class DashboardRefinementsMiddleware:
             html = response.content.decode(response.charset or "utf-8")
         except (AttributeError, UnicodeDecodeError):
             return response
+
+        # El menú de gestión es parte de la experiencia normal del dashboard,
+        # no una característica exclusiva de QA. El helper es idempotente:
+        # en QA no duplica lo que ya haya inyectado EnvironmentVisualMiddleware.
+        html = _inyectar_menu_dashboard(html)
 
         if (
             "dv-dashboard-refinements-style" not in html
