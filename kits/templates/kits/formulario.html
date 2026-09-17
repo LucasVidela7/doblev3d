@@ -230,7 +230,8 @@ const productos = [
         tipoId: "{{ producto.tipo_id }}",
         soloProduccion: {{ producto.solo_produccion|yesno:"true,false" }},
         costo: Number("{{ producto.costo|unlocalize }}") || 0,
-        seguro: Number("{{ producto.seguro|unlocalize }}") || 0
+        seguro: Number("{{ producto.seguro|unlocalize }}") || 0,
+        costoKit: Number("{{ producto.costo_kit|unlocalize }}") || 0
     },
 {% endfor %}
 ];
@@ -299,7 +300,7 @@ function datosEconomicosActuales(){
             );
 
             if (producto && cantidad > 0) {
-                costo += (producto.costo + producto.seguro) * cantidad;
+                costo += (producto.costoKit || (producto.costo + producto.seguro)) * cantidad;
                 componentesValidos += 1;
             }
         });
@@ -324,11 +325,27 @@ function datosEconomicosActuales(){
         return null;
     }
 
-    const disponibles = productos.filter(
+    const candidatos = productos.filter(
         producto =>
             String(producto.tipoId) === String(tipoId)
             && !producto.soloProduccion
     );
+
+    if (!candidatos.length) {
+        return {
+            tipo: "SIN_PRODUCTOS",
+            costoEstimado: 0,
+            costoPeor: 0
+        };
+    }
+
+    const precio = Number(document.getElementById("precio_kit").value || 0);
+    const limite = precio > 0
+        ? precio * (1 - MARGEN_MINIMO / 100) / cantidad
+        : null;
+    const disponibles = limite === null
+        ? candidatos
+        : candidatos.filter(producto => producto.costoKit <= limite);
 
     if (!disponibles.length) {
         return {
@@ -338,13 +355,8 @@ function datosEconomicosActuales(){
         };
     }
 
-    const costos = disponibles.map(
-        producto => producto.costo + producto.seguro
-    );
-    const promedio = costos.reduce(
-        (total, costo) => total + costo,
-        0
-    ) / costos.length;
+    const costos = disponibles.map(producto => producto.costoKit);
+    const promedio = costos.reduce((total, costo) => total + costo, 0) / costos.length;
 
     return {
         tipo: "ESTIMADO",
@@ -359,67 +371,64 @@ function actualizarOpcionesRentables(){
     const limiteNodo = document.getElementById("elegibilidad_limite");
     const opciones = document.getElementById("elegibilidad_opciones");
 
-    if (!panel || !resumen || !limiteNodo || !opciones) {
-        return;
-    }
+    if (!panel || !resumen || !limiteNodo || !opciones) return;
 
     const esLibre = modalidadActual() === "LIBRE_CATEGORIA";
     panel.classList.toggle("oculto", !esLibre);
-    if (!esLibre) {
-        return;
-    }
+    if (!esLibre) return;
 
     const tipoId = document.getElementById("tipo_producto").value;
-    const cantidad = Number(
-        document.getElementById("cantidad_productos").value || 0
-    );
-    const precio = Number(
-        document.getElementById("precio_kit").value || 0
-    );
+    const cantidad = Number(document.getElementById("cantidad_productos").value || 0);
+    const precio = Number(document.getElementById("precio_kit").value || 0);
 
     panel.classList.remove("revisar");
     opciones.replaceChildren();
 
     if (!tipoId || cantidad <= 0 || precio <= 0) {
-        resumen.textContent =
-            "Completá precio, categoría y cantidad para calcular las opciones.";
+        resumen.textContent = "Completá precio, categoría y cantidad para calcular las opciones.";
         limiteNodo.textContent = "—";
         return;
     }
 
-    const candidatos = productos.filter(
-        producto =>
-            String(producto.tipoId) === String(tipoId)
-            && !producto.soloProduccion
+    const candidatos = productos.filter(producto =>
+        String(producto.tipoId) === String(tipoId) && !producto.soloProduccion
     );
-    const limite = precio * (1 - MARGEN_MINIMO / 100) / cantidad;
-    const elegibles = candidatos.filter(
-        producto => (producto.costo + producto.seguro) <= limite
-    );
-    const excluidos = Math.max(candidatos.length - elegibles.length, 0);
+    const proporcion = 1 - MARGEN_MINIMO / 100;
+    const limite = precio * proporcion / cantidad;
+
+    const calculadas = candidatos.map(producto => {
+        const exceso = Math.max(producto.costoKit - limite, 0);
+        const adicional = exceso > 0
+            ? Math.ceil((exceso / proporcion) / MULTIPLO_PRECIO) * MULTIPLO_PRECIO
+            : 0;
+        return {producto, adicional};
+    });
+    const incluidas = calculadas.filter(item => item.adicional <= 0);
+    const premium = calculadas.filter(item => item.adicional > 0);
 
     limiteNodo.textContent = dinero(limite);
     resumen.textContent =
-        `${elegibles.length} de ${candidatos.length} productos quedan habilitados · `
-        + `${excluidos} fuera de margen con el precio actual.`;
+        `${incluidas.length} incluidas sin adicional · ${premium.length} premium con adicional · `
+        + `${calculadas.length} seleccionables en total.`;
 
-    if (!elegibles.length) {
+    if (!calculadas.length) {
         panel.classList.add("revisar");
         const vacio = document.createElement("span");
         vacio.className = "elegibilidad-opcion";
-        vacio.textContent = "No hay opciones rentables con esta configuración";
+        vacio.textContent = "No hay productos comerciales en esta categoría";
         opciones.appendChild(vacio);
         return;
     }
 
-    elegibles.forEach(producto => {
+    calculadas.forEach(item => {
         const chip = document.createElement("span");
         chip.className = "elegibilidad-opcion";
-        chip.textContent = producto.nombre;
+        chip.textContent = item.adicional > 0
+            ? `${item.producto.nombre} · +${dinero(item.adicional)}`
+            : `${item.producto.nombre} · incluido`;
         opciones.appendChild(chip);
     });
 }
-
 function actualizarRecomendacion(){
     actualizarOpcionesRentables();
     const panel = document.getElementById("recomendacion_precio");
@@ -444,7 +453,7 @@ function actualizarRecomendacion(){
 
     if (datos.tipo === "SIN_PRODUCTOS") {
         precioRecomendado.textContent = "—";
-        detalle.textContent = "No hay productos comerciales activos en esta categoría para estimar el costo.";
+        detalle.textContent = "No hay opciones incluidas sin adicional con el precio actual. Las opciones premium se calculan por separado.";
         estado.textContent = "SIN DATOS";
         panel.classList.add("revisar");
         return;
@@ -481,7 +490,7 @@ function actualizarRecomendacion(){
             + `peor escenario: ${dinero(datos.costoPeor)} · `
             + `margen estimado: ${porcentaje(margenEstimado)} · `
             + `margen peor escenario: ${porcentaje(margenPeor)}. `
-            + `La sugerencia se calcula sobre el escenario más costoso.`;
+            + `La sugerencia usa únicamente las opciones incluidas sin adicional; las premium conservan su recargo propio.`;
     }
 
     if (!precioActual || precioActual < recomendado || (margenPeor !== null && margenPeor < MARGEN_MINIMO)) {
