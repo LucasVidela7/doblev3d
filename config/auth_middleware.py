@@ -17,6 +17,7 @@ class LoginRequiredMiddleware:
         "catalogo",
         "catalogo_legacy",
         "catalogo_contacto",
+        "catalogo_kit_detalle",
     }
 
     def __init__(self, get_response):
