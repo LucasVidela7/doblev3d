@@ -6,7 +6,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from productos.models import Producto, TipoProducto
 
-from .elegibilidad_catalogo import productos_elegibles_para_kit
+from .elegibilidad_catalogo import (
+    costo_operativo_producto,
+    productos_elegibles_para_kit,
+)
 from .models import Kit, KitComponente
 
 
@@ -64,12 +67,14 @@ def _formulario_kit(
         .order_by("nombre")
     )
 
-    productos = (
+    productos = list(
         Producto.objects
         .filter(activo=True)
         .select_related("tipo")
         .order_by("nombre")
     )
+    for producto in productos:
+        producto.costo_kit = costo_operativo_producto(producto)
 
     if request.method == "POST":
 
