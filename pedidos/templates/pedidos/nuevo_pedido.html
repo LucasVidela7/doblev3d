@@ -1983,6 +1983,27 @@ button{font-family:Arial,sans-serif}
             const cantidadProductos =
                 data.kit.cantidad_productos;
 
+            if (!data.productos.length) {
+                grid.innerHTML = `
+                    <div
+                        style="
+                            grid-column:1/-1;
+                            padding:12px;
+                            border-radius:12px;
+                            background:#fff4cf;
+                            color:#765b00;
+                            font-size:10px;
+                            font-weight:900;
+                        "
+                    >
+                        Este kit no tiene productos que mantengan el margen mínimo
+                        con el precio actual. Revisá el kit antes de agregarlo al pedido.
+                    </div>
+                `;
+                bloque.classList.add("activo");
+                return;
+            }
+
             for (
                 let posicion = 1;
                 posicion <= cantidadProductos;
