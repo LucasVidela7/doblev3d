@@ -343,16 +343,25 @@ def _formulario_kit(
                 )
                 .order_by("nombre")
             )
-            if not productos_elegibles_para_kit(
+            incluidas = productos_elegibles_para_kit(
                 kit,
                 candidatos,
-            ):
+            )
+            if not candidatos:
                 messages.warning(
                     request,
                     (
-                        "El kit quedó sin opciones rentables con el precio "
-                        "actual, por lo que no se publicará en el catálogo "
-                        "hasta que ajustes precio, cantidad o costos."
+                        "El kit no tiene productos comerciales disponibles "
+                        "en su categoría y no se publicará hasta que haya opciones."
+                    ),
+                )
+            elif not incluidas:
+                messages.warning(
+                    request,
+                    (
+                        "El kit quedó sin opciones incluidas en el precio base. "
+                        "Se publicará con todas sus opciones como premium y el "
+                        "adicional correspondiente."
                     ),
                 )
 
