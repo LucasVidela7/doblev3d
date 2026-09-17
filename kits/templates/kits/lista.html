@@ -202,7 +202,7 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
 <div class="dato">
     <b>MARGEN EFECTIVO CON PREMIUM</b>
     <span>{% if kit.catalogo_margen_promedio_efectivo != None %}{{ kit.catalogo_margen_promedio_efectivo|floatformat:"1g" }}%{% else %}—{% endif %}</span>
-    {% if kit.catalogo_margen_peor_efectivo != None %}<small>Peor combinación equivalente: {{ kit.catalogo_margen_peor_efectivo|floatformat:"1g" }}%</small>{% else %}<small>Sin opciones calculables</small>{% endif %}
+    {% if kit.catalogo_margen_peor_efectivo != None %}<small>Peor combinación equivalente: {{ kit.catalogo_margen_peor_efectivo|floatformat:"1g" }}% · piso adicional {{ kit.catalogo_margen_minimo|floatformat:"1g" }}%</small>{% else %}<small>Sin opciones calculables</small>{% endif %}
 </div>
 {% else %}
 <div class="dato">
