@@ -8,252 +8,86 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>{{ pedido.codigo }} | Doble V 3D</title>
-
     <style>
-        :root{
-            --bg:#f5f6f8;--surface:#fff;--soft:#f8f9fb;--text:#25282d;--muted:#777d86;
-            --line:#e3e6ea;--dark:#25282d;--green:#eaf7ee;--green-text:#28633c;
-            --amber:#fff5d8;--amber-text:#775a13;--red:#fdeaea;--red-text:#913b3b;
-            --blue:#edf4ff;--blue-text:#315f9f;--shadow:0 5px 20px rgba(28,33,40,.055);
-        }
-        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-        body{margin:0;padding:0 0 calc(94px + env(safe-area-inset-bottom));font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
-        a,button,input{touch-action:manipulation}
-        .contenedor{width:min(1120px,100%);margin:auto;padding:22px 18px 34px}
-        .encabezado{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:18px}
-        .encabezado-principal{min-width:0}.titulo-linea{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
-        h1{margin:0;font-size:clamp(26px,4vw,34px)}.subtitulo{margin-top:5px;color:var(--muted);font-size:13px}
-        .acciones-encabezado{display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end}
-        .acciones-encabezado form{margin:0}
-        .btn{min-height:46px;display:inline-flex;align-items:center;justify-content:center;padding:0 16px;border-radius:12px;text-decoration:none;font-size:9px;font-weight:900;white-space:nowrap;cursor:pointer}
-        .btn-secundario{border:1px solid var(--line);background:#fff;color:var(--text)}
-        .btn-principal{border:1px solid var(--dark);background:var(--dark);color:#fff}
-        .btn-entregar{border:1px solid #31824a;background:#31824a;color:#fff}
-
-        .mensajes{display:grid;gap:8px;margin-bottom:14px}.mensaje{padding:11px 13px;border-radius:12px;font-size:10px;font-weight:800}
-        .mensaje.success{background:var(--green);color:var(--green-text)}.mensaje.error{background:var(--red);color:var(--red-text)}
-        .mensaje.warning{background:var(--amber);color:var(--amber-text)}.mensaje.info{background:var(--blue);color:var(--blue-text)}
-
-        .metricas{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:15px}
-        .metrica{padding:14px 15px;border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:var(--shadow)}
-        .metrica-label{color:var(--muted);font-size:8px;font-weight:900;letter-spacing:.2px}.metrica-valor{margin-top:6px;font-size:19px;font-weight:900;line-height:1.15}
-        .metrica-nota{margin-top:4px;color:var(--muted);font-size:8px;line-height:1.35}.metrica.saldo{background:var(--amber);border-color:#efdda3}
-        .metrica.saldo .metrica-label,.metrica.saldo .metrica-valor{color:var(--amber-text)}
-
-        .layout{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr);gap:14px;align-items:start}.columna{display:grid;gap:14px;min-width:0}
-        .panel{border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:var(--shadow);overflow:hidden}
-        .panel-cabecera{min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 15px;border-bottom:1px solid var(--line);background:#fbfbfc}
-        .panel-titulo{font-size:12px;font-weight:900;letter-spacing:.15px}.panel-subtitulo{margin-top:3px;color:var(--muted);font-size:8px}.panel-cuerpo{padding:15px}
-
-        .estado{min-height:28px;display:inline-flex;align-items:center;justify-content:center;padding:0 9px;border-radius:999px;font-size:7px;font-weight:900;white-space:nowrap}
-        .estado-PENDIENTE{background:var(--amber);color:var(--amber-text)}.estado-PREPARANDO{background:var(--blue);color:var(--blue-text)}
-        .estado-LISTO,.estado-ENTREGADO{background:var(--green);color:var(--green-text)}.estado-CANCELADO{background:var(--red);color:var(--red-text)}
-        .pago-SIN_PAGAR{background:var(--red);color:var(--red-text)}.pago-PARCIAL{background:var(--amber);color:var(--amber-text)}.pago-PAGADO{background:var(--green);color:var(--green-text)}
-
-        .preparacion{display:grid}.prep-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 15px;border-bottom:1px solid var(--line)}
-        .prep-item:last-child{border-bottom:0}.prep-item.listo{background:#fbfffc}.prep-nombre{font-size:12px;font-weight:900;line-height:1.3}
-        .prep-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.prep-chip{display:inline-flex;align-items:center;min-height:25px;padding:0 8px;border-radius:8px;background:var(--soft);color:#555b63;font-size:8px;font-weight:800}
-        .prep-chip.ok{background:var(--green);color:var(--green-text)}.prep-chip.falta{background:var(--red);color:var(--red-text)}
-        .prep-personal{margin-top:7px;color:var(--amber-text);font-size:8px;line-height:1.4}
-        .prep-form{margin:0}.prep-check{position:relative;width:52px;height:34px;display:block;cursor:pointer}.prep-check input{position:absolute;opacity:0;pointer-events:none}
-        .prep-check-ui{width:52px;height:34px;display:flex;align-items:center;justify-content:center;border:1px solid #d5d9de;border-radius:11px;background:#fff;color:#9aa0a8;font-size:17px;font-weight:900;transition:.12s ease}
-        .prep-check input:checked + .prep-check-ui{background:#31824a;border-color:#31824a;color:#fff}.prep-check input:disabled + .prep-check-ui{background:#f1f2f4;border-color:#e0e2e5;color:#b7bbc0;cursor:not-allowed}
-        .prep-resumen{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.prep-contador{font-size:9px;font-weight:900;color:#5f656d}
-
-        .items{display:grid}.item{padding:15px;border-bottom:1px solid var(--line)}.item:last-child{border-bottom:0}.item.cancelado{background:#fffafa}
-        .item-arriba{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.item-nombre{font-size:13px;font-weight:900;line-height:1.3}.item-tipo{margin-top:4px;color:var(--muted);font-size:8px;font-weight:800}.item-subtotal{flex:0 0 auto;font-size:13px;font-weight:900}
-        .item-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.item-dato{padding:7px 9px;border-radius:9px;background:var(--soft);font-size:8px;font-weight:800;color:#555b63}
-        .personalizacion{margin-top:9px;padding:10px;border-radius:10px;background:var(--amber);color:var(--amber-text);font-size:8px;line-height:1.45}
-        .kit-componentes{margin-top:9px;padding:10px;border-radius:10px;background:#eef0f2}.kit-componentes-titulo{margin-bottom:5px;color:var(--muted);font-size:7px;font-weight:900}.kit-componente{display:flex;justify-content:space-between;gap:10px;padding:3px 0;font-size:8px}
-
-        .datos{display:grid;gap:8px}.dato{padding:11px 12px;border-radius:12px;background:var(--soft)}.dato-label{color:var(--muted);font-size:7px;font-weight:900;letter-spacing:.2px}.dato-valor{margin-top:5px;font-size:11px;font-weight:800;line-height:1.45;overflow-wrap:anywhere}
-        .dato-valor a{color:inherit;text-decoration:none}.dato-valor a:hover{text-decoration:underline}.dato-valor.vacio{color:#a1a6ad;font-weight:700}.observaciones{white-space:pre-wrap}
-        .pagos{display:grid}.pago{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:12px 15px;border-bottom:1px solid var(--line)}.pago:last-child{border-bottom:0}.pago-medio{font-size:10px;font-weight:900}.pago-fecha{margin-top:3px;color:var(--muted);font-size:8px}.pago-observacion{margin-top:5px;color:#5f656d;font-size:8px;line-height:1.4}.pago-monto{font-size:11px;font-weight:900;white-space:nowrap}.sin-datos{padding:24px 15px;text-align:center;color:var(--muted);font-size:9px}
-
-        .nav-inferior{position:fixed;z-index:50;left:50%;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(720px,calc(100% - 20px));display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:7px;border:1px solid rgba(255,255,255,.5);border-radius:20px;background:rgba(35,38,43,.96);box-shadow:0 12px 35px rgba(0,0,0,.22);backdrop-filter:blur(14px)}
-        .nav-item{min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:14px;color:#d9dbe0;text-decoration:none;font-size:9px;font-weight:bold}.nav-item span:first-child{font-size:19px}.nav-item.nuevo-nav{background:#fff;color:var(--dark)}
-
+        :root{--bg:#f5f6f8;--surface:#fff;--soft:#f8f9fb;--text:#25282d;--muted:#777d86;--line:#e3e6ea;--dark:#25282d;--green:#eaf7ee;--green-text:#28633c;--amber:#fff5d8;--amber-text:#775a13;--red:#fdeaea;--red-text:#913b3b;--blue:#edf4ff;--blue-text:#315f9f;--shadow:0 5px 20px rgba(28,33,40,.055)}
+        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;padding:0 0 calc(94px + env(safe-area-inset-bottom));font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}a,button,input{touch-action:manipulation}.contenedor{width:min(1120px,100%);margin:auto;padding:22px 18px 34px}
+        .encabezado{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:18px}.titulo-linea{display:flex;align-items:center;gap:9px;flex-wrap:wrap}h1{margin:0;font-size:clamp(26px,4vw,34px)}.subtitulo{margin-top:5px;color:var(--muted);font-size:13px}.acciones-encabezado{display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end}.acciones-encabezado form{margin:0}.btn{min-height:46px;display:inline-flex;align-items:center;justify-content:center;padding:0 16px;border-radius:12px;text-decoration:none;font-size:9px;font-weight:900;white-space:nowrap;cursor:pointer}.btn-secundario{border:1px solid var(--line);background:#fff;color:var(--text)}.btn-principal{border:1px solid var(--dark);background:var(--dark);color:#fff}.btn-entregar{border:1px solid #31824a;background:#31824a;color:#fff}
+        .mensajes{display:grid;gap:8px;margin-bottom:14px}.mensaje{padding:11px 13px;border-radius:12px;font-size:10px;font-weight:800}.mensaje.success{background:var(--green);color:var(--green-text)}.mensaje.error{background:var(--red);color:var(--red-text)}.mensaje.warning{background:var(--amber);color:var(--amber-text)}.mensaje.info{background:var(--blue);color:var(--blue-text)}
+        .metricas{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:15px}.metrica{padding:14px 15px;border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:var(--shadow)}.metrica-label{color:var(--muted);font-size:8px;font-weight:900}.metrica-valor{margin-top:6px;font-size:19px;font-weight:900}.metrica-nota{margin-top:4px;color:var(--muted);font-size:8px}.metrica.saldo{background:var(--amber);border-color:#efdda3}.metrica.saldo .metrica-label,.metrica.saldo .metrica-valor{color:var(--amber-text)}
+        .layout{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr);gap:14px;align-items:start}.columna{display:grid;gap:14px;min-width:0}.panel{border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:var(--shadow);overflow:hidden}.panel-cabecera{min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 15px;border-bottom:1px solid var(--line);background:#fbfbfc}.panel-titulo{font-size:12px;font-weight:900}.panel-subtitulo{margin-top:3px;color:var(--muted);font-size:8px}.panel-cuerpo{padding:15px}
+        .estado{min-height:28px;display:inline-flex;align-items:center;justify-content:center;padding:0 9px;border-radius:999px;font-size:7px;font-weight:900;white-space:nowrap}.estado-PENDIENTE{background:var(--amber);color:var(--amber-text)}.estado-PREPARANDO{background:var(--blue);color:var(--blue-text)}.estado-LISTO,.estado-ENTREGADO{background:var(--green);color:var(--green-text)}.estado-CANCELADO{background:var(--red);color:var(--red-text)}.pago-SIN_PAGAR{background:var(--red);color:var(--red-text)}.pago-PARCIAL{background:var(--amber);color:var(--amber-text)}.pago-PAGADO{background:var(--green);color:var(--green-text)}
+        .progreso{height:7px;margin:0 15px 13px;overflow:hidden;border-radius:999px;background:#eceef1}.progreso-valor{height:100%;border-radius:999px;background:#31824a}.prep-resumen{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.prep-contador{font-size:9px;font-weight:900;color:#5f656d}.preparacion{display:grid}.prep-item{display:grid;grid-template-columns:minmax(0,1fr) 180px 52px;gap:12px;align-items:center;padding:14px 15px;border-top:1px solid var(--line)}.prep-item:first-child{border-top:0}.prep-item.listo{background:#fbfffc}.prep-nombre{font-size:12px;font-weight:900}.prep-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.chip{display:inline-flex;align-items:center;min-height:25px;padding:0 8px;border-radius:8px;background:var(--soft);color:#555b63;font-size:8px;font-weight:800}.chip.ok{background:var(--green);color:var(--green-text)}.chip.falta{background:var(--red);color:var(--red-text)}.chip.manual{background:var(--amber);color:var(--amber-text)}.prep-personal{margin-top:7px;color:var(--amber-text);font-size:8px;line-height:1.4}.prep-estado{padding:9px 10px;border-radius:10px;background:var(--soft);text-align:center}.prep-estado .label{color:var(--muted);font-size:7px;font-weight:900}.prep-estado .valor{margin-top:4px;font-size:9px;font-weight:900;line-height:1.3}.prep-estado.ok{background:var(--green);color:var(--green-text)}.prep-estado.falta{background:var(--red);color:var(--red-text)}.prep-estado.manual{background:var(--amber);color:var(--amber-text)}.prep-form{margin:0}.prep-check{position:relative;width:52px;height:34px;display:block;cursor:pointer}.prep-check input{position:absolute;opacity:0;pointer-events:none}.prep-check-ui{width:52px;height:34px;display:flex;align-items:center;justify-content:center;border:1px solid #d5d9de;border-radius:11px;background:#fff;color:#9aa0a8;font-size:17px;font-weight:900}.prep-check input:checked + .prep-check-ui{background:#31824a;border-color:#31824a;color:#fff}.prep-check input:disabled + .prep-check-ui{background:#f1f2f4;color:#b7bbc0;cursor:not-allowed}
+        details.comercial>summary{list-style:none;cursor:pointer}.comercial>summary::-webkit-details-marker{display:none}.comercial>summary .panel-cabecera{border-bottom:0}.comercial[open]>summary .panel-cabecera{border-bottom:1px solid var(--line)}.comercial-flecha{font-size:15px;font-weight:900}.comercial>summary .comercial-flecha::before{content:'＋'}.comercial[open]>summary .comercial-flecha::before{content:'−'}
+        .items{display:grid}.item{padding:14px 15px;border-bottom:1px solid var(--line)}.item:last-child{border-bottom:0}.item.cancelado{background:#fffafa}.item-arriba{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.item-nombre{font-size:12px;font-weight:900}.item-tipo{margin-top:4px;color:var(--muted);font-size:8px;font-weight:800}.item-subtotal{font-size:12px;font-weight:900}.item-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}.item-dato{padding:7px 9px;border-radius:9px;background:var(--soft);font-size:8px;font-weight:800;color:#555b63}.personalizacion{margin-top:8px;padding:9px;border-radius:10px;background:var(--amber);color:var(--amber-text);font-size:8px;line-height:1.45}.kit-componentes{margin-top:8px;padding:9px;border-radius:10px;background:#eef0f2}.kit-componentes-titulo{margin-bottom:5px;color:var(--muted);font-size:7px;font-weight:900}.kit-componente{display:flex;justify-content:space-between;gap:10px;padding:3px 0;font-size:8px}
+        .datos{display:grid;gap:8px}.dato{padding:11px 12px;border-radius:12px;background:var(--soft)}.dato-label{color:var(--muted);font-size:7px;font-weight:900}.dato-valor{margin-top:5px;font-size:11px;font-weight:800;line-height:1.45;overflow-wrap:anywhere}.dato-valor a{color:inherit;text-decoration:none}.dato-valor.vacio{color:#a1a6ad}.observaciones{white-space:pre-wrap}.pagos{display:grid}.pago{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:12px 15px;border-bottom:1px solid var(--line)}.pago:last-child{border-bottom:0}.pago-medio{font-size:10px;font-weight:900}.pago-fecha{margin-top:3px;color:var(--muted);font-size:8px}.pago-observacion{margin-top:5px;color:#5f656d;font-size:8px}.pago-monto{font-size:11px;font-weight:900}.sin-datos{padding:24px 15px;text-align:center;color:var(--muted);font-size:9px}
+        .nav-inferior{position:fixed;z-index:50;left:50%;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(720px,calc(100% - 20px));display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:7px;border-radius:20px;background:rgba(35,38,43,.96);box-shadow:0 12px 35px rgba(0,0,0,.22)}.nav-item{min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:14px;color:#d9dbe0;text-decoration:none;font-size:9px;font-weight:bold}.nav-item span:first-child{font-size:19px}.nav-item.nuevo-nav{background:#fff;color:var(--dark)}
         @media(max-width:900px){.layout{grid-template-columns:1fr}.metricas{grid-template-columns:repeat(2,minmax(0,1fr))}}
-        @media(max-width:620px){
-            .contenedor{padding:16px 11px 28px}.encabezado{align-items:flex-start;flex-direction:column}.acciones-encabezado{width:100%;display:grid;grid-template-columns:1fr 1fr}.acciones-encabezado form{display:block}.btn{width:100%;padding:0 10px}.metricas{gap:8px}.metrica{padding:12px}.metrica-valor{font-size:17px}
-            .prep-item{grid-template-columns:minmax(0,1fr) 52px;gap:10px;padding:13px 12px}.item-arriba{display:block}.item-subtotal{margin-top:7px}.nav-inferior{width:calc(100% - 12px);bottom:max(6px,env(safe-area-inset-bottom));border-radius:18px}.nav-item{min-height:56px}
-        }
+        @media(max-width:680px){.contenedor{padding:16px 11px 28px}.encabezado{align-items:flex-start;flex-direction:column}.acciones-encabezado{width:100%;display:grid;grid-template-columns:1fr 1fr}.btn{width:100%}.prep-item{grid-template-columns:minmax(0,1fr) 52px;gap:10px;padding:13px 12px}.prep-estado{grid-column:1;justify-self:start;text-align:left}.prep-form{grid-column:2;grid-row:1 / span 2;align-self:center}.item-arriba{display:block}.item-subtotal{margin-top:7px}.nav-inferior{width:calc(100% - 12px);bottom:max(6px,env(safe-area-inset-bottom))}}
     </style>
 </head>
 <body>
 <div class="contenedor">
     <header class="encabezado">
-        <div class="encabezado-principal">
-            <div class="titulo-linea">
-                <h1>Pedido {{ pedido.codigo }}</h1>
-                <span class="estado estado-{{ pedido.estado }}">{{ pedido.get_estado_display|upper }}</span>
-            </div>
-            <div class="subtitulo">
-                {{ pedido.cliente.nombre }} · creado {{ pedido.fecha|date:"d/m/Y" }}
-                {% if pedido.fecha_entrega %} · entrega {{ pedido.fecha_entrega|date:"d/m/Y" }}{% endif %}
-            </div>
+        <div class="encabezado-marca">
+            {% include 'shared/brand_bar.html' %}
+            <div class="titulo-linea"><h1>Pedido {{ pedido.codigo }}</h1><span class="estado estado-{{ pedido.estado }}">{{ pedido.get_estado_display|upper }}</span></div>
+            <div class="subtitulo">{{ pedido.cliente.nombre }} · creado {{ pedido.fecha|date:"d/m/Y" }}{% if pedido.fecha_entrega %} · entrega {{ pedido.fecha_entrega|date:"d/m/Y" }}{% endif %}</div>
         </div>
-
         <div class="acciones-encabezado">
             <a href="{% url 'dashboard:inicio' %}" class="btn btn-secundario">← Dashboard</a>
             {% if pedido.estado == 'LISTO' %}
-            <form method="post" action="{% url 'pedidos:entregar' pedido.id %}">
-                {% csrf_token %}
-                <input type="hidden" name="origen" value="detalle">
-                <input type="hidden" name="pedido_id" value="{{ pedido.id }}">
-                <button type="submit" class="btn btn-entregar">✓ Entregar pedido</button>
-            </form>
-            {% elif pedido.estado == 'PENDIENTE' %}
-            <a href="{% url 'pedidos:editar' pedido.id %}" class="btn btn-principal">Editar pedido</a>
-            {% endif %}
+            <form method="post" action="{% url 'pedidos:entregar' pedido.id %}">{% csrf_token %}<input type="hidden" name="origen" value="detalle"><button type="submit" class="btn btn-entregar">✓ Entregar pedido</button></form>
+            {% elif pedido.estado == 'PENDIENTE' %}<a href="{% url 'pedidos:editar' pedido.id %}" class="btn btn-principal">Editar pedido</a>{% endif %}
         </div>
     </header>
 
-    {% if messages %}
-    <div class="mensajes">
-        {% for message in messages %}<div class="mensaje {{ message.tags|default:'info' }}">{{ message }}</div>{% endfor %}
-    </div>
-    {% endif %}
+    {% if messages %}<div class="mensajes">{% for message in messages %}<div class="mensaje {{ message.tags|default:'info' }}">{{ message }}</div>{% endfor %}</div>{% endif %}
 
-    <section class="metricas" aria-label="Resumen del pedido">
+    <section class="metricas">
         <div class="metrica"><div class="metrica-label">TOTAL</div><div class="metrica-valor">${{ pedido.total|floatformat:0 }}</div><div class="metrica-nota">importe del pedido</div></div>
         <div class="metrica"><div class="metrica-label">PAGADO</div><div class="metrica-valor">${{ pedido.total_pagado|floatformat:0 }}</div><div class="metrica-nota">pagos registrados</div></div>
         <div class="metrica {% if pedido.saldo_pendiente %}saldo{% endif %}"><div class="metrica-label">SALDO</div><div class="metrica-valor">${{ pedido.saldo_pendiente|floatformat:0 }}</div><div class="metrica-nota">{{ pedido.estado_pago_display }}</div></div>
-        <div class="metrica"><div class="metrica-label">UNIDADES</div><div class="metrica-valor">{{ cantidad_unidades }}</div><div class="metrica-nota">{{ cantidad_lineas }} líneas cargadas</div></div>
+        <div class="metrica"><div class="metrica-label">UNIDADES</div><div class="metrica-valor">{{ cantidad_unidades }}</div><div class="metrica-nota">{{ cantidad_lineas }} líneas comerciales</div></div>
     </section>
 
     <div class="layout">
         <main class="columna">
+            {% if pedido_activo %}
             <section class="panel">
                 <div class="panel-cabecera">
-                    <div><div class="panel-titulo">Preparación del pedido</div><div class="panel-subtitulo">Marcá cada producto cuando esté físicamente disponible</div></div>
+                    <div><div class="panel-titulo">Preparación del pedido</div><div class="panel-subtitulo">Una sola vista operativa: disponibilidad, faltantes y productos ya preparados</div></div>
                     <div class="prep-resumen"><span class="prep-contador">{{ preparacion_listos }}/{{ preparacion_total }} listos</span><span class="estado estado-{{ pedido.estado }}">{{ pedido.get_estado_display|upper }}</span></div>
                 </div>
-
+                {% if preparacion_total %}<div class="progreso"><div class="progreso-valor" style="width:{{ preparacion_porcentaje }}%"></div></div>{% endif %}
                 {% if preparacion %}
                 <div class="preparacion">
                     {% for item in preparacion %}
                     <div class="prep-item {% if item.listo %}listo{% endif %}">
                         <div>
                             <div class="prep-nombre">{{ item.nombre }}</div>
-                            <div class="prep-meta">
-                                <span class="prep-chip">Necesita: {{ item.cantidad }}</span>
-                                {% if item.es_personalizado %}
-                                    <span class="prep-chip ok">Personalizado · sin descuento de stock</span>
-                                {% elif item.listo %}
-                                    <span class="prep-chip ok">Stock descontado: {{ item.stock_descontado }}</span>
-                                    <span class="prep-chip">Stock actual: {{ item.stock_actual }}</span>
-                                {% elif item.puede_marcar_listo %}
-                                    <span class="prep-chip ok">Stock disponible: {{ item.stock_actual }}</span>
-                                {% else %}
-                                    <span class="prep-chip falta">Stock insuficiente: {{ item.stock_actual }}</span>
-                                {% endif %}
-                            </div>
-                            {% if item.es_personalizado and item.color_personalizacion or item.es_personalizado and item.detalle_personalizacion %}
-                            <div class="prep-personal">
-                                {% if item.color_personalizacion %}<strong>Color:</strong> {{ item.color_personalizacion }}{% endif %}
-                                {% if item.color_personalizacion and item.detalle_personalizacion %} · {% endif %}
-                                {% if item.detalle_personalizacion %}{{ item.detalle_personalizacion }}{% endif %}
-                            </div>
-                            {% endif %}
+                            <div class="prep-meta"><span class="chip">Necesita {{ item.cantidad }}</span>{% if item.producto %}<span class="chip">{{ item.producto.codigo }}</span>{% endif %}{% if item.es_personalizado %}<span class="chip manual">PERSONALIZADO</span>{% endif %}</div>
+                            {% if item.es_personalizado and item.color_personalizacion or item.es_personalizado and item.detalle_personalizacion %}<div class="prep-personal">{% if item.color_personalizacion %}<strong>Color:</strong> {{ item.color_personalizacion }}{% endif %}{% if item.color_personalizacion and item.detalle_personalizacion %} · {% endif %}{% if item.detalle_personalizacion %}{{ item.detalle_personalizacion }}{% endif %}</div>{% endif %}
                         </div>
-
-                        <form method="post" action="{% url 'pedidos:cambiar_preparacion' pedido.id %}" class="prep-form">
-                            {% csrf_token %}
-                            {% if item.es_personalizado %}
-                            <input type="hidden" name="detalle_personalizado_id" value="{{ item.detalle_personalizado_id }}">
-                            {% else %}
-                            <input type="hidden" name="estado_id" value="{{ item.estado_id }}">
-                            {% endif %}
-                            <input type="hidden" name="listo" value="0">
-                            <label class="prep-check" title="{% if item.listo %}Volver a pendiente{% elif item.puede_marcar_listo %}Marcar como listo{% else %}No hay stock suficiente{% endif %}">
-                                <input
-                                    type="checkbox"
-                                    name="listo"
-                                    value="1"
-                                    {% if item.listo %}checked{% endif %}
-                                    {% if not preparacion_editable or not item.puede_marcar_listo %}disabled{% endif %}
-                                    onchange="this.form.submit()"
-                                    aria-label="Marcar {{ item.nombre }} como listo"
-                                >
-                                <span class="prep-check-ui">✓</span>
-                            </label>
-                            <noscript><button type="submit">Guardar</button></noscript>
-                        </form>
+                        <div class="prep-estado {% if item.estado_operativo == 'LISTO' or item.estado_operativo == 'DISPONIBLE' %}ok{% elif item.estado_operativo == 'FALTANTE' %}falta{% else %}manual{% endif %}"><div class="label">{% if item.estado_operativo == 'LISTO' %}PREPARADO{% elif item.estado_operativo == 'FALTANTE' %}STOCK INSUFICIENTE{% elif item.estado_operativo == 'DISPONIBLE' %}DISPONIBLE{% else %}PREPARACIÓN MANUAL{% endif %}</div><div class="valor">{{ item.estado_texto }}</div></div>
+                        <form method="post" action="{% url 'pedidos:cambiar_preparacion' pedido.id %}" class="prep-form">{% csrf_token %}{% if item.es_personalizado %}<input type="hidden" name="detalle_personalizado_id" value="{{ item.detalle_personalizado_id }}">{% else %}<input type="hidden" name="estado_id" value="{{ item.estado_id }}">{% endif %}<input type="hidden" name="listo" value="0"><label class="prep-check"><input type="checkbox" name="listo" value="1" {% if item.listo %}checked{% endif %} {% if not preparacion_editable or not item.puede_marcar_listo %}disabled{% endif %} onchange="this.form.submit()"><span class="prep-check-ui">✓</span></label></form>
                     </div>
                     {% endfor %}
                 </div>
-                {% else %}
-                <div class="sin-datos">Este pedido no tiene productos pendientes de preparación.</div>
-                {% endif %}
+                {% else %}<div class="sin-datos">Este pedido no requiere preparación física. Consultá el detalle comercial debajo.</div>{% endif %}
             </section>
+            {% endif %}
 
-            <section class="panel">
-                <div class="panel-cabecera"><div><div class="panel-titulo">Productos del pedido</div><div class="panel-subtitulo">Cantidades, estado y precio acordado</div></div><span class="estado pago-{{ pedido.estado_pago }}">{{ pedido.estado_pago_display|upper }}</span></div>
-                {% if detalles %}
-                <div class="items">
-                    {% for detalle in detalles %}
-                    <article class="item {% if detalle.estado == 'CANCELADO' %}cancelado{% endif %}">
-                        <div class="item-arriba">
-                            <div>
-                                <div class="item-nombre">
-                                    {% if detalle.tipo_item == 'PRODUCTO' and detalle.producto %}{{ detalle.producto.nombre }}
-                                    {% elif detalle.tipo_item == 'KIT' and detalle.kit %}{{ detalle.kit.nombre }}
-                                    {% elif detalle.tipo_item == 'PERSONALIZADO' and detalle.producto %}{{ detalle.producto.nombre }} personalizado
-                                    {% else %}Ítem del pedido{% endif %}
-                                </div>
-                                <div class="item-tipo">{{ detalle.get_tipo_item_display|upper }}</div>
-                            </div>
-                            <div class="item-subtotal">${{ detalle.subtotal|floatformat:0 }}</div>
-                        </div>
-                        <div class="item-meta"><span class="item-dato">Cantidad: {{ detalle.cantidad }}</span><span class="item-dato">Unitario: ${{ detalle.precio_unitario|floatformat:0 }}</span><span class="estado estado-{{ detalle.estado }}">{{ detalle.get_estado_display|upper }}</span></div>
+            <details class="panel comercial" {% if not pedido_activo %}open{% endif %}>
+                <summary><div class="panel-cabecera"><div><div class="panel-titulo">{% if pedido_activo %}Detalle comercial{% else %}Productos del pedido{% endif %}</div><div class="panel-subtitulo">{% if pedido_activo %}Qué compró, cantidades y precios · se mantiene colapsado para no duplicar la preparación{% else %}Historial de productos, cantidades y precio acordado{% endif %}</div></div><div class="prep-resumen"><span class="estado pago-{{ pedido.estado_pago }}">{{ pedido.estado_pago_display|upper }}</span><span class="comercial-flecha"></span></div></div></summary>
+                {% if detalles %}<div class="items">{% for detalle in detalles %}<article class="item {% if detalle.estado == 'CANCELADO' %}cancelado{% endif %}"><div class="item-arriba"><div><div class="item-nombre">{% if detalle.tipo_item == 'PRODUCTO' and detalle.producto %}{{ detalle.producto.nombre }}{% elif detalle.tipo_item == 'KIT' and detalle.kit %}{{ detalle.kit.nombre }}{% elif detalle.tipo_item == 'PERSONALIZADO' and detalle.producto %}{{ detalle.producto.nombre }} personalizado{% else %}Ítem del pedido{% endif %}</div><div class="item-tipo">{{ detalle.get_tipo_item_display|upper }}</div></div><div class="item-subtotal">${{ detalle.subtotal|floatformat:0 }}</div></div><div class="item-meta"><span class="item-dato">Cantidad: {{ detalle.cantidad }}</span><span class="item-dato">Unitario: ${{ detalle.precio_unitario|floatformat:0 }}</span>{% if not pedido_activo %}<span class="estado estado-{{ detalle.estado }}">{{ detalle.get_estado_display|upper }}</span>{% endif %}</div>{% if detalle.tipo_item == 'KIT' and detalle.productos_kit.all %}<div class="kit-componentes"><div class="kit-componentes-titulo">COMPOSICIÓN DEL KIT</div>{% for componente in detalle.productos_kit.all %}<div class="kit-componente"><span>{{ componente.producto.nombre }}</span><strong>× {{ componente.cantidad }}</strong></div>{% endfor %}</div>{% endif %}{% if detalle.tipo_item == 'PERSONALIZADO' %}<div class="personalizacion">{% if detalle.color_personalizacion %}<strong>Color:</strong> {{ detalle.color_personalizacion }}{% endif %}{% if detalle.color_personalizacion and detalle.detalle_personalizacion %}<br>{% endif %}{% if detalle.detalle_personalizacion %}<strong>Detalle:</strong> {{ detalle.detalle_personalizacion }}{% endif %}{% if not detalle.color_personalizacion and not detalle.detalle_personalizacion %}Sin detalle adicional cargado.{% endif %}</div>{% endif %}</article>{% endfor %}</div>{% else %}<div class="sin-datos">Este pedido no tiene productos cargados.</div>{% endif %}
+            </details>
 
-                        {% if detalle.tipo_item == 'KIT' and detalle.productos_kit.all %}
-                        <div class="kit-componentes"><div class="kit-componentes-titulo">COMPOSICIÓN DEL KIT</div>{% for componente in detalle.productos_kit.all %}<div class="kit-componente"><span>{{ componente.producto.nombre }}</span><strong>× {{ componente.cantidad }}</strong></div>{% endfor %}</div>
-                        {% endif %}
-
-                        {% if detalle.tipo_item == 'PERSONALIZADO' %}
-                        <div class="personalizacion">
-                            {% if detalle.color_personalizacion %}<strong>Color:</strong> {{ detalle.color_personalizacion }}{% endif %}
-                            {% if detalle.color_personalizacion and detalle.detalle_personalizacion %}<br>{% endif %}
-                            {% if detalle.detalle_personalizacion %}<strong>Detalle:</strong> {{ detalle.detalle_personalizacion }}{% endif %}
-                            {% if not detalle.color_personalizacion and not detalle.detalle_personalizacion %}Sin detalle adicional cargado.{% endif %}
-                        </div>
-                        {% endif %}
-                    </article>
-                    {% endfor %}
-                </div>
-                {% else %}<div class="sin-datos">Este pedido no tiene productos cargados.</div>{% endif %}
-            </section>
-
-            <section class="panel">
-                <div class="panel-cabecera"><div><div class="panel-titulo">Pagos</div><div class="panel-subtitulo">Historial registrado para este pedido</div></div></div>
-                {% if pagos %}<div class="pagos">{% for pago in pagos %}<div class="pago"><div><div class="pago-medio">{{ pago.get_medio_display }}</div><div class="pago-fecha">{{ pago.fecha|date:"d/m/Y H:i" }}</div>{% if pago.observaciones %}<div class="pago-observacion">{{ pago.observaciones }}</div>{% endif %}</div><div class="pago-monto">${{ pago.monto|floatformat:0 }}</div></div>{% endfor %}</div>{% else %}<div class="sin-datos">Todavía no hay pagos registrados.</div>{% endif %}
-            </section>
+            <section class="panel"><div class="panel-cabecera"><div><div class="panel-titulo">Pagos</div><div class="panel-subtitulo">Historial registrado para este pedido</div></div></div>{% if pagos %}<div class="pagos">{% for pago in pagos %}<div class="pago"><div><div class="pago-medio">{{ pago.get_medio_display }}</div><div class="pago-fecha">{{ pago.fecha|date:"d/m/Y H:i" }}</div>{% if pago.observaciones %}<div class="pago-observacion">{{ pago.observaciones }}</div>{% endif %}</div><div class="pago-monto">${{ pago.monto|floatformat:0 }}</div></div>{% endfor %}</div>{% else %}<div class="sin-datos">Todavía no hay pagos registrados.</div>{% endif %}</section>
         </main>
 
-        <aside class="columna">
-            <section class="panel">
-                <div class="panel-cabecera"><div><div class="panel-titulo">Datos del pedido</div><div class="panel-subtitulo">Información general y entrega</div></div></div>
-                <div class="panel-cuerpo datos">
-                    <div class="dato"><div class="dato-label">CLIENTE</div><div class="dato-valor"><a href="{% url 'clientes:detalle' pedido.cliente.id %}">{{ pedido.cliente.nombre }} →</a></div></div>
-                    <div class="dato"><div class="dato-label">TELÉFONO</div><div class="dato-valor {% if not pedido.cliente.telefono %}vacio{% endif %}">{% if pedido.cliente.telefono %}{{ pedido.cliente.telefono }}{% else %}Sin teléfono{% endif %}</div></div>
-                    <div class="dato"><div class="dato-label">EMAIL</div><div class="dato-valor {% if not pedido.cliente.email %}vacio{% endif %}">{% if pedido.cliente.email %}{{ pedido.cliente.email }}{% else %}Sin email{% endif %}</div></div>
-                    <div class="dato"><div class="dato-label">FECHA DEL PEDIDO</div><div class="dato-valor">{{ pedido.fecha|date:"d/m/Y" }}</div></div>
-                    <div class="dato"><div class="dato-label">FECHA DE ENTREGA</div><div class="dato-valor {% if not pedido.fecha_entrega %}vacio{% endif %}">{% if pedido.fecha_entrega %}{{ pedido.fecha_entrega|date:"d/m/Y" }}{% else %}Sin fecha definida{% endif %}</div></div>
-                    <div class="dato"><div class="dato-label">OBSERVACIONES</div><div class="dato-valor observaciones {% if not pedido.observaciones %}vacio{% endif %}">{% if pedido.observaciones %}{{ pedido.observaciones }}{% else %}Sin observaciones{% endif %}</div></div>
-                </div>
-            </section>
-        </aside>
+        <aside class="columna"><section class="panel"><div class="panel-cabecera"><div><div class="panel-titulo">Datos del pedido</div><div class="panel-subtitulo">Información general y entrega</div></div></div><div class="panel-cuerpo datos"><div class="dato"><div class="dato-label">CLIENTE</div><div class="dato-valor"><a href="{% url 'clientes:detalle' pedido.cliente.id %}">{{ pedido.cliente.nombre }} →</a></div></div><div class="dato"><div class="dato-label">TELÉFONO</div><div class="dato-valor {% if not pedido.cliente.telefono %}vacio{% endif %}">{% if pedido.cliente.telefono %}{{ pedido.cliente.telefono }}{% else %}Sin teléfono{% endif %}</div></div><div class="dato"><div class="dato-label">EMAIL</div><div class="dato-valor {% if not pedido.cliente.email %}vacio{% endif %}">{% if pedido.cliente.email %}{{ pedido.cliente.email }}{% else %}Sin email{% endif %}</div></div><div class="dato"><div class="dato-label">FECHA DEL PEDIDO</div><div class="dato-valor">{{ pedido.fecha|date:"d/m/Y" }}</div></div><div class="dato"><div class="dato-label">FECHA DE ENTREGA</div><div class="dato-valor {% if not pedido.fecha_entrega %}vacio{% endif %}">{% if pedido.fecha_entrega %}{{ pedido.fecha_entrega|date:"d/m/Y" }}{% else %}Sin fecha definida{% endif %}</div></div><div class="dato"><div class="dato-label">OBSERVACIONES</div><div class="dato-valor observaciones {% if not pedido.observaciones %}vacio{% endif %}">{% if pedido.observaciones %}{{ pedido.observaciones }}{% else %}Sin observaciones{% endif %}</div></div></div></section></aside>
     </div>
 </div>
-
-<nav class="nav-inferior" aria-label="Navegación principal">
-    <a href="{% url 'dashboard:inicio' %}" class="nav-item"><span>⌂</span><span>INICIO</span></a>
-    <a href="{% url 'pedidos:impresiones' %}" class="nav-item"><span>📦</span><span>PEDIDOS</span></a>
-    <a href="{% url 'pedidos:nuevo' %}" class="nav-item nuevo-nav"><span>＋</span><span>NUEVO</span></a>
-    <a href="{% url 'produccion:lista' %}" class="nav-item"><span>⚙</span><span>PRODUCCIÓN</span></a>
-    <a href="{% url 'productos:lista' %}" class="nav-item"><span>▦</span><span>PRODUCTOS</span></a>
-</nav>
+<nav class="nav-inferior" aria-label="Navegación principal"><a href="{% url 'dashboard:inicio' %}" class="nav-item"><span>⌂</span><span>INICIO</span></a><a href="{% url 'pedidos:impresiones' %}" class="nav-item"><span>📦</span><span>PEDIDOS</span></a><a href="{% url 'pedidos:nuevo' %}" class="nav-item nuevo-nav"><span>＋</span><span>NUEVO</span></a><a href="{% url 'produccion:lista' %}" class="nav-item"><span>⚙</span><span>PRODUCCIÓN</span></a><a href="{% url 'productos:lista' %}" class="nav-item"><span>▦</span><span>PRODUCTOS</span></a></nav>
 </body>
 </html>
