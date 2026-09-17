@@ -48,9 +48,27 @@ def catalogo(request):
         Kit.objects
         .filter(activo=True)
         .select_related("tipo_producto")
-        .prefetch_related("componentes__producto")
+        .prefetch_related("componentes__producto__tipo")
         .order_by("nombre")
     )
+
+    # Los kits libres ya tienen una categoría explícita. Para un kit fijo,
+    # si todos sus componentes pertenecen al mismo tipo de producto, usamos
+    # ese tipo como categoría de catálogo sin persistirlo en la base. De esta
+    # forma un enlace ?categoria=... también incluye esos kits fijos.
+    for kit in kits:
+        if kit.modalidad != "FIJO" or kit.tipo_producto_id:
+            continue
+
+        componentes = list(kit.componentes.all())
+        tipos = {
+            componente.producto.tipo_id
+            for componente in componentes
+            if componente.producto_id and componente.producto.tipo_id
+        }
+        if len(tipos) == 1 and componentes:
+            kit.tipo_producto = componentes[0].producto.tipo
+
     adjuntar_imagenes_reutilizadas(
         kits,
         productos_por_tipo=productos_por_tipo,
