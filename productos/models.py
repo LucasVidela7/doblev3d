@@ -1,8 +1,54 @@
 from decimal import Decimal, ROUND_CEILING
+import re
 
 from django.db import models
 
 from costos.models import ConfiguracionCostos
+
+
+class ConfiguracionCatalogo(models.Model):
+    instagram_usuario = models.CharField(
+        max_length=100,
+        blank=True,
+        default="doblev3d",
+        verbose_name="Instagram",
+        help_text="Usuario sin @. Ejemplo: doblev3d",
+    )
+    mostrar_instagram = models.BooleanField(
+        default=True,
+        verbose_name="Mostrar Instagram",
+    )
+    whatsapp_numero = models.CharField(
+        max_length=30,
+        blank=True,
+        default="5491164760709",
+        verbose_name="WhatsApp",
+        help_text="Número con código de país. Ejemplo: 5491164760709",
+    )
+    mostrar_whatsapp = models.BooleanField(
+        default=True,
+        verbose_name="Mostrar WhatsApp",
+    )
+    whatsapp_mensaje = models.CharField(
+        max_length=240,
+        blank=True,
+        default="Hola! Te escribo desde el catálogo de Doble V 3D.",
+        verbose_name="Mensaje inicial de WhatsApp",
+    )
+
+    class Meta:
+        verbose_name = "Configuración del catálogo"
+        verbose_name_plural = "Configuración del catálogo"
+
+    def __str__(self):
+        return "Contacto y redes del catálogo"
+
+    def save(self, *args, **kwargs):
+        # Es una configuración global: mantenemos una única fila estable.
+        self.pk = 1
+        self.instagram_usuario = (self.instagram_usuario or "").strip().lstrip("@")
+        self.whatsapp_numero = re.sub(r"\D+", "", self.whatsapp_numero or "")
+        super().save(*args, **kwargs)
 
 
 class TipoProducto(models.Model):
