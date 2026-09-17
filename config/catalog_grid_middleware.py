@@ -23,12 +23,108 @@ CATALOG_GRID_STYLE = r"""
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) !important;
     }
 }
+
+/* Los filtros sin elementos disponibles no ocupan espacio ni quedan
+   accesibles por teclado. El atributo hidden también comunica el estado
+   correctamente a lectores de pantalla. */
+.filter[hidden],
+.categories[hidden] {
+    display: none !important;
+}
 </style>
 """
 
 
+CATALOG_EMPTY_FILTERS_SCRIPT = r"""
+<script id="dv-catalog-empty-filters-script">
+(() => {
+    const items = [...document.querySelectorAll('.catalog-item')];
+    const kindButtons = [...document.querySelectorAll('[data-kind].filter')];
+    const categoryButtons = [...document.querySelectorAll('[data-category].filter')];
+    const categories = document.querySelector('.categories');
+
+    if (!items.length || !kindButtons.length) return;
+
+    const normalize = (value) =>
+        (value || '')
+            .toLocaleLowerCase('es')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .trim();
+
+    const hasKind = (kind) =>
+        items.some((item) => item.dataset.kind === kind);
+
+    const activeKind = () =>
+        kindButtons.find((button) => button.classList.contains('is-active'))?.dataset.kind || 'all';
+
+    const syncEmptyFilters = () => {
+        // Productos/Kits sólo aparecen si existe al menos una tarjeta real
+        // de ese tipo en el catálogo. "Todo" queda siempre disponible.
+        kindButtons.forEach((button) => {
+            const kind = button.dataset.kind || 'all';
+            button.hidden = kind !== 'all' && !hasKind(kind);
+        });
+
+        let kind = activeKind();
+        if (kind !== 'all' && !hasKind(kind)) {
+            const allButton = kindButtons.find((button) => button.dataset.kind === 'all');
+            if (allButton && !allButton.classList.contains('is-active')) {
+                allButton.click();
+                return;
+            }
+            kind = 'all';
+        }
+
+        const availableCategories = new Set(
+            items
+                .filter((item) => kind === 'all' || item.dataset.kind === kind)
+                .map((item) => normalize(item.dataset.category))
+                .filter(Boolean),
+        );
+
+        let activeCategoryHidden = false;
+        categoryButtons.forEach((button) => {
+            const category = normalize(button.dataset.category);
+            const available = !category || availableCategories.has(category);
+            button.hidden = !available;
+            if (!available && button.classList.contains('is-active')) {
+                activeCategoryHidden = true;
+            }
+        });
+
+        // Si al cambiar de Productos a Kits la categoría seleccionada dejó de
+        // tener resultados, volvemos automáticamente a "Todas las categorías".
+        if (activeCategoryHidden) {
+            const allCategoriesButton = categoryButtons.find(
+                (button) => !normalize(button.dataset.category),
+            );
+            if (allCategoriesButton) {
+                allCategoriesButton.click();
+                return;
+            }
+        }
+
+        if (categories) {
+            const specificVisible = categoryButtons.some(
+                (button) => normalize(button.dataset.category) && !button.hidden,
+            );
+            categories.hidden = !specificVisible;
+        }
+    };
+
+    kindButtons.forEach((button) => {
+        button.addEventListener('click', () => window.setTimeout(syncEmptyFilters, 0));
+    });
+
+    syncEmptyFilters();
+})();
+</script>
+"""
+
+
 class CatalogGridMiddleware:
-    """Densidad consistente y accesos de contacto del catálogo público."""
+    """Densidad, filtros útiles y accesos de contacto del catálogo público."""
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -73,6 +169,13 @@ class CatalogGridMiddleware:
                     contactos + "\n</header>",
                     1,
                 )
+
+        if "dv-catalog-empty-filters-script" not in html and "</body>" in html:
+            html = html.replace(
+                "</body>",
+                CATALOG_EMPTY_FILTERS_SCRIPT + "\n</body>",
+                1,
+            )
 
         encoded = html.encode(response.charset or "utf-8")
         response.content = encoded
