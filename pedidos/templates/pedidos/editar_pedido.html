@@ -959,7 +959,13 @@ async function cargarKit(
     seleccionados.forEach(
         productoId => params.append("seleccionado", productoId)
     );
-    const url = `/pedidos/api/kit/${kitId}/productos/`
+    const urlBase =
+        "{% url 'pedidos:productos_kit' 999999 %}"
+        .replace(
+            "999999",
+            encodeURIComponent(kitId)
+        );
+    const url = urlBase
         + (params.toString() ? `?${params.toString()}` : "");
 
     const r =
