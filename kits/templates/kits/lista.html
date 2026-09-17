@@ -87,7 +87,7 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                 {% if kit.productos_visuales_visibles %}
                     <div class="kit-fotos">
                         <div class="kit-fotos-head">
-                            <b>{% if kit.modalidad == "FIJO" %}PRODUCTOS DEL KIT{% else %}OPCIONES DISPONIBLES{% endif %}</b>
+                            <b>{% if kit.modalidad == "FIJO" %}PRODUCTOS DEL KIT{% else %}OPCIONES RENTABLES{% endif %}</b>
                             <span>Fotos reutilizadas desde Productos</span>
                         </div>
                         <div class="kit-fotos-scroll">
@@ -135,6 +135,18 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                         <div class="fila">
                             <span>El cliente elige</span>
                             <strong>{{ kit.cantidad_productos }} productos</strong>
+                        </div>
+                        <div class="fila">
+                            <span>Opciones habilitadas</span>
+                            <strong>{{ kit.catalogo_cantidad_opciones|default:"0" }}</strong>
+                        </div>
+                        <div class="fila">
+                            <span>Fuera de margen</span>
+                            <strong>{{ kit.catalogo_cantidad_excluida|default:"0" }}</strong>
+                        </div>
+                        <div class="fila">
+                            <span>Costo máximo por producto</span>
+                            <strong>$ {{ kit.catalogo_costo_maximo_unitario|floatformat:"0g" }}</strong>
                         </div>
                     </div>
                 {% endif %}
