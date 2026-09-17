@@ -1,5 +1,6 @@
 import html
-from urllib.parse import quote
+
+from django.urls import reverse
 
 from productos.models import ConfiguracionCatalogo
 
@@ -7,34 +8,34 @@ from productos.models import ConfiguracionCatalogo
 CONTACT_STYLE = r"""
 <style id="dv-catalog-contact-style">
 .dv-catalog-contact{
-    margin-left:auto;
+    position:fixed;
+    right:clamp(14px,2vw,24px);
+    bottom:calc(18px + env(safe-area-inset-bottom, 0px));
+    z-index:80;
     display:flex;
-    align-items:center;
-    justify-content:flex-end;
-    gap:8px;
-    flex-wrap:wrap;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:10px;
+    pointer-events:none;
 }
 .dv-catalog-contact__link{
-    min-height:42px;
+    width:56px;
+    height:56px;
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    gap:8px;
-    padding:0 13px;
-    border:1px solid #dfe5ef;
-    border-radius:999px;
-    background:rgba(255,255,255,.9);
-    color:#0d376f;
+    border:0;
+    border-radius:50%;
+    color:#fff;
     text-decoration:none;
-    font-size:.78rem;
-    font-weight:800;
-    box-shadow:0 5px 16px rgba(19,74,154,.06);
-    transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease;
+    box-shadow:0 10px 28px rgba(14,31,58,.20);
+    transition:transform .18s ease,box-shadow .18s ease,filter .18s ease;
     -webkit-tap-highlight-color:transparent;
+    pointer-events:auto;
 }
 .dv-catalog-contact__link svg{
-    width:18px;
-    height:18px;
+    width:27px;
+    height:27px;
     flex:0 0 auto;
     fill:none;
     stroke:currentColor;
@@ -42,35 +43,48 @@ CONTACT_STYLE = r"""
     stroke-linecap:round;
     stroke-linejoin:round;
 }
-.dv-catalog-contact__link--instagram:hover{
-    border-color:rgba(240,57,59,.42);
-    color:#cf2730;
+.dv-catalog-contact__link--instagram{
+    background:linear-gradient(145deg,#5b51d8 0%,#c13584 45%,#f77737 100%);
 }
 .dv-catalog-contact__link--whatsapp{
-    color:#1d6d47;
+    background:#25d366;
 }
-.dv-catalog-contact__link--whatsapp:hover{
-    border-color:rgba(29,109,71,.38);
-    box-shadow:0 7px 20px rgba(29,109,71,.10);
+.dv-catalog-contact__label{
+    position:absolute!important;
+    width:1px!important;
+    height:1px!important;
+    padding:0!important;
+    margin:-1px!important;
+    overflow:hidden!important;
+    clip:rect(0,0,0,0)!important;
+    white-space:nowrap!important;
+    border:0!important;
 }
 @media(hover:hover){
-    .dv-catalog-contact__link:hover{transform:translateY(-1px)}
+    .dv-catalog-contact__link:hover{
+        transform:translateY(-2px) scale(1.035);
+        box-shadow:0 14px 34px rgba(14,31,58,.25);
+        filter:saturate(1.06);
+    }
+}
+.dv-catalog-contact__link:focus-visible{
+    outline:3px solid rgba(19,74,154,.30);
+    outline-offset:3px;
 }
 @media(max-width:640px){
-    .topbar{
-        gap:10px!important;
-        flex-wrap:wrap;
-    }
     .dv-catalog-contact{
-        margin-left:auto;
-        gap:6px;
+        right:12px;
+        bottom:calc(14px + env(safe-area-inset-bottom, 0px));
+        gap:8px;
     }
     .dv-catalog-contact__link{
-        width:42px;
-        min-height:42px;
-        padding:0;
+        width:50px;
+        height:50px;
     }
-    .dv-catalog-contact__label{display:none}
+    .dv-catalog-contact__link svg{
+        width:24px;
+        height:24px;
+    }
 }
 </style>
 """
@@ -102,25 +116,22 @@ def _contactos_html():
     usuario = (config.instagram_usuario or "").strip().lstrip("@")
     if config.mostrar_instagram and usuario:
         usuario_safe = html.escape(usuario)
-        url = f"https://www.instagram.com/{quote(usuario, safe='')}/"
+        url = reverse("catalogo_contacto", kwargs={"canal": "instagram"})
         links.append(
             '<a class="dv-catalog-contact__link dv-catalog-contact__link--instagram" '
             f'href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" '
-            f'aria-label="Abrir Instagram @{usuario_safe}">'
+            f'aria-label="Abrir Instagram @{usuario_safe}" title="Instagram @{usuario_safe}">'
             + INSTAGRAM_ICON
-            + f'<span class="dv-catalog-contact__label">@{usuario_safe}</span></a>'
+            + f'<span class="dv-catalog-contact__label">Instagram @{usuario_safe}</span></a>'
         )
 
     numero = "".join(ch for ch in (config.whatsapp_numero or "") if ch.isdigit())
     if config.mostrar_whatsapp and numero:
-        mensaje = (config.whatsapp_mensaje or "").strip()
-        url = f"https://wa.me/{numero}"
-        if mensaje:
-            url += f"?text={quote(mensaje)}"
+        url = reverse("catalogo_contacto", kwargs={"canal": "whatsapp"})
         links.append(
             '<a class="dv-catalog-contact__link dv-catalog-contact__link--whatsapp" '
             f'href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" '
-            'aria-label="Escribir por WhatsApp">'
+            'aria-label="Escribir por WhatsApp" title="WhatsApp">'
             + WHATSAPP_ICON
             + '<span class="dv-catalog-contact__label">WhatsApp</span></a>'
         )
