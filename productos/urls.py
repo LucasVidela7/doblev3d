@@ -51,6 +51,11 @@ urlpatterns = [
         name="imagen_subir",
     ),
     path(
+        "<int:producto_id>/imagenes/reemplazar/<int:orden>/",
+        imagenes_views.reemplazar_imagen,
+        name="imagen_reemplazar",
+    ),
+    path(
         "<int:producto_id>/imagenes/<int:imagen_id>/principal/",
         imagenes_views.hacer_principal,
         name="imagen_principal",
