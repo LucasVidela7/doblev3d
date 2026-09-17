@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.db import transaction
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .image_environment import entorno_imagenes
@@ -28,6 +29,52 @@ def _imagenes_del_entorno(producto, bloquear=False):
     return queryset
 
 
+def _quiere_json(request):
+    return (
+        request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        or "application/json" in request.headers.get("Accept", "")
+    )
+
+
+def _serializar_imagenes(producto):
+    return [
+        {
+            "id": imagen.id,
+            "url": imagen.url,
+            "preview_url": imagen.thumbnail_url or imagen.url,
+            "orden": imagen.orden,
+            "principal": imagen.orden == 1,
+            "nombre": imagen.nombre_archivo,
+            "ancho": imagen.ancho,
+            "alto": imagen.alto,
+            "tamano_bytes": imagen.tamano_bytes,
+        }
+        for imagen in _imagenes_del_entorno(producto)
+    ]
+
+
+def _json_ok(producto, mensaje, status=200):
+    return JsonResponse(
+        {
+            "ok": True,
+            "message": mensaje,
+            "imagenes": _serializar_imagenes(producto),
+        },
+        status=status,
+    )
+
+
+def _json_error(producto, mensaje, status=400):
+    return JsonResponse(
+        {
+            "ok": False,
+            "message": mensaje,
+            "imagenes": _serializar_imagenes(producto),
+        },
+        status=status,
+    )
+
+
 def imagenes_producto(request, producto_id):
     producto = _producto_con_imagenes(producto_id)
     imagenes = list(_imagenes_del_entorno(producto))
@@ -46,15 +93,22 @@ def imagenes_producto(request, producto_id):
 
 @transaction.atomic
 def subir_imagen(request, producto_id):
+    producto = get_object_or_404(Producto, id=producto_id)
+    quiere_json = _quiere_json(request)
+
     if request.method != "POST":
+        if quiere_json:
+            return _json_error(producto, "Método no permitido.", status=405)
         return redirect("productos:imagenes", producto_id=producto_id)
 
-    producto = get_object_or_404(Producto, id=producto_id)
     ambiente = entorno_imagenes()
     existentes = list(_imagenes_del_entorno(producto, bloquear=True))
 
     if len(existentes) >= 2:
-        messages.error(request, "Este producto ya tiene el máximo de 2 fotos.")
+        mensaje = "Este producto ya tiene el máximo de 2 fotos."
+        if quiere_json:
+            return _json_error(producto, mensaje, status=409)
+        messages.error(request, mensaje)
         return redirect("productos:imagenes", producto_id=producto.id)
 
     archivo = request.FILES.get("imagen")
@@ -70,7 +124,10 @@ def subir_imagen(request, producto_id):
             **datos,
         )
     except (ImagenProductoInvalida, ImageKitNoConfigurado) as error:
-        messages.error(request, str(error))
+        mensaje = str(error)
+        if quiere_json:
+            return _json_error(producto, mensaje, status=400)
+        messages.error(request, mensaje)
         return redirect("productos:imagenes", producto_id=producto.id)
     except Exception:
         # Si ImageKit subió el archivo pero falló el guardado local, intentamos
@@ -81,27 +138,36 @@ def subir_imagen(request, producto_id):
                 eliminar_imagen_imagekit(datos["file_id"])
             except Exception:
                 pass
-        messages.error(
-            request,
-            "No se pudo subir la imagen a ImageKit. Revisá la configuración e intentá nuevamente.",
+        mensaje = (
+            "No se pudo subir la imagen a ImageKit. "
+            "Revisá la configuración e intentá nuevamente."
         )
+        if quiere_json:
+            return _json_error(producto, mensaje, status=502)
+        messages.error(request, mensaje)
         return redirect("productos:imagenes", producto_id=producto.id)
 
-    messages.success(
-        request,
+    mensaje = (
         "Foto cargada correctamente."
         if orden == 2
-        else "Foto principal cargada correctamente.",
+        else "Foto principal cargada correctamente."
     )
+    if quiere_json:
+        return _json_ok(producto, mensaje)
+    messages.success(request, mensaje)
     return redirect("productos:imagenes", producto_id=producto.id)
 
 
 @transaction.atomic
 def eliminar_imagen(request, producto_id, imagen_id):
+    producto = get_object_or_404(Producto, id=producto_id)
+    quiere_json = _quiere_json(request)
+
     if request.method != "POST":
+        if quiere_json:
+            return _json_error(producto, "Método no permitido.", status=405)
         return redirect("productos:imagenes", producto_id=producto_id)
 
-    producto = get_object_or_404(Producto, id=producto_id)
     ambiente = entorno_imagenes()
     imagen = get_object_or_404(
         ProductoImagen.objects.select_for_update(),
@@ -114,13 +180,16 @@ def eliminar_imagen(request, producto_id, imagen_id):
     try:
         eliminar_imagen_imagekit(imagen.file_id)
     except ImageKitNoConfigurado as error:
-        messages.error(request, str(error))
+        mensaje = str(error)
+        if quiere_json:
+            return _json_error(producto, mensaje, status=400)
+        messages.error(request, mensaje)
         return redirect("productos:imagenes", producto_id=producto.id)
     except Exception:
-        messages.error(
-            request,
-            "No se pudo eliminar la foto de ImageKit. No se modificó el producto.",
-        )
+        mensaje = "No se pudo eliminar la foto de ImageKit. No se modificó el producto."
+        if quiere_json:
+            return _json_error(producto, mensaje, status=502)
+        messages.error(request, mensaje)
         return redirect("productos:imagenes", producto_id=producto.id)
 
     imagen.delete()
@@ -136,16 +205,23 @@ def eliminar_imagen(request, producto_id, imagen_id):
             secundaria.orden = 1
             secundaria.save(update_fields=["orden"])
 
-    messages.success(request, "Foto eliminada correctamente.")
+    mensaje = "Foto eliminada correctamente."
+    if quiere_json:
+        return _json_ok(producto, mensaje)
+    messages.success(request, mensaje)
     return redirect("productos:imagenes", producto_id=producto.id)
 
 
 @transaction.atomic
 def hacer_principal(request, producto_id, imagen_id):
+    producto = get_object_or_404(Producto, id=producto_id)
+    quiere_json = _quiere_json(request)
+
     if request.method != "POST":
+        if quiere_json:
+            return _json_error(producto, "Método no permitido.", status=405)
         return redirect("productos:imagenes", producto_id=producto_id)
 
-    producto = get_object_or_404(Producto, id=producto_id)
     ambiente = entorno_imagenes()
     imagen = get_object_or_404(
         ProductoImagen.objects.select_for_update(),
@@ -155,6 +231,8 @@ def hacer_principal(request, producto_id, imagen_id):
     )
 
     if imagen.orden == 1:
+        if quiere_json:
+            return _json_ok(producto, "Esta foto ya es la principal.")
         return redirect("productos:imagenes", producto_id=producto.id)
 
     principal = (
@@ -171,5 +249,8 @@ def hacer_principal(request, producto_id, imagen_id):
         ProductoImagen.objects.filter(pk=principal.pk).update(orden=2)
     ProductoImagen.objects.filter(pk=imagen.pk).update(orden=1)
 
-    messages.success(request, "La foto seleccionada ahora es la principal.")
+    mensaje = "La foto seleccionada ahora es la principal."
+    if quiere_json:
+        return _json_ok(producto, mensaje)
+    messages.success(request, mensaje)
     return redirect("productos:imagenes", producto_id=producto.id)
