@@ -6,6 +6,7 @@ from . import (
     detalle_views,
     historial_views,
     pedido_form_views,
+    preparacion_views,
     precios_api,
     views,
 )
@@ -26,7 +27,7 @@ urlpatterns = [
 
     path(
         "impresiones/",
-        views.impresiones_por_pedido,
+        preparacion_views.impresiones_por_pedido,
         name="impresiones",
     ),
 
