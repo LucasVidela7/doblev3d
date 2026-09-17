@@ -34,20 +34,67 @@ def costo_maximo_unitario(kit, margen_minimo=MARGEN_MINIMO_KIT):
     )
 
 
-def productos_elegibles_para_kit(kit, productos):
-    """Filtra las opciones públicas de un kit libre por rentabilidad mínima."""
+def producto_es_elegible_para_kit(
+    kit,
+    producto,
+    margen_minimo=MARGEN_MINIMO_KIT,
+):
+    """Regla única de rentabilidad para kits libres en catálogo y Gestión."""
+    if kit.modalidad == "FIJO":
+        return True
+
+    if (
+        not kit.tipo_producto_id
+        or not getattr(producto, "activo", False)
+        or getattr(producto, "solo_produccion", False)
+        or producto.tipo_id != kit.tipo_producto_id
+    ):
+        return False
+
+    limite = costo_maximo_unitario(
+        kit,
+        margen_minimo=margen_minimo,
+    )
+    if limite <= 0:
+        return False
+
+    return costo_operativo_producto(producto) <= limite
+
+
+def productos_elegibles_para_kit(
+    kit,
+    productos,
+    margen_minimo=MARGEN_MINIMO_KIT,
+):
+    """Filtra opciones comerciales de un kit libre por rentabilidad mínima."""
     if kit.modalidad == "FIJO":
         return list(productos)
-
-    limite = costo_maximo_unitario(kit)
-    if limite <= 0:
-        return []
 
     return [
         producto
         for producto in productos
-        if costo_operativo_producto(producto) <= limite
+        if producto_es_elegible_para_kit(
+            kit,
+            producto,
+            margen_minimo=margen_minimo,
+        )
     ]
+
+
+def resumen_elegibilidad_kit(kit, productos):
+    """Adjunta datos útiles para UI sin exponer costos en el catálogo público."""
+    candidatos = list(productos)
+    elegibles = productos_elegibles_para_kit(
+        kit,
+        candidatos,
+    )
+    return {
+        "productos": elegibles,
+        "cantidad": len(elegibles),
+        "cantidad_excluida": max(len(candidatos) - len(elegibles), 0),
+        "costo_maximo_unitario": costo_maximo_unitario(kit),
+        "margen_minimo": MARGEN_MINIMO_KIT,
+    }
 
 
 def preparar_kits_catalogo(kits, productos_por_tipo):
@@ -64,14 +111,17 @@ def preparar_kits_catalogo(kits, productos_por_tipo):
             kit.tipo_producto_id,
             [],
         )
-        elegibles = productos_elegibles_para_kit(
+        resumen = resumen_elegibilidad_kit(
             kit,
             candidatos,
         )
+        elegibles = resumen["productos"]
 
         kit.catalogo_productos_elegibles = elegibles
-        kit.catalogo_cantidad_opciones = len(elegibles)
-        kit.catalogo_costo_maximo_unitario = costo_maximo_unitario(kit)
+        kit.catalogo_cantidad_opciones = resumen["cantidad"]
+        kit.catalogo_costo_maximo_unitario = resumen[
+            "costo_maximo_unitario"
+        ]
 
         if not elegibles:
             continue
