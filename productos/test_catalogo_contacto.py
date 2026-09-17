@@ -60,8 +60,10 @@ class CatalogoContactoTests(TestCase):
 
         self.assertEqual(instagram.status_code, 302)
         self.assertEqual(instagram["Location"], "https://www.instagram.com/doblev3d/")
+        self.assertNotIn("/gestion/login/", instagram["Location"])
         self.assertEqual(whatsapp.status_code, 302)
         self.assertTrue(whatsapp["Location"].startswith("https://wa.me/5491164760709"))
+        self.assertNotIn("/gestion/login/", whatsapp["Location"])
 
         registros = RegistroAuditoria.objects.filter(
             accion="CLICK_CONTACTO_CATALOGO",
