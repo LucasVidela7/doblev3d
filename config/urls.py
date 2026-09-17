@@ -3,6 +3,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
 from productos.catalogo import catalogo
+from productos.catalogo_contacto import catalogo_contacto
 
 
 urlpatterns = [
@@ -18,6 +19,14 @@ urlpatterns = [
         "catalogo/",
         catalogo,
         name="catalogo_legacy",
+    ),
+
+    # Los enlaces sociales pasan por el sistema para registrar el click antes
+    # de redirigir al destino externo configurado desde el admin.
+    path(
+        "contacto/<str:canal>/",
+        catalogo_contacto,
+        name="catalogo_contacto",
     ),
 
     # Sistema interno
