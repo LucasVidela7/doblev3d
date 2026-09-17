@@ -179,8 +179,11 @@ class CatalogGridMiddleware:
         match = getattr(request, "resolver_match", None)
         view_name = match.view_name if match else ""
 
+        es_listado = view_name in {"catalogo", "catalogo_legacy"}
+        es_detalle_kit = view_name == "catalogo_kit_detalle"
+
         if (
-            view_name not in {"catalogo", "catalogo_legacy"}
+            not (es_listado or es_detalle_kit)
             or response.status_code != 200
             or getattr(response, "streaming", False)
             or "text/html" not in response.get("Content-Type", "")
@@ -192,7 +195,7 @@ class CatalogGridMiddleware:
         except (AttributeError, UnicodeDecodeError):
             return response
 
-        if "dv-catalog-grid-density-fix" not in html and "</head>" in html:
+        if es_listado and "dv-catalog-grid-density-fix" not in html and "</head>" in html:
             html = html.replace(
                 "</head>",
                 CATALOG_GRID_STYLE + "\n</head>",
@@ -215,7 +218,7 @@ class CatalogGridMiddleware:
                     1,
                 )
 
-        if "dv-catalog-empty-filters-script" not in html and "</body>" in html:
+        if es_listado and "dv-catalog-empty-filters-script" not in html and "</body>" in html:
             html = html.replace(
                 "</body>",
                 CATALOG_EMPTY_FILTERS_SCRIPT + "\n</body>",
