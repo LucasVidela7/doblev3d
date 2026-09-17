@@ -5,6 +5,7 @@ from django.shortcuts import render
 from productos.models import Producto
 
 from .economia import recomendacion_kit
+from .elegibilidad_catalogo import resumen_elegibilidad_kit
 from .imagenes import adjuntar_imagenes_reutilizadas
 from .models import Kit
 
@@ -43,9 +44,29 @@ def lista_kits(request):
                 producto
             )
 
+    productos_por_kit = {}
+    for kit in kits:
+        if kit.modalidad != "LIBRE_CATEGORIA":
+            continue
+
+        resumen = resumen_elegibilidad_kit(
+            kit,
+            productos_por_tipo.get(
+                kit.tipo_producto_id,
+                [],
+            ),
+        )
+        kit.catalogo_cantidad_opciones = resumen["cantidad"]
+        kit.catalogo_cantidad_excluida = resumen["cantidad_excluida"]
+        kit.catalogo_costo_maximo_unitario = resumen[
+            "costo_maximo_unitario"
+        ]
+        productos_por_kit[kit.id] = resumen["productos"]
+
     adjuntar_imagenes_reutilizadas(
         kits,
         productos_por_tipo=productos_por_tipo,
+        productos_por_kit=productos_por_kit,
     )
 
     for kit in kits:
