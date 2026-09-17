@@ -54,11 +54,11 @@ def adjuntar_imagenes_reutilizadas(kits, productos_por_tipo=None):
                         "producto": componente.producto,
                         "cantidad": componente.cantidad,
                         "imagen": imagen,
-                        "imagen_url": (
-                            (imagen.thumbnail_url or imagen.url)
-                            if imagen
-                            else ""
-                        ),
+                        # En el catálogo/listados visuales grandes usamos la
+                        # imagen original. El thumbnail de ImageKit está pensado
+                        # para previews pequeñas y pierde definición al ocupar
+                        # una tarjeta 1:1 de mayor tamaño.
+                        "imagen_url": imagen.url if imagen else "",
                     }
                 )
         else:
@@ -69,11 +69,7 @@ def adjuntar_imagenes_reutilizadas(kits, productos_por_tipo=None):
                         "producto": producto,
                         "cantidad": None,
                         "imagen": imagen,
-                        "imagen_url": (
-                            (imagen.thumbnail_url or imagen.url)
-                            if imagen
-                            else ""
-                        ),
+                        "imagen_url": imagen.url if imagen else "",
                     }
                 )
 
