@@ -87,7 +87,7 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                 {% if kit.productos_visuales_visibles %}
                     <div class="kit-fotos">
                         <div class="kit-fotos-head">
-                            <b>{% if kit.modalidad == "FIJO" %}PRODUCTOS DEL KIT{% else %}OPCIONES RENTABLES{% endif %}</b>
+                            <b>{% if kit.modalidad == "FIJO" %}PRODUCTOS DEL KIT{% else %}OPCIONES DEL KIT{% endif %}</b>
                             <span>Fotos reutilizadas desde Productos</span>
                         </div>
                         <div class="kit-fotos-scroll">
@@ -103,7 +103,7 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                                     <div class="kit-foto-info">
                                         <div class="kit-foto-nombre" title="{{ visual.producto.nombre }}">{{ visual.producto.nombre }}</div>
                                         <div class="kit-foto-meta">
-                                            {% if kit.modalidad == "FIJO" %}x {{ visual.cantidad }}{% else %}OPCIÓN{% endif %}
+                                            {% if kit.modalidad == "FIJO" %}x {{ visual.cantidad }}{% elif visual.incluido %}INCLUIDA{% else %}+ ${{ visual.adicional|floatformat:"0g" }}{% endif %}
                                         </div>
                                     </div>
                                 </div>
@@ -137,17 +137,27 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                             <strong>{{ kit.cantidad_productos }} productos</strong>
                         </div>
                         <div class="fila">
-                            <span>Opciones habilitadas</span>
-                            <strong>{{ kit.catalogo_cantidad_opciones|default:"0" }}</strong>
-                        </div>
-                        <div class="fila">
-                            <span>Fuera de margen</span>
-                            <strong>{{ kit.catalogo_cantidad_excluida|default:"0" }}</strong>
-                        </div>
-                        <div class="fila">
-                            <span>Costo máximo por producto</span>
-                            <strong>$ {{ kit.catalogo_costo_maximo_unitario|floatformat:"0g" }}</strong>
-                        </div>
+    <span>Incluidas sin adicional</span>
+    <strong>{{ kit.catalogo_cantidad_opciones|default:"0" }}</strong>
+</div>
+<div class="fila">
+    <span>Opciones con adicional</span>
+    <strong>{{ kit.catalogo_cantidad_premium|default:"0" }}</strong>
+</div>
+<div class="fila">
+    <span>Total seleccionables</span>
+    <strong>{{ kit.catalogo_cantidad_total|default:"0" }}</strong>
+</div>
+<div class="fila">
+    <span>Costo máximo incluido</span>
+    <strong>$ {{ kit.catalogo_costo_maximo_unitario|floatformat:"0g" }}</strong>
+</div>
+{% if kit.catalogo_cantidad_premium %}
+    <div class="fila">
+        <span>Rango de adicionales</span>
+        <strong>+ ${{ kit.catalogo_adicional_minimo|floatformat:"0g" }}{% if kit.catalogo_adicional_maximo != kit.catalogo_adicional_minimo %} a + ${{ kit.catalogo_adicional_maximo|floatformat:"0g" }}{% endif %}</strong>
+    </div>
+{% endif %}
                     </div>
                 {% endif %}
 
@@ -172,7 +182,7 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                             {% endif %}
                         </span>
                         {% if kit.modalidad == "LIBRE_CATEGORIA" and reco.margen_peor_caso != None %}
-                            <small>Peor caso actual: {{ reco.margen_peor_caso|floatformat:"1g" }}%</small>
+                            <small>Base sin adicional · peor caso {{ reco.margen_peor_caso|floatformat:"1g" }}%</small>
                         {% else %}
                             <small>Piso calculadora: {{ reco.margen_piso|floatformat:"1g" }}%</small>
                         {% endif %}
@@ -182,17 +192,25 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                         <b>{% if kit.modalidad == "FIJO" %}COSTO PRODUCTIVO{% else %}COSTO PROMEDIO{% endif %}</b>
                         <span>${{ reco.costo_estimado|floatformat:"0g" }}</span>
                         {% if kit.modalidad == "LIBRE_CATEGORIA" %}
-                            <small>Peor costo: ${{ reco.costo_peor_caso|floatformat:"0g" }}</small>
+                            <small>Solo opciones incluidas · peor costo ${{ reco.costo_peor_caso|floatformat:"0g" }}</small>
                         {% else %}
                             <small>Productos + cobertura productiva</small>
                         {% endif %}
                     </div>
 
-                    <div class="dato">
-                        <b>ESTADO</b>
-                        <span>{% if kit.activo %}ACTIVO{% else %}INACTIVO{% endif %}</span>
-                        <small>{{ kit.cantidad_productos }} pieza{{ kit.cantidad_productos|pluralize }}</small>
-                    </div>
+                    {% if kit.modalidad == "LIBRE_CATEGORIA" %}
+<div class="dato">
+    <b>MARGEN EFECTIVO CON PREMIUM</b>
+    <span>{% if kit.catalogo_margen_promedio_efectivo != None %}{{ kit.catalogo_margen_promedio_efectivo|floatformat:"1g" }}%{% else %}—{% endif %}</span>
+    {% if kit.catalogo_margen_peor_efectivo != None %}<small>Peor combinación equivalente: {{ kit.catalogo_margen_peor_efectivo|floatformat:"1g" }}%</small>{% else %}<small>Sin opciones calculables</small>{% endif %}
+</div>
+{% else %}
+<div class="dato">
+    <b>ESTADO</b>
+    <span>{% if kit.activo %}ACTIVO{% else %}INACTIVO{% endif %}</span>
+    <small>{{ kit.cantidad_productos }} pieza{{ kit.cantidad_productos|pluralize }}</small>
+</div>
+{% endif %}
                 </div>
 
                 {% if reco.disponible %}
@@ -264,7 +282,7 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
 
                 {% if kit.modalidad == "LIBRE_CATEGORIA" %}
                     <div class="nota-estimacion">
-                        En los kits libres el margen depende de qué productos elija el cliente. Por eso se muestran el margen promedio y el peor caso para cada escenario.
+                        En los kits libres, las referencias Agresivo/Recomendado/Conservador usan sólo las opciones incluidas en el precio base. Las opciones premium suman su adicional automáticamente para conservar el margen mínimo del kit.
                     </div>
                 {% endif %}
             </div>
