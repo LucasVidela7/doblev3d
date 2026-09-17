@@ -151,3 +151,31 @@ class CatalogoKitsRentablesTests(TestCase):
         self.assertContains(response, "Producto rentable")
         self.assertContains(response, "Producto caro")
         self.assertNotContains(response, "2 sensoriales por 9000")
+
+
+    def test_detalle_publico_del_kit_muestra_solo_opciones_rentables(self):
+        response = self.client.get(
+            reverse(
+                "catalogo_kit_detalle",
+                args=[self.kit.id],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Productos para elegir")
+        self.assertContains(response, "Producto rentable")
+        self.assertNotContains(response, "Producto caro")
+        self.assertContains(response, "https://example.com/rentable.jpg")
+
+    def test_catalogo_enlaza_al_detalle_publico_del_kit(self):
+        response = self.client.get(reverse("catalogo"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            reverse(
+                "catalogo_kit_detalle",
+                args=[self.kit.id],
+            ),
+        )
+        self.assertContains(response, "Ver opciones")
