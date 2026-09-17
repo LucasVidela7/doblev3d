@@ -1016,6 +1016,26 @@ async function cargarKit(
         return;
     }
 
+    if (!data.productos.length) {
+        caja.innerHTML = `
+            <div
+                style="
+                    grid-column:1/-1;
+                    padding:12px;
+                    border-radius:12px;
+                    background:#fff4cf;
+                    color:#765b00;
+                    font-size:9px;
+                    font-weight:900;
+                "
+            >
+                Este kit no tiene opciones rentables con el precio actual.
+                Revisá su configuración antes de guardar cambios.
+            </div>
+        `;
+        return;
+    }
+
     for (
         let n = 0;
         n < data.kit.cantidad_productos;
