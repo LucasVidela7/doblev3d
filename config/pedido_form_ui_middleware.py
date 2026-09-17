@@ -5,6 +5,10 @@ Este middleware agrega una capa común sin duplicar formularios: precio acordado
 para KIT, jerarquía visual, estados automático/manual y mejoras responsive.
 """
 
+import json
+
+from django.urls import reverse
+
 
 PEDIDO_FORM_STYLE = r"""
 <style id="dv-pedido-form-style">
@@ -246,6 +250,7 @@ PEDIDO_FORM_SCRIPT = r"""
 <script id="dv-pedido-form-script">
 (function(){
     const cacheKits = new Map();
+    const kitProductosEndpoint = __KIT_PRODUCTOS_ENDPOINT__;
     let timer = null;
 
     function moneda(valor){
@@ -296,7 +301,11 @@ PEDIDO_FORM_SCRIPT = r"""
         if (!key) return null;
         if (cacheKits.has(key)) return cacheKits.get(key);
 
-        const promesa = fetch(`/pedidos/api/kit/${encodeURIComponent(key)}/productos/`, {
+        const url = kitProductosEndpoint.replace(
+            "999999",
+            encodeURIComponent(key)
+        );
+        const promesa = fetch(url, {
             headers:{'X-Requested-With':'XMLHttpRequest'}
         }).then(function(respuesta){
             if (!respuesta.ok) throw new Error('No se pudo cargar el kit.');
@@ -414,16 +423,14 @@ PEDIDO_FORM_SCRIPT = r"""
         const selector = item.querySelector(`#kit_${indice}`);
         const caja = crearCaja(item, indice);
 
-        const esKit = !!tipo && tipo.value === 'KIT';
-        caja.classList.toggle('dv-hidden', !esKit);
+        const esKit = !!tipo && tipo.value === "KIT";
+        caja.classList.toggle("dv-hidden", !esKit);
 
-        const kind = tipo?.value || '';
+        const kind = tipo?.value || "";
         if (item.dataset.dvKind !== kind) item.dataset.dvKind = kind;
         actualizarBadge(item, kind);
 
-        if (!esKit || !selector || !selector.value){
-            return;
-        }
+        if (!esKit || !selector || !selector.value) return;
 
         const kitId = String(selector.value);
         const cambioKit = !!caja.dataset.kitId && caja.dataset.kitId !== kitId;
@@ -432,48 +439,64 @@ PEDIDO_FORM_SCRIPT = r"""
             const data = await datosKit(kitId);
             if (!data || String(selector.value) !== kitId) return;
 
-            const precioLista = Number(data.kit?.precio || 0);
-            const precioListaTexto = String(precioLista || 0);
-            if (caja.dataset.precioLista !== precioListaTexto) {
-                caja.dataset.precioLista = precioListaTexto;
-            }
+            const precioBase = Number(data.kit?.precio || 0);
+            const selects = Array.from(
+                item.querySelectorAll(`select[name="productos_kit_${indice}"]`)
+            );
+            const adicionalSeleccion = selects.reduce(function(total, select){
+                const opcion = select.options[select.selectedIndex];
+                return total + Number(opcion?.dataset?.adicional || 0);
+            }, 0);
+            const precioAutomatico = precioBase + adicionalSeleccion;
+            const firmaSeleccion = selects.map(select => select.value || "").join("|");
+            const huboCambioSeleccion =
+                caja.dataset.seleccionFirma !== undefined
+                && caja.dataset.seleccionFirma !== firmaSeleccion;
+
+            caja.dataset.precioBase = String(precioBase || 0);
+            caja.dataset.precioLista = String(precioAutomatico || 0);
 
             const precio = caja.querySelector(`#precio_unitario_kit_${indice}`);
             const manual = caja.querySelector(`#precio_kit_manual_${indice}`);
             const referencia = caja.querySelector(`#dv_kit_ref_${indice}`);
             const existente = inicialDelItem(item, indice);
-            const coincideInicial = existente && String(existente.kit_id || '') === kitId;
+            const coincideInicial = existente && String(existente.kit_id || "") === kitId;
 
             if (!caja.dataset.kitId || cambioKit){
                 if (coincideInicial && !cambioKit){
                     const historico = Number(existente.precio_unitario || 0);
                     precio.value = historico > 0
                         ? historico.toFixed(2)
-                        : (precioLista > 0 ? precioLista.toFixed(2) : '');
-                    manual.value = existente.precio_kit_manual ? '1' : '0';
+                        : (precioAutomatico > 0 ? precioAutomatico.toFixed(2) : "");
+                    manual.value = existente.precio_kit_manual ? "1" : "0";
                 } else {
-                    precio.value = precioLista > 0 ? precioLista.toFixed(2) : '';
-                    manual.value = '0';
+                    precio.value = precioAutomatico > 0 ? precioAutomatico.toFixed(2) : "";
+                    manual.value = "0";
                 }
                 caja.dataset.kitId = kitId;
+            } else if (manual.value !== "1" && huboCambioSeleccion){
+                precio.value = precioAutomatico > 0 ? precioAutomatico.toFixed(2) : "";
             }
 
-            const refHtml = precioLista > 0
-                ? `Precio configurado del kit: <strong>$${moneda(precioLista)}/u</strong>. `
-                    + (manual.value === '1'
-                        ? 'El importe acordado prevalece sobre el descuento automático.'
-                        : 'Si el pedido califica por volumen, el sistema puede recalcularlo al guardar.')
-                : 'Este kit no tiene un precio de lista válido.';
+            caja.dataset.seleccionFirma = firmaSeleccion;
+
+            const adicionalTexto = adicionalSeleccion > 0
+                ? ` · adicionales seleccionados <strong>+$${moneda(adicionalSeleccion)}</strong>`
+                : " · sin adicionales";
+            const refHtml = precioBase > 0
+                ? `Precio base: <strong>$${moneda(precioBase)}/u</strong>${adicionalTexto}. `
+                    + `Automático actual: <strong>$${moneda(precioAutomatico)}/u</strong>. `
+                    + (manual.value === "1"
+                        ? "El importe acordado manualmente prevalece."
+                        : "El precio se actualiza al cambiar las opciones del kit.")
+                : "Este kit no tiene un precio base válido.";
             htmlSiCambio(referencia, refHtml);
 
             pintarEstado(item, indice);
             actualizarTotal(item, indice);
         }catch(error){
             const referencia = caja.querySelector(`#dv_kit_ref_${indice}`);
-            textoSiCambio(
-                referencia,
-                'No se pudo cargar la referencia de precio del kit.'
-            );
+            textoSiCambio(referencia, "No se pudo cargar la referencia de precio del kit.");
         }
     }
 
@@ -608,6 +631,15 @@ PEDIDO_FORM_SCRIPT = r"""
 """
 
 
+def _pedido_form_script():
+    endpoint = json.dumps(
+        reverse("pedidos:productos_kit", args=[999999])
+    )
+    return PEDIDO_FORM_SCRIPT.replace(
+        "__KIT_PRODUCTOS_ENDPOINT__",
+        endpoint,
+    )
+
 class PedidoFormUIMiddleware:
     """Inyecta UX común sólo en los formularios Nuevo/Editar Pedido."""
 
@@ -643,7 +675,7 @@ class PedidoFormUIMiddleware:
         if "dv-pedido-form-script" not in html and "</body>" in html:
             html = html.replace(
                 "</body>",
-                PEDIDO_FORM_SCRIPT + "\n</body>",
+                _pedido_form_script() + "\n</body>",
                 1,
             )
 
