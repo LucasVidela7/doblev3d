@@ -63,6 +63,62 @@ _ENTREGA_EDIT_RE = re.compile(
 )
 
 
+def _script_menu_kits(url_kits):
+    return f"""
+<script id="dv-dashboard-kits-menu-script">
+(function(){{
+    function agregarKits(){{
+        var contenedor = document.querySelector('.dv-dashboard-menu__links');
+        if (!contenedor) return false;
+        if (contenedor.querySelector('[data-dv-menu="kits"]')) return true;
+
+        var link = document.createElement('a');
+        link.href = '{url_kits}';
+        link.className = 'dv-dashboard-menu__link';
+        link.setAttribute('data-dv-menu', 'kits');
+
+        var icono = document.createElement('span');
+        icono.className = 'dv-dashboard-menu__icon';
+        icono.textContent = '🧩';
+
+        var contenido = document.createElement('span');
+        var label = document.createElement('span');
+        label.className = 'dv-dashboard-menu__label';
+        label.textContent = 'Kits';
+        contenido.appendChild(label);
+
+        var descripcion = document.createElement('span');
+        descripcion.className = 'dv-dashboard-menu__description';
+        descripcion.textContent = 'Crear, editar y revisar precios de kits';
+        contenido.appendChild(descripcion);
+
+        link.appendChild(icono);
+        link.appendChild(contenido);
+        contenedor.appendChild(link);
+        return true;
+    }}
+
+    function iniciar(){{
+        if (agregarKits()) return;
+        var intentos = 0;
+        var timer = window.setInterval(function(){{
+            intentos += 1;
+            if (agregarKits() || intentos >= 20){{
+                window.clearInterval(timer);
+            }}
+        }}, 50);
+    }}
+
+    if (document.readyState === 'loading') {{
+        document.addEventListener('DOMContentLoaded', iniciar);
+    }} else {{
+        iniciar();
+    }}
+}})();
+</script>
+"""
+
+
 class DashboardRefinementsMiddleware:
     """Ajustes de navegación puntuales del dashboard sin tocar su lógica."""
 
@@ -136,6 +192,18 @@ class DashboardRefinementsMiddleware:
             )
 
         html = _ENTREGA_EDIT_RE.sub(reemplazar_detalle, html)
+
+        # El menú responsive del dashboard se construye del lado del cliente.
+        # Agregamos Kits como acceso de gestión sin reintroducir Acciones rápidas.
+        if (
+            "dv-dashboard-kits-menu-script" not in html
+            and "</body>" in html
+        ):
+            html = html.replace(
+                "</body>",
+                _script_menu_kits(reverse("kits:lista")) + "\n</body>",
+                1,
+            )
 
         encoded = html.encode(response.charset or "utf-8")
         response.content = encoded
