@@ -3,6 +3,7 @@ from django.urls import path
 from . import (
     acciones_impresion,
     acciones_pedido,
+    detalle_views,
     historial_views,
     pedido_form_views,
     precios_api,
@@ -105,6 +106,12 @@ urlpatterns = [
         "api/precio-kits-volumen/",
         precios_api.precio_kits_volumen,
         name="precio_kits_volumen",
+    ),
+
+    path(
+        "<int:pedido_id>/",
+        detalle_views.detalle_pedido,
+        name="detalle",
     ),
 
     path(

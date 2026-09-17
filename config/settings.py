@@ -113,6 +113,7 @@ MIDDLEWARE = [
     "config.auth_middleware.LoginRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "config.impresiones_landscape_middleware.ImpresionesLandscapeMiddleware",
+    "config.dashboard_refinements_middleware.DashboardRefinementsMiddleware",
     "config.production_experience_middleware.ProductionExperienceMiddleware",
     "config.responsive_fixes_middleware.ResponsiveFixesMiddleware",
     "config.product_images_ui_middleware.ProductImagesUIMiddleware",
