@@ -10,6 +10,7 @@ from costos.models import ConfiguracionCostos
 from kits.models import Kit
 from productos.models import Producto, TipoProducto
 
+from .kits_volumen import items_desde_payload
 from .models import Pedido
 
 
@@ -179,4 +180,60 @@ class PedidosKitsRentablesTests(TestCase):
         self.assertContains(
             response,
             "costoKit",
+        )
+
+
+    def test_listado_gestion_calcula_referencias_solo_con_incluidas(self):
+        response = self.client.get(reverse("kits:lista"))
+
+        self.assertEqual(response.status_code, 200)
+        kit = next(
+            item
+            for item in response.context["kits"]
+            if item.id == self.kit.id
+        )
+        recomendacion = kit.recomendacion_calculadora
+
+        # La referencia base usa sólo el producto de costo 3000:
+        # 2 posiciones -> costo real 6000, no el promedio viejo de toda
+        # la categoría (8000).
+        self.assertEqual(
+            recomendacion["costo_estimado"],
+            Decimal("6000"),
+        )
+        self.assertEqual(
+            recomendacion["margen_actual"],
+            Decimal("33.3"),
+        )
+        self.assertEqual(kit.catalogo_cantidad_opciones, 1)
+        self.assertEqual(kit.catalogo_cantidad_premium, 1)
+        self.assertEqual(
+            kit.catalogo_adicional_maximo,
+            Decimal("2000"),
+        )
+        self.assertEqual(
+            kit.catalogo_margen_peor_efectivo,
+            Decimal("23.1"),
+        )
+
+    def test_precio_por_volumen_parte_del_precio_con_adicional(self):
+        items = items_desde_payload(
+            {
+                "items": [
+                    {
+                        "key": "1",
+                        "kit_id": self.kit.id,
+                        "cantidad": 1,
+                        "productos": [
+                            self.rentable.id,
+                            self.caro.id,
+                        ],
+                    }
+                ]
+            }
+        )
+
+        self.assertEqual(
+            items[0]["precio_unitario_lista"],
+            Decimal("11000"),
         )
