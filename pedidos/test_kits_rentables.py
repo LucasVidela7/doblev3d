@@ -72,7 +72,7 @@ class PedidosKitsRentablesTests(TestCase):
             activo=True,
         )
 
-    def test_api_de_pedido_devuelve_solo_productos_rentables(self):
+    def test_api_de_pedido_devuelve_incluidas_y_premium(self):
         response = self.client.get(
             reverse(
                 "pedidos:productos_kit",
@@ -81,31 +81,25 @@ class PedidosKitsRentablesTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        ids = {
-            producto["id"]
-            for producto in response.json()["productos"]
-        }
-        self.assertIn(self.rentable.id, ids)
-        self.assertNotIn(self.caro.id, ids)
-
-    def test_api_puede_mostrar_seleccion_historica_fuera_de_margen(self):
-        response = self.client.get(
-            reverse(
-                "pedidos:productos_kit",
-                args=[self.kit.id],
-            ),
-            {"seleccionado": [self.caro.id]},
-        )
-
-        self.assertEqual(response.status_code, 200)
         productos = {
             producto["id"]: producto
             for producto in response.json()["productos"]
         }
-        self.assertIn(self.caro.id, productos)
-        self.assertFalse(productos[self.caro.id]["elegible"])
 
-    def test_nuevo_pedido_rechaza_producto_fuera_de_margen(self):
+        self.assertIn(self.rentable.id, productos)
+        self.assertIn(self.caro.id, productos)
+        self.assertTrue(productos[self.rentable.id]["incluido"])
+        self.assertEqual(
+            productos[self.rentable.id]["adicional"],
+            0.0,
+        )
+        self.assertFalse(productos[self.caro.id]["incluido"])
+        self.assertEqual(
+            productos[self.caro.id]["adicional"],
+            2000.0,
+        )
+
+    def test_nuevo_pedido_suma_adicional_premium_automaticamente(self):
         response = self.client.post(
             reverse("pedidos:nuevo"),
             {
@@ -123,13 +117,49 @@ class PedidosKitsRentablesTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(Pedido.objects.count(), 0)
-        self.assertContains(
-            response,
-            "ya no es una opción rentable",
+        self.assertEqual(Pedido.objects.count(), 1)
+
+        detalle = (
+            Pedido.objects.first()
+            .detalles
+            .get(tipo_item="KIT")
+        )
+        self.assertEqual(
+            detalle.precio_unitario,
+            Decimal("11000"),
+        )
+        self.assertFalse(detalle.precio_kit_manual)
+
+    def test_precio_manual_sigue_prevaleciendo(self):
+        self.client.post(
+            reverse("pedidos:nuevo"),
+            {
+                "cliente": str(self.cliente.id),
+                "item_indice": ["1"],
+                "tipo_item_1": "KIT",
+                "cantidad_1": "1",
+                "kit_1": str(self.kit.id),
+                "productos_kit_1": [
+                    str(self.rentable.id),
+                    str(self.caro.id),
+                ],
+                "precio_kit_manual_1": "1",
+                "precio_unitario_kit_1": "10500",
+            },
         )
 
-    def test_formulario_de_kit_muestra_panel_de_opciones_habilitadas(self):
+        detalle = (
+            Pedido.objects.first()
+            .detalles
+            .get(tipo_item="KIT")
+        )
+        self.assertEqual(
+            detalle.precio_unitario,
+            Decimal("10500.00"),
+        )
+        self.assertTrue(detalle.precio_kit_manual)
+
+    def test_formulario_de_kit_muestra_panel_incluidos_y_premium(self):
         response = self.client.get(
             reverse(
                 "kits:editar",
@@ -145,4 +175,8 @@ class PedidosKitsRentablesTests(TestCase):
         self.assertContains(
             response,
             "actualizarOpcionesRentables",
+        )
+        self.assertContains(
+            response,
+            "costoKit",
         )
