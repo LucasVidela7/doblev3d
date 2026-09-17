@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.db.models import Prefetch, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
+from pedidos.detalle_views import _armar_preparacion
 from pedidos.models import Pedido
 
 from .models import Cliente
@@ -165,12 +166,30 @@ def detalle_cliente(request, cliente_id):
         total = pedido.total
         pagado = pedido.total_pagado
         cancelado = pedido.estado == "CANCELADO"
+        entregado = pedido.estado == "ENTREGADO"
+        activo = not cancelado and not entregado
         saldo_modelo = pedido.saldo_pendiente
 
         if not cancelado:
             total_comprado += total
             total_pagado += pagado
             saldo_pendiente += saldo_modelo
+
+        preparacion = _armar_preparacion(pedido) if activo else []
+        preparacion_total = len(preparacion)
+        preparacion_listos = sum(
+            1 for item_preparacion in preparacion
+            if item_preparacion["listo"]
+        )
+        preparacion_porcentaje = (
+            int(round((preparacion_listos * 100) / preparacion_total))
+            if preparacion_total
+            else 0
+        )
+        faltantes_stock = sum(
+            1 for item_preparacion in preparacion
+            if item_preparacion.get("estado_operativo") == "FALTANTE"
+        )
 
         filas_pedidos.append(
             {
@@ -186,6 +205,13 @@ def detalle_cliente(request, cliente_id):
                     "Cancelado" if cancelado else pedido.estado_pago_display
                 ),
                 "cancelado": cancelado,
+                "entregado": entregado,
+                "activo": activo,
+                "preparacion": preparacion,
+                "preparacion_total": preparacion_total,
+                "preparacion_listos": preparacion_listos,
+                "preparacion_porcentaje": preparacion_porcentaje,
+                "faltantes_stock": faltantes_stock,
             }
         )
 
