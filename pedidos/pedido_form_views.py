@@ -8,8 +8,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from clientes.models import Cliente
 from kits.elegibilidad_catalogo import (
-    producto_es_elegible_para_kit,
-    productos_elegibles_para_kit,
+    opciones_producto_kit,
+    precio_kit_con_seleccion,
 )
 from kits.models import Kit
 from productos.models import Producto
@@ -181,29 +181,10 @@ def productos_por_kit(request, kit_id):
         )
         .order_by("nombre")
     )
-    elegibles = productos_elegibles_para_kit(
+    opciones = opciones_producto_kit(
         kit,
         candidatos,
     )
-    elegibles_ids = {
-        producto.id
-        for producto in elegibles
-    }
-
-    # En edición se pueden pedir explícitamente opciones ya guardadas para no
-    # romper pedidos históricos si un costo aumentó después de la venta.
-    ids_actuales = {
-        int(valor)
-        for valor in request.GET.getlist("seleccionado")
-        if str(valor).isdigit()
-    }
-    historicos = [
-        producto
-        for producto in candidatos
-        if producto.id in ids_actuales
-        and producto.id not in elegibles_ids
-    ]
-    opciones = elegibles + historicos
 
     return JsonResponse(
         {
@@ -217,12 +198,13 @@ def productos_por_kit(request, kit_id):
             },
             "productos": [
                 {
-                    "id": producto.id,
-                    "codigo": producto.codigo,
-                    "nombre": producto.nombre,
-                    "elegible": producto.id in elegibles_ids,
+                    "id": opcion["producto"].id,
+                    "codigo": opcion["producto"].codigo,
+                    "nombre": opcion["producto"].nombre,
+                    "incluido": bool(opcion["incluido"]),
+                    "adicional": float(opcion["adicional"]),
                 }
-                for producto in opciones
+                for opcion in opciones
             ],
             "componentes": [],
         }
@@ -403,6 +385,7 @@ def nuevo_pedido(request):
                     return redirect("pedidos:nuevo")
 
                 seleccionados = {}
+                productos_seleccionados = []
                 for producto_id in ids:
                     producto = get_object_or_404(
                         Producto,
@@ -411,17 +394,7 @@ def nuevo_pedido(request):
                         solo_produccion=False,
                         tipo=kit.tipo_producto,
                     )
-                    if not producto_es_elegible_para_kit(kit, producto):
-                        messages.error(
-                            request,
-                            (
-                                f"{producto.nombre} ya no es una opción rentable "
-                                f"para el kit {kit.nombre} con su precio actual."
-                            ),
-                        )
-                        transaction.set_rollback(True)
-                        return redirect("pedidos:nuevo")
-
+                    productos_seleccionados.append(producto)
                     seleccionados.setdefault(
                         producto.id,
                         {"producto": producto, "cantidad": 0},
@@ -434,6 +407,13 @@ def nuevo_pedido(request):
                         producto=item["producto"],
                         cantidad=item["cantidad"],
                     )
+
+                if not precio_manual:
+                    detalle.precio_unitario = precio_kit_con_seleccion(
+                        kit,
+                        productos_seleccionados,
+                    )
+                    detalle.save(update_fields=["precio_unitario"])
 
             _guardar_costo_kit(detalle)
             continue
@@ -725,14 +705,7 @@ def editar_pedido(request, pedido_id):
                     return redirect("pedidos:editar", pedido_id=pedido.id)
 
                 agrupados = defaultdict(int)
-                ids_anteriores = []
-                if anterior and anterior.kit_id == kit.id:
-                    ids_anteriores = _ids_kit_libre_para_edicion(anterior)
-                disponibles_historicos = defaultdict(int)
-                for producto_id in ids_anteriores:
-                    disponibles_historicos[int(producto_id)] += 1
-
-                usados_fuera_margen = defaultdict(int)
+                productos_seleccionados = []
                 for producto_id in ids:
                     producto = get_object_or_404(
                         Producto,
@@ -741,29 +714,15 @@ def editar_pedido(request, pedido_id):
                         solo_produccion=False,
                         tipo=kit.tipo_producto,
                     )
-
-                    if not producto_es_elegible_para_kit(kit, producto):
-                        usados_fuera_margen[producto.id] += 1
-                        if (
-                            usados_fuera_margen[producto.id]
-                            > disponibles_historicos.get(producto.id, 0)
-                        ):
-                            messages.error(
-                                request,
-                                (
-                                    f"{producto.nombre} está fuera del margen "
-                                    f"permitido para {kit.nombre}. Podés conservar "
-                                    "una selección histórica, pero no agregarla."
-                                ),
-                            )
-                            transaction.set_rollback(True)
-                            return redirect(
-                                "pedidos:editar",
-                                pedido_id=pedido.id,
-                            )
-
+                    productos_seleccionados.append(producto)
                     agrupados[producto.id] += cantidad
                 componentes = dict(agrupados)
+
+                if not precio_manual:
+                    precio_unitario = precio_kit_con_seleccion(
+                        kit,
+                        productos_seleccionados,
+                    )
 
             nuevos_items.append(
                 {
