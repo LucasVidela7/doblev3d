@@ -8,6 +8,31 @@
     defer
 ></script>
 {% endif %}
+<style>
+    /* Compatibilidad para encabezados antiguos que incluyen brand_bar dentro
+       de un div sin la clase encabezado-marca. Evita que el logo absoluto se
+       posicione contra la página completa. */
+    .encabezado > div:not([class]):has(> .brand-bar),
+    .encabezado-pagina > div:not([class]):has(> .brand-bar),
+    .header > div:not([class]):has(> .brand-bar),
+    .h > div:not([class]):has(> .brand-bar),
+    .topbar > div:not([class]):has(> .brand-bar){
+        position:relative;
+        min-width:0;
+        min-height:48px;
+        padding-left:64px;
+    }
+    @media(max-width:720px){
+        .encabezado > div:not([class]):has(> .brand-bar),
+        .encabezado-pagina > div:not([class]):has(> .brand-bar),
+        .header > div:not([class]):has(> .brand-bar),
+        .h > div:not([class]):has(> .brand-bar),
+        .topbar > div:not([class]):has(> .brand-bar){
+            min-height:44px;
+            padding-left:55px;
+        }
+    }
+</style>
 <div class="brand-bar">
     <a class="brand-bar__link" href="{% url 'dashboard:inicio' %}" aria-label="Ir al inicio de Doble V 3D">
         <img class="brand-bar__logo" src="{% static 'brand/logo.png' %}" alt="Logo de Doble V 3D" width="50" height="38">
@@ -58,9 +83,20 @@
         }
 
         document.querySelectorAll(".brand-bar").forEach(function (marca) {
+            const padre = marca.parentElement;
             const encabezado = marca.closest(
                 ".encabezado, .encabezado-pagina, .header, .h, .topbar"
             );
+
+            /* Fallback para navegadores sin :has() y plantillas antiguas. */
+            if (
+                encabezado
+                && padre
+                && padre !== encabezado
+                && !padre.classList.contains("encabezado-marca")
+            ) {
+                padre.classList.add("encabezado-marca");
+            }
 
             if (!encabezado) return;
 
