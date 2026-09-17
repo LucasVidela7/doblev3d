@@ -65,6 +65,7 @@ def lista_kits(request):
         ]
         kit.catalogo_adicional_minimo = resumen["adicional_minimo"]
         kit.catalogo_adicional_maximo = resumen["adicional_maximo"]
+        kit.catalogo_margen_minimo = resumen["margen_minimo"]
         kit.catalogo_margen_promedio_efectivo = resumen[
             "margen_promedio_efectivo"
         ]
