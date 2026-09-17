@@ -1,4 +1,8 @@
-from config.catalog_contact_middleware import CONTACT_STYLE, _contactos_html
+from config.catalog_contact_middleware import (
+    CONTACT_STYLE,
+    _contactos_html,
+    _contactos_insertados,
+)
 
 
 CATALOG_GRID_STYLE = r"""
@@ -63,7 +67,7 @@ class CatalogGridMiddleware:
                     1,
                 )
 
-            if "dv-catalog-contact" not in html and "</header>" in html:
+            if not _contactos_insertados(html) and "</header>" in html:
                 html = html.replace(
                     "</header>",
                     contactos + "\n</header>",
