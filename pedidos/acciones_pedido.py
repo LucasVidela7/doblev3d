@@ -15,11 +15,21 @@ def _volver(request):
         request.POST.get("cliente_id", "").strip()
         or request.GET.get("cliente_id", "").strip()
     )
+    pedido_id = (
+        request.POST.get("pedido_id", "").strip()
+        or request.GET.get("pedido_id", "").strip()
+    )
 
     if origen == "cliente" and cliente_id:
         return redirect(
             "clientes:detalle",
             cliente_id=cliente_id,
+        )
+
+    if origen == "detalle" and pedido_id:
+        return redirect(
+            "pedidos:detalle",
+            pedido_id=pedido_id,
         )
 
     return redirect("pedidos:impresiones")
@@ -68,7 +78,7 @@ def cancelar_pedido(request, pedido_id):
 
     respuesta = views.cancelar_pedido(request, pedido_id)
 
-    if request.POST.get("origen") == "cliente":
+    if request.POST.get("origen") in {"cliente", "detalle"}:
         return _volver(request)
 
     return respuesta
@@ -93,7 +103,7 @@ def eliminar_pedido(request, pedido_id):
 
     respuesta = views.eliminar_pedido(request, pedido_id)
 
-    if request.POST.get("origen") == "cliente":
+    if request.POST.get("origen") in {"cliente", "detalle"}:
         return _volver(request)
 
     return respuesta
@@ -121,7 +131,7 @@ def entregar_pedido(request, pedido_id):
 
     respuesta = views.entregar_pedido(request, pedido_id)
 
-    if request.POST.get("origen") == "cliente":
+    if request.POST.get("origen") in {"cliente", "detalle"}:
         return _volver(request)
 
     return respuesta

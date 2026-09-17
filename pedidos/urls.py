@@ -109,6 +109,12 @@ urlpatterns = [
     ),
 
     path(
+        "<int:pedido_id>/preparacion/",
+        detalle_views.cambiar_preparacion,
+        name="cambiar_preparacion",
+    ),
+
+    path(
         "<int:pedido_id>/",
         detalle_views.detalle_pedido,
         name="detalle",
