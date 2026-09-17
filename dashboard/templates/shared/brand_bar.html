@@ -22,6 +22,39 @@
         min-height:48px;
         padding-left:64px;
     }
+
+    /* Navegación de cabecera unificada en todo el sistema.
+       Volver: blanco / flecha. Inicio: oscuro / casa. */
+    .brand-header-icon{
+        width:48px!important;
+        min-width:48px!important;
+        max-width:48px!important;
+        height:48px!important;
+        min-height:48px!important;
+        padding:0!important;
+        flex:0 0 48px!important;
+        display:inline-flex!important;
+        align-items:center!important;
+        justify-content:center!important;
+        border-radius:13px!important;
+        font-size:18px!important;
+        font-weight:900!important;
+        line-height:1!important;
+        text-decoration:none!important;
+        box-shadow:none!important;
+        cursor:pointer!important;
+    }
+    .brand-header-back{
+        border:1px solid #e3e6ea!important;
+        background:#fff!important;
+        color:#25282d!important;
+    }
+    .brand-header-home{
+        border:1px solid #25282d!important;
+        background:#25282d!important;
+        color:#fff!important;
+    }
+
     @media(max-width:720px){
         .encabezado > div:not([class]):has(> .brand-bar),
         .encabezado-pagina > div:not([class]):has(> .brand-bar),
@@ -30,6 +63,15 @@
         .topbar > div:not([class]):has(> .brand-bar){
             min-height:44px;
             padding-left:55px;
+        }
+
+        .brand-header-icon{
+            width:46px!important;
+            min-width:46px!important;
+            max-width:46px!important;
+            height:46px!important;
+            min-height:46px!important;
+            flex-basis:46px!important;
         }
 
         /* La insignia flotante de QA debe quedar por encima de la barra
@@ -82,17 +124,62 @@
 {% endif %}
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        const urlInicio = "{% url 'dashboard:inicio' %}";
+
+        function textoAccion(accion) {
+            return accion.textContent.trim().replace(/\s+/g, " ");
+        }
+
         function convertirEnIcono(accion, icono, etiqueta, clase) {
+            const textoOriginal = textoAccion(accion);
             accion.textContent = icono;
             accion.setAttribute("aria-label", etiqueta);
-            accion.setAttribute("title", etiqueta);
+            accion.setAttribute("title", textoOriginal || etiqueta);
             accion.classList.add(clase);
+        }
+
+        function configurarVolver(accion) {
+            convertirEnIcono(accion, "←", "Volver", "brand-header-icon");
+            accion.classList.add("brand-header-back");
+
+            /* Un único criterio funcional: volver dentro del sistema.
+               Si no hay una página interna anterior, ir a Inicio. */
+            accion.onclick = function (event) {
+                event.preventDefault();
+                let volverDentroDelSistema = false;
+                try {
+                    volverDentroDelSistema = !!document.referrer
+                        && new URL(document.referrer).origin === window.location.origin;
+                } catch (error) {
+                    volverDentroDelSistema = false;
+                }
+
+                if (volverDentroDelSistema && window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.location.href = urlInicio;
+                }
+            };
+        }
+
+        function configurarInicio(accion) {
+            convertirEnIcono(accion, "⌂", "Ir al inicio", "brand-header-icon");
+            accion.classList.add("brand-header-home");
+
+            if (accion.tagName === "A") {
+                accion.setAttribute("href", urlInicio);
+            } else {
+                accion.onclick = function (event) {
+                    event.preventDefault();
+                    window.location.href = urlInicio;
+                };
+            }
         }
 
         document.querySelectorAll(".brand-bar").forEach(function (marca) {
             const padre = marca.parentElement;
             const encabezado = marca.closest(
-                ".encabezado, .encabezado-pagina, .header, .h, .topbar"
+                "header, .encabezado, .encabezado-pagina, .header, .h, .topbar"
             );
 
             /* Fallback para navegadores sin :has() y plantillas antiguas. */
@@ -108,12 +195,12 @@
             if (!encabezado) return;
 
             encabezado.querySelectorAll("a, button").forEach(function (accion) {
-                const texto = accion.textContent.trim().replace(/\s+/g, " ");
+                const texto = textoAccion(accion);
 
-                if (/^(?:←\s*)?VOLVER$/i.test(texto)) {
-                    convertirEnIcono(accion, "←", "Volver", "brand-header-icon");
-                } else if (/^INICIO$/i.test(texto)) {
-                    convertirEnIcono(accion, "⌂", "Ir al inicio", "brand-header-icon");
+                if (/^(?:←|‹|↩)?\s*VOLVER(?:\s+.*)?$/i.test(texto)) {
+                    configurarVolver(accion);
+                } else if (/^(?:⌂|🏠)?\s*(?:IR\s+AL\s+)?INICIO$/i.test(texto)) {
+                    configurarInicio(accion);
                 } else if (/^(?:✎\s*)?EDITAR(?:\s+PRODUCTO)?$/i.test(texto)) {
                     convertirEnIcono(accion, "✎", texto.replace(/^✎\s*/i, ""), "brand-action-icon");
                 } else if (/^(?:\+|＋)?\s*(?:NUEV[OA](?:\s+PRODUCTO|\s+KIT)?|PRODUCTO\s+NUEVO)$/i.test(texto)) {
@@ -123,9 +210,9 @@
         });
 
         document.querySelectorAll("a, button").forEach(function (accion) {
-            if (accion.closest(".encabezado, .encabezado-pagina, .header, .h, .topbar")) return;
+            if (accion.closest("header, .encabezado, .encabezado-pagina, .header, .h, .topbar")) return;
 
-            const texto = accion.textContent.trim().replace(/\s+/g, " ");
+            const texto = textoAccion(accion);
             if (/^(?:✎\s*)?EDITAR(?:\s+(?:PRODUCTO|PEDIDO|KIT))?$/i.test(texto)) {
                 convertirEnIcono(accion, "✎", texto.replace(/^✎\s*/i, ""), "brand-action-icon");
             }
