@@ -647,14 +647,14 @@
                                     <p class="detail">
                                         Elegí {{ kit.cantidad_productos }} producto{{ kit.cantidad_productos|pluralize }}
                                         {% if kit.tipo_producto %}de {{ kit.tipo_producto.nombre }}{% endif %}.
-                                        {% if kit.catalogo_cantidad_opciones %}
-                                            {{ kit.catalogo_cantidad_opciones }} opción{{ kit.catalogo_cantidad_opciones|pluralize:"es" }} disponible{{ kit.catalogo_cantidad_opciones|pluralize }}.
+                                        {% if kit.catalogo_cantidad_total %}
+                                            {{ kit.catalogo_cantidad_total }} opción{{ kit.catalogo_cantidad_total|pluralize:"es" }} disponible{{ kit.catalogo_cantidad_total|pluralize }}{% if kit.catalogo_cantidad_premium %}, algunas con adicional{% endif %}.
                                         {% endif %}
                                     </p>
                                     {% if kit.productos_visuales_visibles %}
                                         <div class="mini-list" aria-label="Opciones disponibles para este kit">
                                             {% for visual in kit.productos_visuales_visibles %}
-                                                <span class="mini">{{ visual.producto.nombre }}</span>
+                                                <span class="mini">{{ visual.producto.nombre }}{% if visual.adicional %} +${{ visual.adicional|floatformat:"0g" }}{% endif %}</span>
                                             {% endfor %}
                                             {% if kit.productos_visuales_extra %}
                                                 <span class="mini">+{{ kit.productos_visuales_extra }} más</span>
