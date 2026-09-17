@@ -1,0 +1,197 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
+<link rel="apple-touch-icon" href="{% static 'brand/apple-touch-icon.png' %}">
+<link rel="stylesheet" href="{% static 'brand/brand.css' %}">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Carga masiva de fotos | Doble V 3D</title>
+<style>
+:root{--f:#f4f5f7;--b:#e2e6eb;--t:#24272b;--m:#747a82;--o:#24272b;--ok:#2f6c43;--warn:#8a6818;--bad:#933d3d;--soft:#f8f9fb}
+*{box-sizing:border-box}body{margin:0;padding:0 0 110px;background:var(--f);color:var(--t);font-family:Arial,sans-serif}.c{width:min(1180px,100%);margin:auto;padding:22px 18px}.h{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}h1{margin:0 0 5px;font-size:32px}.sub{color:var(--m);font-size:12px;line-height:1.45}.a{display:flex;gap:8px;flex-wrap:wrap}.btn{min-height:48px;padding:0 16px;border:1px solid var(--b);border-radius:13px;background:#fff;color:var(--t);font-size:10px;font-weight:900;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}.dark{background:var(--o);color:#fff;border-color:var(--o)}.btn:disabled{opacity:.45;cursor:not-allowed}.card{background:#fff;border:1px solid var(--b);border-radius:18px;padding:17px;margin-bottom:14px}.drop{min-height:190px;border:1.5px dashed #c7ced7;border-radius:16px;background:#fafbfc;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;text-align:center;padding:22px;cursor:pointer;transition:.15s ease;-webkit-tap-highlight-color:transparent}.drop.is-over{background:#f1f5fa;border-color:#7f96b2;transform:translateY(-1px)}.drop.is-disabled{cursor:default;opacity:.6}.drop-icon{width:54px;height:54px;border-radius:16px;background:#24272b;color:#fff;display:grid;place-items:center;font-size:27px}.drop strong{font-size:13px}.drop span{max-width:520px;color:var(--m);font-size:10px;line-height:1.5}.how{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}.how div{padding:11px 12px;border-radius:12px;background:#f6f8fa;color:#626973;font-size:9px;line-height:1.45}.how b{display:block;color:#343940;font-size:9px;margin-bottom:3px}.topline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.titulo{font-size:11px;font-weight:900}.summary{display:flex;gap:7px;flex-wrap:wrap}.pill{min-height:29px;padding:0 9px;border-radius:999px;background:#f2f4f6;color:#5c636c;font-size:8px;font-weight:900;display:inline-flex;align-items:center}.queue{display:grid;gap:10px}.item{display:grid;grid-template-columns:118px minmax(0,1fr) 42px;gap:12px;align-items:center;padding:11px;border:1px solid var(--b);border-radius:15px;background:#fff}.thumb{position:relative;aspect-ratio:1/1;overflow:hidden;border-radius:12px;background:#eef1f4}.thumb img{width:100%;height:100%;object-fit:cover;display:block}.item-body{min-width:0}.file{display:flex;align-items:center;gap:8px;min-width:0;margin-bottom:9px}.file strong{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.status{flex:0 0 auto;min-height:24px;padding:0 7px;border-radius:999px;background:#eef1f4;color:#6c727a;font-size:7px;font-weight:900;display:inline-flex;align-items:center}.status.ready{background:#edf7f0;color:var(--ok)}.status.warn{background:#fff7df;color:var(--warn)}.status.error{background:#fff0f0;color:var(--bad)}.status.upload{background:#eef4fb;color:#3c5f8e}.status.done{background:#eaf7ee;color:var(--ok)}.fields{display:grid;grid-template-columns:minmax(240px,1.4fr) minmax(150px,.7fr);gap:9px}.field label{display:block;margin-bottom:5px;color:var(--m);font-size:7px;font-weight:900}.field select{width:100%;min-height:44px;border:1px solid #d6dbe1;border-radius:10px;background:#fff;padding:8px 10px;font-size:11px}.meta{margin-top:7px;color:#81868d;font-size:8px;line-height:1.4}.remove{width:42px;height:42px;padding:0;border:1px solid #efcece;border-radius:12px;background:#fff5f5;color:#9a3c3c;font-size:18px;cursor:pointer}.progress{height:6px;margin-top:8px;border-radius:999px;background:#edf0f3;overflow:hidden}.progress span{display:block;height:100%;width:0;background:#3d536c;transition:width .12s linear}.footer-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px}.hint{color:var(--m);font-size:9px;line-height:1.4}.message{display:none;padding:11px 13px;border-radius:11px;margin-bottom:12px;font-size:10px;font-weight:800;line-height:1.45}.message.show{display:block}.message.ok{background:#edf8f1;border:1px solid #cee5d5;color:var(--ok)}.message.error{background:#fff2f2;border:1px solid #efcece;color:var(--bad)}.message.info{background:#f3f6f9;border:1px solid #dce3ea;color:#556271}.warning{padding:11px 13px;border-radius:11px;margin-bottom:12px;background:#fff8e6;border:1px solid #ead9a8;color:#745d1a;font-size:10px;font-weight:800;line-height:1.45}.empty{padding:30px 15px;border:1px dashed #d2d7dd;border-radius:14px;text-align:center;color:#8b9097;font-size:11px}.nav{position:fixed;z-index:50;left:50%;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(720px,calc(100% - 20px));display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:7px;border-radius:20px;background:rgba(35,38,43,.96);box-shadow:0 12px 35px rgba(0,0,0,.22);backdrop-filter:blur(14px)}.nav a{min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:14px;color:#d9dbe0;text-decoration:none;font-size:9px;font-weight:bold}.nav a span:first-child{font-size:19px;line-height:1}.nav .act{background:#fff;color:#24272b}@media(max-width:850px){.how{grid-template-columns:1fr}.item{grid-template-columns:100px minmax(0,1fr) 42px}.fields{grid-template-columns:1fr}.footer-actions{align-items:stretch;flex-direction:column}.footer-actions .btn{width:100%}}@media(max-width:620px){.c{padding:16px 11px}.h{flex-direction:column}.a{width:100%}.a>*{flex:1}.drop{min-height:155px;padding:17px}.card{padding:13px}.item{grid-template-columns:82px minmax(0,1fr) 38px;gap:9px;padding:9px}.remove{width:38px;height:38px}.file{align-items:flex-start;flex-direction:column;gap:5px}.file strong{max-width:100%}.field select{min-height:46px}.nav{width:calc(100% - 12px);bottom:max(6px,env(safe-area-inset-bottom))}}
+</style>
+</head>
+<body>
+<div class="c">
+<div class="h"><div class="encabezado-marca">{% include "shared/brand_bar.html" %}<h1>Carga masiva de fotos</h1><div class="sub">Arrastrá una tanda, revisá la asignación y subila a ImageKit sin entrar producto por producto.</div></div><div class="a"><a class="btn" href="{% url 'productos:lista' %}">← PRODUCTOS</a><a class="btn" href="{% url 'dashboard:inicio' %}">INICIO</a></div></div>
+
+{% if not imagekit_configurado %}<div class="warning">IMAGEKIT NO ESTÁ CONFIGURADO EN ESTE ENTORNO · la carga masiva está deshabilitada.</div>{% endif %}
+<div id="bulk-message" class="message" role="status" aria-live="polite"></div>
+
+<div class="card">
+<div id="bulk-drop" class="drop{% if not imagekit_configurado %} is-disabled{% endif %}" tabindex="0" role="button" aria-label="Seleccionar o arrastrar imágenes">
+<div class="drop-icon">＋</div><strong>Arrastrá imágenes acá</strong><span>O tocá para elegir varias fotos. Recomendado: formato 1:1 · máximo 15 MB por archivo.</span>
+</div>
+<input id="bulk-input" type="file" accept="image/*" multiple hidden {% if not imagekit_configurado %}disabled{% endif %}>
+<div class="how"><div><b>AUTODETECCIÓN</b>Si el archivo contiene el código del producto, por ejemplo <strong>P0004.jpg</strong>, lo asignamos automáticamente.</div><div><b>PRINCIPAL / SECUNDARIA</b><strong>P0004-1.jpg</strong> se interpreta como principal y <strong>P0004-2.jpg</strong> como secundaria.</div><div><b>REVISIÓN ANTES DE SUBIR</b>Podés cambiar producto y posición manualmente. No se cargará nada que supere el límite de 2 fotos.</div></div>
+</div>
+
+<div class="card">
+<div class="topline"><div class="titulo">FOTOS PREPARADAS</div><div class="summary"><span class="pill" id="sum-total">0 ARCHIVOS</span><span class="pill" id="sum-ready">0 LISTOS</span><span class="pill" id="sum-done">0 SUBIDOS</span></div></div>
+<div id="bulk-queue" class="queue"><div class="empty">Todavía no agregaste imágenes.</div></div>
+<div class="footer-actions"><div class="hint">Se suben una por una para respetar correctamente principal/secundaria y evitar conflictos de stock de fotos.</div><button id="bulk-upload" class="btn dark" type="button" disabled>SUBIR FOTOS LISTAS</button></div>
+</div>
+
+<form id="bulk-csrf" hidden>{% csrf_token %}</form>
+{{ productos_json|json_script:"productos-masivos-data" }}
+</div>
+<nav class="nav"><a href="{% url 'dashboard:inicio' %}"><span>⌂</span><span>INICIO</span></a><a href="{% url 'pedidos:impresiones' %}"><span>📦</span><span>PEDIDOS</span></a><a href="{% url 'pedidos:nuevo' %}"><span>＋</span><span>NUEVO</span></a><a href="{% url 'produccion:lista' %}"><span>⚙</span><span>PRODUCCIÓN</span></a><a class="act" href="{% url 'productos:lista' %}"><span>▦</span><span>PRODUCTOS</span></a></nav>
+<script>
+(() => {
+const enabled = {{ imagekit_configurado|yesno:"true,false" }};
+const products = JSON.parse(document.getElementById('productos-masivos-data').textContent || '[]');
+const productMap = new Map(products.map(p => [String(p.id), p]));
+const codeMap = new Map(products.map(p => [String(p.codigo).toUpperCase(), p]));
+const queueEl = document.getElementById('bulk-queue');
+const input = document.getElementById('bulk-input');
+const drop = document.getElementById('bulk-drop');
+const uploadBtn = document.getElementById('bulk-upload');
+const message = document.getElementById('bulk-message');
+const csrf = document.querySelector('#bulk-csrf input[name="csrfmiddlewaretoken"]')?.value || '';
+const uploadTemplate = "{% url 'productos:imagen_subir' 0 %}";
+const principalTemplate = "{% url 'productos:imagen_principal' 0 0 %}";
+const MAX_BYTES = 15 * 1024 * 1024;
+let seq = 1;
+let items = [];
+let busy = false;
+
+const esc = value => String(value ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
+const normalizeCode = raw => {
+    const m = String(raw || '').toUpperCase().match(/P0*(\d{1,6})/);
+    if (!m) return '';
+    return `P${String(Number(m[1])).padStart(4,'0')}`;
+};
+const detectProduct = name => codeMap.get(normalizeCode(name)) || null;
+const detectRole = (name, code) => {
+    if (!code) return 'auto';
+    const stem = String(name || '').replace(/\.[^.]+$/,'').toUpperCase();
+    const safe = code.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    const m = stem.match(new RegExp(`${safe}[-_ ]?(1|2)(?:[-_ .]|$)`));
+    if (!m) return 'auto';
+    return m[1] === '1' ? 'principal' : 'secundaria';
+};
+const showMessage = (text, type='info') => { message.textContent=text; message.className=`message show ${type}`; };
+const uploadUrl = productId => uploadTemplate.replace('/0/', `/${productId}/`);
+const principalUrl = (productId, imageId) => principalTemplate.replace('/0/imagenes/0/', `/${productId}/imagenes/${imageId}/`);
+const productOptions = selected => ['<option value="">Seleccionar producto…</option>', ...products.map(p => `<option value="${p.id}" ${String(p.id)===String(selected)?'selected':''}>${esc(p.codigo)} · ${esc(p.nombre)} · ${p.fotos}/2</option>`)].join('');
+
+function validateItem(item){
+    if (item.status === 'done') return {ok:true,text:'SUBIDA',cls:'done'};
+    if (item.error) return {ok:false,text:'ERROR',cls:'error',reason:item.error};
+    if (!item.productId) return {ok:false,text:'ASIGNAR',cls:'warn',reason:'Elegí un producto.'};
+    const product = productMap.get(String(item.productId));
+    if (!product) return {ok:false,text:'ASIGNAR',cls:'warn',reason:'Producto inválido.'};
+    const same = items.filter(x => x.status !== 'done' && !x.error && String(x.productId)===String(item.productId));
+    const pos = same.findIndex(x => x.id===item.id);
+    if ((product.fotos || 0) + pos + 1 > 2) return {ok:false,text:'SIN CUPO',cls:'error',reason:'Ese producto superaría el máximo de 2 fotos.'};
+    if (item.role === 'secundaria' && (product.fotos || 0) === 0){
+        const hasPrincipalInBatch = same.some(x => x.id!==item.id && x.role !== 'secundaria');
+        if (!hasPrincipalInBatch) return {ok:false,text:'FALTA PRINCIPAL',cls:'warn',reason:'Para una secundaria hace falta una principal existente o en esta tanda.'};
+    }
+    if (item.status === 'uploading') return {ok:false,text:'SUBIENDO',cls:'upload'};
+    return {ok:true,text:'LISTA',cls:'ready'};
+}
+
+function render(){
+    if (!items.length){ queueEl.innerHTML='<div class="empty">Todavía no agregaste imágenes.</div>'; }
+    else {
+        queueEl.innerHTML = items.map(item => {
+            const state = validateItem(item);
+            const progress = Number(item.progress || 0);
+            return `<div class="item" data-id="${item.id}"><div class="thumb"><img src="${esc(item.preview)}" alt="${esc(item.file.name)}"></div><div class="item-body"><div class="file"><strong title="${esc(item.file.name)}">${esc(item.file.name)}</strong><span class="status ${state.cls}">${state.text}</span></div><div class="fields"><div class="field"><label>PRODUCTO</label><select data-field="product" ${busy||item.status==='done'?'disabled':''}>${productOptions(item.productId)}</select></div><div class="field"><label>POSICIÓN</label><select data-field="role" ${busy||item.status==='done'?'disabled':''}><option value="auto" ${item.role==='auto'?'selected':''}>Automática</option><option value="principal" ${item.role==='principal'?'selected':''}>★ Principal</option><option value="secundaria" ${item.role==='secundaria'?'selected':''}>Secundaria</option></select></div></div><div class="meta">${state.reason ? esc(state.reason) : `${Math.round(item.file.size/1024)} KB · ${esc(productMap.get(String(item.productId))?.tipo || '')}`}</div>${item.status==='uploading'?`<div class="progress"><span style="width:${progress}%"></span></div>`:''}</div><button class="remove" data-action="remove" type="button" ${busy||item.status==='done'?'disabled':''} aria-label="Quitar archivo">×</button></div>`;
+        }).join('');
+    }
+    const ready = items.filter(i => validateItem(i).ok && i.status !== 'done').length;
+    const done = items.filter(i => i.status === 'done').length;
+    document.getElementById('sum-total').textContent=`${items.length} ARCHIVO${items.length===1?'':'S'}`;
+    document.getElementById('sum-ready').textContent=`${ready} LISTO${ready===1?'':'S'}`;
+    document.getElementById('sum-done').textContent=`${done} SUBIDO${done===1?'':'S'}`;
+    uploadBtn.disabled = !enabled || busy || ready === 0;
+    uploadBtn.textContent = busy ? 'SUBIENDO…' : `SUBIR ${ready || ''} FOTO${ready===1?'':'S'} LISTA${ready===1?'':'S'}`.replace('SUBIR  FOTO','SUBIR FOTOS');
+}
+
+function addFiles(fileList){
+    if (!enabled || busy) return;
+    const files = [...(fileList || [])];
+    let rejected = 0;
+    files.forEach(file => {
+        const preview = URL.createObjectURL(file);
+        const product = detectProduct(file.name);
+        const invalidType = !file.type?.startsWith('image/');
+        const tooLarge = file.size > MAX_BYTES;
+        if (invalidType || tooLarge) rejected += 1;
+        items.push({id:seq++,file,preview,productId:product?.id || '',role:detectRole(file.name, product?.codigo || ''),status:'ready',progress:0,error:invalidType?'No es un archivo de imagen.':tooLarge?'Supera el máximo de 15 MB.':''});
+    });
+    if (rejected) showMessage(`${rejected} archivo${rejected===1?'':'s'} requiere revisión.`, 'error');
+    else if (files.length) showMessage(`${files.length} foto${files.length===1?'':'s'} agregada${files.length===1?'':'s'}. Revisá las asignaciones antes de subir.`, 'info');
+    input.value='';
+    render();
+}
+
+async function uploadOne(item){
+    const product = productMap.get(String(item.productId));
+    const beforeCount = product?.fotos || 0;
+    const beforeIds = new Set(item.lastImages?.map(x => x.id) || []);
+    item.status='uploading'; item.progress=0; render();
+    const data = await new Promise((resolve,reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', uploadUrl(item.productId), true);
+        xhr.setRequestHeader('X-Requested-With','XMLHttpRequest');
+        xhr.setRequestHeader('Accept','application/json');
+        if (csrf) xhr.setRequestHeader('X-CSRFToken', csrf);
+        xhr.upload.addEventListener('progress', e => { if(e.lengthComputable){ item.progress=Math.min(98,Math.round(e.loaded/e.total*100)); render(); }});
+        xhr.addEventListener('load', () => { let data={}; try{data=JSON.parse(xhr.responseText||'{}')}catch(_){} if(xhr.status>=200&&xhr.status<300&&data.ok) resolve(data); else reject(new Error(data.message||'No se pudo subir la foto.')); });
+        xhr.addEventListener('error', () => reject(new Error('Se perdió la conexión durante la carga.')));
+        const body = new FormData(); body.append('imagen', item.file, item.file.name); xhr.send(body);
+    });
+    product.fotos = data.imagenes?.length ?? Math.min(beforeCount + 1, 2);
+    item.lastImages = data.imagenes || [];
+    if (item.role === 'principal'){
+        const newImage = (data.imagenes || []).find(img => !beforeIds.has(img.id) && !img.principal) || (data.imagenes || []).find(img => !img.principal);
+        if (newImage){
+            const response = await fetch(principalUrl(item.productId,newImage.id),{method:'POST',credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'application/json',...(csrf?{'X-CSRFToken':csrf}:{})}});
+            const principalData = await response.json().catch(()=>({}));
+            if(!response.ok || !principalData.ok) throw new Error(principalData.message||'La foto se subió, pero no se pudo marcar como principal.');
+            item.lastImages = principalData.imagenes || item.lastImages;
+        }
+    }
+    item.progress=100; item.status='done'; item.error=''; render();
+}
+
+async function uploadAll(){
+    if (busy) return;
+    let work = items.filter(i => validateItem(i).ok && i.status !== 'done');
+    if (!work.length) return;
+    const originalOrder = new Map(items.map((i,idx)=>[i.id,idx]));
+    work = work.sort((a,b) => {
+        if (String(a.productId) !== String(b.productId)) return originalOrder.get(a.id)-originalOrder.get(b.id);
+        const rank = r => r==='principal'?0:r==='auto'?1:2;
+        return rank(a.role)-rank(b.role) || originalOrder.get(a.id)-originalOrder.get(b.id);
+    });
+    busy=true; render();
+    let ok=0, failed=0;
+    for (const item of work){
+        try{ await uploadOne(item); ok+=1; }
+        catch(error){ item.status='error'; item.error=error.message||'No se pudo subir.'; failed+=1; render(); }
+    }
+    busy=false; render();
+    showMessage(failed ? `${ok} foto${ok===1?'':'s'} subida${ok===1?'':'s'} · ${failed} con error. Podés corregir y reintentar.` : `${ok} foto${ok===1?'':'s'} subida${ok===1?'':'s'} correctamente.`, failed?'error':'ok');
+}
+
+drop.addEventListener('click',()=>{if(enabled&&!busy)input.click()});
+drop.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&enabled&&!busy){e.preventDefault();input.click()}});
+input.addEventListener('change',()=>addFiles(input.files));
+['dragenter','dragover'].forEach(name=>drop.addEventListener(name,e=>{e.preventDefault();if(enabled&&!busy)drop.classList.add('is-over')}));
+['dragleave','drop'].forEach(name=>drop.addEventListener(name,e=>{e.preventDefault();drop.classList.remove('is-over')}));
+drop.addEventListener('drop',e=>addFiles(e.dataTransfer?.files));
+queueEl.addEventListener('change',e=>{const row=e.target.closest('.item');const item=items.find(i=>String(i.id)===String(row?.dataset.id));if(!item)return;if(e.target.dataset.field==='product'){item.productId=e.target.value;item.error='';}if(e.target.dataset.field==='role')item.role=e.target.value;render();});
+queueEl.addEventListener('click',e=>{const btn=e.target.closest('[data-action="remove"]');if(!btn)return;const row=btn.closest('.item');const idx=items.findIndex(i=>String(i.id)===String(row?.dataset.id));if(idx<0)return;URL.revokeObjectURL(items[idx].preview);items.splice(idx,1);render();});
+uploadBtn.addEventListener('click',uploadAll);
+window.addEventListener('beforeunload',()=>items.forEach(i=>URL.revokeObjectURL(i.preview)));
+render();
+})();
+</script>
+</body>
+</html>
