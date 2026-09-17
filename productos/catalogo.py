@@ -38,10 +38,22 @@ def catalogo(request):
         )
     }
 
-    productos_por_tipo = defaultdict(list)
     for producto in productos:
         producto.catalogo_imagen = imagenes_principales.get(producto.id)
         producto.catalogo_precio = producto.subtotal
+
+    # En el catálogo priorizamos los productos que ya tienen foto principal.
+    # Dentro de cada grupo mantenemos un orden estable por categoría y nombre.
+    productos.sort(
+        key=lambda producto: (
+            0 if producto.catalogo_imagen else 1,
+            (producto.tipo.nombre if producto.tipo else "").casefold(),
+            producto.nombre.casefold(),
+        )
+    )
+
+    productos_por_tipo = defaultdict(list)
+    for producto in productos:
         productos_por_tipo[producto.tipo_id].append(producto)
 
     kits = list(
