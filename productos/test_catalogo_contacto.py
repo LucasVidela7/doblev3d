@@ -29,10 +29,14 @@ class CatalogoContactoTests(TestCase):
         response = self.client.get(reverse("catalogo"))
 
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="dv-catalog-contact-links"')
         self.assertContains(response, "https://www.instagram.com/doblev3d/")
         self.assertContains(response, "@doblev3d")
         self.assertContains(response, "https://wa.me/5491164760709")
+        self.assertContains(response, "dv-catalog-contact__link--instagram")
         self.assertContains(response, "dv-catalog-contact__link--whatsapp")
+        self.assertContains(response, 'aria-label="Abrir Instagram @doblev3d"')
+        self.assertContains(response, 'aria-label="Escribir por WhatsApp"')
 
     def test_catalogo_permite_ocultar_cada_canal_desde_configuracion(self):
         self.config.mostrar_instagram = False
@@ -41,6 +45,7 @@ class CatalogoContactoTests(TestCase):
 
         response = self.client.get(reverse("catalogo"))
 
+        self.assertNotContains(response, 'id="dv-catalog-contact-links"')
         self.assertNotContains(response, "dv-catalog-contact__link--instagram")
         self.assertNotContains(response, "dv-catalog-contact__link--whatsapp")
 
