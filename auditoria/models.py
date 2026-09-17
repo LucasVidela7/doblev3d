@@ -15,6 +15,7 @@ class RegistroAuditoria(models.Model):
         ("REGISTRAR_PAGO", "Registrar pago"),
         ("INICIAR_SESION", "Iniciar sesión"),
         ("CERRAR_SESION", "Cerrar sesión"),
+        ("CLICK_CONTACTO_CATALOGO", "Click contacto catálogo"),
     ]
 
     fecha = models.DateTimeField(auto_now_add=True, db_index=True)
