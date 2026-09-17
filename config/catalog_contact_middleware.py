@@ -92,6 +92,8 @@ WHATSAPP_ICON = """
 </svg>
 """
 
+CONTACT_NAV_ID = "dv-catalog-contact-links"
+
 
 def _contactos_html():
     config = ConfiguracionCatalogo.objects.first() or ConfiguracionCatalogo()
@@ -127,10 +129,15 @@ def _contactos_html():
         return ""
 
     return (
-        '<nav class="dv-catalog-contact" aria-label="Contacto y redes sociales">'
+        f'<nav id="{CONTACT_NAV_ID}" class="dv-catalog-contact" '
+        'aria-label="Contacto y redes sociales">'
         + "".join(links)
         + "</nav>"
     )
+
+
+def _contactos_insertados(contenido):
+    return f'id="{CONTACT_NAV_ID}"' in contenido
 
 
 class CatalogContactMiddleware:
@@ -168,7 +175,7 @@ class CatalogContactMiddleware:
                 1,
             )
 
-        if "dv-catalog-contact" not in contenido and "</header>" in contenido:
+        if not _contactos_insertados(contenido) and "</header>" in contenido:
             contenido = contenido.replace(
                 "</header>",
                 contactos + "\n</header>",
