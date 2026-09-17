@@ -2,6 +2,7 @@ from collections import defaultdict
 
 from django.shortcuts import render
 
+from kits.elegibilidad_catalogo import preparar_kits_catalogo
 from kits.imagenes import adjuntar_imagenes_reutilizadas
 from kits.models import Kit
 
@@ -81,9 +82,15 @@ def catalogo(request):
         if len(tipos) == 1 and componentes:
             kit.tipo_producto = componentes[0].producto.tipo
 
+    kits, productos_por_kit = preparar_kits_catalogo(
+        kits,
+        productos_por_tipo,
+    )
+
     adjuntar_imagenes_reutilizadas(
         kits,
         productos_por_tipo=productos_por_tipo,
+        productos_por_kit=productos_por_kit,
     )
 
     for kit in kits:
