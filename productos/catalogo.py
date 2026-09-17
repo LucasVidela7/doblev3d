@@ -122,3 +122,61 @@ def catalogo(request):
             "es_ambiente_no_productivo": ambiente != "production",
         },
     )
+
+
+
+def detalle_kit_catalogo(request, kit_id):
+    """Detalle público de un kit con las opciones realmente seleccionables."""
+    ambiente = entorno_imagenes()
+    kit = get_object_or_404(
+        Kit.objects
+        .filter(activo=True)
+        .select_related("tipo_producto")
+        .prefetch_related("componentes__producto__tipo"),
+        id=kit_id,
+    )
+
+    productos_por_tipo = defaultdict(list)
+    productos_por_kit = {}
+
+    if kit.modalidad == "LIBRE_CATEGORIA":
+        if not kit.tipo_producto_id:
+            raise Http404("Kit sin categoría disponible.")
+
+        candidatos = list(
+            Producto.objects
+            .filter(
+                tipo_id=kit.tipo_producto_id,
+                activo=True,
+                solo_produccion=False,
+            )
+            .select_related("tipo")
+            .order_by("nombre")
+        )
+        elegibles = productos_elegibles_para_kit(
+            kit,
+            candidatos,
+        )
+        if not elegibles:
+            raise Http404("Kit sin opciones disponibles.")
+
+        productos_por_tipo[kit.tipo_producto_id] = candidatos
+        productos_por_kit[kit.id] = elegibles
+
+    adjuntar_imagenes_reutilizadas(
+        [kit],
+        productos_por_tipo=productos_por_tipo,
+        productos_por_kit=productos_por_kit,
+    )
+
+    opciones = list(kit.productos_visuales)
+    return render(
+        request,
+        "productos/catalogo_kit_detalle.html",
+        {
+            "kit": kit,
+            "opciones": opciones,
+            "ambiente_catalogo": ambiente,
+            "es_ambiente_no_productivo": ambiente != "production",
+        },
+    )
