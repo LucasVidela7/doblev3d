@@ -23,6 +23,16 @@ class CatalogoFiltrosVaciosTests(TestCase):
         self.assertContains(response, "categories.hidden")
         self.assertContains(response, "segments.hidden")
 
+    def test_catalogo_incluye_contadores_dinamicos_por_seccion(self):
+        response = self.client.get(reverse("catalogo"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "const syncCounts = () =>")
+        self.assertContains(response, "visibleCount")
+        self.assertContains(response, "countNode.textContent")
+        self.assertContains(response, "categoryButtons.forEach")
+        self.assertContains(response, "search?.addEventListener('input'")
+
     def test_categoria_sin_productos_publicables_no_se_ofrece(self):
         visible = TipoProducto.objects.create(nombre="Sensoriales", activo=True)
         vacia = TipoProducto.objects.create(nombre="Decoración", activo=True)
