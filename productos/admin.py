@@ -1,6 +1,42 @@
 from django.contrib import admin
 
-from .models import Producto, ProductoComponente, TipoProducto
+from .models import (
+    ConfiguracionCatalogo,
+    Producto,
+    ProductoComponente,
+    TipoProducto,
+)
+
+
+@admin.register(ConfiguracionCatalogo)
+class ConfiguracionCatalogoAdmin(admin.ModelAdmin):
+    fieldsets = (
+        (
+            "Instagram",
+            {
+                "fields": (
+                    "mostrar_instagram",
+                    "instagram_usuario",
+                ),
+            },
+        ),
+        (
+            "WhatsApp",
+            {
+                "fields": (
+                    "mostrar_whatsapp",
+                    "whatsapp_numero",
+                    "whatsapp_mensaje",
+                ),
+            },
+        ),
+    )
+
+    def has_add_permission(self, request):
+        return not ConfiguracionCatalogo.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(TipoProducto)
