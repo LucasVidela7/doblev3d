@@ -44,6 +44,8 @@ CATALOG_EMPTY_FILTERS_SCRIPT = r"""
     const categoryButtons = [...document.querySelectorAll('[data-category].filter')];
     const categories = document.querySelector('.categories');
     const segments = document.querySelector('.segments');
+    const search = document.getElementById('catalog-search');
+    const sections = [...document.querySelectorAll('[data-section]')];
 
     if (!kindButtons.length) return;
 
@@ -59,6 +61,21 @@ CATALOG_EMPTY_FILTERS_SCRIPT = r"""
 
     const activeKind = () =>
         kindButtons.find((button) => button.classList.contains('is-active'))?.dataset.kind || 'all';
+
+    const syncCounts = () => {
+        sections.forEach((section) => {
+            const countNode = section.querySelector('.count');
+            if (!countNode) return;
+
+            const visibleCount = [...section.querySelectorAll('.catalog-item')]
+                .filter((item) => !item.classList.contains('hidden-by-filter'))
+                .length;
+
+            countNode.textContent = visibleCount === 1
+                ? '1 disponible'
+                : `${visibleCount} disponibles`;
+        });
+    };
 
     const syncEmptyFilters = () => {
         const hasAnyCatalogItem = items.some(
@@ -126,11 +143,26 @@ CATALOG_EMPTY_FILTERS_SCRIPT = r"""
         }
     };
 
+    const syncCatalogUi = () => {
+        syncEmptyFilters();
+        syncCounts();
+    };
+
+    const scheduleCatalogUiSync = () => {
+        window.setTimeout(syncCatalogUi, 0);
+    };
+
     kindButtons.forEach((button) => {
-        button.addEventListener('click', () => window.setTimeout(syncEmptyFilters, 0));
+        button.addEventListener('click', scheduleCatalogUiSync);
     });
 
-    syncEmptyFilters();
+    categoryButtons.forEach((button) => {
+        button.addEventListener('click', scheduleCatalogUiSync);
+    });
+
+    search?.addEventListener('input', scheduleCatalogUiSync);
+
+    syncCatalogUi();
 })();
 </script>
 """
