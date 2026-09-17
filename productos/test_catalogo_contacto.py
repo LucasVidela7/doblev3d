@@ -1,6 +1,7 @@
 import os
 from unittest.mock import patch
 
+from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -66,13 +67,32 @@ class CatalogoContactoTests(TestCase):
             accion="CLICK_CONTACTO_CATALOGO",
         ).order_by("fecha", "id")
         self.assertEqual(registros.count(), 2)
+        self.assertIsNone(registros[0].usuario)
         self.assertEqual(registros[0].usuario_nombre, "Visitante")
         self.assertEqual(registros[0].objeto_representacion, "Catálogo · Instagram")
         self.assertEqual(registros[0].cambios["canal"], "Instagram")
         self.assertEqual(registros[0].ruta, "/contacto/instagram/")
         self.assertEqual(registros[0].ip, "127.0.0.8")
+        self.assertIsNone(registros[1].usuario)
+        self.assertEqual(registros[1].usuario_nombre, "Visitante")
         self.assertEqual(registros[1].objeto_representacion, "Catálogo · WhatsApp")
         self.assertEqual(registros[1].cambios["canal"], "WhatsApp")
+
+    def test_click_publico_no_se_asocia_a_usuario_aunque_haya_sesion(self):
+        User = get_user_model()
+        usuario = User.objects.create_user(username="tester", password="clave-segura")
+        self.client.force_login(usuario)
+
+        response = self.client.get(
+            reverse("catalogo_contacto", kwargs={"canal": "whatsapp"}),
+            REMOTE_ADDR="127.0.0.10",
+        )
+
+        self.assertEqual(response.status_code, 302)
+        registro = RegistroAuditoria.objects.get(accion="CLICK_CONTACTO_CATALOGO")
+        self.assertIsNone(registro.usuario)
+        self.assertEqual(registro.usuario_nombre, "Visitante")
+        self.assertEqual(registro.cambios["canal"], "WhatsApp")
 
     def test_head_no_se_cuenta_como_click(self):
         response = self.client.head(
