@@ -31,6 +31,13 @@
             min-height:44px;
             padding-left:55px;
         }
+
+        /* La insignia flotante de QA debe quedar por encima de la barra
+           inferior y no tapar la última opción de navegación. */
+        html[data-dv-env="qa"] body::after{
+            right:8px!important;
+            bottom:82px!important;
+        }
     }
 </style>
 <div class="brand-bar">
