@@ -57,11 +57,25 @@ def lista_kits(request):
             ),
         )
         kit.catalogo_cantidad_opciones = resumen["cantidad"]
+        kit.catalogo_cantidad_premium = resumen["cantidad_premium"]
+        kit.catalogo_cantidad_total = resumen["cantidad_total"]
         kit.catalogo_cantidad_excluida = resumen["cantidad_excluida"]
         kit.catalogo_costo_maximo_unitario = resumen[
             "costo_maximo_unitario"
         ]
-        productos_por_kit[kit.id] = resumen["productos"]
+        kit.catalogo_adicional_minimo = resumen["adicional_minimo"]
+        kit.catalogo_adicional_maximo = resumen["adicional_maximo"]
+        kit.catalogo_margen_promedio_efectivo = resumen[
+            "margen_promedio_efectivo"
+        ]
+        kit.catalogo_margen_peor_efectivo = resumen[
+            "margen_peor_efectivo"
+        ]
+        kit.catalogo_opciones = resumen["opciones"]
+        productos_por_kit[kit.id] = [
+            opcion["producto"]
+            for opcion in resumen["opciones"]
+        ]
 
     adjuntar_imagenes_reutilizadas(
         kits,
@@ -72,10 +86,17 @@ def lista_kits(request):
     for kit in kits:
         productos_categoria = None
         if kit.modalidad == "LIBRE_CATEGORIA":
-            productos_categoria = productos_por_tipo.get(
-                kit.tipo_producto_id,
-                [],
-            )
+            # Las referencias del precio base se calculan sólo con las opciones
+            # incluidas sin adicional. Las premium tienen su propio recargo.
+            productos_categoria = [
+                opcion["producto"]
+                for opcion in getattr(
+                    kit,
+                    "catalogo_opciones",
+                    [],
+                )
+                if opcion["incluido"]
+            ]
 
         kit.recomendacion_calculadora = recomendacion_kit(
             kit,
