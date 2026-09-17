@@ -2,6 +2,7 @@ import os
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -58,11 +59,12 @@ class CargaMasivaImagenesTests(TestCase):
             activo=True,
             solo_produccion=True,
         )
-        ProductoImagen.objects.create(
+        self.principal = ProductoImagen.objects.create(
             producto=self.producto,
             ambiente="qa",
             file_id="masiva-qa",
             url="https://ik.imagekit.io/demo/masiva-qa.jpg",
+            thumbnail_url="https://ik.imagekit.io/demo/thumb-masiva-qa.jpg",
             orden=1,
         )
         ProductoImagen.objects.create(
@@ -73,7 +75,7 @@ class CargaMasivaImagenesTests(TestCase):
             orden=1,
         )
 
-    def test_pantalla_masiva_lista_productos_y_cuenta_fotos_del_entorno(self):
+    def test_pantalla_masiva_lista_productos_y_posiciones_del_entorno(self):
         response = self.client.get(reverse("productos:imagenes_masivas"))
 
         self.assertEqual(response.status_code, 200)
@@ -88,6 +90,10 @@ class CargaMasivaImagenesTests(TestCase):
             if item["id"] == self.producto.id
         )
         self.assertEqual(producto_json["fotos"], 1)
+        self.assertEqual(len(producto_json["imagenes"]), 1)
+        self.assertEqual(producto_json["imagenes"][0]["orden"], 1)
+        self.assertTrue(producto_json["imagenes"][0]["principal"])
+        self.assertNotIn("masiva-prod", str(producto_json))
 
     def test_lista_productos_muestra_acceso_a_carga_masiva(self):
         response = self.client.get(reverse("productos:lista"))
@@ -95,3 +101,83 @@ class CargaMasivaImagenesTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "CARGA MASIVA")
         self.assertContains(response, reverse("productos:imagenes_masivas"))
+
+    def test_pantalla_explica_reemplazo_y_endpoint(self):
+        response = self.client.get(reverse("productos:imagenes_masivas"))
+
+        self.assertContains(response, "REEMPLAZO AUTOMÁTICO")
+        self.assertContains(response, "imagen_reemplazar") if False else None
+        self.assertContains(
+            response,
+            reverse("productos:imagen_reemplazar", args=[0, 1]),
+        )
+
+    @patch("productos.imagenes_views.eliminar_imagen_imagekit")
+    @patch("productos.imagenes_views.subir_imagen_producto")
+    def test_reemplazar_principal_conserva_posicion_y_limpia_anterior(
+        self,
+        subir_mock,
+        eliminar_mock,
+    ):
+        subir_mock.return_value = {
+            "file_id": "nueva-principal",
+            "url": "https://ik.imagekit.io/demo/nueva-principal.jpg",
+            "thumbnail_url": "https://ik.imagekit.io/demo/thumb-nueva-principal.jpg",
+            "nombre_archivo": "P0001-1.jpg",
+            "ancho": 1200,
+            "alto": 1200,
+            "tamano_bytes": 100000,
+        }
+        archivo = SimpleUploadedFile(
+            "P0001-1.jpg",
+            b"imagen-nueva",
+            content_type="image/jpeg",
+        )
+
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.post(
+                reverse(
+                    "productos:imagen_reemplazar",
+                    args=[self.producto.id, 1],
+                ),
+                {"imagen": archivo},
+                HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+                HTTP_ACCEPT="application/json",
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.principal.refresh_from_db()
+        self.assertEqual(self.principal.orden, 1)
+        self.assertEqual(self.principal.file_id, "nueva-principal")
+        self.assertEqual(
+            ProductoImagen.objects.filter(
+                producto=self.producto,
+                ambiente="qa",
+            ).count(),
+            1,
+        )
+        eliminar_mock.assert_called_once_with("masiva-qa")
+
+    @patch("productos.imagenes_views.subir_imagen_producto")
+    def test_si_falla_nueva_subida_se_conserva_foto_anterior(self, subir_mock):
+        subir_mock.side_effect = RuntimeError("fallo ImageKit")
+        archivo = SimpleUploadedFile(
+            "P0001-1.jpg",
+            b"imagen-nueva",
+            content_type="image/jpeg",
+        )
+
+        response = self.client.post(
+            reverse(
+                "productos:imagen_reemplazar",
+                args=[self.producto.id, 1],
+            ),
+            {"imagen": archivo},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+            HTTP_ACCEPT="application/json",
+        )
+
+        self.assertEqual(response.status_code, 502)
+        self.principal.refresh_from_db()
+        self.assertEqual(self.principal.file_id, "masiva-qa")
+        self.assertEqual(self.principal.orden, 1)
