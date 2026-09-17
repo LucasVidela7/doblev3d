@@ -37,16 +37,14 @@ def _destino_contacto(config, canal):
 
 def _registrar_click(config, canal):
     contexto = obtener_contexto()
-    usuario = contexto["usuario"]
     etiqueta = CANALES[canal]
 
+    # Estos eventos pertenecen al catálogo público, no a la actividad interna
+    # de un usuario autenticado. Incluso si un administrador prueba el enlace
+    # con una sesión abierta, lo registramos como interacción de visitante.
     RegistroAuditoria.objects.create(
-        usuario=usuario,
-        usuario_nombre=(
-            usuario.get_username()
-            if usuario is not None and getattr(usuario, "is_authenticated", False)
-            else "Visitante"
-        ),
+        usuario=None,
+        usuario_nombre="Visitante",
         accion="CLICK_CONTACTO_CATALOGO",
         app_label="productos",
         modelo="configuracioncatalogo",
