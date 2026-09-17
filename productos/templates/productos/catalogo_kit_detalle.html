@@ -1,0 +1,165 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{{ kit.nombre }} · Doble V 3D">
+    <title>{{ kit.nombre }} | Doble V 3D</title>
+    <link rel="icon" href="{% static 'brand/favicon.ico' %}">
+    <style>
+        :root{
+            --blue:#134a9a;
+            --blue-dark:#0d376f;
+            --red:#f0393b;
+            --ink:#17233a;
+            --muted:#667085;
+            --line:#dfe5ef;
+            --soft:#f5f7fb;
+            --paper:#fff;
+            --shadow:0 14px 36px rgba(19,74,154,.09);
+        }
+        *{box-sizing:border-box}
+        body{
+            margin:0;
+            background:
+                radial-gradient(circle at top right,rgba(240,57,59,.09),transparent 28rem),
+                radial-gradient(circle at 8% 12%,rgba(19,74,154,.08),transparent 24rem),
+                var(--soft);
+            color:var(--ink);
+            font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        }
+        .shell{width:min(1120px,calc(100% - 28px));margin:auto}
+        .topbar{
+            display:flex;align-items:center;justify-content:space-between;gap:14px;
+            padding:18px 0 10px;
+        }
+        .brand{display:flex;align-items:center;gap:11px;min-width:0}
+        .brand img{width:64px;height:64px;object-fit:contain}
+        .brand strong{display:block;color:var(--blue-dark);font-size:1.08rem}
+        .brand span{display:block;color:var(--muted);font-size:.82rem}
+        .back{
+            min-height:43px;padding:0 14px;display:inline-flex;align-items:center;justify-content:center;
+            border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--blue-dark);
+            text-decoration:none;font-weight:800;font-size:.86rem;
+        }
+        .hero{
+            margin:18px 0 28px;padding:clamp(24px,5vw,48px);
+            border:1px solid rgba(19,74,154,.14);border-radius:28px;background:#fff;box-shadow:var(--shadow);
+        }
+        .eyebrow{margin:0 0 8px;color:var(--red);font-size:.74rem;font-weight:900;letter-spacing:.11em;text-transform:uppercase}
+        h1{margin:0;color:var(--blue-dark);font-size:clamp(2rem,5vw,3.7rem);line-height:1;letter-spacing:-.04em}
+        .summary{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
+        .pill{padding:8px 11px;border-radius:999px;background:#eef4ff;color:var(--blue-dark);font-size:.82rem;font-weight:800}
+        .pill.price{background:#fff1f2;color:#a92831}
+        .lead{margin:18px 0 0;max-width:720px;color:var(--muted);line-height:1.6}
+        .section-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:15px}
+        .section-head h2{margin:0;color:var(--blue-dark);font-size:clamp(1.45rem,3vw,2rem)}
+        .section-head p{margin:5px 0 0;color:var(--muted);font-size:.92rem}
+        .count{color:var(--blue);font-size:.88rem;font-weight:800;white-space:nowrap}
+        .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding-bottom:52px}
+        .card{
+            overflow:hidden;border:1px solid var(--line);border-radius:20px;background:#fff;
+            box-shadow:0 8px 24px rgba(19,74,154,.055);
+        }
+        .media{aspect-ratio:1/1;background:linear-gradient(135deg,#eef4ff,#fff1f2);overflow:hidden}
+        .media img{width:100%;height:100%;display:block;object-fit:cover}
+        .placeholder{width:100%;height:100%;display:grid;place-items:center;color:rgba(19,74,154,.45);font-size:3rem;font-weight:900}
+        .content{padding:15px}
+        .meta{color:var(--red);font-size:.72rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em}
+        .title{margin:5px 0 0;color:var(--blue-dark);font-size:1.04rem}
+        .qty{margin-top:8px;color:var(--muted);font-size:.86rem}
+        footer{padding:0 0 34px;color:var(--muted);font-size:.82rem}
+        .env{
+            display:inline-flex;margin-left:8px;padding:4px 7px;border-radius:999px;
+            background:#eef4ff;color:var(--blue-dark);font-size:.7rem;font-weight:900;text-transform:uppercase;
+        }
+        @media(max-width:760px){
+            .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+            .section-head{align-items:flex-start;flex-direction:column}
+            .brand span{display:none}
+        }
+        @media(max-width:480px){
+            .grid{grid-template-columns:1fr 1fr;gap:10px}
+            .content{padding:12px}
+            .topbar{align-items:center}
+            .brand img{width:52px;height:52px}
+            .back{min-height:40px;padding:0 11px;font-size:.8rem}
+        }
+    </style>
+</head>
+<body>
+<header class="shell topbar">
+    <div class="brand">
+        <img src="{% static 'brand/logo.png' %}" alt="Doble V 3D">
+        <div>
+            <strong>Doble V 3D</strong>
+            <span>Catálogo de productos y kits</span>
+        </div>
+    </div>
+    <a class="back" href="{% url 'catalogo' %}">← Volver al catálogo</a>
+</header>
+
+<main class="shell">
+    <section class="hero">
+        <p class="eyebrow">{% if kit.modalidad == "FIJO" %}Kit armado{% else %}Kit configurable{% endif %}</p>
+        <h1>{{ kit.nombre }}</h1>
+        <div class="summary">
+            {% if kit.precio %}
+                <span class="pill price">$ {{ kit.precio|floatformat:"0g" }}</span>
+            {% endif %}
+            {% if kit.modalidad == "LIBRE_CATEGORIA" %}
+                <span class="pill">Elegí {{ kit.cantidad_productos }}</span>
+                {% if kit.tipo_producto %}<span class="pill">{{ kit.tipo_producto.nombre }}</span>{% endif %}
+            {% else %}
+                <span class="pill">{{ kit.cantidad_componentes_fijos }} pieza{{ kit.cantidad_componentes_fijos|pluralize }}</span>
+            {% endif %}
+        </div>
+        {% if kit.modalidad == "LIBRE_CATEGORIA" %}
+            <p class="lead">
+                Podés elegir {{ kit.cantidad_productos }} producto{{ kit.cantidad_productos|pluralize }}
+                entre las opciones disponibles de este kit.
+            </p>
+        {% else %}
+            <p class="lead">Esta es la composición incluida actualmente en el kit.</p>
+        {% endif %}
+    </section>
+
+    <section>
+        <div class="section-head">
+            <div>
+                <h2>{% if kit.modalidad == "LIBRE_CATEGORIA" %}Productos para elegir{% else %}Productos incluidos{% endif %}</h2>
+                <p>{% if kit.modalidad == "LIBRE_CATEGORIA" %}Estas son las opciones disponibles hoy.{% else %}Detalle de la composición del kit.{% endif %}</p>
+            </div>
+            <span class="count">{{ opciones|length }} opción{{ opciones|length|pluralize:"es" }}</span>
+        </div>
+
+        <div class="grid">
+            {% for visual in opciones %}
+                <article class="card">
+                    <div class="media">
+                        {% if visual.imagen_url %}
+                            <img src="{{ visual.imagen_url }}" alt="{{ visual.producto.nombre }}" loading="lazy">
+                        {% else %}
+                            <div class="placeholder" aria-hidden="true">{{ visual.producto.nombre|slice:":1"|upper }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="content">
+                        <div class="meta">{% if kit.modalidad == "LIBRE_CATEGORIA" %}Opción disponible{% else %}Incluido{% endif %}</div>
+                        <h3 class="title">{{ visual.producto.nombre }}</h3>
+                        {% if kit.modalidad == "FIJO" %}
+                            <div class="qty">Cantidad: {{ visual.cantidad }}</div>
+                        {% endif %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    </section>
+</main>
+
+<footer class="shell">
+    Doble V 3D · Las opciones pueden actualizarse según costos y disponibilidad.
+    {% if es_ambiente_no_productivo %}<span class="env">{{ ambiente_catalogo }}</span>{% endif %}
+</footer>
+</body>
+</html>
