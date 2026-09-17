@@ -8,14 +8,24 @@ MAX_VISIBLES_LISTADO = 8
 MAX_FOTOS_COLLAGE = 4
 
 
-def adjuntar_imagenes_reutilizadas(kits, productos_por_tipo=None):
+def adjuntar_imagenes_reutilizadas(
+    kits,
+    productos_por_tipo=None,
+    productos_por_kit=None,
+):
     """Adjunta a cada kit las fotos principales de sus productos.
 
     No crea relaciones ni archivos nuevos: sólo reutiliza la foto principal del
     producto correspondiente al ambiente actual.
     """
     productos_por_tipo = productos_por_tipo or defaultdict(list)
+    productos_por_kit = productos_por_kit or {}
     kits = list(kits)
+
+    def productos_libres(kit):
+        if kit.id in productos_por_kit:
+            return productos_por_kit[kit.id]
+        return productos_por_tipo.get(kit.tipo_producto_id, [])
 
     ids_productos = set()
     for kit in kits:
@@ -27,7 +37,7 @@ def adjuntar_imagenes_reutilizadas(kits, productos_por_tipo=None):
         elif kit.tipo_producto_id:
             ids_productos.update(
                 producto.id
-                for producto in productos_por_tipo.get(kit.tipo_producto_id, [])
+                for producto in productos_libres(kit)
             )
 
     imagenes_principales = {
@@ -62,7 +72,7 @@ def adjuntar_imagenes_reutilizadas(kits, productos_por_tipo=None):
                     }
                 )
         else:
-            for producto in productos_por_tipo.get(kit.tipo_producto_id, []):
+            for producto in productos_libres(kit):
                 imagen = imagenes_principales.get(producto.id)
                 visuales.append(
                     {
