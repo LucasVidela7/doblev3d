@@ -2029,7 +2029,7 @@ button{font-family:Arial,sans-serif}
                     data.productos
                     .map(
                         producto => `
-                            <option value="${producto.id}" data-adicional="${producto.adicional || 0}">\n                                ${producto.codigo} - ${producto.nombre}${Number(producto.adicional || 0) > 0 ? ` · +${moneda(producto.adicional)}` : " · INCLUIDO"}\n                            </option>
+                            <option value="${producto.id}" data-adicional="${producto.adicional || 0}">\n                                ${producto.codigo} - ${producto.nombre}${Number(producto.adicional || 0) > 0 ? ` · +ARS ${moneda(producto.adicional)}` : " · INCLUIDO"}\n                            </option>
                         `
                     )
                     .join("");
