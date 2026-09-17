@@ -9,6 +9,7 @@ from calculadora.precios import (
     precio_mayorista,
     redondear_arriba,
 )
+from kits.elegibilidad_catalogo import precio_kit_con_seleccion
 from kits.models import Kit
 from productos.models import Producto
 
@@ -57,7 +58,14 @@ def _preparar_linea(item):
     cantidad_kits = max(int(item.get("cantidad") or 0), 0)
     componentes = list(item.get("componentes") or [])
 
-    precio_unitario_lista = max(_decimal(kit.precio), Decimal("0"))
+    precio_unitario_lista = max(
+        _decimal(
+            item.get("precio_unitario_lista")
+            if item.get("precio_unitario_lista") is not None
+            else kit.precio
+        ),
+        Decimal("0"),
+    )
     precio_lista_total = precio_unitario_lista * Decimal(cantidad_kits)
 
     costo_total = Decimal("0")
@@ -424,19 +432,54 @@ def items_desde_pedido(pedido):
 
     items = []
     for detalle in detalles:
+        componentes_guardados = list(
+            detalle.productos_kit.all()
+        )
+        componentes = [
+            {
+                "producto": componente.producto,
+                "cantidad": componente.cantidad,
+            }
+            for componente in componentes_guardados
+        ]
+
+        precio_lista = detalle.kit.precio
+        if detalle.precio_kit_manual:
+            precio_lista = detalle.precio_unitario
+        elif (
+            detalle.kit.modalidad != "FIJO"
+            and detalle.cantidad > 0
+        ):
+            seleccion_unitaria = []
+            for componente in componentes_guardados:
+                total = int(componente.cantidad or 0)
+                if total <= 0:
+                    continue
+                repeticiones = (
+                    total // detalle.cantidad
+                    if total % detalle.cantidad == 0
+                    else 1
+                )
+                seleccion_unitaria.extend(
+                    [componente.producto] * repeticiones
+                )
+            seleccion_unitaria = seleccion_unitaria[
+                :int(detalle.kit.cantidad_productos or 0)
+            ]
+            if seleccion_unitaria:
+                precio_lista = precio_kit_con_seleccion(
+                    detalle.kit,
+                    seleccion_unitaria,
+                )
+
         items.append(
             {
                 "key": str(detalle.id),
                 "detalle": detalle,
                 "kit": detalle.kit,
                 "cantidad": detalle.cantidad,
-                "componentes": [
-                    {
-                        "producto": componente.producto,
-                        "cantidad": componente.cantidad,
-                    }
-                    for componente in detalle.productos_kit.all()
-                ],
+                "componentes": componentes,
+                "precio_unitario_lista": precio_lista,
             }
         )
     return items
@@ -449,6 +492,9 @@ def aplicar_precio_volumen_pedido(pedido):
     for linea in resumen["lineas"]:
         detalle = linea.get("detalle")
         if not detalle:
+            continue
+
+        if detalle.precio_kit_manual:
             continue
 
         nuevo_precio = _redondear_centavos(linea["precio_unitario_final"])
@@ -543,12 +589,24 @@ def items_desde_payload(payload):
                 for producto_id, veces in conteo.items()
             ]
 
+        precio_lista = kit.precio
+        if kit.modalidad != "FIJO":
+            seleccion_unitaria = [
+                productos[producto_id]
+                for producto_id in ids
+            ]
+            precio_lista = precio_kit_con_seleccion(
+                kit,
+                seleccion_unitaria,
+            )
+
         items.append(
             {
                 "key": key,
                 "kit": kit,
                 "cantidad": cantidad,
                 "componentes": componentes,
+                "precio_unitario_lista": precio_lista,
             }
         )
 
