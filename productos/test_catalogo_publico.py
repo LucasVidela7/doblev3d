@@ -85,6 +85,31 @@ class CatalogoPublicoTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Piña sensorial")
 
+    def test_catalogo_mantiene_filtros_compartibles_en_la_url(self):
+        response = self.client.get(
+            reverse("catalogo"),
+            {
+                "tipo": "kit",
+                "categoria": "sensoriales",
+                "q": "Kit sensorial",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'params.get("tipo")')
+        self.assertContains(response, 'params.get("categoria")')
+        self.assertContains(response, 'params.get("q")')
+        self.assertContains(response, "window.history.replaceState")
+        self.assertContains(response, 'data-kind="kit"')
+        self.assertContains(response, 'data-category="sensoriales"')
+
+    def test_kit_fijo_hereda_categoria_si_todos_sus_componentes_coinciden(self):
+        response = self.client.get(reverse("catalogo"))
+
+        kit_catalogo = response.context["kits"][0]
+        self.assertEqual(kit_catalogo.tipo_producto, self.tipo)
+        self.assertContains(response, 'data-category="sensoriales"')
+
     def test_gestion_interna_usa_prefijo_y_login_separado(self):
         self.assertEqual(reverse("dashboard:inicio"), "/gestion/")
         self.assertEqual(reverse("login"), "/gestion/login/")
