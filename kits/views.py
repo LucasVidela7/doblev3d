@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from productos.models import Producto, TipoProducto
 
+from .elegibilidad_catalogo import productos_elegibles_para_kit
 from .models import Kit, KitComponente
 
 
@@ -326,6 +327,29 @@ def _formulario_kit(
             request,
             f"{kit.nombre} guardado correctamente.",
         )
+
+        if kit.modalidad == "LIBRE_CATEGORIA":
+            candidatos = list(
+                Producto.objects
+                .filter(
+                    tipo_id=kit.tipo_producto_id,
+                    activo=True,
+                    solo_produccion=False,
+                )
+                .order_by("nombre")
+            )
+            if not productos_elegibles_para_kit(
+                kit,
+                candidatos,
+            ):
+                messages.warning(
+                    request,
+                    (
+                        "El kit quedó sin opciones rentables con el precio "
+                        "actual, por lo que no se publicará en el catálogo "
+                        "hasta que ajustes precio, cantidad o costos."
+                    ),
+                )
 
         return redirect(
             "kits:lista",
