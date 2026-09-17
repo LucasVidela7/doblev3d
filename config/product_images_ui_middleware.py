@@ -72,12 +72,16 @@ CATALOG_STYLE = r"""
     gap:18px!important;
     align-items:stretch!important;
 }
-.card{
+.card:not(.hidden-by-filter){
     display:flex!important;
     min-width:0!important;
     flex-direction:column!important;
     overflow:hidden!important;
     border-radius:20px!important;
+}
+.catalog-item.hidden-by-filter,
+.section.hidden-by-filter{
+    display:none!important;
 }
 .content{
     display:flex!important;
