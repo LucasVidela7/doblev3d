@@ -7,6 +7,17 @@ from productos.image_models import ProductoImagen
 
 CATALOG_ROTATOR_STYLE = r"""
 <style id="dv-catalog-rotator-style">
+/* Si un kit sólo tiene una imagen, ocupa todo el lienzo incluso antes de que
+   cargue el JS del rotador. Evita el mosaico 2x2 con tres espacios vacíos. */
+.media .kit-collage:has(.tile:only-child){
+    grid-template-columns:1fr!important;
+    grid-template-rows:1fr!important;
+    gap:0!important;
+}
+.media .kit-collage:has(.tile:only-child) .tile{
+    grid-column:1 / -1!important;
+    grid-row:1 / -1!important;
+}
 .media .dv-catalog-rotator{
     position:absolute;
     inset:0;
