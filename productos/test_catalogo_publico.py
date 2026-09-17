@@ -110,6 +110,21 @@ class CatalogoPublicoTests(TestCase):
         self.assertEqual(kit_catalogo.tipo_producto, self.tipo)
         self.assertContains(response, 'data-category="sensoriales"')
 
+    def test_productos_con_imagen_aparecen_antes_que_los_sin_imagen(self):
+        sin_imagen = Producto.objects.create(
+            nombre="Abeja sin foto",
+            categoria="PRODUCTO",
+            tipo=self.tipo,
+            activo=True,
+            solo_produccion=False,
+        )
+
+        response = self.client.get(reverse("catalogo"))
+
+        productos = response.context["productos"]
+        self.assertEqual(productos[0], self.producto)
+        self.assertEqual(productos[-1], sin_imagen)
+
     def test_gestion_interna_usa_prefijo_y_login_separado(self):
         self.assertEqual(reverse("dashboard:inicio"), "/gestion/")
         self.assertEqual(reverse("login"), "/gestion/login/")
