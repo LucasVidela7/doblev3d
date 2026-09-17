@@ -28,7 +28,8 @@ CATALOG_GRID_STYLE = r"""
    accesibles por teclado. El atributo hidden también comunica el estado
    correctamente a lectores de pantalla. */
 .filter[hidden],
-.categories[hidden] {
+.categories[hidden],
+.segments[hidden] {
     display: none !important;
 }
 </style>
@@ -42,8 +43,9 @@ CATALOG_EMPTY_FILTERS_SCRIPT = r"""
     const kindButtons = [...document.querySelectorAll('[data-kind].filter')];
     const categoryButtons = [...document.querySelectorAll('[data-category].filter')];
     const categories = document.querySelector('.categories');
+    const segments = document.querySelector('.segments');
 
-    if (!items.length || !kindButtons.length) return;
+    if (!kindButtons.length) return;
 
     const normalize = (value) =>
         (value || '')
@@ -59,17 +61,28 @@ CATALOG_EMPTY_FILTERS_SCRIPT = r"""
         kindButtons.find((button) => button.classList.contains('is-active'))?.dataset.kind || 'all';
 
     const syncEmptyFilters = () => {
+        const hasAnyCatalogItem = items.some(
+            (item) => item.dataset.kind === 'producto' || item.dataset.kind === 'kit',
+        );
+
+        if (segments) {
+            segments.hidden = !hasAnyCatalogItem;
+        }
+
         // Productos/Kits sólo aparecen si existe al menos una tarjeta real
-        // de ese tipo en el catálogo. "Todo" queda siempre disponible.
+        // de ese tipo en el catálogo. "Todo" queda disponible mientras haya
+        // al menos un elemento de cualquier tipo.
         kindButtons.forEach((button) => {
             const kind = button.dataset.kind || 'all';
-            button.hidden = kind !== 'all' && !hasKind(kind);
+            button.hidden = kind === 'all'
+                ? !hasAnyCatalogItem
+                : !hasKind(kind);
         });
 
         let kind = activeKind();
         if (kind !== 'all' && !hasKind(kind)) {
             const allButton = kindButtons.find((button) => button.dataset.kind === 'all');
-            if (allButton && !allButton.classList.contains('is-active')) {
+            if (allButton && !allButton.hidden && !allButton.classList.contains('is-active')) {
                 allButton.click();
                 return;
             }
