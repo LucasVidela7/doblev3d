@@ -11,6 +11,9 @@
 {% if request.resolver_match.view_name == 'kits:lista' %}
 <link rel="stylesheet" href="{% static 'kits/lista_responsive.css' %}">
 {% endif %}
+{% if request.resolver_match.view_name == 'productos:imagenes_masivas' %}
+<script src="{% static 'productos/imagenes_masivas_search.js' %}" defer></script>
+{% endif %}
 <style>
     /* Compatibilidad para encabezados antiguos que incluyen brand_bar dentro
        de un div sin la clase encabezado-marca. Evita que el logo absoluto se
