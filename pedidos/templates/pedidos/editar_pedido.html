@@ -955,10 +955,15 @@ async function cargarKit(
         return;
     }
 
+    const params = new URLSearchParams();
+    seleccionados.forEach(
+        productoId => params.append("seleccionado", productoId)
+    );
+    const url = `/pedidos/api/kit/${kitId}/productos/`
+        + (params.toString() ? `?${params.toString()}` : "");
+
     const r =
-        await fetch(
-            `/pedidos/api/kit/${kitId}/productos/`
-        );
+        await fetch(url);
 
     const data =
         await r.json();
@@ -1040,7 +1045,7 @@ async function cargarKit(
                             : ""
                         }
                     >
-                        ${p.nombre}
+                        ${p.nombre}${p.elegible === false ? " · FUERA DE MARGEN (selección actual)" : ""}
                     </option>
                 `
             ).join("");
