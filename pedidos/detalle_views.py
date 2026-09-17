@@ -9,7 +9,16 @@ from .models import EstadoImpresionPedido, Pedido
 
 
 def _armar_preparacion(pedido):
-    """Replica el criterio operativo de Preparar pedidos dentro del detalle."""
+    """Arma el estado operativo de los productos físicos de un pedido.
+
+    Esta estructura es la fuente común para:
+    - detalle del pedido
+    - impresiones por pedido
+    - detalle del cliente
+
+    Productos normales y componentes de kits consumen stock al marcarse listos.
+    Los personalizados se confirman manualmente y no descuentan stock general.
+    """
     agrupados = OrderedDict()
     personalizados = []
 
@@ -23,18 +32,22 @@ def _armar_preparacion(pedido):
             and detalle.producto.requiere_impresion
             and detalle.estado in {"PENDIENTE", "LISTO"}
         ):
+            listo = detalle.estado == "LISTO"
             personalizados.append(
                 {
                     "producto": detalle.producto,
                     "nombre": f"{detalle.producto.nombre} personalizado",
                     "cantidad": detalle.cantidad,
-                    "listo": detalle.estado == "LISTO",
+                    "listo": listo,
                     "puede_marcar_listo": True,
                     "es_personalizado": True,
                     "detalle_personalizado_id": detalle.id,
                     "estado_id": None,
                     "stock_actual": None,
                     "stock_descontado": 0,
+                    "faltante": 0,
+                    "estado_operativo": "LISTO" if listo else "MANUAL",
+                    "estado_texto": "Preparado" if listo else "Preparación manual",
                     "detalle_personalizacion": detalle.detalle_personalizacion,
                     "color_personalizacion": detalle.color_personalizacion,
                 }
@@ -80,18 +93,39 @@ def _armar_preparacion(pedido):
 
         listo = estado.listo
         stock_actual = max(int(producto.stock or 0), 0)
+        faltante = 0 if listo else max(cantidad - stock_actual, 0)
+        puede_marcar = listo or faltante == 0
+
+        if listo:
+            estado_operativo = "LISTO"
+            descontado = int(estado.cantidad_stock_descontada or 0)
+            estado_texto = (
+                f"Preparado · {descontado} descontado"
+                if descontado
+                else "Preparado"
+            )
+        elif faltante:
+            estado_operativo = "FALTANTE"
+            estado_texto = f"Faltan {faltante} · stock {stock_actual}"
+        else:
+            estado_operativo = "DISPONIBLE"
+            estado_texto = f"Disponible · stock {stock_actual}"
+
         preparacion.append(
             {
                 "producto": producto,
                 "nombre": producto.nombre,
                 "cantidad": cantidad,
                 "listo": listo,
-                "puede_marcar_listo": listo or stock_actual >= cantidad,
+                "puede_marcar_listo": puede_marcar,
                 "es_personalizado": False,
                 "detalle_personalizado_id": None,
                 "estado_id": estado.id,
                 "stock_actual": stock_actual,
                 "stock_descontado": estado.cantidad_stock_descontada if listo else 0,
+                "faltante": faltante,
+                "estado_operativo": estado_operativo,
+                "estado_texto": estado_texto,
                 "detalle_personalizacion": "",
                 "color_personalizacion": "",
             }
@@ -125,6 +159,11 @@ def detalle_pedido(request, pedido_id):
     )
     preparacion_total = len(preparacion)
     preparacion_listos = sum(1 for item in preparacion if item["listo"])
+    preparacion_porcentaje = (
+        int(round((preparacion_listos * 100) / preparacion_total))
+        if preparacion_total
+        else 0
+    )
 
     return render(
         request,
@@ -136,23 +175,31 @@ def detalle_pedido(request, pedido_id):
             "preparacion": preparacion,
             "preparacion_total": preparacion_total,
             "preparacion_listos": preparacion_listos,
+            "preparacion_porcentaje": preparacion_porcentaje,
             "cantidad_lineas": len(detalles),
             "cantidad_unidades": cantidad_unidades,
             "preparacion_editable": pedido.estado not in {"ENTREGADO", "CANCELADO"},
+            "pedido_activo": pedido.estado not in {"ENTREGADO", "CANCELADO"},
         },
     )
 
 
+def _volver_preparacion(request, pedido):
+    if request.POST.get("origen") == "cliente":
+        return redirect("clientes:detalle", cliente_id=pedido.cliente_id)
+    return redirect("pedidos:detalle", pedido_id=pedido.id)
+
+
 @transaction.atomic
 def cambiar_preparacion(request, pedido_id):
-    """Confirma o revierte un check desde la ficha del pedido."""
+    """Confirma o revierte un check desde pedido o cliente."""
     if request.method != "POST":
         return redirect("pedidos:detalle", pedido_id=pedido_id)
 
     pedido = get_object_or_404(Pedido, id=pedido_id)
     if pedido.estado in {"ENTREGADO", "CANCELADO"}:
         messages.error(request, "No se puede modificar un pedido entregado o cancelado.")
-        return redirect("pedidos:detalle", pedido_id=pedido_id)
+        return _volver_preparacion(request, pedido)
 
     estado_id = (request.POST.get("estado_id") or "").strip()
     detalle_id = (request.POST.get("detalle_personalizado_id") or "").strip()
@@ -171,10 +218,9 @@ def cambiar_preparacion(request, pedido_id):
         )
     else:
         messages.error(request, "No se pudo identificar el producto a preparar.")
-        return redirect("pedidos:detalle", pedido_id=pedido_id)
+        return _volver_preparacion(request, pedido)
 
-    # Se reutiliza la acción estable que ya descuenta/restaura stock y
-    # recalcula PENDIENTE / PREPARANDO / LISTO. Ignoramos su redirect porque
-    # esta pantalla debe permanecer en el detalle del pedido.
+    # La acción estable mantiene una sola lógica para descontar/restaurar
+    # stock y recalcular PENDIENTE / PREPARANDO / LISTO.
     acciones_impresion.cambiar_listo_impresion(request)
-    return redirect("pedidos:detalle", pedido_id=pedido_id)
+    return _volver_preparacion(request, pedido)
