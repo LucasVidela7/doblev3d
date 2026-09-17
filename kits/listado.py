@@ -84,6 +84,23 @@ def lista_kits(request):
     )
 
     for kit in kits:
+        if kit.modalidad == "LIBRE_CATEGORIA":
+            opciones_por_producto = {
+                opcion["producto"].id: opcion
+                for opcion in getattr(kit, "catalogo_opciones", [])
+            }
+            for visual in getattr(kit, "productos_visuales", []):
+                opcion = opciones_por_producto.get(visual["producto"].id)
+                visual["incluido"] = bool(
+                    opcion and opcion["incluido"]
+                )
+                visual["adicional"] = (
+                    opcion["adicional"]
+                    if opcion
+                    else 0
+                )
+
+    for kit in kits:
         productos_categoria = None
         if kit.modalidad == "LIBRE_CATEGORIA":
             # Las referencias del precio base se calculan sólo con las opciones
