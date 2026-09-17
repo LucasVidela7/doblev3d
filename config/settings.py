@@ -116,6 +116,7 @@ MIDDLEWARE = [
     "config.dashboard_refinements_middleware.DashboardRefinementsMiddleware",
     "config.production_experience_middleware.ProductionExperienceMiddleware",
     "config.responsive_fixes_middleware.ResponsiveFixesMiddleware",
+    "config.catalog_grid_middleware.CatalogGridMiddleware",
     "config.product_images_ui_middleware.ProductImagesUIMiddleware",
     "config.operaciones_ui_middleware.OperacionesUIMiddleware",
     "config.impresiones_mensajes_middleware.MensajesImpresionesMiddleware",
