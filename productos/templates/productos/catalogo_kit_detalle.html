@@ -67,6 +67,8 @@
         .placeholder{width:100%;height:100%;display:grid;place-items:center;color:rgba(19,74,154,.45);font-size:3rem;font-weight:900}
         .content{padding:15px}
         .meta{color:var(--red);font-size:.72rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em}
+.meta.incluido{color:#24633a}
+.meta.premium{color:#9a5b00}
         .title{margin:5px 0 0;color:var(--blue-dark);font-size:1.04rem}
         .qty{margin-top:8px;color:var(--muted);font-size:.86rem}
         footer{padding:0 0 34px;color:var(--muted);font-size:.82rem}
@@ -117,9 +119,7 @@
         </div>
         {% if kit.modalidad == "LIBRE_CATEGORIA" %}
             <p class="lead">
-                Podés elegir {{ kit.cantidad_productos }} producto{{ kit.cantidad_productos|pluralize }}
-                entre las opciones disponibles de este kit.
-            </p>
+                Podés elegir {{ kit.cantidad_productos }} producto{{ kit.cantidad_productos|pluralize }}.\n                Las opciones marcadas como incluidas mantienen el precio base; algunas opciones premium tienen un adicional indicado en cada producto.\n            </p>
         {% else %}
             <p class="lead">Esta es la composición incluida actualmente en el kit.</p>
         {% endif %}
@@ -129,8 +129,7 @@
         <div class="section-head">
             <div>
                 <h2>{% if kit.modalidad == "LIBRE_CATEGORIA" %}Productos para elegir{% else %}Productos incluidos{% endif %}</h2>
-                <p>{% if kit.modalidad == "LIBRE_CATEGORIA" %}Estas son las opciones disponibles hoy.{% else %}Detalle de la composición del kit.{% endif %}</p>
-            </div>
+                <p>{% if kit.modalidad == "LIBRE_CATEGORIA" %}{{ kit.catalogo_cantidad_opciones }} incluidas sin adicional{% if kit.catalogo_cantidad_premium %} · {{ kit.catalogo_cantidad_premium }} con adicional{% endif %}.{% else %}Detalle de la composición del kit.{% endif %}</p>\n            </div>
             <span class="count">{{ opciones|length }} opción{{ opciones|length|pluralize:"es" }}</span>
         </div>
 
@@ -145,11 +144,23 @@
                         {% endif %}
                     </div>
                     <div class="content">
-                        <div class="meta">{% if kit.modalidad == "LIBRE_CATEGORIA" %}Opción disponible{% else %}Incluido{% endif %}</div>
-                        <h3 class="title">{{ visual.producto.nombre }}</h3>
-                        {% if kit.modalidad == "FIJO" %}
-                            <div class="qty">Cantidad: {{ visual.cantidad }}</div>
-                        {% endif %}
+                        {% if kit.modalidad == "LIBRE_CATEGORIA" %}
+    {% if visual.incluido %}
+        <div class="meta incluido">Incluido en el precio</div>
+    {% else %}
+        <div class="meta premium">Opción premium</div>
+    {% endif %}
+{% else %}
+    <div class="meta incluido">Incluido</div>
+{% endif %}
+<h3 class="title">{{ visual.producto.nombre }}</h3>
+{% if kit.modalidad == "FIJO" %}
+    <div class="qty">Cantidad: {{ visual.cantidad }}</div>
+{% elif visual.adicional %}
+    <div class="qty"><strong>+ ${{ visual.adicional|floatformat:"0g" }}</strong> al precio del kit</div>
+{% else %}
+    <div class="qty">Sin adicional</div>
+{% endif %}
                     </div>
                 </article>
             {% endfor %}
