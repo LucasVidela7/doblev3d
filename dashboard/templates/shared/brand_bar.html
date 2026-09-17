@@ -110,9 +110,9 @@
             encabezado.querySelectorAll("a, button").forEach(function (accion) {
                 const texto = accion.textContent.trim().replace(/\s+/g, " ");
 
-                if (texto === "← VOLVER") {
+                if (/^(?:←\s*)?VOLVER$/i.test(texto)) {
                     convertirEnIcono(accion, "←", "Volver", "brand-header-icon");
-                } else if (texto === "INICIO") {
+                } else if (/^INICIO$/i.test(texto)) {
                     convertirEnIcono(accion, "⌂", "Ir al inicio", "brand-header-icon");
                 } else if (/^(?:✎\s*)?EDITAR(?:\s+PRODUCTO)?$/i.test(texto)) {
                     convertirEnIcono(accion, "✎", texto.replace(/^✎\s*/i, ""), "brand-action-icon");
