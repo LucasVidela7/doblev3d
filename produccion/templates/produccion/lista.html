@@ -3,1705 +3,482 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
 <link rel="apple-touch-icon" href="{% static 'brand/apple-touch-icon.png' %}">
 <link rel="stylesheet" href="{% static 'brand/brand.css' %}">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Producción | Doble V 3D</title>
-
+<title>Planificación | Doble V 3D</title>
 <style>
-:root{--fondo:#f4f5f7;--tarjeta:#fff;--texto:#24272b;--muted:#73777f;--borde:#e5e7eb;--oscuro:#24272b;--verde:#dff4e5;--verde-t:#24633a;--azul:#e3efff;--azul-t:#245a9b;--amarillo:#fff2c7;--amarillo-t:#765b00;--rojo:#fde5e5;--rojo-t:#9a3030;--sombra:0 4px 18px rgba(20,25,35,.07)}
+:root{
+    --bg:#f4f5f7;--card:#fff;--text:#24272b;--muted:#73777f;--border:#e3e6ea;
+    --dark:#24272b;--green:#e4f5e9;--green-t:#26653c;--blue:#e8f1ff;--blue-t:#285d9c;
+    --yellow:#fff3ce;--yellow-t:#795e00;--red:#fde8e8;--red-t:#963737;--orange:#fff0dc;--orange-t:#815414;
+    --shadow:0 5px 18px rgba(20,25,35,.06)
+}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth}
-body{margin:0;padding:0 0 calc(94px + env(safe-area-inset-bottom));font-family:Arial,sans-serif;background:var(--fondo);color:var(--texto)}
-button,a,input,select,textarea{touch-action:manipulation}
-.contenedor{width:min(1280px,100%);margin:auto;padding:22px 18px 34px}
-.encabezado-pagina{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:20px}
-h1{margin:0 0 5px;font-size:clamp(25px,4vw,34px)}
-.subtitulo{margin:0;color:var(--muted);font-size:13px}
-.acciones-encabezado{display:flex;gap:9px}
-.boton-volver,.boton-inicio{min-height:50px;display:inline-flex;align-items:center;justify-content:center;padding:0 18px;border-radius:14px;font-size:11px;font-weight:900;text-decoration:none;cursor:pointer}
-.boton-volver{border:1px solid var(--borde);background:white;color:var(--texto)}
-.boton-inicio{border:1px solid var(--oscuro);background:var(--oscuro);color:white}
-.mensaje{padding:14px 16px;margin-bottom:12px;border-radius:14px;font-size:12px;font-weight:bold}
-.mensaje.success{background:var(--verde);color:var(--verde-t)}.mensaje.error{background:var(--rojo);color:var(--rojo-t)}
+body{margin:0;padding:0 0 calc(92px + env(safe-area-inset-bottom));font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select,textarea{font:inherit}
+a{color:inherit}
+.shell{width:min(1480px,calc(100% - 28px));margin:auto;padding:20px 0 36px}
+.header{display:flex;justify-content:space-between;gap:18px;align-items:center;margin-bottom:18px}
+h1{margin:0;font-size:clamp(28px,4vw,38px)}
+.subtitle{margin-top:5px;color:var(--muted);font-size:12px}
+.header-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{min-height:42px;padding:0 13px;border:1px solid var(--border);border-radius:11px;background:#fff;color:var(--text);font-size:9px;font-weight:900;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.btn.dark{background:var(--dark);border-color:var(--dark);color:#fff}
+.btn.green{background:#2e7043;border-color:#2e7043;color:#fff}
+.btn.red{background:#fff;border-color:#e8bcbc;color:#913434}
+.message{padding:12px 14px;border-radius:12px;margin-bottom:10px;font-size:10px;font-weight:800}
+.message.success{background:var(--green);color:var(--green-t)}.message.error{background:var(--red);color:var(--red-t)}
 
-.formulario{background:white;border:1px solid var(--borde);border-radius:20px;padding:20px;margin-bottom:18px;box-shadow:var(--sombra)}
-.formulario h2{margin:0;font-size:18px}
-.formulario-subtitulo{margin:5px 0 18px;color:var(--muted);font-size:11px}
-.grupo-formulario{padding:10px;border:1px solid #eceef1;border-radius:13px;background:#fafbfc;margin-bottom:8px}
-.grupo-formulario-titulo{margin-bottom:8px;color:#555b63;font-size:8px;font-weight:900;letter-spacing:.4px}
-.campos{display:grid;grid-template-columns:minmax(260px,1fr) 96px;gap:8px;align-items:start}
-.campos-programacion{grid-template-columns:minmax(180px,1fr) 135px minmax(210px,1.2fr)}
-.campo label,.campo-tiempo label{display:block;margin-bottom:4px;color:var(--muted);font-size:8px;font-weight:900;letter-spacing:.25px}
-input,select{width:100%;min-height:42px;padding:7px 9px;border:1px solid #d4d7dc;border-radius:10px;background:white;font-size:13px}
-input:focus,select:focus{outline:2px solid #cbd8e8;border-color:#9db2cc}
-.bloque-tiempo{margin-top:9px;padding:10px;border-radius:12px;background:#f7f8fa;border:1px solid #eceef1}
-.bloque-tiempo-titulo{margin-bottom:8px;color:#555b63;font-size:9px;font-weight:900}
-.tiempo-manual-contenedor{display:none;grid-template-columns:140px 140px minmax(220px,1fr);gap:11px;align-items:end}
-.tiempo-manual-contenedor.activo{display:grid}
-.tiempo-automatico{display:none;padding:13px 14px;border-radius:12px;background:var(--verde);color:var(--verde-t);font-size:12px}
-.tiempo-automatico.activo{display:block}.tiempo-automatico strong{margin-left:5px;font-size:14px}
-.recomendacion-tiempo{display:none;grid-column:1/-1;padding:11px 13px;border-radius:11px;font-size:11px;line-height:1.4}
-.recomendacion-tiempo.activa{display:block}.recomendacion-tiempo.encontrada{background:var(--verde);color:var(--verde-t)}.recomendacion-tiempo.manual{background:var(--amarillo);color:var(--amarillo-t)}
-.fin-preview{min-height:50px;display:flex;align-items:center;padding:0 13px;border-radius:12px;background:var(--azul);color:var(--azul-t);font-size:12px;white-space:nowrap}.fin-preview strong{margin-left:5px;font-size:14px}.fin-automatico{margin-top:10px}
-.acciones-formulario{margin-top:15px;text-align:right}
-.boton{min-height:52px;border:none;border-radius:14px;padding:0 22px;cursor:pointer;font-size:11px;font-weight:900}
-.boton-principal{background:var(--oscuro);color:white}
+.metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-bottom:14px}
+.metric{min-width:0;padding:13px 14px;border:1px solid var(--border);border-radius:15px;background:#fff;box-shadow:var(--shadow)}
+.metric-label{font-size:8px;font-weight:900;color:var(--muted);letter-spacing:.3px}
+.metric-value{margin-top:5px;font-size:25px;font-weight:900;line-height:1}
+.metric-note{margin-top:6px;color:var(--muted);font-size:8px;line-height:1.35}
 
-.tabla-contenedor{overflow:hidden;background:white;border:1px solid var(--borde);border-radius:16px;box-shadow:var(--sombra)}
-table{width:100%;border-collapse:collapse}thead{background:#f7f8fa}
-th{padding:12px 14px;text-align:left;color:var(--muted);font-size:9px;font-weight:900;letter-spacing:.45px;white-space:nowrap}
-td{padding:14px;border-bottom:1px solid var(--borde);vertical-align:middle;font-size:12px}tbody tr:last-child td{border-bottom:none}
-.trabajo{min-width:230px}.codigo{display:block;margin-bottom:5px;color:var(--muted);font-size:9px;font-weight:900;letter-spacing:.35px;white-space:nowrap}.producto{font-size:13px;font-weight:800;line-height:1.35}.producto-codigo{color:var(--muted);font-weight:700}.cantidad{text-align:center;font-size:18px;font-weight:900}
-.programacion{min-width:210px}.programacion-linea{display:flex;align-items:center;gap:7px;white-space:nowrap}.programacion-linea+.programacion-linea{margin-top:5px}.programacion-etiqueta{width:38px;color:var(--muted);font-size:8px;font-weight:900;letter-spacing:.25px}.programacion-fecha{font-size:11px;font-weight:800}.programacion-duracion{display:inline-flex;margin-top:7px;padding:4px 7px;border-radius:7px;background:#f1f3f5;color:#5f646c;font-size:9px;font-weight:800}
-.destino-info{min-width:130px}.pedido-info{display:block;margin-top:6px;color:var(--muted);font-size:10px;line-height:1.35}
-.destino{display:inline-flex;padding:5px 8px;border-radius:999px;font-size:8px;font-weight:900}.destino-stock{background:#eceef1;color:#555}.destino-pedido{background:var(--azul);color:var(--azul-t)}
-.estado-form{margin:0}.estado-select{min-width:125px;min-height:42px;border:none;border-radius:11px;font-size:10px;font-weight:900;cursor:pointer}
-.estado-fijo{min-width:125px;min-height:42px;display:inline-flex;align-items:center;justify-content:center;padding:0 13px;border-radius:11px;font-size:10px;font-weight:900}
-.estado-PENDIENTE{background:var(--amarillo);color:var(--amarillo-t)}.estado-IMPRIMIENDO{background:var(--azul);color:var(--azul-t)}.estado-LISTO{background:var(--verde);color:var(--verde-t)}.estado-CANCELADO{background:var(--rojo);color:var(--rojo-t)}
-.sin-datos{padding:35px!important;text-align:center;color:var(--muted)}
+.printers{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:9px;margin-bottom:17px}
+.printer{padding:12px 13px;border:1px solid var(--border);border-radius:14px;background:#fff}
+.printer-head{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.printer-name{font-size:11px;font-weight:900}.pill{display:inline-flex;padding:5px 8px;border-radius:999px;font-size:8px;font-weight:900}
+.pill.free{background:var(--green);color:var(--green-t)}.pill.busy{background:var(--blue);color:var(--blue-t)}
+.printer-job{margin-top:9px;font-size:10px;font-weight:900}.printer-meta{margin-top:3px;color:var(--muted);font-size:8px;line-height:1.4}
 
-.nav-inferior{position:fixed;z-index:50;left:50%;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(720px,calc(100% - 20px));display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:7px;border-radius:20px;background:rgba(35,38,43,.96);box-shadow:0 12px 35px rgba(0,0,0,.22);backdrop-filter:blur(14px)}
-.nav-item{min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:14px;color:#d9dbe0;text-decoration:none;font-size:9px;font-weight:bold}.nav-item span:first-child{font-size:19px}.nav-item.activo,.nav-item.nuevo-nav{background:white;color:var(--oscuro)}
+.section{margin-top:20px}
+.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:9px}
+.section-title{margin:0;font-size:19px}.section-help{color:var(--muted);font-size:9px;text-align:right}
+.card{border:1px solid var(--border);border-radius:16px;background:#fff;box-shadow:var(--shadow)}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px;margin-bottom:10px}
+.toolbar input,.toolbar select{min-height:38px;padding:6px 9px;border:1px solid #d7dbe0;border-radius:9px;background:#fff;font-size:10px}
+.toolbar .search{flex:1 1 240px}
+.toolbar .small{flex:0 1 165px}
 
-@media(max-width:1100px){.campos,.campos-programacion{grid-template-columns:1fr 1fr}.tabla-contenedor{overflow-x:auto}table{min-width:940px}}
+.need-list{display:grid;gap:8px}
+.need{display:grid;grid-template-columns:minmax(240px,1.3fr) repeat(6,minmax(72px,.55fr)) 130px;gap:6px;align-items:stretch;padding:10px;border:1px solid var(--border);border-radius:14px;background:#fff}
+.need.urgent{border-color:#e9bcbc;background:#fffdfd}.need.medium{border-color:#eadca9}
+.need-product{min-width:0;padding:4px 5px}.code{font-size:8px;font-weight:900;color:var(--muted)}.product-name{margin-top:3px;font-size:12px;font-weight:900}
+.origin{margin-top:4px;color:var(--muted);font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nbox{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;padding:7px 4px;border-radius:10px;background:#f7f8fa;text-align:center}
+.nbox span{font-size:7px;font-weight:900;color:var(--muted)}.nbox b{margin-top:4px;font-size:15px}.nbox.hot b{color:#9a3e2f}.nbox.go b{color:#296544}
+.priority{display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:5px;padding-left:4px}
+.priority .pill{justify-content:center}
+.p-alta{background:var(--red);color:var(--red-t)}.p-media{background:var(--yellow);color:var(--yellow-t)}.p-baja{background:var(--green);color:var(--green-t)}.p-curso{background:var(--blue);color:var(--blue-t)}.p-cero{background:#eef0f3;color:#666}
+.plan-details{grid-column:1/-1;margin-top:2px;border-top:1px solid #edf0f2;padding-top:8px}
+.plan-details summary{cursor:pointer;list-style:none;font-size:8px;font-weight:900;color:#315f93}
+.plan-details summary::-webkit-details-marker{display:none}
+.quick-grid{display:grid;grid-template-columns:1.2fr 110px minmax(175px,.8fr) 84px 84px auto;gap:7px;align-items:end;margin-top:8px}
+.field label{display:block;margin-bottom:4px;font-size:7px;font-weight:900;color:var(--muted)}
+.field input,.field select{width:100%;min-height:37px;border:1px solid #d7dbe0;border-radius:9px;padding:5px 7px;background:#fff;font-size:10px}
+.quick-info{padding:8px;border-radius:9px;background:#f7f8fa;font-size:8px;color:#5e646b;line-height:1.4}
+.personal-list{display:grid;gap:6px;margin-top:8px}.personal{padding:8px;border:1px solid #dbe7f5;border-radius:10px;background:#f7fbff}
+.personal-head{display:flex;justify-content:space-between;gap:10px}.personal strong{font-size:9px}.personal p{margin:4px 0 0;color:#58708c;font-size:8px;line-height:1.4}
+
+.manual summary{cursor:pointer;padding:14px 16px;font-size:10px;font-weight:900;list-style:none}.manual summary::-webkit-details-marker{display:none}
+.manual-body{padding:0 16px 16px}.manual-grid{display:grid;grid-template-columns:minmax(200px,1.3fr) 90px 180px 150px minmax(180px,1fr) 80px 80px auto;gap:7px;align-items:end}
+
+.queue-card{overflow:hidden}.queue{width:100%;border-collapse:collapse}.queue th{padding:9px 10px;background:#f4f5f7;text-align:left;color:var(--muted);font-size:7px;font-weight:900}.queue td{padding:10px;border-top:1px solid #edf0f2;font-size:9px;vertical-align:middle}.queue-product{font-weight:900;font-size:10px}.queue-meta{margin-top:3px;color:var(--muted);font-size:8px;line-height:1.35}.state-actions{display:grid;gap:5px;min-width:145px}.state-actions select{min-height:34px;border:1px solid #d7dbe0;border-radius:8px;padding:4px 6px;font-size:8px}.state-btn{width:100%;min-height:32px;border:0;border-radius:8px;font-size:8px;font-weight:900;cursor:pointer}.state-btn.start{background:#2e7043;color:#fff}.state-btn.cancel{background:#fff;border:1px solid #ecc3c3;color:#913434}.state-btn.ready{background:var(--green);color:var(--green-t)}.state-btn.repeat{background:#fff;border:1px solid #cbd8e8;color:#315f93}
+.status{display:inline-flex;padding:5px 8px;border-radius:999px;font-size:7px;font-weight:900}.s-PENDIENTE{background:var(--yellow);color:var(--yellow-t)}.s-IMPRIMIENDO{background:var(--blue);color:var(--blue-t)}.s-LISTO{background:var(--green);color:var(--green-t)}
+.empty{padding:30px;text-align:center;color:var(--muted);font-size:10px}
+
+.nav{position:fixed;z-index:50;left:50%;bottom:max(8px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(720px,calc(100% - 16px));display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:6px;border-radius:18px;background:rgba(35,38,43,.96);box-shadow:0 12px 35px rgba(0,0,0,.2)}
+.nav a{min-height:55px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;border-radius:12px;color:#d9dbe0;text-decoration:none;font-size:8px;font-weight:900}.nav a b{font-size:17px}.nav a.active{background:#fff;color:#24272b}
+
+@media(max-width:1150px){
+    .metrics{grid-template-columns:repeat(3,1fr)}
+    .need{grid-template-columns:minmax(210px,1.3fr) repeat(3,minmax(72px,.6fr)) 120px}
+    .need .hide-tablet{display:none}
+    .quick-grid,.manual-grid{grid-template-columns:1fr 1fr 1fr}
+    .quick-grid .wide,.manual-grid .wide{grid-column:1/-1}
+    .queue-card{overflow-x:auto}.queue{min-width:900px}
+}
 @media(max-width:720px){
-.contenedor{padding:16px 11px 28px}.encabezado-pagina{flex-direction:column;align-items:flex-start}.acciones-encabezado{width:100%}.boton-volver,.boton-inicio{flex:1}
-.formulario{padding:15px}.grupo-formulario{padding:12px}.campos,.campos-programacion{grid-template-columns:1fr}.tiempo-manual-contenedor{grid-template-columns:1fr 1fr}.fin-preview{grid-column:1/-1}.acciones-formulario .boton{width:100%}
-.tabla-contenedor{overflow:visible;border:none;background:transparent;box-shadow:none}table,tbody,tr,td{display:block;width:100%}thead{display:none}tbody{display:grid;gap:11px}
-tbody tr{display:grid;grid-template-columns:1fr 1fr;overflow:hidden;border:1px solid var(--borde);border-radius:18px;background:white;box-shadow:var(--sombra)}
-td{border:none!important;padding:10px 13px}.trabajo{grid-column:1/-1;padding-top:14px;padding-bottom:13px;border-bottom:1px solid var(--borde)!important}.trabajo .producto{font-size:14px}
-td::before{display:block;margin-bottom:4px;color:var(--muted);font-size:7px;font-weight:900}
-td:nth-child(2)::before{content:"CANTIDAD"}td:nth-child(3)::before{content:"IMPRESORA"}td:nth-child(4)::before{content:"PROGRAMACIÓN"}td:nth-child(5)::before{content:"DESTINO"}td:nth-child(6)::before{content:"ESTADO"}
-td:nth-child(6){grid-column:1/-1;border-top:1px solid var(--borde)!important;padding:12px}.estado-select,.estado-fijo{width:100%;min-height:48px}
-.nav-inferior{width:calc(100% - 12px);bottom:max(6px,env(safe-area-inset-bottom))}
+    .shell{width:calc(100% - 16px);padding-top:14px}.header{align-items:flex-start;flex-direction:column}.header-actions{width:100%}.header-actions .btn{flex:1}
+    .metrics{grid-template-columns:repeat(2,1fr)}.metric-value{font-size:22px}
+    .printers{grid-template-columns:1fr}
+    .section-head{align-items:flex-start;flex-direction:column}.section-help{text-align:left}
+    .need{grid-template-columns:repeat(2,1fr);padding:9px}.need-product{grid-column:1/-1}.priority{grid-column:1/-1;padding-left:0}.need .hide-mobile{display:none}
+    .plan-details{grid-column:1/-1}.quick-grid,.manual-grid{grid-template-columns:1fr}.quick-grid .wide,.manual-grid .wide{grid-column:auto}
+    .queue-card{overflow:visible;background:transparent;border:0;box-shadow:none}.queue,.queue tbody,.queue tr,.queue td{display:block;width:100%}.queue thead{display:none}.queue tbody{display:grid;gap:9px}.queue tr{padding:10px;border:1px solid var(--border);border-radius:14px;background:#fff;box-shadow:var(--shadow)}.queue td{border:0;padding:5px 2px}.queue td::before{content:attr(data-label);display:block;margin-bottom:3px;color:var(--muted);font-size:7px;font-weight:900}.state-actions{min-width:0}
 }
-@media(hover:hover){tbody tr:hover{filter:brightness(.985)}.boton-volver:hover{background:#f0f1f3}}
-
-.producto-buscador{position:relative}
-.producto-buscador input{padding-right:38px}
-.producto-ayuda{margin-top:5px;min-height:11px;color:var(--muted);font-size:8px;line-height:1.35}
-.planificacion-estado{display:grid;gap:7px}
-.planificacion-horario{padding:7px 9px;border-radius:9px;background:var(--amarillo);color:var(--amarillo-t);font-size:8px;font-weight:900;line-height:1.35}
-.planificacion-horario-vencida{padding:9px 10px;background:#fff4d6}
-.planificacion-horario-vencida strong{display:block;margin-top:3px;color:#5c4800;font-size:10px}
-.planificacion-horario-vencida span{display:block;margin-top:3px;color:#8a731f;font-size:8px;font-weight:700}
-.btn-iniciar{width:100%;min-height:36px;border:0;border-radius:9px;background:#236a3b;color:#fff;font-size:8px;font-weight:900;cursor:pointer}
-.btn-iniciar:disabled{background:#d9dde1;color:#7a7f86;cursor:not-allowed}
-.btn-cancelar-plan{width:100%;min-height:34px;border:1px solid #efcaca;border-radius:9px;background:#fff;color:#923434;font-size:8px;font-weight:900;cursor:pointer}
-.btn-repetir{width:100%;min-height:34px;border:1px solid #cbd8e8;border-radius:9px;background:#fff;color:#315f93;font-size:8px;font-weight:900;cursor:pointer}
-.estado-imprimiendo-fijo{min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--azul);color:var(--azul-t);font-size:9px;font-weight:900}
-
-
-.inicio-produccion-form{display:grid;gap:7px}
-.selector-impresora-inicio{width:100%;min-height:34px;border:1px solid #d4d7dc;border-radius:9px;padding:5px 7px;background:#fff;font-size:8px;font-weight:800}
-
-
-.tabla-contenedor{overflow:auto;border-radius:16px;border:1px solid var(--borde);background:#fff}
-table{width:100%;border-collapse:collapse;min-width:940px}
-.planificacion-estado{gap:5px}
-.planificacion-horario{padding:5px 7px;border-radius:8px;font-size:7px}
-.inicio-produccion-form{gap:5px}
-.acciones-formulario{margin-top:8px}
-.boton-principal{min-height:42px;padding:0 14px;font-size:9px}
-
-@media(max-width:900px){
-    .campos,
-    .campos-programacion{
-        grid-template-columns:1fr 100px;
-    }
-
-    .campos-programacion .campo:last-child{
-        grid-column:1/-1;
-    }
-
-    .tabla-contenedor{
-        overflow:visible;
-        border:0;
-        background:transparent;
-    }
-
-    table{
-        min-width:0;
-        border-collapse:separate;
-        border-spacing:0 8px;
-    }
-
-    thead{
-        display:none;
-    }
-
-    tbody,
-    tr,
-    td{
-        display:block;
-        width:100%;
-    }
-
-    tr{
-        background:#fff;
-        border:1px solid var(--borde);
-        border-radius:12px;
-        padding:10px 12px;
-        box-shadow:0 2px 8px rgba(0,0,0,.035);
-    }
-
-    td{
-        display:grid;
-        grid-template-columns:105px 1fr;
-        gap:8px;
-        padding:4px 0;
-        border:0!important;
-        text-align:left!important;
-        align-items:center;
-    }
-
-    td::before{
-        content:attr(data-label);
-        color:var(--muted);
-        font-size:8px;
-        font-weight:900;
-        letter-spacing:.25px;
-    }
-
-    td.trabajo::before{
-        display:none;
-    }
-
-    td.programacion > *{
-        grid-column:2;
-    }
-
-    td:last-child{
-        margin-top:4px;
-        padding-top:7px;
-        border-top:1px solid #eceef1!important;
-    }
-
-    .planificacion-estado{
-        width:100%;
-    }
-}
-
-@media(max-width:560px){
-    .contenedor{
-        padding:9px 8px 24px;
-    }
-
-    .header{
-        align-items:flex-start;
-        flex-direction:column;
-    }
-
-    h1{
-        font-size:20px;
-    }
-
-    .campos,
-    .campos-programacion{
-        grid-template-columns:1fr;
-    }
-
-    .campos-programacion .campo:last-child{
-        grid-column:auto;
-    }
-
-    .grupo-formulario{
-        padding:9px;
-    }
-
-    input,select{
-        min-height:40px;
-        font-size:12px;
-    }
-
-    td{
-        grid-template-columns:92px 1fr;
-        font-size:11px;
-    }
-}
-
-
-.filtros-produccion{
-    display:grid;
-    grid-template-columns:minmax(170px,1fr) minmax(150px,.8fr) minmax(180px,1.2fr) 135px 135px auto;
-    gap:7px;
-    align-items:end;
-    margin:0 0 9px;
-    padding:9px;
-    border:1px solid var(--borde);
-    border-radius:12px;
-    background:#fff;
-}
-.filtro-campo label{
-    display:block;
-    margin-bottom:4px;
-    color:var(--muted);
-    font-size:7px;
-    font-weight:900;
-}
-.filtros-produccion input,
-.filtros-produccion select{
-    min-height:36px;
-    padding:5px 7px;
-    border-radius:9px;
-    font-size:10px;
-}
-.filtro-acciones{
-    display:flex;
-    gap:5px;
-}
-.btn-filtrar,
-.btn-limpiar{
-    min-height:36px;
-    padding:0 10px;
-    border-radius:9px;
-    font-size:8px;
-    font-weight:900;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    text-decoration:none;
-    white-space:nowrap;
-}
-.btn-filtrar{
-    border:0;
-    background:var(--oscuro);
-    color:#fff;
-}
-.btn-limpiar{
-    border:1px solid var(--borde);
-    background:#fff;
-    color:var(--oscuro);
-}
-.resumen-filtros{
-    display:flex;
-    flex-wrap:wrap;
-    gap:6px;
-    margin:0 0 8px;
-}
-.resumen-chip{
-    padding:5px 8px;
-    border-radius:999px;
-    background:#eef0f3;
-    font-size:8px;
-    font-weight:900;
-}
-.aviso-operativa{
-    margin-left:auto;
-    color:var(--muted);
-    font-size:8px;
-    align-self:center;
-}
-
-@media(max-width:980px){
-    .filtros-produccion{
-        grid-template-columns:1fr 1fr 1fr;
-    }
-    .filtro-acciones{
-        grid-column:1/-1;
-    }
-}
-
-@media(max-width:620px){
-    .filtros-produccion{
-        grid-template-columns:1fr 1fr;
-    }
-    .filtro-campo-busqueda,
-    .filtro-acciones{
-        grid-column:1/-1;
-    }
-    .aviso-operativa{
-        width:100%;
-        margin-left:0;
-    }
-}
-
 </style>
-
 </head>
 <body>
-
 {% timezone "America/Argentina/Buenos_Aires" %}
-
-
-<div class="contenedor">
-
-
-    <!-- =========================================
-         TÍTULO / NAVEGACIÓN
-    ========================================== -->
-
-    <div class="encabezado-pagina">
-
-        <div class="encabezado-marca">{% include 'shared/brand_bar.html' %}
-
-            <h1>
-                Producción
-            </h1>
-
-            <div class="subtitulo">
-                Gestión de impresiones y fabricación
-            </div>
-
+<div class="shell">
+    <div class="header">
+        <div>
+            {% include 'shared/brand_bar.html' %}
+            <h1>Planificación</h1>
+            <div class="subtitle">Necesidad de impresión, cola de trabajo y estado de las impresoras en un solo lugar.</div>
         </div>
-
-        <div class="acciones-encabezado">
-
-            <button
-                type="button"
-                class="boton-volver"
-                onclick="volverPagina()"
-            >
-                ← VOLVER
-            </button>
-
-            <a
-                href="{% url 'dashboard:inicio' %}"
-                class="boton-inicio"
-            >
-                INICIO
-            </a>
-
+        <div class="header-actions">
+            <a class="btn" href="{% url 'pedidos:impresiones' %}">PEDIDOS</a>
+            <a class="btn dark" href="{% url 'dashboard:inicio' %}">INICIO</a>
         </div>
-
     </div>
-
-
-    <!-- =========================================
-         MENSAJES
-    ========================================== -->
 
     {% if messages %}
-
         {% for message in messages %}
-
-            <div class="mensaje {{ message.tags }}">
-                {{ message }}
-            </div>
-
+            <div class="message {{ message.tags }}">{{ message }}</div>
         {% endfor %}
-
     {% endif %}
 
+    <div class="metrics">
+        <div class="metric">
+            <div class="metric-label">FALTA PLANIFICAR</div>
+            <div class="metric-value">{{ total_falta_planificar }}</div>
+            <div class="metric-note">{{ productos_con_necesidad }} productos con necesidad real</div>
+        </div>
+        <div class="metric">
+            <div class="metric-label">YA PLANIFICADO</div>
+            <div class="metric-value">{{ total_planificado_unidades }}</div>
+            <div class="metric-note">unidades en cola</div>
+        </div>
+        <div class="metric">
+            <div class="metric-label">IMPRIMIENDO</div>
+            <div class="metric-value">{{ total_imprimiendo_unidades }}</div>
+            <div class="metric-note">{{ cantidad_imprimiendo }} trabajos activos</div>
+        </div>
+        <div class="metric">
+            <div class="metric-label">IMPRESORAS LIBRES</div>
+            <div class="metric-value">{{ impresoras_libres }}/{{ impresoras|length }}</div>
+            <div class="metric-note">disponibles para iniciar trabajos</div>
+        </div>
+        <div class="metric">
+            <div class="metric-label">MATERIAL PENDIENTE</div>
+            <div class="metric-value" style="font-size:20px">{{ peso_faltante_texto }}</div>
+            <div class="metric-note">estimado sobre unidades aún no planificadas</div>
+        </div>
+    </div>
 
-    <!-- =========================================
-         NUEVA PRODUCCIÓN
-    ========================================== -->
+    <div class="printers">
+        {% for impresora in impresoras %}
+            <div class="printer">
+                <div class="printer-head">
+                    <div class="printer-name">🖨 {{ impresora.nombre }}</div>
+                    {% if impresora.esta_libre %}
+                        <span class="pill free">LIBRE</span>
+                    {% else %}
+                        <span class="pill busy">IMPRIMIENDO</span>
+                    {% endif %}
+                </div>
+                {% if impresora.trabajo_actual %}
+                    <div class="printer-job">{{ impresora.trabajo_actual.producto.nombre }} × {{ impresora.trabajo_actual.cantidad }}</div>
+                    <div class="printer-meta">
+                        {{ impresora.trabajo_actual.codigo }}
+                        {% if impresora.trabajo_actual.fin_estimado %} · termina aprox. {{ impresora.trabajo_actual.fin_estimado|date:"H:i" }}{% endif %}
+                        · {{ impresora.trabajo_actual.peso_total_formateado }}
+                    </div>
+                {% else %}
+                    <div class="printer-meta">Disponible para tomar la próxima planificación.</div>
+                {% endif %}
+            </div>
+        {% empty %}
+            <div class="printer"><div class="printer-meta">No hay impresoras activas configuradas.</div></div>
+        {% endfor %}
+    </div>
 
-    <div class="formulario">
-
-        <h2>Nueva producción</h2>
-        <div class="formulario-subtitulo">
-            Planificá qué imprimir, en qué máquina y a qué hora. El trabajo queda pendiente hasta que lo inicies.
+    <section class="section" id="necesidad">
+        <div class="section-head">
+            <div>
+                <h2 class="section-title">Necesidad de impresión</h2>
+                <div class="subtitle">Demanda de pedidos menos stock, planificaciones e impresiones que ya están en curso.</div>
+            </div>
+            <div class="section-help">Ordenado automáticamente por faltante y prioridad.</div>
         </div>
 
-        <form
-            method="post"
-            action="{% url 'produccion:nueva' %}"
-            id="form-produccion"
-        >
-            {% csrf_token %}
-
-            <div class="grupo-formulario">
-                <div class="grupo-formulario-titulo">
-                    1 · TRABAJO
-                </div>
-
-                <div class="campos">
-
-                    <div class="campo producto-buscador">
-                        <label>PRODUCTO</label>
-
-                        <input
-                            type="text"
-                            id="producto_busqueda"
-                            list="productos_disponibles"
-                            autocomplete="off"
-                            placeholder="Escribí código o nombre..."
-                            value="{% if producto_seleccionado_obj %}{{ producto_seleccionado_obj.codigo }} - {{ producto_seleccionado_obj.nombre }}{% endif %}"
-                            required
-                        >
-
-                        <input
-                            type="hidden"
-                            name="producto"
-                            id="producto"
-                            value="{{ producto_seleccionado }}"
-                        >
-
-                        <datalist id="productos_disponibles">
-                            {% for producto in productos %}
-                                <option
-                                    value="{{ producto.codigo }} - {{ producto.nombre }}"
-                                ></option>
-                            {% endfor %}
-                        </datalist>
-
-                        <div class="producto-ayuda">
-                            Podés buscar por código o por nombre.
-                        </div>
-                    </div>
-
-                    <div class="campo">
-                        <label>CANTIDAD</label>
-
-                        <input
-                            type="number"
-                            name="cantidad"
-                            id="cantidad"
-                            min="1"
-                            value="{{ cantidad_seleccionada|default:'1' }}"
-                            required
-                        >
-                    </div>
-
-                    </div>
-            </div>
-
-            <div class="grupo-formulario">
-                <div class="grupo-formulario-titulo">
-                    2 · PROGRAMACIÓN
-                </div>
-
-                <div class="campos campos-programacion">
-
-                    <div class="campo">
-                        <label>INICIO DE IMPRESIÓN</label>
-
-                        <input
-                            type="datetime-local"
-                            name="inicio_impresion"
-                            id="inicio_impresion"
-                            required
-                        >
-                    </div>
-
-                    <div class="campo">
-                        <label>DESTINO</label>
-
-                        <select
-                            name="destino"
-                            id="destino"
-                            required
-                        >
-                            <option value="STOCK">
-                                Stock
-                            </option>
-
-                            <option value="PEDIDO">
-                                Pedido
-                            </option>
-                        </select>
-                    </div>
-
-                    <div
-                        class="campo"
-                        id="campo-pedido"
-                        style="display:none"
-                    >
-                        <label>PEDIDO</label>
-
-                        <select
-                            name="pedido"
-                            id="pedido"
-                        >
-                            <option value="">
-                                Seleccionar pedido
-                            </option>
-
-                            {% for pedido in pedidos %}
-                                <option value="{{ pedido.id }}">
-                                    {{ pedido.codigo }} - {{ pedido.cliente.nombre }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                </div>
-            </div>
-
-            <div class="bloque-tiempo">
-
-                <div class="bloque-tiempo-titulo">
-                    3 · TIEMPO DE IMPRESIÓN
-                </div>
-
-                <div
-                    class="tiempo-automatico"
-                    id="tiempo-automatico"
-                >
-                    Tiempo automático del producto:
-                    <strong id="texto-tiempo-automatico">—</strong>
-                </div>
-
-                <div
-                    class="tiempo-manual-contenedor"
-                    id="tiempo-manual"
-                >
-                    <div class="campo-tiempo">
-                        <label>HORAS</label>
-
-                        <input
-                            type="number"
-                            name="horas"
-                            id="horas"
-                            min="0"
-                            value="0"
-                        >
-                    </div>
-
-                    <div class="campo-tiempo">
-                        <label>MINUTOS</label>
-
-                        <input
-                            type="number"
-                            name="minutos"
-                            id="minutos"
-                            min="0"
-                            max="59"
-                            value="0"
-                        >
-                    </div>
-
-                    <div>
-                        <label
-                            style="
-                                display:block;
-                                margin-bottom:6px;
-                                color:var(--muted);
-                                font-size:9px;
-                                font-weight:900;
-                            "
-                        >
-                            FINALIZACIÓN
-                        </label>
-
-                        <div class="fin-preview">
-                            Fin estimado:
-                            <strong id="fin-estimado-manual">—</strong>
-                        </div>
-                    </div>
-
-                    <div
-                        class="recomendacion-tiempo"
-                        id="recomendacion-tiempo"
-                    ></div>
-                </div>
-
-                <div
-                    class="fin-preview fin-automatico"
-                    id="fin-automatico"
-                    style="display:none"
-                >
-                    Fin estimado:
-                    <strong id="fin-estimado-automatico">—</strong>
-                </div>
-
-            </div>
-
-            <div class="acciones-formulario">
-                <button
-                    type="submit"
-                    class="boton boton-principal"
-                >
-                    + PLANIFICAR PRODUCCIÓN
-                </button>
-            </div>
-
+        <form method="get" class="card toolbar">
+            <input class="search" type="text" name="q" value="{{ busqueda }}" placeholder="Buscar producto o código...">
+            <input type="hidden" name="estado" value="{{ estado_filtro }}">
+            {% if impresora_filtro %}<input type="hidden" name="impresora" value="{{ impresora_filtro }}">{% endif %}
+            <button class="btn dark" type="submit">BUSCAR</button>
+            {% if busqueda %}<a class="btn" href="{% url 'produccion:lista' %}#necesidad">LIMPIAR</a>{% endif %}
         </form>
 
-    </div>
-
-
-    <!-- =========================================
-         PLANIFICACIÓN / PRODUCCIONES
-    ========================================== -->
-
-    <form
-        method="get"
-        class="filtros-produccion"
-    >
-        <div class="filtro-campo">
-            <label>VISTA / ESTADO</label>
-            <select name="estado">
-                <option
-                    value="OPERATIVA"
-                    {% if estado_filtro == "OPERATIVA" %}selected{% endif %}
-                >
-                    Operativas + últimas 20
-                </option>
-
-                <option
-                    value="IMPRIMIENDO"
-                    {% if estado_filtro == "IMPRIMIENDO" %}selected{% endif %}
-                >
-                    Solo imprimiendo
-                </option>
-
-                <option
-                    value="PENDIENTE"
-                    {% if estado_filtro == "PENDIENTE" %}selected{% endif %}
-                >
-                    Solo planificadas
-                </option>
-
-                <option
-                    value="LISTO"
-                    {% if estado_filtro == "LISTO" %}selected{% endif %}
-                >
-                    Solo finalizadas
-                </option>
-
-                <option
-                    value="TODAS"
-                    {% if estado_filtro == "TODAS" %}selected{% endif %}
-                >
-                    Todas
-                </option>
-            </select>
-        </div>
-
-        <div class="filtro-campo">
-            <label>IMPRESORA</label>
-            <select name="impresora">
-                <option value="">
-                    Todas
-                </option>
-
-                {% for impresora in impresoras %}
-                    <option
-                        value="{{ impresora.id }}"
-                        {% if impresora_filtro == impresora.id|stringformat:"s" %}
-                            selected
+        <div class="need-list">
+            {% for item in necesidades %}
+                <div class="need {% if item.prioridad == 'ALTA' %}urgent{% elif item.prioridad == 'MEDIA' %}medium{% endif %}">
+                    <div class="need-product">
+                        <div class="code">{{ item.producto.codigo }}{% if item.es_pieza %} · PIEZA{% endif %}</div>
+                        <div class="product-name">{{ item.producto.nombre }}</div>
+                        {% if item.origenes %}
+                            <div class="origin" title="{{ item.origenes|join:', ' }}">Origen: {{ item.origenes|join:", " }}</div>
                         {% endif %}
-                    >
-                        {{ impresora.nombre }}
-                    </option>
+                    </div>
+                    <div class="nbox hide-mobile"><span>PEDIDO</span><b>{{ item.cantidad_pedida }}</b></div>
+                    <div class="nbox hide-mobile"><span>STOCK</span><b>{{ item.stock }}</b></div>
+                    <div class="nbox"><span>A IMPRIMIR</span><b>{{ item.a_imprimir }}</b></div>
+                    <div class="nbox hide-tablet"><span>PLANIFICADO</span><b>{{ item.planificadas }}</b></div>
+                    <div class="nbox hide-tablet"><span>IMPRIMIENDO</span><b>{{ item.en_produccion }}</b></div>
+                    <div class="nbox hot"><span>FALTA</span><b>{{ item.falta_iniciar }}</b></div>
+                    <div class="priority">
+                        <span class="pill {% if item.prioridad == 'ALTA' %}p-alta{% elif item.prioridad == 'MEDIA' %}p-media{% elif item.prioridad == 'BAJA' %}p-baja{% elif item.prioridad == 'EN CURSO' %}p-curso{% else %}p-cero{% endif %}">
+                            {{ item.prioridad }}
+                        </span>
+                        {% if item.impresoras %}
+                            <div class="printer-meta">{{ item.impresoras|join:" · " }}</div>
+                        {% endif %}
+                    </div>
+
+                    {% if item.falta_normal_planificar > 0 or item.personalizaciones %}
+                        <details class="plan-details">
+                            <summary>＋ PLANIFICAR ESTE PRODUCTO</summary>
+
+                            {% if item.falta_normal_planificar > 0 %}
+                                <form method="post" action="{% url 'pedidos:planificar_impresion_producto' %}" class="quick-grid">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="producto" value="{{ item.producto.id }}">
+                                    <div class="quick-info wide">
+                                        Estándar · quedan <b>{{ item.falta_normal_planificar }}</b> sin cubrir. Podés producir más; el excedente irá a stock.
+                                    </div>
+                                    <div class="field">
+                                        <label>CANTIDAD</label>
+                                        <input type="number" name="cantidad" min="1" value="{{ item.cantidad_sugerida }}" required>
+                                    </div>
+                                    <div class="field">
+                                        <label>INICIO</label>
+                                        <input type="datetime-local" name="inicio_impresion" value="{{ ahora_input }}" required>
+                                    </div>
+                                    <div class="field">
+                                        <label>HORAS</label>
+                                        <input type="number" name="horas" min="0" value="">
+                                    </div>
+                                    <div class="field">
+                                        <label>MIN.</label>
+                                        <input type="number" name="minutos" min="0" max="59" value="">
+                                    </div>
+                                    <button class="btn dark" type="submit">PLANIFICAR</button>
+                                </form>
+                            {% endif %}
+
+                            {% if item.personalizaciones %}
+                                <div class="personal-list">
+                                    {% for personalizacion in item.personalizaciones %}
+                                        {% if personalizacion.falta_planificar > 0 %}
+                                            <div class="personal">
+                                                <div class="personal-head">
+                                                    <strong>{{ personalizacion.pedido_codigo }} · {{ personalizacion.producto_origen }}</strong>
+                                                    <span class="pill p-curso">{{ personalizacion.falta_planificar }} por planificar</span>
+                                                </div>
+                                                <p>{{ personalizacion.detalle|default:"Sin detalle" }}{% if personalizacion.color %} · Color: {{ personalizacion.color }}{% endif %}</p>
+                                                <form method="post" action="{% url 'pedidos:planificar_impresion_producto' %}" class="quick-grid">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="producto" value="{{ item.producto.id }}">
+                                                    <input type="hidden" name="personalizado_id" value="{{ personalizacion.detalle_id }}">
+                                                    <div class="quick-info wide">Trabajo específico para {{ personalizacion.pedido_codigo }}. No se mezcla con stock.</div>
+                                                    <div class="field">
+                                                        <label>CANTIDAD</label>
+                                                        <input type="number" name="cantidad" min="1" max="{{ personalizacion.falta_planificar }}" value="{{ personalizacion.falta_planificar }}" required>
+                                                    </div>
+                                                    <div class="field">
+                                                        <label>INICIO</label>
+                                                        <input type="datetime-local" name="inicio_impresion" value="{{ ahora_input }}" required>
+                                                    </div>
+                                                    <div class="field">
+                                                        <label>HORAS</label>
+                                                        <input type="number" name="horas" min="0" value="">
+                                                    </div>
+                                                    <div class="field">
+                                                        <label>MIN.</label>
+                                                        <input type="number" name="minutos" min="0" max="59" value="">
+                                                    </div>
+                                                    <button class="btn dark" type="submit">PLANIFICAR</button>
+                                                </form>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </details>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <div class="card empty">No hay productos pendientes de impresión con este filtro.</div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="section" id="manual">
+        <details class="card manual">
+            <summary>＋ PLANIFICACIÓN MANUAL / PRODUCIR PARA STOCK</summary>
+            <div class="manual-body">
+                <form method="post" action="{% url 'produccion:nueva' %}" class="manual-grid" id="manual-form">
+                    {% csrf_token %}
+                    <div class="field">
+                        <label>PRODUCTO</label>
+                        <select name="producto" required>
+                            <option value="">Seleccionar...</option>
+                            {% for producto in productos %}
+                                <option value="{{ producto.id }}">{{ producto.codigo }} · {{ producto.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>CANT.</label>
+                        <input type="number" name="cantidad" min="1" value="1" required>
+                    </div>
+                    <div class="field">
+                        <label>INICIO</label>
+                        <input type="datetime-local" name="inicio_impresion" value="{{ ahora_input }}" required>
+                    </div>
+                    <div class="field">
+                        <label>DESTINO</label>
+                        <select name="destino" id="manual-destino" required>
+                            <option value="STOCK">Stock</option>
+                            <option value="PEDIDO">Pedido</option>
+                        </select>
+                    </div>
+                    <div class="field wide" id="manual-pedido-wrap" style="display:none">
+                        <label>PEDIDO</label>
+                        <select name="pedido">
+                            <option value="">Seleccionar pedido...</option>
+                            {% for pedido in pedidos %}
+                                <option value="{{ pedido.id }}">{{ pedido.codigo }} · {{ pedido.cliente.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>HORAS</label>
+                        <input type="number" name="horas" min="0" value="0">
+                    </div>
+                    <div class="field">
+                        <label>MIN.</label>
+                        <input type="number" name="minutos" min="0" max="59" value="0">
+                    </div>
+                    <button class="btn dark" type="submit">PLANIFICAR</button>
+                </form>
+            </div>
+        </details>
+    </section>
+
+    <section class="section" id="cola">
+        <div class="section-head">
+            <div>
+                <h2 class="section-title">Cola y producción</h2>
+                <div class="subtitle">Planificaciones pendientes, trabajos imprimiéndose y últimas finalizadas.</div>
+            </div>
+            <div class="section-help">La impresora se elige recién al iniciar.</div>
+        </div>
+
+        <form method="get" class="card toolbar">
+            <select class="small" name="estado">
+                <option value="OPERATIVA" {% if estado_filtro == "OPERATIVA" %}selected{% endif %}>Operativas + últimas 20</option>
+                <option value="IMPRIMIENDO" {% if estado_filtro == "IMPRIMIENDO" %}selected{% endif %}>Imprimiendo</option>
+                <option value="PENDIENTE" {% if estado_filtro == "PENDIENTE" %}selected{% endif %}>Planificadas</option>
+                <option value="LISTO" {% if estado_filtro == "LISTO" %}selected{% endif %}>Finalizadas</option>
+                <option value="TODAS" {% if estado_filtro == "TODAS" %}selected{% endif %}>Todas</option>
+            </select>
+            <select class="small" name="impresora">
+                <option value="">Todas las impresoras</option>
+                {% for impresora in impresoras %}
+                    <option value="{{ impresora.id }}" {% if impresora_filtro == impresora.id|stringformat:"s" %}selected{% endif %}>{{ impresora.nombre }}</option>
                 {% endfor %}
             </select>
-        </div>
+            <input class="search" type="text" name="q" value="{{ busqueda }}" placeholder="Producto o código...">
+            <input class="small" type="date" name="desde" value="{{ fecha_desde }}">
+            <input class="small" type="date" name="hasta" value="{{ fecha_hasta }}">
+            <button class="btn dark" type="submit">FILTRAR</button>
+            <a class="btn" href="{% url 'produccion:lista' %}#cola">LIMPIAR</a>
+        </form>
 
-        <div class="filtro-campo filtro-campo-busqueda">
-            <label>PRODUCTO</label>
-            <input
-                type="text"
-                name="q"
-                value="{{ busqueda }}"
-                placeholder="Buscar por nombre o código"
-            >
-        </div>
-
-        <div class="filtro-campo">
-            <label>DESDE</label>
-            <input
-                type="date"
-                name="desde"
-                value="{{ fecha_desde }}"
-            >
-        </div>
-
-        <div class="filtro-campo">
-            <label>HASTA</label>
-            <input
-                type="date"
-                name="hasta"
-                value="{{ fecha_hasta }}"
-            >
-        </div>
-
-        <div class="filtro-acciones">
-            <button
-                type="submit"
-                class="btn-filtrar"
-            >
-                FILTRAR
-            </button>
-
-            <a
-                href="{% url 'produccion:lista' %}"
-                class="btn-limpiar"
-            >
-                LIMPIAR
-            </a>
-        </div>
-    </form>
-
-    <div class="resumen-filtros">
-        <span class="resumen-chip">
-            ● IMPRIMIENDO {{ cantidad_imprimiendo }}
-        </span>
-
-        <span class="resumen-chip">
-            ◷ PLANIFICADAS {{ cantidad_pendientes }}
-        </span>
-
-        <span class="resumen-chip">
-            ✓ LISTO {{ cantidad_listas }}
-        </span>
-
-        {% if estado_filtro == "OPERATIVA" %}
-            <span class="aviso-operativa">
-                Se muestran todas las activas y solo las últimas 20 finalizadas.
-            </span>
-        {% endif %}
-    </div>
-
-    <div
-        style="
-            margin:0 0 9px;
-            color:var(--muted);
-            font-size:10px;
-            font-weight:800;
-        "
-    >
-        PENDIENTE = planificada · IMPRIMIENDO = máquina ocupada · LISTO = finalizada
-    </div>
-
-    <div class="tabla-contenedor">
-
-        <table>
-
-            <thead>
-
-                <tr>
-
-                    <th>
-                        TRABAJO
-                    </th>
-
-                    <th style="text-align: center;">
-                        CANT.
-                    </th>
-
-                    <th>
-                        IMPRESORA
-                    </th>
-
-                    <th>
-                        PROGRAMACIÓN
-                    </th>
-
-                    <th>
-                        DESTINO
-                    </th>
-
-                    <th>
-                        ESTADO
-                    </th>
-
-                </tr>
-
-            </thead>
-
-
-            <tbody>
-
-                {% for produccion in producciones %}
-
+        <div class="card queue-card">
+            <table class="queue">
+                <thead>
                     <tr>
-
-
-                        <!-- TRABAJO -->
-
-                        <td class="trabajo" data-label="TRABAJO">
-                            <span class="codigo">{{ produccion.codigo }}</span>
-                            <div class="producto">
-                                <span class="producto-codigo">{{ produccion.producto.codigo }}</span>
-                                · {{ produccion.producto.nombre }}
-                            </div>
-                        </td>
-
-
-                        <!-- CANTIDAD -->
-
-                        <td class="cantidad" data-label="CANT.">
-                            {{ produccion.cantidad }}
-                        </td>
-
-
-                        <!-- IMPRESORA -->
-
-                        <td data-label="IMPRESORA">
-                            {% if produccion.impresora %}
-                                <span class="destino destino-pedido">
-                                    🖨 {{ produccion.impresora.nombre }}
-                                </span>
-                            {% elif produccion.estado == "PENDIENTE" %}
-                                <span
-                                    class="destino"
-                                    style="background:#eef0f3;color:#666"
-                                >
-                                    SIN ASIGNAR
-                                </span>
-                            {% else %}
-                                —
-                            {% endif %}
-                        </td>
-
-
-                        <!-- PROGRAMACIÓN -->
-
-                        <td class="programacion" data-label="PROGRAMACIÓN">
-                            <div class="programacion-linea">
-                                <span class="programacion-etiqueta">INICIO</span>
-                                <span class="programacion-fecha">
-                                    {% if produccion.inicio_impresion %}{{ produccion.inicio_impresion|date:"d/m/Y H:i" }}{% else %}—{% endif %}
-                                </span>
-                            </div>
-                            <div class="programacion-linea">
-                                <span class="programacion-etiqueta">FIN</span>
-                                <span class="programacion-fecha">
-                                    {% if produccion.fin_estimado %}{{ produccion.fin_estimado|date:"d/m/Y H:i" }}{% else %}—{% endif %}
-                                </span>
-                            </div>
-                            <span class="programacion-duracion">{{ produccion.tiempo_impresion_formateado }}</span>
-                        </td>
-
-
-                        <!-- DESTINO -->
-
-                        <td class="destino-info" data-label="DESTINO">
-
-                            {% if produccion.destino == "STOCK" %}
-
-                                <span class="destino destino-stock">
-                                    STOCK
-                                </span>
-
-                            {% else %}
-
-                                <span class="destino destino-pedido">
-                                    PEDIDO
-                                </span>
-
-                            {% endif %}
-                            {% if produccion.pedido %}
-                                <span class="pedido-info">
-                                    {{ produccion.pedido.codigo }} · {{ produccion.pedido.cliente.nombre }}
-                                </span>
-                            {% endif %}
-                        </td>
-
-
-                        <!-- ESTADO -->
-
-                        <td data-label="ESTADO">
-
-                            {% if produccion.estado == "LISTO" %}
-
-                                <div class="planificacion-estado">
-
-                                    <span
-                                        class="estado-fijo estado-LISTO"
-                                        title="Una producción lista queda bloqueada para evitar cambios accidentales."
-                                    >
-                                        ✓ LISTO
-                                    </span>
-
-                                    <form
-                                        method="post"
-                                        action="{% url 'produccion:repetir' produccion.id %}"
-                                        class="inicio-produccion-form"
-                                    >
-                                        {% csrf_token %}
-
-                                        <button
-                                            type="submit"
-                                            class="btn-repetir"
-                                        >
-                                            ↻ REPROGRAMAR IMPRESIÓN
-                                        </button>
-                                    </form>
-
-                                </div>
-
-                            {% elif produccion.estado == "PENDIENTE" %}
-
-                                <div class="planificacion-estado">
-
-                                    {% if produccion.es_planificada_vencida %}
-                                        <div class="planificacion-horario planificacion-horario-vencida">
-                                            DISPONIBLE PARA INICIAR
-                                            {% if produccion.fin_si_inicia_ahora %}
-                                                <strong>
-                                                    Si inicia ahora · termina {{ produccion.fin_si_inicia_ahora|date:"H:i" }}
-                                                </strong>
-                                            {% endif %}
-                                            <span>
-                                                Programada originalmente · {{ produccion.inicio_impresion|date:"d/m H:i" }}
-                                            </span>
-                                        </div>
-                                    {% else %}
-                                        <div class="planificacion-horario">
-                                            PROGRAMADA
-                                            ·
-                                            {{ produccion.inicio_impresion|date:"d/m H:i" }}
-                                        </div>
-                                    {% endif %}
-
-                                    <form
-                                        method="post"
-                                        action="{% url 'produccion:iniciar' produccion.id %}"
-                                        class="inicio-produccion-form"
-                                    >
-                                        {% csrf_token %}
-
-                                        <select
-                                            name="impresora"
-                                            class="selector-impresora-inicio"
-                                            required
-                                        >
-                                            <option value="">
-                                                Elegir impresora...
-                                            </option>
-
-                                            {% for impresora in impresoras %}
-                                                <option value="{{ impresora.id }}">
-                                                    {{ impresora.nombre }}
-                                                </option>
-                                            {% endfor %}
-                                        </select>
-
-                                        <button
-                                            type="submit"
-                                            class="btn-iniciar"
-                                        >
-                                            ▶ MANDAR A IMPRIMIR
-                                        </button>
-                                    </form>
-
-                                    <form
-                                        method="post"
-                                        action="{% url 'produccion:cambiar_estado' produccion.id %}"
-                                    >
-                                        {% csrf_token %}
-                                        <input
-                                            type="hidden"
-                                            name="estado"
-                                            value="CANCELADO"
-                                        >
-                                        <button
-                                            type="submit"
-                                            class="btn-cancelar-plan"
-                                        >
-                                            CANCELAR PLANIFICACIÓN
-                                        </button>
-                                    </form>
-
-                                </div>
-
-                            {% elif produccion.estado == "IMPRIMIENDO" %}
-
-                                <form
-                                    method="post"
-                                    class="estado-form"
-                                    action="{% url 'produccion:cambiar_estado' produccion.id %}"
-                                >
-                                    {% csrf_token %}
-
-                                    <select
-                                        name="estado"
-                                        class="estado-select estado-{{ produccion.estado }}"
-                                        onchange="this.form.submit()"
-                                    >
-                                        <option
-                                            value="IMPRIMIENDO"
-                                            selected
-                                        >
-                                            IMPRIMIENDO
-                                        </option>
-
-                                        <option value="LISTO">
-                                            LISTO
-                                        </option>
-
-                                        <option value="CANCELADO">
-                                            CANCELADO
-                                        </option>
-                                    </select>
-                                </form>
-
-                            {% else %}
-
-                                <span class="estado-fijo">
-                                    {{ produccion.get_estado_display }}
-                                </span>
-
-                            {% endif %}
-
-                        </td>
-
+                        <th>TRABAJO</th><th>CANT.</th><th>IMPRESORA</th><th>PROGRAMACIÓN</th><th>DESTINO</th><th>ESTADO / ACCIÓN</th>
                     </tr>
-
-
-                {% empty %}
-
-                    <tr>
-
-                        <td
-                            colspan="6"
-                            class="sin-datos"
-                        >
-                            Todavía no hay producciones registradas.
-                        </td>
-
-                    </tr>
-
-                {% endfor %}
-
-            </tbody>
-
-        </table>
-
-    </div>
-
-
+                </thead>
+                <tbody>
+                    {% for produccion in producciones %}
+                        <tr>
+                            <td data-label="TRABAJO">
+                                <div class="queue-product">{{ produccion.producto.codigo }} · {{ produccion.producto.nombre }}</div>
+                                <div class="queue-meta">{{ produccion.codigo }} · {{ produccion.tiempo_impresion_formateado }}</div>
+                            </td>
+                            <td data-label="CANTIDAD"><strong>{{ produccion.cantidad }}</strong></td>
+                            <td data-label="IMPRESORA">
+                                {% if produccion.impresora %}🖨 {{ produccion.impresora.nombre }}{% else %}<span class="queue-meta">Sin asignar</span>{% endif %}
+                            </td>
+                            <td data-label="PROGRAMACIÓN">
+                                <div>{{ produccion.inicio_impresion|date:"d/m H:i"|default:"—" }}</div>
+                                <div class="queue-meta">Fin: {{ produccion.fin_estimado|date:"d/m H:i"|default:"—" }}</div>
+                            </td>
+                            <td data-label="DESTINO">
+                                <span class="status {% if produccion.destino == 'PEDIDO' %}s-IMPRIMIENDO{% else %}s-PENDIENTE{% endif %}">{{ produccion.get_destino_display|upper }}</span>
+                                {% if produccion.pedido %}<div class="queue-meta">{{ produccion.pedido.codigo }} · {{ produccion.pedido.cliente.nombre }}</div>{% endif %}
+                            </td>
+                            <td data-label="ESTADO / ACCIÓN">
+                                {% if produccion.estado == "PENDIENTE" %}
+                                    <div class="state-actions">
+                                        <span class="status s-PENDIENTE">PLANIFICADA</span>
+                                        <form method="post" action="{% url 'produccion:iniciar' produccion.id %}">
+                                            {% csrf_token %}
+                                            <select name="impresora" required>
+                                                <option value="">Elegir impresora...</option>
+                                                {% for impresora in impresoras %}
+                                                    <option value="{{ impresora.id }}">{{ impresora.nombre }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <button class="state-btn start" type="submit">▶ INICIAR</button>
+                                        </form>
+                                        <form method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="estado" value="CANCELADO">
+                                            <button class="state-btn cancel" type="submit">CANCELAR</button>
+                                        </form>
+                                    </div>
+                                {% elif produccion.estado == "IMPRIMIENDO" %}
+                                    <div class="state-actions">
+                                        <span class="status s-IMPRIMIENDO">IMPRIMIENDO</span>
+                                        <form method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="estado" value="LISTO">
+                                            <button class="state-btn ready" type="submit">✓ MARCAR LISTO</button>
+                                        </form>
+                                        <form method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="estado" value="CANCELADO">
+                                            <button class="state-btn cancel" type="submit">CANCELAR</button>
+                                        </form>
+                                    </div>
+                                {% elif produccion.estado == "LISTO" %}
+                                    <div class="state-actions">
+                                        <span class="status s-LISTO">✓ LISTO</span>
+                                        <form method="post" action="{% url 'produccion:repetir' produccion.id %}">
+                                            {% csrf_token %}
+                                            <button class="state-btn repeat" type="submit">↻ REPETIR</button>
+                                        </form>
+                                    </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="6" class="empty">No hay trabajos en esta vista.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
 </div>
 
-
-<!-- =========================================
-     JAVASCRIPT
-========================================== -->
-
-
-
-<nav class="nav-inferior" aria-label="Navegación principal">
-<a href="{% url 'dashboard:inicio' %}" class="nav-item"><span>⌂</span><span>INICIO</span></a>
-<a href="{% url 'pedidos:impresiones' %}" class="nav-item"><span>📦</span><span>PEDIDOS</span></a>
-<a href="{% url 'pedidos:nuevo' %}" class="nav-item nuevo-nav"><span>＋</span><span>NUEVO</span></a>
-<a href="{% url 'produccion:lista' %}" class="nav-item activo"><span>⚙</span><span>PRODUCCIÓN</span></a>
-<a href="{% url 'productos:lista' %}" class="nav-item"><span>▦</span><span>PRODUCTOS</span></a>
+<nav class="nav" aria-label="Navegación principal">
+    <a href="{% url 'dashboard:inicio' %}"><b>⌂</b><span>INICIO</span></a>
+    <a href="{% url 'pedidos:impresiones' %}"><b>📦</b><span>PEDIDOS</span></a>
+    <a href="{% url 'pedidos:nuevo' %}"><b>＋</b><span>NUEVO</span></a>
+    <a class="active" href="{% url 'produccion:lista' %}"><b>🖨</b><span>PLANIF.</span></a>
+    <a href="{% url 'productos:lista' %}"><b>▦</b><span>PRODUCTOS</span></a>
 </nav>
 
 <script>
-
-    function volverPagina() {
-
-        if (window.history.length > 1) {
-            window.history.back();
-        } else {
-            window.location.href =
-                "{% url 'dashboard:inicio' %}";
-        }
-
-    }
-
-
-    const producto =
-        document.getElementById("producto");
-
-    const productoBusqueda =
-        document.getElementById(
-            "producto_busqueda"
-        );
-
-    const productosData = [
-        {% for p in productos %}
-            {
-                id: "{{ p.id }}",
-                texto: "{{ p.codigo|escapejs }} - {{ p.nombre|escapejs }}",
-                horas: {{ p.horas|default:0 }},
-                minutos: {{ p.minutos|default:0 }}
-            },
-        {% endfor %}
-    ];
-
-    let productoActual = null;
-
-    const cantidad =
-        document.getElementById("cantidad");
-
-const campoNuevaImpresora =
-        document.getElementById("campo-nueva-impresora");
-
-const inicio =
-        document.getElementById("inicio_impresion");
-
-    function fechaHoraLocalActual() {
-        const ahora = new Date();
-        const desplazamiento =
-            ahora.getTimezoneOffset() * 60000;
-
-        return new Date(
-            ahora.getTime() - desplazamiento
-        ).toISOString().slice(0, 16);
-    }
-
-    if (!inicio.value) {
-        inicio.value = fechaHoraLocalActual();
-    }
-
-    const destino =
-        document.getElementById("destino");
-
-    const campoPedido =
-        document.getElementById("campo-pedido");
-
-    const pedido =
-        document.getElementById("pedido");
-
-    const horas =
-        document.getElementById("horas");
-
-    const minutos =
-        document.getElementById("minutos");
-
-    const tiempoAutomatico =
-        document.getElementById("tiempo-automatico");
-
-    const tiempoManual =
-        document.getElementById("tiempo-manual");
-
-    const textoTiempoAutomatico =
-        document.getElementById("texto-tiempo-automatico");
-
-    const finAutomatico =
-        document.getElementById("fin-automatico");
-
-    const finEstimadoAutomatico =
-        document.getElementById("fin-estimado-automatico");
-
-    const finEstimadoManual =
-        document.getElementById("fin-estimado-manual");
-
-    const recomendacionTiempo =
-        document.getElementById("recomendacion-tiempo");
-
-    let solicitudTiempoActual = 0;
-
-
-
-
-
-    /* =========================================
-       DESTINO
-    ========================================= */
-
-    function actualizarDestino() {
-
-        if (destino.value === "PEDIDO") {
-
-            campoPedido.style.display = "block";
-            pedido.required = true;
-
-        } else {
-
-            campoPedido.style.display = "none";
-            pedido.required = false;
-            pedido.value = "";
-
-        }
-
-    }
-
-
-    /* =========================================
-       TIEMPO DEL PRODUCTO
-    ========================================= */
-
-    function sincronizarProducto() {
-
-        const texto =
-            (
-                productoBusqueda.value || ""
-            ).trim().toLowerCase();
-
-        productoActual =
-            productosData.find(
-                p =>
-                    p.texto.toLowerCase()
-                    === texto
-            ) || null;
-
-        producto.value =
-            productoActual
-            ? productoActual.id
-            : "";
-
-        return productoActual;
-    }
-
-
-    function obtenerTiempoProducto() {
-
-        sincronizarProducto();
-
-        if (!productoActual) {
-            return 0;
-        }
-
-        return (
-            Number(
-                productoActual.horas || 0
-            ) * 60
-            +
-            Number(
-                productoActual.minutos || 0
-            )
-        );
-    }
-
-
-    /* =========================================
-       FORMATEAR DURACIÓN
-    ========================================= */
-
-    function formatearDuracion(totalMinutos) {
-
-        if (totalMinutos <= 0) {
-            return "—";
-        }
-
-        const h =
-            Math.floor(totalMinutos / 60);
-
-        const m =
-            totalMinutos % 60;
-
-        if (h > 0 && m > 0) {
-            return h + " h " + m + " min";
-        }
-
-        if (h > 0) {
-            return h + " h";
-        }
-
-        return m + " min";
-
-    }
-
-
-    /* =========================================
-       MOSTRAR RECOMENDACIÓN
-    ========================================= */
-
-    function mostrarRecomendacion(texto, tipo) {
-
-        recomendacionTiempo.textContent = texto;
-
-        recomendacionTiempo.classList.remove(
-            "activa",
-            "encontrada",
-            "manual"
-        );
-
-        if (!texto) {
-            return;
-        }
-
-        recomendacionTiempo.classList.add(
-            "activa",
-            tipo
-        );
-
-    }
-
-
-    /* =========================================
-       CONSULTAR TIEMPO RECOMENDADO
-    ========================================= */
-
-    async function consultarTiempoRecomendado() {
-
-        const productoId =
-            producto.value;
-
-        const cantidadActual =
-            parseInt(
-                cantidad.value || "0"
-            );
-
-        if (
-            !productoId
-            || cantidadActual <= 1
-        ) {
-            return null;
-        }
-
-        const numeroSolicitud =
-            ++solicitudTiempoActual;
-
-        try {
-
-            const url =
-                "{% url 'produccion:tiempo_recomendado' %}"
-                + "?producto="
-                + encodeURIComponent(productoId)
-                + "&cantidad="
-                + encodeURIComponent(cantidadActual);
-
-            const respuesta =
-                await fetch(url);
-
-            if (!respuesta.ok) {
-                throw new Error(
-                    "No se pudo consultar el tiempo recomendado."
-                );
-            }
-
-            const data =
-                await respuesta.json();
-
-            if (
-                numeroSolicitud
-                !== solicitudTiempoActual
-            ) {
-                return null;
-            }
-
-            return data;
-
-        } catch (error) {
-
-            console.error(error);
-
-            mostrarRecomendacion(
-                "No se pudo consultar el historial. Podés ingresar el tiempo manualmente.",
-                "manual"
-            );
-
-            return null;
-        }
-
-    }
-
-
-    /* =========================================
-       ACTUALIZAR TIPO DE TIEMPO
-    ========================================= */
-
-    async function actualizarTiempo() {
-
-        const cantidadActual =
-            parseInt(
-                cantidad.value || "0"
-            );
-
-        mostrarRecomendacion(
-            "",
-            "manual"
-        );
-
-
-        if (cantidadActual === 1) {
-
-            solicitudTiempoActual++;
-
-            tiempoAutomatico.classList.add(
-                "activo"
-            );
-
-            tiempoManual.classList.remove(
-                "activo"
-            );
-
-            finAutomatico.style.display =
-                "flex";
-
-            horas.required = false;
-            minutos.required = false;
-
-            const totalMinutos =
-                obtenerTiempoProducto();
-
-            if (totalMinutos > 0) {
-
-                textoTiempoAutomatico.textContent =
-                    formatearDuracion(
-                        totalMinutos
-                    );
-
-            } else {
-
-                textoTiempoAutomatico.textContent =
-                    "sin tiempo configurado";
-
-            }
-
-            calcularFin();
-
-            return;
-        }
-
-
-        if (cantidadActual > 1) {
-
-            tiempoAutomatico.classList.remove(
-                "activo"
-            );
-
-            tiempoManual.classList.add(
-                "activo"
-            );
-
-            finAutomatico.style.display =
-                "none";
-
-            horas.required = true;
-            minutos.required = true;
-
-            horas.value = "";
-            minutos.value = "";
-
-            calcularFin();
-
-            const data =
-                await consultarTiempoRecomendado();
-
-            if (!data) {
-                return;
-            }
-
-            if (data.encontrado) {
-
-                horas.value =
-                    data.horas;
-
-                minutos.value =
-                    data.minutos;
-
-                mostrarRecomendacion(
-                    "Tiempo recomendado según la última producción de "
-                    + cantidadActual
-                    + " unidades: "
-                    + formatearDuracion(
-                        data.total_minutos
-                    )
-                    + ". Podés modificarlo si esta tanda necesita otro tiempo.",
-                    "encontrada"
-                );
-
-            } else {
-
-                mostrarRecomendacion(
-                    "No hay una producción anterior de "
-                    + cantidadActual
-                    + " unidades. Ingresá el tiempo manualmente.",
-                    "manual"
-                );
-
-            }
-
-            calcularFin();
-
-            return;
-        }
-
-
-        solicitudTiempoActual++;
-
-        tiempoAutomatico.classList.remove(
-            "activo"
-        );
-
-        tiempoManual.classList.remove(
-            "activo"
-        );
-
-        finAutomatico.style.display =
-            "none";
-
-        calcularFin();
-
-    }
-
-
-    /* =========================================
-       CALCULAR FINALIZACIÓN
-    ========================================= */
-
-    function calcularFin() {
-
-        const cantidadActual =
-            parseInt(cantidad.value || "0");
-
-        let totalMinutos = 0;
-
-
-        if (cantidadActual === 1) {
-
-            totalMinutos =
-                obtenerTiempoProducto();
-
-        } else if (cantidadActual > 1) {
-
-            const h =
-                parseInt(horas.value || "0");
-
-            const m =
-                parseInt(minutos.value || "0");
-
-            totalMinutos =
-                h * 60 + m;
-
-        }
-
-
-        if (
-            !inicio.value
-            ||
-            totalMinutos <= 0
-        ) {
-
-            finEstimadoAutomatico.textContent = "—";
-            finEstimadoManual.textContent = "—";
-
-            return;
-
-        }
-
-
-        const fechaInicio =
-            new Date(inicio.value);
-
-
-        const fechaFin =
-            new Date(
-                fechaInicio.getTime()
-                +
-                totalMinutos * 60000
-            );
-
-
-        const dia =
-            String(fechaFin.getDate())
-            .padStart(2, "0");
-
-        const mes =
-            String(fechaFin.getMonth() + 1)
-            .padStart(2, "0");
-
-        const anio =
-            fechaFin.getFullYear();
-
-        const hora =
-            String(fechaFin.getHours())
-            .padStart(2, "0");
-
-        const minuto =
-            String(fechaFin.getMinutes())
-            .padStart(2, "0");
-
-
-        const resultado =
-            dia
-            + "/"
-            + mes
-            + "/"
-            + anio
-            + " "
-            + hora
-            + ":"
-            + minuto;
-
-
-        finEstimadoAutomatico.textContent =
-            resultado;
-
-        finEstimadoManual.textContent =
-            resultado;
-
-    }
-
-
-    /* =========================================
-       EVENTOS
-    ========================================= */
-
-    destino.addEventListener(
-        "change",
-        actualizarDestino
-    );
-
-
-    productoBusqueda.addEventListener(
-        "change",
-        async function() {
-            sincronizarProducto();
-            await actualizarTiempo();
-        }
-    );
-
-    productoBusqueda.addEventListener(
-        "input",
-        function() {
-            sincronizarProducto();
-        }
-    );
-
-
-    cantidad.addEventListener(
-        "input",
-        actualizarTiempo
-    );
-
-
-    inicio.addEventListener(
-        "change",
-        calcularFin
-    );
-
-
-    inicio.addEventListener(
-        "input",
-        calcularFin
-    );
-
-
-    horas.addEventListener(
-        "input",
-        calcularFin
-    );
-
-
-    minutos.addEventListener(
-        "input",
-        calcularFin
-    );
-
-
-    /* =========================================
-       VALIDAR PRODUCTO BUSCADO
-    ========================================= */
-
-    document
-        .getElementById("form-produccion")
-        .addEventListener(
-            "submit",
-            function(event) {
-                sincronizarProducto();
-
-                if (!producto.value) {
-                    event.preventDefault();
-
-                    alert(
-                        "Seleccioná un producto válido de la lista."
-                    );
-
-                    productoBusqueda.focus();
-                }
-            }
-        );
-
-
-    /* =========================================
-       INICIALIZAR
-    ========================================= */
-
-    sincronizarProducto();
-    actualizarDestino();
-
-    actualizarTiempo();
-
-    calcularFin();
-
+(function(){
+    const destino=document.getElementById('manual-destino');
+    const pedido=document.getElementById('manual-pedido-wrap');
+    function sync(){if(!destino||!pedido)return;pedido.style.display=destino.value==='PEDIDO'?'block':'none';}
+    if(destino){destino.addEventListener('change',sync);sync();}
+})();
 </script>
-
-
-
 {% endtimezone %}
 </body>
 </html>
