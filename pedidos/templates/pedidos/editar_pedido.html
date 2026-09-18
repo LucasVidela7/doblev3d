@@ -955,9 +955,16 @@ async function cargarKit(
         return;
     }
 
+    const urlKitProductos =
+        "{% url 'pedidos:productos_kit' 999999 %}"
+        .replace(
+            "999999",
+            encodeURIComponent(kitId)
+        );
+
     const r =
         await fetch(
-            `/pedidos/api/kit/${kitId}/productos/`
+            urlKitProductos
         );
 
     const data =
