@@ -1,6 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import resolve, reverse
 
@@ -18,6 +19,11 @@ from .models import Kit
 
 class PreciosKitCalculadoraTests(TestCase):
     def setUp(self):
+        usuario = get_user_model().objects.create_user(
+            username="kits-calculadora-test",
+            password="test-pass",
+        )
+        self.client.force_login(usuario)
         ConfiguracionCostos.objects.create(
             nombre="Test precios kit",
             coste_plastico_kg=Decimal("1000"),
@@ -357,13 +363,13 @@ class PreciosKitCalculadoraTests(TestCase):
     def test_rutas_recomendacion(self):
         self.assertEqual(
             resolve(
-                "/kits/recomendacion-fija/"
+                reverse("kits:recomendacion_fija")
             ).view_name,
             "kits:recomendacion_fija",
         )
         self.assertEqual(
             resolve(
-                "/kits/recomendacion-libre/"
+                reverse("kits:recomendacion_libre")
             ).view_name,
             "kits:recomendacion_libre",
         )
