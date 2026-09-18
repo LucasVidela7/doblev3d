@@ -95,6 +95,115 @@ class ListadoRecomendacionesKitTests(TestCase):
         )
         self.assertFalse(recomendacion["alerta"])
 
+    def test_listado_protegido_evalua_precio_sobre_opciones_incluidas(self):
+        incluido = self.producto(
+            "Incluido protegido listado",
+            100,
+            margen=50,
+        )
+        self.producto(
+            "Premium protegido listado",
+            2000,
+            margen=70,
+        )
+        kit = Kit.objects.create(
+            nombre="Kit protegido listado",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=2,
+            precio=Decimal("1000"),
+            proteger_rentabilidad_libre=True,
+            activo=True,
+        )
+
+        respuesta = self.client.get(
+            reverse("kits:lista")
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        kit_listado = next(
+            item
+            for item in respuesta.context["kits"]
+            if item.id == kit.id
+        )
+
+        self.assertTrue(
+            kit_listado.recomendacion_sobre_incluidos
+        )
+        self.assertFalse(
+            kit_listado.alerta_proteccion_sin_incluidos
+        )
+        self.assertIn(
+            incluido.id,
+            {
+                item["producto_id"]
+                for item in kit_listado.opciones_libres_analisis[
+                    "incluidos"
+                ]
+            },
+        )
+        self.assertGreaterEqual(
+            kit_listado.opciones_libres_analisis[
+                "cantidad_premium"
+            ],
+            1,
+        )
+        self.assertNotEqual(
+            kit_listado.recomendacion_calculadora["estado"],
+            "REVISAR",
+        )
+        self.assertContains(
+            respuesta,
+            "PROTECCIÓN ACTIVA",
+        )
+        self.assertContains(
+            respuesta,
+            "PREMIUM + EXTRA",
+        )
+        self.assertContains(
+            respuesta,
+            "BASE · OPCIONES INCLUIDAS",
+        )
+        self.assertNotContains(
+            respuesta,
+            "⚠ REVISAR PRECIO",
+        )
+
+    def test_listado_protegido_alerta_si_no_hay_opciones_incluidas(self):
+        self.producto(
+            "Premium único A",
+            2000,
+            margen=70,
+        )
+        self.producto(
+            "Premium único B",
+            2500,
+            margen=70,
+        )
+        Kit.objects.create(
+            nombre="Kit sin base incluida",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=2,
+            precio=Decimal("100"),
+            proteger_rentabilidad_libre=True,
+            activo=True,
+        )
+
+        respuesta = self.client.get(
+            reverse("kits:lista")
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(
+            respuesta,
+            "⚠ SIN OPCIONES INCLUIDAS",
+        )
+        self.assertContains(
+            respuesta,
+            "el precio base no incluye ninguna opción",
+        )
+
     def test_listado_muestra_tres_escenarios_y_no_formula_vieja(self):
         producto_a = self.producto("Producto A", 500, 65)
         self.producto("Producto B", 1000, 70)
