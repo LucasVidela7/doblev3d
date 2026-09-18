@@ -241,3 +241,101 @@ class CatalogoPublicoTests(TestCase):
             response,
             "https://example.com/prod-pina.jpg",
         )
+
+
+    def test_catalogo_kit_tiene_enlace_a_detalle_publico(self):
+        response = self.client.get(reverse("catalogo"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            reverse("catalogo_kit_detalle", args=[self.kit.id]),
+        )
+        self.assertContains(response, "VER DETALLE")
+
+    def test_detalle_publico_kit_libre_muestra_incluidos_antes_de_adicionales(self):
+        ConfiguracionCostos.objects.create(
+            nombre="Costos detalle catálogo",
+            coste_plastico_kg=Decimal("1000"),
+            tasa_fallos=Decimal("0"),
+            coste_luz_hora=Decimal("0"),
+            coste_amortizacion_hora=Decimal("0"),
+            fecha_desde=date(2026, 1, 1),
+            activa=True,
+        )
+        incluido = Producto.objects.create(
+            nombre="A Opción incluida detalle",
+            categoria="PRODUCTO",
+            tipo=self.tipo,
+            peso_gramos=Decimal("100"),
+            margen_ganancia=Decimal("50"),
+            requiere_impresion=True,
+            activo=True,
+            solo_produccion=False,
+        )
+        premium = Producto.objects.create(
+            nombre="Z Opción adicional detalle",
+            categoria="PRODUCTO",
+            tipo=self.tipo,
+            peso_gramos=Decimal("2000"),
+            margen_ganancia=Decimal("70"),
+            requiere_impresion=True,
+            activo=True,
+            solo_produccion=False,
+        )
+        kit = Kit.objects.create(
+            nombre="Kit público detalle",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=2,
+            precio=Decimal("1000"),
+            proteger_rentabilidad_libre=True,
+            activo=True,
+        )
+
+        response = self.client.get(
+            reverse("catalogo_kit_detalle", args=[kit.id])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "OPCIONES INCLUIDAS")
+        self.assertContains(response, "OPCIONES CON ADICIONAL")
+        self.assertEqual(
+            response.context["seleccionables"][0]["producto_id"],
+            incluido.id,
+        )
+        self.assertEqual(
+            response.context["adicionales"][0]["producto_id"],
+            premium.id,
+        )
+        self.assertGreater(
+            response.context["adicionales"][0]["extra"],
+            Decimal("0"),
+        )
+
+        contenido = response.content.decode()
+        self.assertLess(
+            contenido.index(incluido.nombre),
+            contenido.index(premium.nombre),
+        )
+        self.assertIn("ADICIONAL +$", contenido)
+
+    def test_detalle_publico_no_expone_kit_inactivo(self):
+        self.kit.activo = False
+        self.kit.save(update_fields=["activo"])
+
+        response = self.client.get(
+            reverse("catalogo_kit_detalle", args=[self.kit.id])
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_detalle_publico_kit_fijo_muestra_composicion(self):
+        response = self.client.get(
+            reverse("catalogo_kit_detalle", args=[self.kit.id])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "COMPOSICIÓN DEL KIT")
+        self.assertContains(response, self.producto.nombre)
+        self.assertContains(response, "1 unidad")
