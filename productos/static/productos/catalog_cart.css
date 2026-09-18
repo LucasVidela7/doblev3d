@@ -104,7 +104,7 @@
 }
 @keyframes dvCartSpin{to{transform:rotate(360deg)}}
 .dv-kit-cart-panel{
-    display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;
+    display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:12px;align-items:center;
     margin-top:13px;padding:14px;border:1px solid #dfe5ef;border-radius:18px;background:#fff;
     box-shadow:0 6px 20px rgba(19,74,154,.05)
 }
@@ -122,4 +122,9 @@
     .dv-cart-drawer{width:100%}
     .dv-kit-cart-panel{grid-template-columns:1fr 1fr}.dv-kit-cart-status{grid-column:1/-1}.dv-kit-cart-add{grid-column:1/-1;min-height:46px}
     .dv-kit-cart-price{text-align:left}
+}
+
+.dv-kit-option-actions{display:grid;gap:7px;justify-items:end;align-items:center}
+@media(max-width:560px){
+    .dv-kit-option-actions{grid-column:2;justify-items:start}
 }
