@@ -17,6 +17,8 @@
     let loadingTimer = null;
     let pricingTimer = null;
     let pricingSequence = 0;
+    let lockedScrollY = 0;
+    let bodyWasLocked = false;
 
     const escapeHtml = (value) =>
         String(value ?? '').replace(/[&<>"']/g, (char) => ({
@@ -465,6 +467,7 @@
                 if (qty && item) {
                     qty.textContent = String(item.qty || 1);
                 }
+                control.classList.add('is-ready');
             });
     };
 
@@ -473,8 +476,49 @@
         syncKitControl(items);
     };
 
+    const shouldLockBody = () =>
+        window.matchMedia('(max-width: 640px)').matches;
+
+    const lockBodyScroll = () => {
+        if (!shouldLockBody() || bodyWasLocked) return;
+
+        lockedScrollY = window.scrollY || window.pageYOffset || 0;
+        bodyWasLocked = true;
+
+        document.body.style.position = 'fixed';
+        document.body.style.top = '-' + lockedScrollY + 'px';
+        document.body.style.left = '0';
+        document.body.style.right = '0';
+        document.body.style.width = '100%';
+        document.documentElement.style.overflow = 'hidden';
+    };
+
+    const unlockBodyScroll = () => {
+        if (!bodyWasLocked) return;
+
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.width = '';
+        document.documentElement.style.overflow = '';
+
+        bodyWasLocked = false;
+        window.scrollTo(0, lockedScrollY);
+    };
+
+    const emitVisibility = (openState) => {
+        document.dispatchEvent(
+            new CustomEvent('dv-cart-visibility', {
+                detail: { open: Boolean(openState) },
+            }),
+        );
+    };
+
     const open = () => {
         document.documentElement.classList.add('dv-cart-open');
+        lockBodyScroll();
+        emitVisibility(true);
         skeleton();
         window.clearTimeout(loadingTimer);
         loadingTimer = window.setTimeout(render, 180);
@@ -483,6 +527,8 @@
 
     const close = () => {
         document.documentElement.classList.remove('dv-cart-open');
+        unlockBodyScroll();
+        emitVisibility(false);
     };
 
     document.addEventListener('click', (event) => {
@@ -568,6 +614,17 @@
 
     overlay?.addEventListener('click', close);
 
+    window.addEventListener('resize', () => {
+        if (!document.documentElement.classList.contains('dv-cart-open')) {
+            return;
+        }
+        if (shouldLockBody()) {
+            lockBodyScroll();
+        } else {
+            unlockBodyScroll();
+        }
+    });
+
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') close();
     });
@@ -640,6 +697,8 @@
 
             if (addButton) addButton.hidden = Boolean(item);
             if (addedStepper) addedStepper.hidden = !item;
+            config.querySelector('[data-dv-kit-cart-action]')
+                ?.classList.add('is-ready');
             if (addedQty && item) {
                 addedQty.textContent = String(item.qty || 1);
             }

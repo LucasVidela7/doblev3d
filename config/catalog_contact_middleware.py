@@ -10,32 +10,48 @@ CONTACT_STYLE = r"""
 .dv-catalog-contact{
     position:fixed;
     right:clamp(14px,2vw,24px);
-    bottom:calc(86px + env(safe-area-inset-bottom, 0px));
+    bottom:calc(82px + env(safe-area-inset-bottom, 0px));
     z-index:80;
     display:flex;
     flex-direction:column;
-    align-items:flex-end;
-    gap:10px;
-    pointer-events:none;
+    align-items:center;
+    gap:4px;
+    padding:6px;
+    border:1px solid rgba(19,74,154,.12);
+    border-radius:999px;
+    background:rgba(255,255,255,.94);
+    box-shadow:0 12px 30px rgba(14,31,58,.16);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    transform:translateZ(0);
+    backface-visibility:hidden;
+    contain:layout paint;
+    pointer-events:auto;
 }
 .dv-catalog-contact__link{
-    width:56px;
-    height:56px;
+    width:44px;
+    height:44px;
     display:inline-flex;
     align-items:center;
     justify-content:center;
+    flex:0 0 auto;
     border:0;
     border-radius:50%;
     color:#fff;
     text-decoration:none;
-    box-shadow:0 10px 28px rgba(14,31,58,.20);
-    transition:transform .18s ease,box-shadow .18s ease,filter .18s ease;
+    box-shadow:none;
+    transition:filter .16s ease,background .16s ease;
     -webkit-tap-highlight-color:transparent;
     pointer-events:auto;
 }
+button.dv-catalog-contact__link{
+    padding:0;
+    font:inherit;
+    cursor:pointer;
+}
 .dv-catalog-contact__link svg{
-    width:27px;
-    height:27px;
+    width:23px;
+    height:23px;
     flex:0 0 auto;
     fill:none;
     stroke:currentColor;
@@ -48,6 +64,21 @@ CONTACT_STYLE = r"""
 }
 .dv-catalog-contact__link--whatsapp{
     background:#25d366;
+}
+.dv-catalog-contact__help{
+    background:#eef4ff;
+    color:#134a9a;
+    font-size:1.02rem;
+    font-weight:950;
+}
+.dv-catalog-contact__help[hidden]{
+    display:none!important;
+}
+.dv-catalog-contact__separator{
+    width:26px;
+    height:1px;
+    margin:1px 0;
+    background:#e4e9f1;
 }
 .dv-catalog-contact__label{
     position:absolute!important;
@@ -62,28 +93,27 @@ CONTACT_STYLE = r"""
 }
 @media(hover:hover){
     .dv-catalog-contact__link:hover{
-        transform:translateY(-2px) scale(1.035);
-        box-shadow:0 14px 34px rgba(14,31,58,.25);
-        filter:saturate(1.06);
+        filter:saturate(1.08) brightness(.98);
     }
 }
 .dv-catalog-contact__link:focus-visible{
     outline:3px solid rgba(19,74,154,.30);
-    outline-offset:3px;
+    outline-offset:2px;
 }
 @media(max-width:640px){
     .dv-catalog-contact{
         right:12px;
-        bottom:calc(72px + env(safe-area-inset-bottom, 0px));
-        gap:8px;
+        bottom:calc(70px + env(safe-area-inset-bottom, 0px));
+        gap:3px;
+        padding:5px;
     }
     .dv-catalog-contact__link{
-        width:50px;
-        height:50px;
+        width:42px;
+        height:42px;
     }
     .dv-catalog-contact__link svg{
-        width:24px;
-        height:24px;
+        width:22px;
+        height:22px;
     }
 }
 </style>

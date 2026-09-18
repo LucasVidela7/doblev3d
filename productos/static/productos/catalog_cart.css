@@ -18,10 +18,16 @@
     font:inherit;
     font-size:.8rem;
     font-weight:900;
-    transition:width .24s ease,min-width .24s ease,padding .24s ease,transform .18s ease,box-shadow .18s ease;
+    transition:width .24s ease,min-width .24s ease,padding .24s ease,box-shadow .18s ease;
     overflow:visible;
+    transform:translateZ(0);
+    backface-visibility:hidden;
+    will-change:width;
+    contain:layout paint;
 }
-.dv-cart-fab:hover{transform:translateY(-2px);box-shadow:0 19px 38px rgba(19,74,154,.34)}
+@media(hover:hover){
+    .dv-cart-fab:hover{transform:translate3d(0,-2px,0);box-shadow:0 19px 38px rgba(19,74,154,.34)}
+}
 .dv-cart-fab svg{width:23px;height:23px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .dv-cart-fab__label{max-width:74px;opacity:1;overflow:hidden;white-space:nowrap;transition:max-width .22s ease,opacity .18s ease}
 .dv-cart-fab.is-compact{width:56px;min-width:56px;height:56px;padding:0;justify-content:center;gap:0}
@@ -63,7 +69,7 @@
     width:39px;height:39px;display:grid;place-items:center;border:1px solid #dfe5ef;border-radius:50%;
     background:#fff;color:#40506a;cursor:pointer;font-size:1.25rem
 }
-.dv-cart-body{min-height:0;overflow:auto;padding:14px}
+.dv-cart-body{min-height:0;overflow:auto;padding:14px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}
 .dv-cart-items{display:grid;gap:10px}
 .dv-cart-item{
     display:grid;grid-template-columns:66px minmax(0,1fr);gap:11px;padding:10px;
@@ -110,6 +116,12 @@
 }
 .dv-cart-toast.is-show{opacity:1;transform:translate(-50%,0)}
 .dv-cart-card-control,.dv-kit-cart-action{display:flex;align-items:center;justify-content:flex-end;min-width:104px}
+.dv-cart-card-control:not(.is-ready) > *,
+.dv-kit-cart-action:not(.is-ready) > *{visibility:hidden}
+.dv-cart-card-control.is-ready > *,
+.dv-kit-cart-action.is-ready > *{visibility:visible}
+.dv-cart-add-btn[hidden],
+.dv-kit-cart-add[hidden]{display:none!important}
 .dv-cart-add-btn,.dv-kit-cart-add{
     min-height:38px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;
     border:0;border-radius:12px;background:#134a9a;color:#fff;cursor:pointer;font:inherit;font-size:.76rem;font-weight:900
@@ -202,3 +214,13 @@
 }
 
 .dv-kit-cart-panel.is-in-cart .dv-kit-qty{display:none}
+
+html.dv-cart-open,
+html.dv-cart-open body{
+    overflow:hidden!important;
+    overscroll-behavior:none;
+}
+html.dv-cart-open .dv-cart-body{
+    overscroll-behavior:contain;
+    touch-action:pan-y;
+}
