@@ -122,10 +122,10 @@ DASHBOARD_MENU_HEAD = r"""
 .dv-dashboard-menu{
     position:fixed;
     z-index:150;
-    top:58px;
-    right:16px;
-    bottom:96px;
-    width:260px;
+    top:22px;
+    right:18px;
+    bottom:104px;
+    width:272px;
     display:flex;
     flex-direction:column;
     overflow:hidden;
@@ -257,11 +257,32 @@ html.dv-dashboard-menu-open{
 
 @media(min-width:1180px){
     body.dv-dashboard-menu-ready{
-        padding-right:292px!important;
+        padding-right:308px!important;
     }
 
     body.dv-dashboard-menu-ready .contenedor{
-        width:min(1180px,100%)!important;
+        width:min(1420px,calc(100% - 36px))!important;
+        max-width:none!important;
+        margin-left:auto!important;
+        margin-right:auto!important;
+    }
+
+    .dv-dashboard-menu{
+        border-radius:22px;
+        box-shadow:0 16px 44px rgba(20,25,35,.11);
+    }
+
+    .dv-dashboard-menu__header{
+        padding:18px 16px 14px;
+    }
+
+    .dv-dashboard-menu__links{
+        padding:10px;
+    }
+
+    .dv-dashboard-menu__link{
+        min-height:56px;
+        border-radius:13px;
     }
 }
 
