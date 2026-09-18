@@ -2,6 +2,7 @@ from collections import defaultdict
 
 from django.shortcuts import render
 
+from kits.economia import analizar_opciones_kit
 from kits.imagenes import adjuntar_imagenes_reutilizadas
 from kits.models import Kit
 
@@ -80,6 +81,23 @@ def catalogo(request):
         }
         if len(tipos) == 1 and componentes:
             kit.tipo_producto = componentes[0].producto.tipo
+
+    for kit in kits:
+        if kit.modalidad == "LIBRE_CATEGORIA":
+            analisis = analizar_opciones_kit(
+                kit,
+                productos_categoria=productos_por_tipo.get(
+                    kit.tipo_producto_id,
+                    [],
+                ),
+            )
+            kit.opciones_libres_analisis = analisis
+            kit.catalogo_opciones_incluidas = analisis["incluidos"]
+            kit.catalogo_opciones_premium = analisis["premium"]
+            kit.catalogo_busqueda_productos = " ".join(
+                item["nombre"]
+                for item in analisis["opciones"]
+            )
 
     adjuntar_imagenes_reutilizadas(
         kits,
