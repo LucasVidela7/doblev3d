@@ -4,6 +4,7 @@ from django.urls import include, path
 
 from productos.catalogo import catalogo, catalogo_kit_detalle
 from productos.catalogo_contacto import catalogo_contacto
+from productos.carrito import carrito_checkout, carrito_gracias
 
 
 urlpatterns = [
@@ -26,6 +27,18 @@ urlpatterns = [
         "kits/<int:kit_id>/",
         catalogo_kit_detalle,
         name="catalogo_kit_detalle",
+    ),
+
+    # Carrito y solicitud pública de presupuesto.
+    path(
+        "carrito/",
+        carrito_checkout,
+        name="catalogo_carrito",
+    ),
+    path(
+        "carrito/gracias/",
+        carrito_gracias,
+        name="catalogo_carrito_gracias",
     ),
 
     # Los enlaces sociales pasan por el sistema para registrar el click antes
