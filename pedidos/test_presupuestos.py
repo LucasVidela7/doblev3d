@@ -85,6 +85,27 @@ class PresupuestosTests(TestCase):
             },
         )
 
+    def test_nuevo_presupuesto_carga_menu_y_tema_global(self):
+        respuesta = self.client.get(
+            reverse("pedidos:nuevo")
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        contenido = respuesta.content.decode()
+        self.assertIn('id="dvManagementMenu"', contenido)
+        self.assertRegex(
+            contenido,
+            r"/static/shared/management_menu(?:\.[0-9a-f]+)?\.css",
+        )
+        self.assertRegex(
+            contenido,
+            r"/static/shared/theme(?:\.[0-9a-f]+)?\.css",
+        )
+        self.assertIn(
+            'id="dv-pedido-form-style"',
+            contenido,
+        )
+
     def test_nuevo_crea_presupuesto_y_no_pedido(self):
         respuesta = self._crear_presupuesto()
 
