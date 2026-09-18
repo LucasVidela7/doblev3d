@@ -666,7 +666,7 @@
                                             </span>
                                             {% if kit.opciones_libres_analisis.cantidad_premium %}
                                                 <span class="mini premium">
-                                                    {{ kit.opciones_libres_analisis.cantidad_premium }} premium
+                                                    {{ kit.opciones_libres_analisis.cantidad_premium }} con adicional
                                                     · desde +$ {{ kit.opciones_libres_analisis.extra_minimo|floatformat:"0g" }}
                                                 </span>
                                             {% endif %}
@@ -674,7 +674,7 @@
 
                                         {% if kit.opciones_libres_analisis.cantidad_premium %}
                                             <div class="kit-note">
-                                                Algunas opciones premium tienen un adicional según el producto elegido.
+                                                Algunas opciones tienen un adicional según el producto elegido.
                                             </div>
                                         {% endif %}
                                     {% elif not kit.proteger_rentabilidad_libre %}
