@@ -176,7 +176,7 @@ class PedidoFormLookFeelMiddleware:
 
         resolver = getattr(request, "resolver_match", None)
         view_name = resolver.view_name if resolver else ""
-        if view_name not in {"pedidos:nuevo", "pedidos:editar"}:
+        if view_name not in {"pedidos:nuevo", "pedidos:editar", "pedidos:presupuesto_editar"}:
             return response
 
         try:
