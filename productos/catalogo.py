@@ -94,6 +94,13 @@ def catalogo(request):
             kit.opciones_libres_analisis = analisis
             kit.catalogo_opciones_incluidas = analisis["incluidos"]
             kit.catalogo_opciones_premium = analisis["premium"]
+            kit.catalogo_productos_visuales = [
+                item["producto"]
+                for item in (
+                    analisis["incluidos"]
+                    + analisis["premium"]
+                )
+            ]
             kit.catalogo_busqueda_productos = " ".join(
                 item["nombre"]
                 for item in analisis["opciones"]
