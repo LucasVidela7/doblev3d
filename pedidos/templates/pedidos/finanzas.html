@@ -2062,32 +2062,7 @@
 </div>
 
 
-<nav class="nav-inferior">
-    <a href="{% url 'dashboard:inicio' %}" class="nav-item">
-        <span>⌂</span>
-        <span>INICIO</span>
-    </a>
-
-    <a href="{% url 'pedidos:impresiones' %}" class="nav-item">
-        <span>📦</span>
-        <span>PEDIDOS</span>
-    </a>
-
-    <a href="{% url 'pedidos:nuevo' %}" class="nav-item">
-        <span>＋</span>
-        <span>NUEVO</span>
-    </a>
-
-    <a href="{% url 'produccion:lista' %}" class="nav-item">
-        <span>⚙</span>
-        <span>PRODUCCIÓN</span>
-    </a>
-
-    <a href="{% url 'productos:lista' %}" class="nav-item">
-        <span>▤</span>
-        <span>PRODUCTOS</span>
-    </a>
-</nav>
+{% include "shared/navigation.html" %}
 
 
 <script>
