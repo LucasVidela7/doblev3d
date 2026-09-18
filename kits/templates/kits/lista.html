@@ -24,6 +24,7 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
 .card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.card-titulo{min-width:0}.nombre{font-size:17px;font-weight:900}.meta{margin-top:4px;color:var(--muted);font-size:10px}.badges{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px}.badge{display:inline-flex;padding:6px 9px;border-radius:999px;background:#eef0f3;font-size:9px;font-weight:900}.badge-ok{background:var(--verde);color:var(--verde-t)}.badge-alerta{background:var(--rojo);color:var(--rojo-t)}.badge-advertencia{background:var(--amarillo);color:var(--amarillo-t)}.badge-estimado{background:var(--azul);color:var(--azul-t)}
 .kit-fotos{margin-top:11px;padding:10px;border:1px solid #e7e9ed;border-radius:13px;background:#fff}.kit-fotos-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:8px}.kit-fotos-head b{font-size:9px}.kit-fotos-head span{font-size:8px;color:var(--muted)}.kit-fotos-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:3px;scrollbar-width:thin}.kit-foto{flex:0 0 116px;min-width:0}.kit-foto-media{position:relative;aspect-ratio:4/3;border-radius:10px;overflow:hidden;border:1px solid #e4e7eb;background:#f0f2f4}.kit-foto-media img{width:100%;height:100%;object-fit:cover;display:block}.kit-foto-vacia{width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:8px;text-align:center;color:#959aa1;font-size:8px;font-weight:900}.kit-foto-info{padding:6px 2px 0}.kit-foto-nombre{font-size:9px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kit-foto-meta{margin-top:2px;color:var(--muted);font-size:8px;font-weight:800}.kit-foto-extra{flex:0 0 88px;display:flex;align-items:center;justify-content:center;min-height:87px;border:1px dashed #cdd2d8;border-radius:10px;background:#f8f9fa;color:#697079;font-size:9px;font-weight:900;text-align:center;padding:8px}
 .composicion{margin-top:11px;padding:10px;border-radius:12px;background:#f7f8fa}.fila{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:10px}
+.fila-premium strong{color:#7a5212}.fila-ok strong{color:#26653c}.proteccion-aviso{margin-top:8px;padding:9px 10px;border-radius:10px;background:#fff3cf;color:#745900;font-size:9px;line-height:1.4}
 .resumen{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:11px}.dato{padding:10px;border-radius:10px;background:#fafafa;border:1px solid #eceef1;min-width:0}.dato b{display:block;font-size:8px;color:var(--muted);margin-bottom:4px;letter-spacing:.25px}.dato span{display:block;font-size:13px;font-weight:900}.dato small{display:block;margin-top:4px;color:var(--muted);font-size:8px;line-height:1.35}
 .escenarios{margin-top:11px}.escenarios-titulo{display:flex;justify-content:space-between;gap:10px;align-items:end;margin-bottom:7px}.escenarios-titulo b{font-size:9px}.escenarios-titulo span{color:var(--muted);font-size:8px}.escenarios-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.escenario{padding:11px;border:1px solid #e1e4e8;border-radius:11px;background:#fafbfc;min-width:0}.escenario.recomendado{border-color:#acd3b8;background:#f2faf5}.escenario.conservador{background:#fffaf1}.escenario-nombre{color:#686e76;font-size:8px;font-weight:900}.escenario-precio{margin-top:5px;font-size:18px;font-weight:900}.escenario-margen{margin-top:5px;color:#646a72;font-size:8px;line-height:1.35}.escenario.recomendado .escenario-nombre{color:#26653c}
 .aviso-precio{margin-top:11px;padding:12px;border-radius:12px;font-size:10px;line-height:1.45}.aviso-precio.alerta{background:var(--rojo);color:var(--rojo-t)}.aviso-precio.advertencia{background:var(--amarillo);color:var(--amarillo-t)}.aviso-precio strong{display:block;margin-bottom:4px;font-size:10px}.aviso-referencia{margin-top:6px;font-weight:900}.nota-estimacion{margin-top:9px;color:var(--muted);font-size:9px;line-height:1.45}.vacio{text-align:center;padding:40px 15px;color:var(--muted)}
@@ -136,6 +137,38 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                             <span>El cliente elige</span>
                             <strong>{{ kit.cantidad_productos }} productos</strong>
                         </div>
+                        <div class="fila {% if kit.proteger_rentabilidad_libre %}fila-ok{% endif %}">
+                            <span>Protección de rentabilidad</span>
+                            <strong>{% if kit.proteger_rentabilidad_libre %}ACTIVA{% else %}DESACTIVADA{% endif %}</strong>
+                        </div>
+                        {% if kit.opciones_libres_analisis.disponible %}
+                            {% if kit.proteger_rentabilidad_libre %}
+                                <div class="fila fila-ok">
+                                    <span>Opciones incluidas</span>
+                                    <strong>{{ kit.opciones_libres_analisis.cantidad_incluidos }}</strong>
+                                </div>
+                                <div class="fila {% if kit.opciones_libres_analisis.cantidad_premium %}fila-premium{% endif %}">
+                                    <span>Premium con extra</span>
+                                    <strong>
+                                        {{ kit.opciones_libres_analisis.cantidad_premium }}
+                                        {% if kit.opciones_libres_analisis.extra_minimo %}
+                                            · desde ${{ kit.opciones_libres_analisis.extra_minimo|floatformat:"0g" }}
+                                        {% endif %}
+                                    </strong>
+                                </div>
+                            {% else %}
+                                <div class="fila">
+                                    <span>Opciones incluidas</span>
+                                    <strong>{{ kit.opciones_libres_analisis.cantidad_incluidos }}</strong>
+                                </div>
+                                {% if kit.opciones_libres_analisis.cantidad_requieren_extra %}
+                                    <div class="proteccion-aviso">
+                                        ⚠ {{ kit.opciones_libres_analisis.cantidad_requieren_extra }} opciones quedarían como premium si activaras la protección.
+                                        Extra sugerido desde ${{ kit.opciones_libres_analisis.extra_sugerido_minimo|floatformat:"0g" }}.
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
                     </div>
                 {% endif %}
 
@@ -252,7 +285,12 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
 
                 {% if kit.modalidad == "LIBRE_CATEGORIA" %}
                     <div class="nota-estimacion">
-                        En los kits libres el margen depende de qué productos elija el cliente. Por eso se muestran el margen promedio y el peor caso para cada escenario.
+                        En los kits libres el margen depende de qué productos elija el cliente.
+                        {% if kit.proteger_rentabilidad_libre %}
+                            Las opciones premium suman un extra automático para sostener el escenario Agresivo de la calculadora.
+                        {% else %}
+                            La protección está desactivada: todos los productos de la categoría se venden al precio base del kit.
+                        {% endif %}
                     </div>
                 {% endif %}
             </div>
