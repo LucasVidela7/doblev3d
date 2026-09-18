@@ -40,7 +40,7 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
     <div class="header">
         <div class="encabezado-marca">{% include 'shared/brand_bar.html' %}
             <h1>Kits</h1>
-            <div class="sub">Estado económico, cobertura del precio base y opciones premium.</div>
+            <div class="sub">Estado económico, cobertura del precio base y opciones con adicional.</div>
         </div>
         <div class="acciones">
             <a class="btn" href="{% url 'dashboard:inicio' %}">← VOLVER</a>
@@ -72,7 +72,7 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                                 {% endif %}
                                 <span class="badge badge-proteccion">✓ PROTECCIÓN ACTIVA</span>
                                 {% if kit.opciones_libres_analisis.cantidad_premium %}
-                                    <span class="badge badge-premium">{{ kit.opciones_libres_analisis.cantidad_premium }} PREMIUM + EXTRA</span>
+                                    <span class="badge badge-premium">{{ kit.opciones_libres_analisis.cantidad_premium }} CON ADICIONAL</span>
                                 {% endif %}
                                 <span class="badge badge-estimado">PRECIO MODULAR</span>
                             {% else %}
@@ -119,7 +119,7 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                                                 <div class="kit-foto-estado incluida">✓ INCLUIDA</div>
                                             {% else %}
                                                 <div class="kit-foto-estado premium">
-                                                    PREMIUM{% if visual.extra %} +&#36;{{ visual.extra|floatformat:"0g" }}{% endif %}
+                                                    CON ADICIONAL{% if visual.extra %} +&#36;{{ visual.extra|floatformat:"0g" }}{% endif %}
                                                 </div>
                                             {% endif %}
                                         {% endif %}
@@ -139,7 +139,7 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                                                 {% if visual.incluido %}
                                                     INCLUIDA EN EL PRECIO
                                                 {% else %}
-                                                    PREMIUM{% if visual.extra %} · +&#36;{{ visual.extra|floatformat:"0g" }}{% endif %}
+                                                    CON ADICIONAL{% if visual.extra %} · +&#36;{{ visual.extra|floatformat:"0g" }}{% endif %}
                                                 {% endif %}
                                             {% else %}
                                                 OPCIÓN
@@ -187,7 +187,7 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                                     <strong>{{ kit.opciones_libres_analisis.cantidad_incluidos }}</strong>
                                 </div>
                                 <div class="fila {% if kit.opciones_libres_analisis.cantidad_premium %}fila-premium{% endif %}">
-                                    <span>Premium con extra</span>
+                                    <span>Opciones con adicional</span>
                                     <strong>
                                         {{ kit.opciones_libres_analisis.cantidad_premium }}
                                         {% if kit.opciones_libres_analisis.extra_minimo %}
@@ -202,7 +202,7 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                                 </div>
                                 {% if kit.opciones_libres_analisis.cantidad_requieren_extra %}
                                     <div class="proteccion-aviso">
-                                        ⚠ {{ kit.opciones_libres_analisis.cantidad_requieren_extra }} opciones quedarían como premium si activaras la protección.
+                                        ⚠ {{ kit.opciones_libres_analisis.cantidad_requieren_extra }} opciones tendrían adicional si activaras la protección.
                                         Extra sugerido desde ${{ kit.opciones_libres_analisis.extra_sugerido_minimo|floatformat:"0g" }}.
                                     </div>
                                 {% endif %}
@@ -219,7 +219,7 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                             <small>
                                 {{ kit.opciones_libres_analisis.cantidad_incluidos }} incluidas
                                 {% if kit.opciones_libres_analisis.cantidad_premium %}
-                                    · {{ kit.opciones_libres_analisis.cantidad_premium }} premium con extra
+                                    · {{ kit.opciones_libres_analisis.cantidad_premium }} con adicional
                                 {% endif %}
                             </small>
                         {% elif reco.disponible %}
@@ -290,7 +290,7 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                             <b>REFERENCIAS DE PRECIO</b>
                             <span>
                                 {% if kit.recomendacion_sobre_incluidos %}
-                                    Referencias sobre las opciones incluidas; los premium se cobran aparte.
+                                    Referencias sobre las opciones incluidas; las opciones con adicional se cobran aparte.
                                 {% else %}
                                     Conservador es una referencia opcional; Recomendado es el objetivo principal.
                                 {% endif %}
@@ -343,7 +343,7 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                 {% elif kit.modalidad == "LIBRE_CATEGORIA" and kit.proteger_rentabilidad_libre %}
                     <div class="aviso-precio protegido">
                         <strong>✓ Precio modular protegido.</strong>
-                        El precio base define las opciones incluidas y cada producto premium suma su adicional.
+                        El precio base define las opciones incluidas y cada producto con adicional suma su importe correspondiente.
                         No se muestra un precio recomendado único porque cambiar la base también cambia la cobertura del kit.
                     </div>
                 {% elif not reco.disponible %}
@@ -375,7 +375,7 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                     <div class="nota-estimacion">
                         En los kits libres el margen depende de qué productos elija el cliente.
                         {% if kit.proteger_rentabilidad_libre %}
-                            El precio base define la cobertura de opciones incluidas; las premium suman su extra automático.
+                            El precio base define la cobertura de opciones incluidas; las opciones con adicional suman su importe automático.
                         {% else %}
                             La protección está desactivada: todos los productos de la categoría se venden al precio base del kit.
                         {% endif %}
