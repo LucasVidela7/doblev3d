@@ -618,7 +618,7 @@ class ProductImagesUIMiddleware:
             }
             script = EDIT_PHOTOS_SCRIPT.replace(
                 "__CONFIG__",
-                json.dumps(config, ensure_ascii=False).replace("</", "<\/"),
+                json.dumps(config, ensure_ascii=False).replace("</", "<\\/"),
             )
             if "dv-edit-product-photos-script" not in contenido and "</body>" in contenido:
                 contenido = contenido.replace("</body>", script + "\n</body>", 1)
