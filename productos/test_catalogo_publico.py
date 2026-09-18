@@ -165,10 +165,10 @@ class CatalogoPublicoTests(TestCase):
         self.assertGreaterEqual(analisis["cantidad_incluidos"], 1)
         self.assertGreaterEqual(analisis["cantidad_premium"], 1)
         self.assertContains(response, "opciones incluidas")
-        self.assertContains(response, "premium")
+        self.assertContains(response, "con adicional")
         self.assertContains(
             response,
-            "Algunas opciones premium tienen un adicional",
+            "Algunas opciones tienen un adicional",
         )
         self.assertIn(
             incluido.id,
