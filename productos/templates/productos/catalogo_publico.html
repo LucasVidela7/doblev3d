@@ -445,6 +445,12 @@
             color: #79500f;
         }
 
+        .mini.libre {
+            background: var(--brand-blue-soft);
+            color: var(--brand-blue-strong);
+            font-weight: 800;
+        }
+
         .kit-note {
             margin: -7px 0 15px;
             padding: 9px 10px;
@@ -671,6 +677,18 @@
                                                 Algunas opciones premium tienen un adicional según el producto elegido.
                                             </div>
                                         {% endif %}
+                                    {% elif not kit.proteger_rentabilidad_libre %}
+                                        <div class="mini-list">
+                                            <span class="mini libre">✓ Libre elección</span>
+                                            {% if kit.opciones_libres_analisis.disponible %}
+                                                <span class="mini">
+                                                    {{ kit.opciones_libres_analisis.cantidad_incluidos }} opciones disponibles
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="kit-note">
+                                            Elegí cualquiera de las opciones disponibles sin restricciones ni adicionales.
+                                        </div>
                                     {% endif %}
                                 {% endif %}
 
