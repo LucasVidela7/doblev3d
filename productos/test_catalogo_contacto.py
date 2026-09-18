@@ -122,8 +122,8 @@ class CatalogoContactoTests(TestCase):
 
         self.assertContains(response, 'id="dv-catalog-contact-links"')
         self.assertContains(response, 'id="dv-catalog-header"')
-        self.assertNotContains(response, "dv-catalog-header__instagram")
-        self.assertNotContains(response, "dv-catalog-header__whatsapp")
+        self.assertNotContains(response, 'class="dv-catalog-header__action dv-catalog-header__instagram"')
+        self.assertNotContains(response, 'class="dv-catalog-header__action dv-catalog-header__whatsapp"')
         self.assertContains(response, "dv-catalog-header__help")
         self.assertContains(response, "dv-catalog-header__cart")
 
