@@ -228,12 +228,20 @@ class PlanificacionDesdeImpresionesTests(TestCase):
         self.assertIn(self.producto.id, ids)
         self.assertNotIn(pieza.id, ids)
 
-    def test_pagina_inyecta_planificacion_rapida_y_cantidad_libre(self):
+    def test_impresiones_por_producto_redirige_a_planificacion(self):
         respuesta = self.client.get(
             reverse("pedidos:impresiones_productos")
         )
-        self.assertEqual(respuesta.status_code, 200)
-        self.assertContains(respuesta, "dv-planificar-productos-script")
-        self.assertContains(respuesta, "PLANIFICAR ESTÁNDAR")
-        self.assertContains(respuesta, "dv-planificador-libre-script")
-        self.assertContains(respuesta, "Cantidad libre")
+        self.assertEqual(respuesta.status_code, 302)
+        self.assertEqual(
+            respuesta.url,
+            reverse("produccion:lista"),
+        )
+
+        planificacion = self.client.get(
+            reverse("produccion:lista")
+        )
+        self.assertEqual(planificacion.status_code, 200)
+        self.assertContains(planificacion, "Necesidad de impresión")
+        self.assertContains(planificacion, "PLANIFICAR ESTE PRODUCTO")
+        self.assertContains(planificacion, "Cantidad")
