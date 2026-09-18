@@ -29,8 +29,9 @@ class EnvironmentVisualMiddlewareTests(SimpleTestCase):
         html = response.content.decode("utf-8")
 
         self.assertIn('data-dv-env="qa"', html)
-        self.assertIn('id="dv-qa-banner"', html)
-        self.assertIn("ENTORNO DE PRUEBAS", html)
+        self.assertNotIn('data-dv-env="qa"', html)
+        self.assertIn('content:"QA"', html)
+        self.assertIn("bottom:calc(92px", html)
         self.assertIn("[QA] Doble V 3D", html)
         self.assertIn('id="dv-qa-favicon"', html)
         self.assertIn('id="dv-qa-environment-style"', html)
@@ -68,6 +69,6 @@ class EnvironmentVisualMiddlewareTests(SimpleTestCase):
         segunda = middleware(object())
         html_segunda = segunda.content.decode("utf-8")
 
-        self.assertEqual(html_segunda.count('id="dv-qa-banner"'), 1)
+        self.assertEqual(html_segunda.count('data-dv-env="qa"'), 1)
         self.assertEqual(html_segunda.count('id="dv-qa-environment-style"'), 1)
         self.assertEqual(html_segunda.count("[QA] Doble V 3D"), 1)
