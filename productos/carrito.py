@@ -9,18 +9,27 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db import transaction
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
+from calculadora.precios import calcular_escenarios_producto
 from kits.economia import precio_automatico_kit_libre
 from kits.models import Kit
+from pedidos.kits_volumen import calcular_precio_volumen_kits
 from pedidos.models import (
     SolicitudWeb,
     SolicitudWebItem,
     SolicitudWebKitProducto,
 )
-from productos.models import Producto
+from productos.models import ConfiguracionCatalogo, Producto
+from productos.whatsapp import (
+    renderizar_mensaje_solicitud,
+    whatsapp_url,
+)
 
 
 MAX_LINEAS = 20
@@ -128,6 +137,7 @@ def _validar_carrito(payload):
 
             lineas.append(
                 {
+                    "key": str(bruto.get("key") or f"producto-{producto.id}"),
                     "tipo": "PRODUCTO",
                     "cantidad": cantidad,
                     "producto": producto,
@@ -250,6 +260,7 @@ def _validar_carrito(payload):
 
             lineas.append(
                 {
+                    "key": str(bruto.get("key") or f"kit-{kit.id}-{indice}"),
                     "tipo": "KIT",
                     "cantidad": cantidad,
                     "producto": None,
@@ -274,6 +285,210 @@ def _validar_carrito(payload):
         )
 
     return lineas
+
+
+def _aplicar_descuentos_carrito(lineas):
+    """
+    Reutiliza las reglas comerciales existentes.
+
+    - Productos: usa el escenario recomendado de la calculadora para la
+      cantidad elegida, sin subir nunca el precio publicado.
+    - Kits: usa la lógica de volumen actual, que se activa desde 5 kits
+      totales y puede combinar kits distintos.
+    """
+    for linea in lineas:
+        precio_lista_unitario = (
+            _decimal(linea["precio_base"])
+            + _decimal(linea["adicional"])
+        )
+        linea["precio_lista_unitario"] = precio_lista_unitario
+        linea["precio_unitario"] = precio_lista_unitario
+        linea["ahorro_total"] = Decimal("0")
+        linea["descuento_porcentaje"] = Decimal("0")
+
+    for linea in lineas:
+        if linea["tipo"] != "PRODUCTO":
+            continue
+
+        cantidad = int(linea["cantidad"])
+        precio_lista_unitario = linea["precio_lista_unitario"]
+        precio_lista_total = (
+            precio_lista_unitario * Decimal(cantidad)
+        )
+
+        if cantidad <= 1:
+            continue
+
+        calculo = calcular_escenarios_producto(
+            linea["producto"],
+            cantidad,
+        )
+        recomendado = _decimal(
+            calculo["escenarios"]["recomendado"]["total_recomendado"]
+        )
+        precio_final_total = min(
+            precio_lista_total,
+            recomendado if recomendado > 0 else precio_lista_total,
+        )
+
+        precio_unitario = (
+            precio_final_total / Decimal(cantidad)
+        ).quantize(Decimal("0.01"))
+        precio_final_total = precio_unitario * Decimal(cantidad)
+        ahorro = max(
+            precio_lista_total - precio_final_total,
+            Decimal("0"),
+        )
+
+        linea["precio_unitario"] = precio_unitario
+        linea["ahorro_total"] = ahorro
+        linea["descuento_porcentaje"] = (
+            (
+                ahorro
+                / precio_lista_total
+                * Decimal("100")
+            ).quantize(Decimal("0.1"))
+            if precio_lista_total > 0
+            else Decimal("0")
+        )
+
+    lineas_kits = [
+        linea
+        for linea in lineas
+        if linea["tipo"] == "KIT"
+    ]
+
+    if lineas_kits:
+        ids_componentes = {
+            producto_id
+            for linea in lineas_kits
+            for producto_id in linea["componentes"]
+        }
+        productos_componentes = {
+            producto.id: producto
+            for producto in Producto.objects.filter(
+                id__in=ids_componentes
+            )
+        }
+
+        items = []
+        for linea in lineas_kits:
+            componentes = []
+            for producto_id, cantidad in linea["componentes"].items():
+                producto = productos_componentes.get(producto_id)
+                if not producto:
+                    continue
+                componentes.append(
+                    {
+                        "producto": producto,
+                        "cantidad": cantidad,
+                    }
+                )
+
+            items.append(
+                {
+                    "key": linea["key"],
+                    "kit": linea["kit"],
+                    "cantidad": linea["cantidad"],
+                    "precio_unitario_lista": linea[
+                        "precio_lista_unitario"
+                    ],
+                    "componentes": componentes,
+                }
+            )
+
+        resumen = calcular_precio_volumen_kits(items)
+        por_key = {
+            str(item["key"]): item
+            for item in resumen["lineas"]
+        }
+
+        for linea in lineas_kits:
+            calculada = por_key.get(str(linea["key"]))
+            if not calculada:
+                continue
+            linea["precio_unitario"] = _decimal(
+                calculada["precio_unitario_final"]
+            )
+            linea["ahorro_total"] = _decimal(
+                calculada["ahorro"]
+            )
+            linea["descuento_porcentaje"] = _decimal(
+                calculada["descuento_porcentaje"]
+            )
+
+    return lineas
+
+
+def _resumen_precios_carrito(lineas):
+    total_lista = Decimal("0")
+    total_final = Decimal("0")
+    resultado = []
+
+    for linea in lineas:
+        cantidad = Decimal(int(linea["cantidad"]))
+        lista_unitaria = _decimal(linea["precio_lista_unitario"])
+        final_unitaria = _decimal(linea["precio_unitario"])
+        lista_total = lista_unitaria * cantidad
+        final_total = final_unitaria * cantidad
+        ahorro = max(lista_total - final_total, Decimal("0"))
+
+        total_lista += lista_total
+        total_final += final_total
+
+        resultado.append(
+            {
+                "key": str(linea["key"]),
+                "tipo": linea["tipo"],
+                "cantidad": int(linea["cantidad"]),
+                "precio_lista_unitario": float(lista_unitaria),
+                "precio_unitario": float(final_unitaria),
+                "precio_lista_total": float(lista_total),
+                "precio_final_total": float(final_total),
+                "ahorro": float(ahorro),
+                "descuento_porcentaje": float(
+                    linea["descuento_porcentaje"]
+                ),
+            }
+        )
+
+    return {
+        "lineas": resultado,
+        "precio_lista_total": float(total_lista),
+        "precio_final_total": float(total_final),
+        "ahorro": float(max(total_lista - total_final, Decimal("0"))),
+    }
+
+
+@csrf_exempt
+@require_POST
+@never_cache
+def carrito_precios(request):
+    if len(request.body or b"") > MAX_PAYLOAD_BYTES:
+        return JsonResponse(
+            {"ok": False, "mensaje": "El carrito es demasiado grande."},
+            status=400,
+        )
+
+    try:
+        payload = json.loads(request.body or b"[]")
+        lineas = _validar_carrito(payload)
+        _aplicar_descuentos_carrito(lineas)
+    except (TypeError, ValueError, json.JSONDecodeError) as error:
+        return JsonResponse(
+            {
+                "ok": False,
+                "mensaje": str(error) or "No pudimos recalcular el carrito.",
+            },
+            status=400,
+        )
+
+    return JsonResponse(
+        {
+            "ok": True,
+            **_resumen_precios_carrito(lineas),
+        }
+    )
 
 
 def _fingerprint(telefono, lineas):
@@ -402,6 +617,7 @@ def carrito_checkout(request):
             request.POST.get("cart_payload", "")
         )
         lineas = _validar_carrito(payload)
+        _aplicar_descuentos_carrito(lineas)
     except ValueError as error:
         return render(
             request,
@@ -507,14 +723,31 @@ def carrito_gracias(request):
             solicitud = (
                 SolicitudWeb.objects
                 .filter(id=solicitud_id)
-                .prefetch_related("items")
+                .prefetch_related(
+                    "items__productos_kit__producto",
+                    "items__producto",
+                    "items__kit",
+                )
                 .first()
             )
+
+    whatsapp_confirmacion_url = ""
+    if solicitud:
+        config = ConfiguracionCatalogo.objects.first() or ConfiguracionCatalogo()
+        mensaje = renderizar_mensaje_solicitud(
+            config.whatsapp_mensaje_post_solicitud,
+            solicitud,
+        )
+        whatsapp_confirmacion_url = whatsapp_url(
+            config.whatsapp_numero,
+            mensaje,
+        )
 
     return render(
         request,
         "productos/catalogo_gracias.html",
         {
             "solicitud": solicitud,
+            "whatsapp_confirmacion_url": whatsapp_confirmacion_url,
         },
     )
