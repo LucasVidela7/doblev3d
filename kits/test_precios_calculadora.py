@@ -325,6 +325,45 @@ class PreciosKitCalculadoraTests(TestCase):
             Decimal(data["escenarios"]["recomendado"]["precio"]),
         )
 
+    def test_api_libre_clasifica_incluidos_y_premium_por_precio(self):
+        economico = self.crear_producto(
+            "Incluido API libre",
+            100,
+            45,
+        )
+        premium = self.crear_producto(
+            "Premium API libre",
+            2000,
+            70,
+        )
+
+        respuesta = self.client.post(
+            reverse("kits:recomendacion_libre"),
+            data={
+                "tipo_producto": str(self.tipo.id),
+                "cantidad": "2",
+                "precio": "1000",
+                "proteger_rentabilidad": "1",
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        data = respuesta.json()
+        opciones = {
+            item["id"]: item
+            for item in data["opciones_rentabilidad"]["opciones"]
+        }
+
+        self.assertTrue(
+            data["opciones_rentabilidad"]["proteger_rentabilidad"]
+        )
+        self.assertTrue(opciones[economico.id]["incluido"])
+        self.assertFalse(opciones[premium.id]["incluido"])
+        self.assertGreater(
+            Decimal(opciones[premium.id]["extra"]),
+            Decimal("0"),
+        )
+
     def test_nuevo_y_editar_cargan_interfaz_de_tres_escenarios(self):
         kit = Kit.objects.create(
             nombre="Kit edición escenarios",
