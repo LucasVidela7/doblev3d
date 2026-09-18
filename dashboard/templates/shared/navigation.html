@@ -137,6 +137,20 @@
             </span>
         </a>
     </nav>
+
+    <div class="dv-management-menu__settings" aria-label="Apariencia">
+        <div class="dv-management-menu__settings-copy">
+            <span class="dv-management-menu__settings-title">Apariencia</span>
+            <span class="dv-management-menu__settings-hint">Tema de la interfaz</span>
+        </div>
+        <label class="dv-theme-control" title="Cambiar tema">
+            <span class="dv-theme-icon" aria-hidden="true">☀</span>
+            <input id="dvThemeToggle" type="checkbox" role="switch" aria-label="Cambiar a modo oscuro">
+            <span class="dv-theme-track" aria-hidden="true"></span>
+            <span class="dv-theme-icon" aria-hidden="true">☾</span>
+            <span id="dvThemeText">CLARO</span>
+        </label>
+    </div>
 </aside>
 
 <div
@@ -145,15 +159,27 @@
     aria-hidden="true"
 ></div>
 
+<div
+    id="dvPageLoader"
+    class="dv-page-loader"
+    aria-hidden="true"
+    aria-live="polite"
+>
+    <div class="dv-page-loader__card" role="status">
+        <img
+            class="dv-page-loader__logo"
+            src="{% static 'brand/logo.png' %}"
+            alt=""
+            width="96"
+            height="74"
+        >
+        <span class="dv-page-loader__text">Cargando</span>
+        <span class="dv-page-loader__bar" aria-hidden="true"><span></span></span>
+    </div>
+</div>
+
 <div class="dv-global-nav-spacer" aria-hidden="true"></div>
 <nav class="dv-global-nav" aria-label="Navegación principal">
-    <label class="dv-theme-control" title="Cambiar tema">
-        <span class="dv-theme-icon" aria-hidden="true">☀</span>
-        <input id="dvThemeToggle" type="checkbox" role="switch" aria-label="Cambiar a modo oscuro">
-        <span class="dv-theme-track" aria-hidden="true"></span>
-        <span class="dv-theme-icon" aria-hidden="true">☾</span>
-        <span id="dvThemeText">CLARO</span>
-    </label>
     <a
         href="{% url 'dashboard:inicio' %}"
         class="dv-global-nav-item {% if request.resolver_match.namespace == 'dashboard' %}is-active{% endif %}"

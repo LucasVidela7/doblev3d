@@ -43,21 +43,78 @@
         }
     }
 
-    aplicarTema(leerTema(),false);
+    function mostrarLoader(){
+        const loader=document.getElementById("dvPageLoader");
+        if(!loader) return;
+        loader.classList.add("is-visible");
+        loader.setAttribute("aria-hidden","false");
+    }
+
+    function ocultarLoader(){
+        const loader=document.getElementById("dvPageLoader");
+        if(!loader) return;
+        loader.classList.remove("is-visible");
+        loader.setAttribute("aria-hidden","true");
+    }
+
+    function esNavegacionInterna(link){
+        if(!link || !link.href) return false;
+        if(link.target && link.target.toLowerCase()==="_blank") return false;
+        if(link.hasAttribute("download")) return false;
+
+        const raw=link.getAttribute("href")||"";
+        if(!raw || raw.startsWith("#")) return false;
+        if(/^(mailto:|tel:|javascript:)/i.test(raw)) return false;
+
+        let destino;
+        try{
+            destino=new URL(link.href,window.location.href);
+        }catch(error){
+            return false;
+        }
+
+        if(destino.origin!==window.location.origin) return false;
+
+        const mismoDocumento=
+            destino.pathname===window.location.pathname &&
+            destino.search===window.location.search &&
+            destino.hash;
+
+        return !mismoDocumento;
+    }
 
     function conectar(){
         const check=document.getElementById("dvThemeToggle");
-        if(!check) return;
-
         aplicarTema(leerTema(),false);
 
-        check.addEventListener("change",function(){
-            aplicarTema(
-                check.checked?"dark":"light",
-                true
-            );
-        });
+        if(check){
+            check.addEventListener("change",function(){
+                aplicarTema(
+                    check.checked?"dark":"light",
+                    true
+                );
+            });
+        }
+
+        document.addEventListener("click",function(event){
+            if(event.defaultPrevented) return;
+            if(event.button!==0) return;
+            if(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+            const link=event.target.closest("a[href]");
+            if(esNavegacionInterna(link)){
+                mostrarLoader();
+            }
+        },true);
+
+        document.addEventListener("submit",function(){
+            mostrarLoader();
+        },true);
+
+        window.addEventListener("pageshow",ocultarLoader);
     }
+
+    aplicarTema(leerTema(),false);
 
     if(document.readyState==="loading"){
         document.addEventListener("DOMContentLoaded",conectar);

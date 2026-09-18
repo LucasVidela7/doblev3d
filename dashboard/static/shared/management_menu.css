@@ -64,6 +64,7 @@
 }
 
 .dv-management-menu__links{
+    flex:1 1 auto;
     min-height:0;
     overflow-y:auto;
     padding:10px;
@@ -95,7 +96,7 @@
 .dv-management-menu__link.is-active{
     border-color:rgba(19,74,154,.22);
     background:var(--dv-brand-blue-soft,#eef4ff);
-    color:var(--dv-brand-blue-strong,#0d376f);
+    color:var(--dv-accent-blue-text,#0d376f);
 }
 
 .dv-management-menu__link.is-primary{
@@ -149,6 +150,39 @@
 
 .dv-management-menu__link.is-primary .dv-management-menu__description{
     color:rgba(255,255,255,.8);
+}
+
+.dv-management-menu__settings{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:11px 12px 12px;
+    border-top:1px solid var(--dv-border,#dfe5ef);
+    background:var(--dv-surface-soft,#f8faff);
+}
+
+.dv-management-menu__settings-copy{
+    min-width:0;
+}
+
+.dv-management-menu__settings-title,
+.dv-management-menu__settings-hint{
+    display:block;
+}
+
+.dv-management-menu__settings-title{
+    color:var(--dv-text,#17233a);
+    font-size:10px;
+    font-weight:900;
+}
+
+.dv-management-menu__settings-hint{
+    margin-top:2px;
+    color:var(--dv-muted,#667085);
+    font-size:8px;
+    font-weight:700;
 }
 
 .dv-management-menu-toggle{
@@ -256,7 +290,11 @@ html.dv-management-menu-open{
     }
 
     .dv-management-menu__links{
-        padding:10px 11px 110px;
+        padding:10px 11px;
+    }
+
+    .dv-management-menu__settings{
+        padding:12px max(13px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) 13px;
     }
 
     .dv-management-menu__link{
@@ -300,4 +338,8 @@ html[data-dv-theme="dark"] .dv-management-menu{
 
 html[data-dv-theme="dark"] .dv-management-menu__link.is-active .dv-management-menu__icon{
     background:var(--dv-surface,#171e2c);
+}
+
+html[data-dv-theme="dark"] .dv-management-menu__settings{
+    background:var(--dv-surface-soft,#1b2434);
 }
