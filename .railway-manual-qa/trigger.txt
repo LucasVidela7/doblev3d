@@ -1,3 +1,3 @@
-Deploy QA: detalle público de kits en catálogo
-Base: 886238f96010cb6f7e834bc8be29d15043ecf4a7
-Corrige: detalle removido de Gestión y agregado al catálogo público
+Deploy QA: modal como comprar y entregas informativas
+Base: 55bbcac96cacee8f1bb46c2a7fa286a75620b93c
+Incluye: flujo de pedido, correo, motomensajería y retiro coordinado
