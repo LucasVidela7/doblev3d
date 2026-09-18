@@ -5,6 +5,10 @@ Este middleware agrega una capa común sin duplicar formularios: precio acordado
 para KIT, jerarquía visual, estados automático/manual y mejoras responsive.
 """
 
+import json
+
+from django.urls import reverse
+
 
 PEDIDO_FORM_STYLE = r"""
 <style id="dv-pedido-form-style">
@@ -296,7 +300,11 @@ PEDIDO_FORM_SCRIPT = r"""
         if (!key) return null;
         if (cacheKits.has(key)) return cacheKits.get(key);
 
-        const promesa = fetch(`/pedidos/api/kit/${encodeURIComponent(key)}/productos/`, {
+        const url = __KIT_PRODUCTOS_ENDPOINT__.replace(
+            "999999",
+            encodeURIComponent(key)
+        );
+        const promesa = fetch(url, {
             headers:{'X-Requested-With':'XMLHttpRequest'}
         }).then(function(respuesta){
             if (!respuesta.ok) throw new Error('No se pudo cargar el kit.');
@@ -608,6 +616,16 @@ PEDIDO_FORM_SCRIPT = r"""
 """
 
 
+def _pedido_form_script():
+    endpoint = json.dumps(
+        reverse("pedidos:productos_kit", args=[999999])
+    )
+    return PEDIDO_FORM_SCRIPT.replace(
+        "__KIT_PRODUCTOS_ENDPOINT__",
+        endpoint,
+    )
+
+
 class PedidoFormUIMiddleware:
     """Inyecta UX común sólo en los formularios Nuevo/Editar Pedido."""
 
@@ -643,7 +661,7 @@ class PedidoFormUIMiddleware:
         if "dv-pedido-form-script" not in html and "</body>" in html:
             html = html.replace(
                 "</body>",
-                PEDIDO_FORM_SCRIPT + "\n</body>",
+                _pedido_form_script() + "\n</body>",
                 1,
             )
 
