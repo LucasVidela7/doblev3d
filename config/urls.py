@@ -4,7 +4,7 @@ from django.urls import include, path
 
 from productos.catalogo import catalogo, catalogo_kit_detalle
 from productos.catalogo_contacto import catalogo_contacto
-from productos.carrito import carrito_checkout, carrito_gracias
+from productos.carrito import carrito_checkout, carrito_gracias, carrito_precios
 
 
 urlpatterns = [
@@ -34,6 +34,11 @@ urlpatterns = [
         "carrito/",
         carrito_checkout,
         name="catalogo_carrito",
+    ),
+    path(
+        "carrito/precios/",
+        carrito_precios,
+        name="catalogo_carrito_precios",
     ),
     path(
         "carrito/gracias/",
