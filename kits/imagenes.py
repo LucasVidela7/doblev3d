@@ -25,9 +25,14 @@ def adjuntar_imagenes_reutilizadas(kits, productos_por_tipo=None):
                 for componente in kit.componentes.all()
             )
         elif kit.tipo_producto_id:
+            productos_libres = getattr(
+                kit,
+                "catalogo_productos_visuales",
+                productos_por_tipo.get(kit.tipo_producto_id, []),
+            )
             ids_productos.update(
                 producto.id
-                for producto in productos_por_tipo.get(kit.tipo_producto_id, [])
+                for producto in productos_libres
             )
 
     imagenes_principales = {
@@ -62,7 +67,12 @@ def adjuntar_imagenes_reutilizadas(kits, productos_por_tipo=None):
                     }
                 )
         else:
-            for producto in productos_por_tipo.get(kit.tipo_producto_id, []):
+            productos_libres = getattr(
+                kit,
+                "catalogo_productos_visuales",
+                productos_por_tipo.get(kit.tipo_producto_id, []),
+            )
+            for producto in productos_libres:
                 imagen = imagenes_principales.get(producto.id)
                 visuales.append(
                     {
