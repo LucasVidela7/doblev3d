@@ -84,7 +84,8 @@ class SolicitudesWebGestionTests(TestCase):
             )
         )
         self.assertEqual(detail.status_code, 200)
-        self.assertContains(detail, "CONVERTIR EN PRESUPUESTO")
+        self.assertContains(detail, "Convertir en presupuesto")
+        self.assertContains(detail, "Enviar WhatsApp con el detalle")
         self.assertContains(detail, self.producto.nombre)
 
     def test_convertir_crea_cliente_y_presupuesto_sin_crear_pedido(self):
@@ -109,7 +110,12 @@ class SolicitudesWebGestionTests(TestCase):
         detalle = presupuesto.detalles.get()
         self.assertEqual(detalle.producto, self.producto)
         self.assertEqual(detalle.cantidad, 2)
-        self.assertEqual(detalle.precio_unitario, self.producto.subtotal)
+        item_web = self.solicitud.items.get()
+        self.assertEqual(detalle.precio_unitario, item_web.precio_unitario)
+        self.assertEqual(
+            detalle.precio_lista_unitario,
+            self.producto.subtotal,
+        )
 
         cliente = Cliente.objects.get(id=presupuesto.cliente_id)
         self.assertEqual(cliente.nombre, "Cliente desde web")
