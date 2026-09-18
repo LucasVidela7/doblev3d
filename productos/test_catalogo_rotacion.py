@@ -74,6 +74,6 @@ class CatalogoRotacionFotosTests(TestCase):
         response = self.client.get(reverse("catalogo"))
         html = response.content.decode()
 
-        self.assertIn(".catalog-item[data-kind=\"kit\"] .media", html)
+        self.assertIn("const kitCards = [...document.querySelectorAll", html)
         self.assertIn("buildRotator(media, slides)", html)
         self.assertIn("media.querySelectorAll(':scope > img, :scope > .kit-collage')", html)
