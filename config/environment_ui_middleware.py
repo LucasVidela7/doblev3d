@@ -399,6 +399,14 @@ DASHBOARD_MENU_SCRIPT = r"""
             link.href = origen.href;
             link.className = 'dv-dashboard-menu__link' + (origen.classList.contains('accion-principal') ? ' dv-dashboard-menu__link--principal' : '');
 
+            if (origen.id === 'dv-dashboard-kits') {
+                link.id = 'dv-dashboard-kits';
+                link.setAttribute('data-dv-menu', 'kits');
+                if (origen.classList.contains('dv-kits-alerta')) {
+                    link.classList.add('dv-kits-alerta');
+                }
+            }
+
             var icono = document.createElement('span');
             icono.className = 'dv-dashboard-menu__icon';
             icono.textContent = texto(origen,'.accion-icono') || '•';
