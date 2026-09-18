@@ -181,6 +181,13 @@ def _header_insertado(contenido):
     return f'id="{HEADER_ID}"' in contenido
 
 
+# Compatibilidad con CatalogGridMiddleware, que históricamente reutiliza
+# estos helpers para evitar duplicar la UI del catálogo.
+CONTACT_STYLE = HEADER_STYLE
+_contactos_html = _header_html
+_contactos_insertados = _header_insertado
+
+
 class CatalogContactMiddleware:
     """Agrega un header fijo y común a todas las pantallas públicas del catálogo."""
 
