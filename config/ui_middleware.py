@@ -143,9 +143,14 @@ DASHBOARD_KITS_STYLE = r"""
 #dv-dashboard-kits.dv-kits-alerta{
     border-color:#e7bcbc;
 }
-#dv-dashboard-kits.dv-kits-alerta .accion-icono{
+#dv-dashboard-kits.dv-kits-alerta .accion-icono,
+#dv-dashboard-kits.dv-kits-alerta .dv-dashboard-menu__icon{
     background:#fde5e5;
     color:#913434;
+}
+#dv-dashboard-kits.dv-dashboard-menu__link.dv-kits-alerta{
+    border:1px solid #e7bcbc;
+    background:#fff8f8;
 }
 #dv-dashboard-kits .dv-kits-aviso{
     margin-top:5px;
@@ -288,25 +293,39 @@ def _dashboard_kits_html(total_kits, kits_alerta):
             f'<div class="dv-kits-aviso">⚠ {kits_alerta} '
             f'{"kit" if kits_alerta == 1 else "kits"} con precio para revisar</div>'
         )
+        detalle_alerta = (
+            f' ⚠ {kits_alerta} '
+            f'{"kit" if kits_alerta == 1 else "kits"} con precio para revisar.'
+        )
     else:
         aviso = ""
+        detalle_alerta = ""
 
     descripcion = (
         f"{total_kits} "
         f'{"kit activo" if total_kits == 1 else "kits activos"}. '
         "Crear, editar y revisar rentabilidad."
+        f"{detalle_alerta}"
     )
 
     return f"""
 <script id="dv-dashboard-kits-script">
 (function(){{
-    function agregarKits(){{
-        var acciones = document.querySelector('.acciones');
-        if (!acciones || document.getElementById('dv-dashboard-kits')) return;
+    var kitsUrl = {json.dumps(kits_url)};
+
+    function existeEnMenu(contenedor){{
+        var destino = new URL(kitsUrl, window.location.origin).pathname;
+        return Array.from(contenedor.querySelectorAll('a')).some(function(link){{
+            return link.pathname === destino;
+        }});
+    }}
+
+    function crearEnAcciones(acciones){{
+        if (document.getElementById('dv-dashboard-kits')) return true;
 
         var enlace = document.createElement('a');
         enlace.id = 'dv-dashboard-kits';
-        enlace.href = {json.dumps(kits_url)};
+        enlace.href = kitsUrl;
         enlace.className = 'accion{clase_alerta}';
         enlace.innerHTML = `
             <div class="accion-icono">🧰</div>
@@ -317,17 +336,70 @@ def _dashboard_kits_html(total_kits, kits_alerta):
             </div>
         `;
         acciones.appendChild(enlace);
+        return true;
+    }}
+
+    function crearEnMenu(contenedor){{
+        if (existeEnMenu(contenedor)) return true;
+
+        var enlace = document.createElement('a');
+        enlace.id = 'dv-dashboard-kits';
+        enlace.href = kitsUrl;
+        enlace.className = 'dv-dashboard-menu__link{clase_alerta}';
+        enlace.setAttribute('data-dv-menu', 'kits');
+
+        var icono = document.createElement('span');
+        icono.className = 'dv-dashboard-menu__icon';
+        icono.textContent = '🧰';
+
+        var contenido = document.createElement('span');
+
+        var label = document.createElement('span');
+        label.className = 'dv-dashboard-menu__label';
+        label.textContent = 'Kits';
+        contenido.appendChild(label);
+
+        var descripcion = document.createElement('span');
+        descripcion.className = 'dv-dashboard-menu__description';
+        descripcion.textContent = {json.dumps(descripcion)};
+        contenido.appendChild(descripcion);
+
+        enlace.appendChild(icono);
+        enlace.appendChild(contenido);
+        contenedor.appendChild(enlace);
+        return true;
+    }}
+
+    function agregarKits(){{
+        var acciones = document.querySelector('.acciones');
+        if (acciones) return crearEnAcciones(acciones);
+
+        var menu = document.querySelector('.dv-dashboard-menu__links');
+        if (menu) return crearEnMenu(menu);
+
+        return false;
+    }}
+
+    function iniciar(){{
+        if (agregarKits()) return;
+
+        var intentos = 0;
+        var timer = window.setInterval(function(){{
+            intentos += 1;
+            if (agregarKits() || intentos >= 20){{
+                window.clearInterval(timer);
+            }}
+        }}, 50);
     }}
 
     if (document.readyState === 'loading') {{
-        document.addEventListener('DOMContentLoaded', agregarKits);
+        document.addEventListener('DOMContentLoaded', iniciar);
     }} else {{
-        agregarKits();
+        iniciar();
     }}
 }})();
 </script>
 """
-
 
 def _kit_economia_html(datos_kits):
     datos_json = json.dumps(
