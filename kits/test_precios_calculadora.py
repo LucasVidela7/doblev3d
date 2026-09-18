@@ -357,6 +357,10 @@ class PreciosKitCalculadoraTests(TestCase):
         self.assertTrue(
             data["opciones_rentabilidad"]["proteger_rentabilidad"]
         )
+        self.assertFalse(data["escenarios_visibles"])
+        self.assertTrue(data["escenarios_sobre_incluidos"])
+        self.assertFalse(data["sin_opciones_incluidas"])
+        self.assertEqual(data["productos_referencia"], 1)
         self.assertTrue(opciones[economico.id]["incluido"])
         self.assertFalse(opciones[premium.id]["incluido"])
         self.assertGreater(
