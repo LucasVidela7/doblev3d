@@ -304,7 +304,13 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                     </div>
                 {% endif %}
 
-                {% if not reco.disponible %}
+                {% if kit.alerta_proteccion_sin_incluidos %}
+                    <div class="aviso-precio alerta">
+                        <strong>⚠ La protección está activa, pero el precio base no incluye ninguna opción.</strong>
+                        Todos los productos de la categoría necesitan un adicional con el precio actual.
+                        Subí el precio base o revisá la cantidad de productos del kit.
+                    </div>
+                {% elif not reco.disponible %}
                     <div class="aviso-precio alerta">
                         <strong>⚠ No se pudo calcular una recomendación.</strong>
                         {{ reco.motivo }}
@@ -319,11 +325,21 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                     </div>
                 {% elif reco.estado == "ADVERTENCIA" %}
                     <div class="aviso-precio advertencia">
-                        <strong>● El precio es utilizable, pero está por debajo de Recomendado.</strong>
+                        <strong>
+                            ● El precio base es utilizable, pero está por debajo de Recomendado{% if kit.recomendacion_sobre_incluidos %} para las opciones incluidas{% endif %}.
+                        </strong>
                         {{ reco.motivo }}
                         <div class="aviso-referencia">
                             Actual ${{ kit.precio|floatformat:"0g" }} · Recomendado ${{ reco.precio_recomendado|floatformat:"0g" }}
                         </div>
+                    </div>
+                {% elif kit.recomendacion_sobre_incluidos %}
+                    <div class="aviso-precio protegido">
+                        <strong>✓ Precio base cubierto por la protección.</strong>
+                        Las opciones incluidas están dentro del rango recomendado.
+                        {% if kit.opciones_libres_analisis.cantidad_premium %}
+                            Las {{ kit.opciones_libres_analisis.cantidad_premium }} opciones premium se cobran con su adicional correspondiente.
+                        {% endif %}
                     </div>
                 {% endif %}
 
