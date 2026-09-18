@@ -527,20 +527,7 @@ def _marcar_html_qa(html):
 
 
 def _inyectar_menu_dashboard(html):
-    if "dv-dashboard-menu-style" not in html and "</head>" in html:
-        html = html.replace(
-            "</head>",
-            DASHBOARD_MENU_HEAD + "\n</head>",
-            1,
-        )
-
-    if "dv-dashboard-menu-script" not in html and "</body>" in html:
-        html = html.replace(
-            "</body>",
-            DASHBOARD_MENU_SCRIPT + "\n</body>",
-            1,
-        )
-
+    """Compatibilidad: el menú ahora vive en shared/navigation.html."""
     return html
 
 
