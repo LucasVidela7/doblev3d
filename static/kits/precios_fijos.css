@@ -89,6 +89,12 @@
     color:#26653c;
 }
 
+.dv-kit-precio-actual.critico{
+    border:1px solid #edb3b3;
+    background:#fff0f0;
+    color:#913434;
+}
+
 .dv-kit-base-protegida{
     margin-top:10px;
     padding:12px;
