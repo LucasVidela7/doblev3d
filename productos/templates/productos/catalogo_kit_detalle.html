@@ -397,7 +397,7 @@
                 </strong>
             </div>
             <div class="summary-card">
-                <span>{% if kit.modalidad == "FIJO" %}Piezas{% else %}Elegís{% endif %}</span>
+                <span>{% if kit.modalidad == "FIJO" %}Piezas por kit{% else %}Productos a elegir{% endif %}</span>
                 <strong>{{ kit.cantidad_productos }}</strong>
             </div>
             <div class="summary-card">
@@ -424,16 +424,17 @@
                     </span>
                 </div>
                 <div class="dv-kit-qty">
-                    <label for="dv-kit-qty">CANTIDAD</label>
+                    <label for="dv-kit-qty">CANTIDAD DE KITS</label>
                     <input id="dv-kit-qty" data-dv-kit-qty type="number" min="1" max="20" value="1" inputmode="numeric">
                 </div>
                 <div class="dv-kit-cart-price">
-                    <span>TOTAL</span>
+                    <span>TOTAL DE LISTA</span>
                     <strong data-dv-kit-total>$ {{ kit.precio|floatformat:"0g" }}</strong>
                 </div>
                 <button class="dv-kit-cart-add" type="button" data-dv-kit-add {% if kit.modalidad == "LIBRE_CATEGORIA" %}disabled{% endif %}>
                     AGREGAR AL CARRITO
                 </button>
+                <div class="dv-kit-cart-discount-note">El descuento por cantidad se calcula en el carrito.</div>
             </div>
         </section>
 
