@@ -8,6 +8,7 @@ from django.urls import resolve, reverse
 from costos.models import ConfiguracionCostos
 from productos.models import Producto, TipoProducto
 
+from .economia import analizar_opciones_kit, precio_automatico_kit_libre
 from .models import Kit, KitComponente
 
 
@@ -127,6 +128,97 @@ class AnalisisEconomicoKitTests(TestCase):
             analisis["precio_sugerido_minimo"],
             Decimal("1000"),
         )
+
+    def test_kit_libre_protegido_separa_incluidos_y_premium(self):
+        economico = self.crear_producto("Económico protegido", 100)
+        premium = self.crear_producto("Premium protegido", 1000)
+
+        kit = Kit.objects.create(
+            nombre="Kit libre protegido",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=2,
+            precio=Decimal("1000"),
+            proteger_rentabilidad_libre=True,
+            activo=True,
+        )
+
+        analisis = analizar_opciones_kit(
+            kit,
+            productos_categoria=[economico, premium],
+        )
+        por_id = {
+            item["producto_id"]: item
+            for item in analisis["opciones"]
+        }
+
+        self.assertTrue(analisis["disponible"])
+        self.assertTrue(por_id[economico.id]["incluido"])
+        self.assertEqual(por_id[economico.id]["extra"], Decimal("0"))
+        self.assertFalse(por_id[premium.id]["incluido"])
+        self.assertGreater(por_id[premium.id]["extra"], Decimal("0"))
+
+        precio = precio_automatico_kit_libre(
+            kit,
+            [economico, premium],
+        )
+        self.assertEqual(
+            precio,
+            kit.precio + por_id[premium.id]["extra"],
+        )
+
+    def test_kit_libre_sin_proteccion_incluye_toda_la_categoria(self):
+        economico = self.crear_producto("Económico libre", 100)
+        caro = self.crear_producto("Caro libre", 1000)
+
+        kit = Kit.objects.create(
+            nombre="Kit libre sin protección",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=2,
+            precio=Decimal("1000"),
+            proteger_rentabilidad_libre=False,
+            activo=True,
+        )
+
+        analisis = analizar_opciones_kit(
+            kit,
+            productos_categoria=[economico, caro],
+        )
+
+        self.assertEqual(analisis["cantidad_incluidos"], 2)
+        self.assertEqual(analisis["cantidad_premium"], 0)
+        self.assertGreaterEqual(
+            analisis["cantidad_requieren_extra"],
+            1,
+        )
+        self.assertEqual(
+            precio_automatico_kit_libre(
+                kit,
+                [economico, caro],
+            ),
+            kit.precio,
+        )
+
+    def test_formulario_guarda_proteccion_de_kit_libre(self):
+        self.crear_producto("Opción formulario", 100)
+
+        respuesta = self.client.post(
+            reverse("kits:nuevo"),
+            data={
+                "nombre": "Kit protegido formulario",
+                "modalidad": "LIBRE_CATEGORIA",
+                "tipo_producto": str(self.tipo.id),
+                "cantidad_productos": "2",
+                "precio": "9000",
+                "activo": "1",
+                "proteger_rentabilidad_libre": "1",
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 302)
+        kit = Kit.objects.get(nombre="Kit protegido formulario")
+        self.assertTrue(kit.proteger_rentabilidad_libre)
 
     def test_editar_kit_precarga_precio_valido_para_input_number(self):
         kit = Kit.objects.create(
