@@ -83,7 +83,11 @@
 
         payloadInput.value = JSON.stringify(minimalPayload(items));
 
-        if (!form.checkValidity()) return;
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            form.reportValidity();
+            return;
+        }
 
         if (loader) {
             loader.classList.add('is-visible');
