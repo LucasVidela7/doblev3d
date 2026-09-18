@@ -64,17 +64,33 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                         <div class="nombre">{{ kit.nombre }}</div>
                         <div class="meta">{{ kit.codigo }} · {{ kit.get_modalidad_display }}</div>
                         <div class="badges">
-                            {% if not reco.disponible %}
+                            {% if kit.alerta_proteccion_sin_incluidos %}
+                                <span class="badge badge-alerta">⚠ SIN OPCIONES INCLUIDAS</span>
+                            {% elif not reco.disponible %}
                                 <span class="badge badge-alerta">⚠ REVISAR DATOS</span>
                             {% elif reco.estado == "REVISAR" %}
                                 <span class="badge badge-alerta">⚠ REVISAR PRECIO</span>
                             {% elif reco.estado == "ADVERTENCIA" %}
-                                <span class="badge badge-advertencia">● BAJO RECOMENDADO</span>
+                                <span class="badge badge-advertencia">● BASE BAJO RECOMENDADO</span>
                             {% else %}
-                                <span class="badge badge-ok">✓ PRECIO OK</span>
+                                <span class="badge badge-ok">✓ PRECIO BASE OK</span>
                             {% endif %}
+
                             {% if kit.modalidad == "LIBRE_CATEGORIA" %}
-                                <span class="badge badge-estimado">CÁLCULO ESTIMADO</span>
+                                {% if kit.proteger_rentabilidad_libre %}
+                                    <span class="badge badge-proteccion">✓ PROTECCIÓN ACTIVA</span>
+                                    {% if kit.opciones_libres_analisis.cantidad_premium %}
+                                        <span class="badge badge-premium">{{ kit.opciones_libres_analisis.cantidad_premium }} PREMIUM + EXTRA</span>
+                                    {% endif %}
+                                {% elif kit.opciones_libres_analisis.cantidad_requieren_extra %}
+                                    <span class="badge badge-advertencia">⚠ PROTECCIÓN DESACTIVADA</span>
+                                {% else %}
+                                    <span class="badge">PROTECCIÓN DESACTIVADA</span>
+                                {% endif %}
+
+                                <span class="badge badge-estimado">
+                                    {% if kit.recomendacion_sobre_incluidos %}BASE · OPCIONES INCLUIDAS{% else %}CÁLCULO ESTIMADO{% endif %}
+                                </span>
                             {% else %}
                                 <span class="badge">CÁLCULO EXACTO</span>
                             {% endif %}
