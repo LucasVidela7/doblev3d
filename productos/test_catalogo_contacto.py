@@ -44,7 +44,8 @@ class CatalogoContactoTests(TestCase):
         self.assertContains(response, "dv-catalog-contact__link--instagram")
         self.assertContains(response, "dv-catalog-contact__link--whatsapp")
         self.assertContains(response, "position:fixed")
-        self.assertContains(response, "bottom:calc(86px")
+        self.assertContains(response, "bottom:calc(82px")
+        self.assertContains(response, "backdrop-filter:blur(10px)")
         self.assertContains(response, 'aria-label="Abrir Instagram @doblev3d"')
         self.assertContains(response, 'aria-label="Escribir por WhatsApp"')
 
