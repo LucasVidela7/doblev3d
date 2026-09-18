@@ -223,3 +223,24 @@ html.dv-cart-open .dv-cart-body{
     overscroll-behavior:contain;
     touch-action:pan-y;
 }
+
+.dv-cart-fab{display:none!important}
+.dv-kit-cart-panel--simple{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:8px;
+    padding:10px;
+}
+.dv-kit-cart-panel--simple .dv-kit-cart-action{
+    width:100%;
+    min-width:0;
+}
+.dv-kit-cart-panel--simple .dv-kit-cart-add{
+    width:100%;
+    min-height:46px;
+    border-radius:13px;
+    font-size:.82rem;
+}
+.dv-kit-cart-panel--simple .dv-kit-progress{
+    width:100%;
+}
