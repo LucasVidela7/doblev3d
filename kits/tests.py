@@ -192,7 +192,15 @@ class AnalisisEconomicoKitTests(TestCase):
             )
             self.assertContains(
                 respuesta,
-                "const MARGEN_MINIMO = 20;",
+                "kits/precios_fijos.js",
+            )
+            self.assertContains(
+                respuesta,
+                reverse("kits:recomendacion_fija"),
+            )
+            self.assertContains(
+                respuesta,
+                reverse("kits:recomendacion_libre"),
             )
 
     def test_ruta_de_kits_esta_expuesta(self):
