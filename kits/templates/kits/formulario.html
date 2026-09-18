@@ -28,6 +28,10 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
 .eliminar{min-height:49px;border:0;border-radius:10px;background:#f8dddd;color:#8a2929;font-weight:900}
 .agregar{width:100%;min-height:46px;border:2px dashed #c9cdd2;border-radius:12px;background:#fff;font-weight:900}
 .ayuda{font-size:9px;color:var(--muted);line-height:1.45;margin-top:7px}
+.proteccion-opcion{display:flex;align-items:flex-start;gap:10px;margin-top:12px;padding:12px;border:1px solid #d8e3db;border-radius:13px;background:#f7fbf8;cursor:pointer}
+.proteccion-opcion input{width:18px;height:18px;min-height:18px;margin:1px 0 0;flex:0 0 auto}
+.proteccion-opcion b{display:block;color:#285d3a;font-size:10px}
+.proteccion-opcion span{display:block;margin-top:4px;color:#68726c;font-size:9px;line-height:1.45}
 .guardar{width:100%;min-height:54px;border:0;border-radius:14px;background:var(--oscuro);color:#fff;font-weight:900}
 .oculto{display:none!important}
 .recomendacion{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;border-color:#d9e1db;background:#fbfdfb}
@@ -167,8 +171,32 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
                     >
                 </div>
             </div>
+
+            <label class="proteccion-opcion">
+                <input
+                    type="checkbox"
+                    name="proteger_rentabilidad_libre"
+                    id="proteger_rentabilidad_libre"
+                    value="1"
+                    onchange="actualizarRecomendacion()"
+                    {% if not kit or kit.proteger_rentabilidad_libre %}checked{% endif %}
+                >
+                <span>
+                    <b>PROTEGER RENTABILIDAD DE LAS OPCIONES</b>
+                    <span>
+                        Separa automáticamente los productos incluidos de los premium.
+                        Si una opción necesita más precio para sostener el escenario
+                        Agresivo de la calculadora, se ofrece con un extra.
+                        Desactivado: todos los productos de la categoría quedan incluidos
+                        al precio base.
+                    </span>
+                </span>
+            </label>
+
             <div class="ayuda">
-                La recomendación usa el costo promedio de la categoría para estimar y el producto más costoso como escenario conservador.
+                La recomendación general sigue comparando promedio y peor caso.
+                La protección usa el precio real del kit para decidir qué producto
+                entra sin adicional y cuánto extra corresponde a los demás.
             </div>
         </div>
 
