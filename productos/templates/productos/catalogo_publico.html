@@ -1,4 +1,5 @@
 {% load static %}
+{% load l10n %}
 <!doctype html>
 <html lang="es">
 <head>
@@ -623,6 +624,17 @@
                                             <span class="price">Consultar</span>
                                         {% endif %}
                                     </div>
+                                    {% if producto.catalogo_precio %}
+                                        <button
+                                            class="dv-cart-add-btn"
+                                            type="button"
+                                            data-dv-cart-product
+                                            data-product-id="{{ producto.id }}"
+                                            data-product-name="{{ producto.nombre }}"
+                                            data-product-price="{{ producto.catalogo_precio|unlocalize }}"
+                                            data-product-image="{% if producto.catalogo_imagen %}{{ producto.catalogo_imagen.url }}{% endif %}"
+                                        >AGREGAR</button>
+                                    {% endif %}
                                 </div>
                             </div>
                         </article>
@@ -881,6 +893,7 @@
             restoreFromUrl();
         })();
     </script>
+    {% include "productos/_catalogo_carrito.html" %}
     {% include "productos/_catalogo_como_comprar.html" %}
 </body>
 </html>
