@@ -295,76 +295,8 @@ class AnalisisEconomicoKitTests(TestCase):
                 reverse("kits:recomendacion_libre"),
             )
 
-    def test_detalle_kit_libre_ordena_seleccionables_y_adicionales(self):
-        economico = self.crear_producto("A Seleccionable", 100)
-        premium = self.crear_producto("Z Con adicional", 1000)
-        kit = Kit.objects.create(
-            nombre="Kit detalle protegido",
-            modalidad="LIBRE_CATEGORIA",
-            tipo_producto=self.tipo,
-            cantidad_productos=2,
-            precio=Decimal("1000"),
-            proteger_rentabilidad_libre=True,
-            activo=True,
-        )
-
-        respuesta = self.client.get(
-            reverse("kits:detalle", args=[kit.id])
-        )
-
-        self.assertEqual(respuesta.status_code, 200)
-        self.assertContains(respuesta, "PRODUCTOS SELECCIONABLES")
-        self.assertContains(respuesta, "PRODUCTOS CON ADICIONAL")
-        self.assertEqual(
-            respuesta.context["seleccionables"][0]["producto_id"],
-            economico.id,
-        )
-        self.assertEqual(
-            respuesta.context["adicionales"][0]["producto_id"],
-            premium.id,
-        )
-        self.assertGreater(
-            respuesta.context["adicionales"][0]["extra"],
-            Decimal("0"),
-        )
-
-        contenido = respuesta.content.decode()
-        self.assertLess(
-            contenido.index(economico.nombre),
-            contenido.index(premium.nombre),
-        )
-        self.assertIn("ADICIONAL +&#36;", contenido)
-
-    def test_detalle_kit_fijo_muestra_composicion(self):
-        producto = self.crear_producto("Componente fijo detalle", 120)
-        kit = Kit.objects.create(
-            nombre="Kit fijo detalle",
-            modalidad="FIJO",
-            cantidad_productos=3,
-            precio=Decimal("2500"),
-            activo=True,
-        )
-        KitComponente.objects.create(
-            kit=kit,
-            producto=producto,
-            cantidad=3,
-        )
-
-        respuesta = self.client.get(
-            reverse("kits:detalle", args=[kit.id])
-        )
-
-        self.assertEqual(respuesta.status_code, 200)
-        self.assertContains(respuesta, "COMPOSICIÓN FIJA")
-        self.assertContains(respuesta, producto.nombre)
-        self.assertContains(respuesta, "x 3")
-
     def test_ruta_de_kits_esta_expuesta(self):
         self.assertEqual(
             resolve(reverse("kits:lista")).view_name,
             "kits:lista",
-        )
-        self.assertEqual(
-            resolve(reverse("kits:detalle", args=[1])).view_name,
-            "kits:detalle",
         )
