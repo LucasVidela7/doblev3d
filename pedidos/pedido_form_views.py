@@ -7,6 +7,10 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from clientes.models import Cliente
+from kits.economia import (
+    analizar_opciones_kit,
+    precio_automatico_kit_libre,
+)
 from kits.models import Kit
 from productos.models import Producto
 
@@ -36,14 +40,18 @@ def _decimal_positivo(valor):
     return numero.quantize(CENTAVOS) if numero > 0 else Decimal("0")
 
 
-def _precio_kit_desde_post(request, indice, kit):
+def _precio_kit_desde_post(
+    request,
+    indice,
+    kit,
+    productos_libres=None,
+):
     """
     Devuelve (precio_unitario, es_manual).
 
-    El campo visible siempre puede mostrar un importe, pero sólo se considera
-    precio acordado cuando el navegador envía precio_kit_manual=1. De esa forma
-    un precio automático ya descontado que se abre en Editar Pedido no pasa a
-    ser manual accidentalmente sólo por ser distinto de kit.precio.
+    En kits libres el precio automático se deriva siempre en servidor desde
+    la selección real. Si la protección está activa, suma los extras premium.
+    Un precio acordado manualmente sigue teniendo prioridad explícita.
     """
     es_manual = request.POST.get(f"precio_kit_manual_{indice}") == "1"
 
@@ -57,7 +65,20 @@ def _precio_kit_desde_post(request, indice, kit):
             )
         return precio, True
 
-    precio_lista = _decimal_positivo(kit.precio)
+    if kit.modalidad == "LIBRE_CATEGORIA":
+        if productos_libres is None:
+            raise ValueError(
+                f"Completá los productos de {kit.nombre} antes de calcular el precio."
+            )
+        precio_lista = _decimal_positivo(
+            precio_automatico_kit_libre(
+                kit,
+                productos_libres,
+            )
+        )
+    else:
+        precio_lista = _decimal_positivo(kit.precio)
+
     if precio_lista <= 0:
         raise ValueError(
             f"El kit {kit.nombre} no tiene un precio de venta válido."
@@ -168,10 +189,21 @@ def productos_por_kit(request, kit_id):
             }
         )
 
-    productos = (
-        Producto.objects.filter(tipo=kit.tipo_producto, activo=True)
-        .order_by("nombre")
+    productos = list(
+        Producto.objects.filter(
+            tipo=kit.tipo_producto,
+            activo=True,
+            solo_produccion=False,
+        ).order_by("nombre")
     )
+    analisis = analizar_opciones_kit(
+        kit,
+        productos_categoria=productos,
+    )
+    opciones = {
+        item["producto_id"]: item
+        for item in analisis["opciones"]
+    }
 
     return JsonResponse(
         {
@@ -182,14 +214,44 @@ def productos_por_kit(request, kit_id):
                 "cantidad_productos": kit.cantidad_productos,
                 "tipo": kit.tipo_producto.nombre if kit.tipo_producto else "",
                 "precio": precio,
+                "proteger_rentabilidad": bool(
+                    kit.proteger_rentabilidad_libre
+                ),
+                "cantidad_incluidos": analisis["cantidad_incluidos"],
+                "cantidad_premium": analisis["cantidad_premium"],
+                "extra_minimo": float(analisis["extra_minimo"]),
             },
             "productos": [
                 {
                     "id": producto.id,
                     "codigo": producto.codigo,
                     "nombre": producto.nombre,
+                    "precio_lista": float(producto.subtotal or 0),
+                    "incluido": bool(
+                        opciones[producto.id]["incluido"]
+                    ),
+                    "requiere_extra": bool(
+                        opciones[producto.id]["requiere_extra"]
+                    ),
+                    "extra": float(
+                        opciones[producto.id]["extra"]
+                    ),
+                    "extra_sugerido": float(
+                        opciones[producto.id]["extra_sugerido"]
+                    ),
+                    "precio_kit_con_extra": float(
+                        opciones[producto.id]["precio_kit_con_extra"]
+                    ),
                 }
-                for producto in productos
+                for producto in sorted(
+                    productos,
+                    key=lambda p: (
+                        0 if opciones[p.id]["incluido"] else 1,
+                        opciones[p.id]["extra"],
+                        p.nombre.casefold(),
+                        p.id,
+                    ),
+                )
             ],
             "componentes": [],
         }
