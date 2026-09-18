@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.db import models
 from django.db.models import Sum
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils import timezone
 
 from .models import Pago, Pedido
@@ -126,4 +127,4 @@ def pagos(request):
     Ruta histórica de Pagos.
     El módulo fue unificado dentro de Finanzas.
     """
-    return redirect("/pedidos/finanzas/#cobros")
+    return redirect(f"{reverse('pedidos:finanzas')}#cobros")
