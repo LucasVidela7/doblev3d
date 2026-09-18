@@ -343,13 +343,14 @@ class PreciosKitCalculadoraTests(TestCase):
 
         for respuesta in respuestas:
             self.assertEqual(respuesta.status_code, 200)
-            self.assertContains(
-                respuesta,
-                "kits/precios_fijos.css",
+            contenido = respuesta.content.decode()
+            self.assertRegex(
+                contenido,
+                r"/static/kits/precios_fijos(?:\.[0-9a-f]+)?\.css",
             )
-            self.assertContains(
-                respuesta,
-                "kits/precios_fijos.js",
+            self.assertRegex(
+                contenido,
+                r"/static/kits/precios_fijos(?:\.[0-9a-f]+)?\.js",
             )
             self.assertContains(
                 respuesta,
