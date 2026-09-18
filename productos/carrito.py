@@ -300,7 +300,8 @@ def _fingerprint(telefono, lineas):
 
 def _validar_turnstile(request):
     secret = getattr(settings, "TURNSTILE_SECRET_KEY", "")
-    if not secret:
+    site_key = getattr(settings, "TURNSTILE_SITE_KEY", "")
+    if not secret or not site_key:
         return True
 
     token = request.POST.get("cf-turnstile-response", "").strip()
