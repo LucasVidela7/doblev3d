@@ -315,16 +315,18 @@
                             <span class="dv-kit-costo-chip">
                                 ${data.productos_referencia} opciones incluidas
                             </span>
-                            <span class="dv-kit-costo-chip">
-                                Costo promedio incluidos ${dinero(data.costo_promedio)}
-                            </span>
-                            <span class="dv-kit-costo-chip riesgo">
-                                Mayor costo incluido ${dinero(data.costo_peor_caso)}
-                            </span>
-                            ${chipFilamento(data)}
+                            ${sinIncluidos ? "" : `
+                                <span class="dv-kit-costo-chip">
+                                    Costo promedio incluidos ${dinero(data.costo_promedio)}
+                                </span>
+                                <span class="dv-kit-costo-chip riesgo">
+                                    Mayor costo incluido ${dinero(data.costo_peor_caso)}
+                                </span>
+                                ${chipFilamento(data)}
+                            `}
                         </div>
                     </div>
-                    <div class="dv-kit-precio-actual ${sinIncluidos ? "alerta" : "protegido"}">
+                    <div class="dv-kit-precio-actual ${sinIncluidos ? "critico" : "protegido"}">
                         ${estadoTexto}
                     </div>
                 </div>
