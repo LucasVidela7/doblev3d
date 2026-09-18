@@ -233,5 +233,5 @@ function cerrarPago(){const modal=document.getElementById("modalPago");modal.cla
 function cerrarDesdeFondo(event){if(event.target.id==="modalPago")cerrarPago();}
 document.addEventListener("keydown",function(event){if(event.key==="Escape")cerrarPago();});
 </script>
-</body>
+{% include "shared/navigation.html" %}\n</body>
 </html>
