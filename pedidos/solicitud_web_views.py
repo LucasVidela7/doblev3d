@@ -244,7 +244,10 @@ def convertir_solicitud_web(request, solicitud_id):
             tipo_item="KIT",
             kit=item.kit,
             cantidad=item.cantidad,
-            precio_lista_unitario=item.precio_unitario,
+            precio_lista_unitario=(
+                item.precio_base_unitario
+                + item.adicional_unitario
+            ),
             precio_unitario=item.precio_unitario,
             # El servidor ya validó el precio al recibir la solicitud.
             # Al convertirlo congelamos ese valor para respetar lo visto
