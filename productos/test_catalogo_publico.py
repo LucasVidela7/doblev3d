@@ -352,7 +352,7 @@ class CatalogoPublicoTests(TestCase):
         self.assertContains(response, "Preparamos tu pedido")
         self.assertContains(response, "Correo")
         self.assertContains(response, "Motomensajería")
-        self.assertContains(response, "Retiro coordinado en domicilio")
+        self.assertContains(response, "Coordinado en domicilio")
         self.assertContains(
             response,
             "La dirección exacta y el horario se informan al confirmar",
