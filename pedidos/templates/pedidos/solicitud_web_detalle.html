@@ -13,12 +13,12 @@ body{margin:0;background:var(--dv-bg,#f5f7fb);color:var(--dv-text,#17233a);font-
 .shell{width:min(1050px,100%);margin:auto;padding:22px 14px 55px}
 .head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
 h1{margin:0;font-size:30px}.sub{margin-top:5px;color:var(--dv-muted,#667085);font-size:12px}.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 14px;border:1px solid var(--dv-border,#dfe5ef);border-radius:12px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);text-decoration:none;font-size:10px;font-weight:900;cursor:pointer}.btn.whatsapp{background:#25d366;border-color:#25d366;color:#fff}.btn.convert{background:var(--dv-brand-blue,#134a9a);border-color:var(--dv-brand-blue,#134a9a);color:#fff}.btn.reject{background:var(--dv-danger-soft,#fdeaea);color:var(--dv-danger-text,#913b3b);border-color:rgba(145,59,59,.25)}
+.btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 14px;border:1px solid var(--dv-border,#dfe5ef);border-radius:12px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);text-decoration:none;font-size:10px;font-weight:900;cursor:pointer}.icon-btn{width:44px;height:44px;display:inline-grid;place-items:center;padding:0;border:1px solid var(--dv-border,#dfe5ef);border-radius:13px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);text-decoration:none;cursor:pointer;transition:.15s ease}.icon-btn:hover{transform:translateY(-1px);box-shadow:0 7px 18px rgba(20,25,35,.08)}.icon-btn svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.icon-btn.whatsapp{background:#25d366;border-color:#25d366;color:#fff}.icon-btn.convert{background:var(--dv-brand-blue,#134a9a);border-color:var(--dv-brand-blue,#134a9a);color:#fff}.icon-btn.reject{background:var(--dv-danger-soft,#fdeaea);color:var(--dv-danger-text,#913b3b);border-color:rgba(145,59,59,.25)}.icon-btn.contactada{background:var(--dv-success-soft,#eaf7ee);color:var(--dv-success-text,#28633c);border-color:rgba(40,99,60,.18)}
 .status{display:inline-flex;margin-top:9px;padding:7px 10px;border-radius:999px;font-size:9px;font-weight:900}.NUEVA{background:var(--dv-warning-soft,#fff5d8);color:var(--dv-warning-text,#775a13)}.CONTACTADA{background:var(--dv-brand-blue-soft,#eef4ff);color:var(--dv-accent-blue-text,#0d376f)}.CONVERTIDA{background:var(--dv-success-soft,#eaf7ee);color:var(--dv-success-text,#28633c)}.RECHAZADA{background:var(--dv-danger-soft,#fdeaea);color:var(--dv-danger-text,#913b3b)}
 .card{padding:17px;border:1px solid var(--dv-border,#dfe5ef);border-radius:18px;background:var(--dv-surface,#fff);margin-bottom:13px;box-shadow:var(--dv-shadow-soft,0 4px 15px rgba(20,25,35,.05))}
 .info{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}.label{font-size:8px;font-weight:900;color:var(--dv-muted,#667085);letter-spacing:.25px}.value{margin-top:4px;font-size:13px;font-weight:800}
 .items{display:grid;gap:10px}.item{padding:14px;border:1px solid var(--dv-border,#dfe5ef);border-radius:14px;background:var(--dv-surface-soft,#f7f8fa)}.item-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.item-title{font-size:13px;font-weight:900}.item-type{margin-top:3px;color:var(--dv-muted,#667085);font-size:9px;font-weight:800}.qty{font-size:10px;font-weight:900}.kit-products{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}.chip{padding:6px 8px;border-radius:999px;background:var(--dv-surface-muted,#eef1f4);color:var(--dv-muted,#667085);font-size:8px;font-weight:800}
-.money{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.money>div{padding:9px;border-radius:10px;background:var(--dv-surface,#fff);border:1px solid var(--dv-border,#dfe5ef)}.money b{display:block;margin-top:4px;font-size:13px}.total{display:flex;align-items:end;justify-content:space-between;gap:15px}.total strong{font-size:28px}.obs{white-space:pre-wrap;font-size:11px;line-height:1.5;color:var(--dv-muted,#667085)}form{margin:0}
+.money{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.money>div{padding:9px;border-radius:10px;background:var(--dv-surface,#fff);border:1px solid var(--dv-border,#dfe5ef)}.money b{display:block;margin-top:4px;font-size:13px}.total{display:flex;align-items:end;justify-content:space-between;gap:15px}.total strong{font-size:28px}.obs{white-space:pre-wrap;font-size:11px;line-height:1.5;color:var(--dv-muted,#667085)}form{margin:0}
 @media(max-width:720px){.head{flex-direction:column}.actions{justify-content:flex-start}.info,.money{grid-template-columns:1fr}.total{align-items:flex-start;flex-direction:column}}
 </style>
 </head>
@@ -37,27 +37,39 @@ h1{margin:0;font-size:30px}.sub{margin-top:5px;color:var(--dv-muted,#667085);fon
             <span class="status {{ solicitud.estado }}">{{ solicitud.get_estado_display|upper }}</span>
         </div>
         <div class="actions">
-            <a class="btn" href="{% url 'pedidos:solicitudes_web' %}">← SOLICITUDES</a>
-            {% if whatsapp_numero and solicitud.estado != "RECHAZADA" %}
-                <a class="btn whatsapp" href="https://wa.me/{{ whatsapp_numero }}" target="_blank" rel="noopener">WHATSAPP</a>
+            <a class="icon-btn" href="{% url 'pedidos:solicitudes_web' %}" title="Volver a solicitudes" aria-label="Volver a solicitudes">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+            </a>
+            {% if whatsapp_url_cliente and solicitud.estado != "RECHAZADA" %}
+                <a class="icon-btn whatsapp" href="{{ whatsapp_url_cliente }}" target="_blank" rel="noopener" title="Enviar WhatsApp con el detalle" aria-label="Enviar WhatsApp con el detalle">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.4-4A8 8 0 1 1 20 11.5Z"></path><path d="M9.1 8.2c.3 2.7 2 4.5 4.8 5.5"></path><path d="M9.2 8.1 8.3 9.3M14 13.7l1.2-1"></path></svg>
+                </a>
             {% endif %}
             {% if solicitud.estado == "NUEVA" %}
                 <form method="post" action="{% url 'pedidos:solicitud_web_contactada' solicitud.id %}">
                     {% csrf_token %}
-                    <button class="btn" type="submit">MARCAR CONTACTADA</button>
+                    <button class="icon-btn contactada" type="submit" title="Marcar como contactada" aria-label="Marcar como contactada">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.8 7.3L3 20l1.3-4.7A8.5 8.5 0 1 1 21 11.5Z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                    </button>
                 </form>
             {% endif %}
             {% if solicitud.estado == "NUEVA" or solicitud.estado == "CONTACTADA" %}
                 <form method="post" action="{% url 'pedidos:solicitud_web_rechazar' solicitud.id %}">
                     {% csrf_token %}
-                    <button class="btn reject" type="submit">RECHAZAR</button>
+                    <button class="icon-btn reject" type="submit" title="Rechazar solicitud" aria-label="Rechazar solicitud">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"></path></svg>
+                    </button>
                 </form>
                 <form method="post" action="{% url 'pedidos:solicitud_web_convertir' solicitud.id %}">
                     {% csrf_token %}
-                    <button class="btn convert" type="submit">CONVERTIR EN PRESUPUESTO</button>
+                    <button class="icon-btn convert" type="submit" title="Convertir en presupuesto" aria-label="Convertir en presupuesto">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4 10-10"></path></svg>
+                    </button>
                 </form>
             {% elif solicitud.presupuesto_generado %}
-                <a class="btn convert" href="{% url 'pedidos:presupuesto_detalle' solicitud.presupuesto_generado.id %}">VER {{ solicitud.presupuesto_generado.codigo }}</a>
+                <a class="icon-btn convert" href="{% url 'pedidos:presupuesto_detalle' solicitud.presupuesto_generado.id %}" title="Ver {{ solicitud.presupuesto_generado.codigo }}" aria-label="Ver {{ solicitud.presupuesto_generado.codigo }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"></path><path d="M14 3v4h4M9 12h6M9 16h6"></path></svg>
+                </a>
             {% endif %}
         </div>
     </div>
@@ -90,8 +102,9 @@ h1{margin:0;font-size:30px}.sub{margin-top:5px;color:var(--dv-muted,#667085);fon
                     {% endif %}
 
                     <div class="money">
-                        <div><span class="label">PRECIO BASE</span><b>$ {{ item.precio_base_unitario|floatformat:"0g" }}</b></div>
-                        <div><span class="label">ADICIONAL / UNIDAD</span><b>{% if item.adicional_unitario %}+ $ {{ item.adicional_unitario|floatformat:"0g" }}{% else %}—{% endif %}</b></div>
+                        <div><span class="label">PRECIO LISTA / U.</span><b>$ {{ item.precio_lista_unitario|floatformat:"0g" }}</b></div>
+                        <div><span class="label">DESCUENTO</span><b>{% if item.ahorro_unitario %}{{ item.descuento_porcentaje|floatformat:"1" }}%{% else %}—{% endif %}</b></div>
+                        <div><span class="label">FINAL / U.</span><b>$ {{ item.precio_unitario|floatformat:"0g" }}</b></div>
                         <div><span class="label">SUBTOTAL</span><b>$ {{ item.subtotal|floatformat:"0g" }}</b></div>
                     </div>
                 </div>
