@@ -377,9 +377,43 @@ def nuevo_pedido(request):
                 activo=True,
             )
 
+            productos_libres = None
+
+            if kit.modalidad == "LIBRE_CATEGORIA":
+                ids = request.POST.getlist(f"productos_kit_{indice}")
+                if len(ids) != kit.cantidad_productos:
+                    messages.error(
+                        request,
+                        f"El kit {kit.nombre} necesita {kit.cantidad_productos} productos.",
+                    )
+                    transaction.set_rollback(True)
+                    return redirect("pedidos:nuevo")
+
+                if not kit.tipo_producto:
+                    messages.error(
+                        request,
+                        f"El kit {kit.nombre} no tiene una categoría configurada.",
+                    )
+                    transaction.set_rollback(True)
+                    return redirect("pedidos:nuevo")
+
+                productos_libres = []
+                for producto_id in ids:
+                    producto = get_object_or_404(
+                        Producto,
+                        id=producto_id,
+                        activo=True,
+                        solo_produccion=False,
+                        tipo=kit.tipo_producto,
+                    )
+                    productos_libres.append(producto)
+
             try:
                 precio_unitario, precio_manual = _precio_kit_desde_post(
-                    request, indice, kit
+                    request,
+                    indice,
+                    kit,
+                    productos_libres=productos_libres,
                 )
             except ValueError as error:
                 messages.error(request, str(error))
@@ -414,31 +448,8 @@ def nuevo_pedido(request):
                         cantidad=componente.cantidad * cantidad,
                     )
             else:
-                ids = request.POST.getlist(f"productos_kit_{indice}")
-                if len(ids) != kit.cantidad_productos:
-                    messages.error(
-                        request,
-                        f"El kit {kit.nombre} necesita {kit.cantidad_productos} productos.",
-                    )
-                    transaction.set_rollback(True)
-                    return redirect("pedidos:nuevo")
-
-                if not kit.tipo_producto:
-                    messages.error(
-                        request,
-                        f"El kit {kit.nombre} no tiene una categoría configurada.",
-                    )
-                    transaction.set_rollback(True)
-                    return redirect("pedidos:nuevo")
-
                 seleccionados = {}
-                for producto_id in ids:
-                    producto = get_object_or_404(
-                        Producto,
-                        id=producto_id,
-                        activo=True,
-                        tipo=kit.tipo_producto,
-                    )
+                for producto in productos_libres:
                     seleccionados.setdefault(
                         producto.id,
                         {"producto": producto, "cantidad": 0},
