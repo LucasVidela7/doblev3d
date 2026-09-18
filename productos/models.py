@@ -35,6 +35,33 @@ class ConfiguracionCatalogo(models.Model):
         default="Hola! Te escribo desde el catálogo de Doble V 3D.",
         verbose_name="Mensaje inicial de WhatsApp",
     )
+    whatsapp_mensaje_respuesta_solicitud = models.TextField(
+        blank=True,
+        default=(
+            "Hola {nombre}! 👋 Gracias por tu solicitud {codigo} en Doble V 3D.\n\n"
+            "Este es el detalle que recibimos:\n{detalle}\n\n"
+            "Total de productos: {total}\n\n"
+            "Te escribo para confirmar disponibilidad y coordinar la entrega."
+        ),
+        verbose_name="Mensaje para responder solicitudes",
+        help_text=(
+            "Podés usar {nombre}, {codigo}, {detalle}, {total} y {observaciones}."
+        ),
+    )
+    whatsapp_mensaje_post_solicitud = models.TextField(
+        blank=True,
+        default=(
+            "Hola! 👋 Acabo de enviar la solicitud {codigo} desde el catálogo de "
+            "Doble V 3D.\n\nDetalle:\n{detalle}\n\n"
+            "Total de productos: {total}\n\n"
+            "Quisiera coordinar disponibilidad y entrega."
+        ),
+        verbose_name="Mensaje del cliente después de solicitar",
+        help_text=(
+            "Se abre hacia tu WhatsApp. Podés usar {nombre}, {codigo}, "
+            "{detalle}, {total} y {observaciones}."
+        ),
+    )
 
     class Meta:
         verbose_name = "Configuración del catálogo"
