@@ -3,6 +3,8 @@ from decimal import Decimal
 from calculadora.precios import (
     MARGEN_MINIMO,
     calcular_escenarios_kit_libre,
+    calcular_escenarios_producto,
+    redondear_arriba,
 )
 from productos.models import Producto
 
@@ -71,6 +73,198 @@ def _productos_categoria(kit):
         )
         .order_by("id")
     )
+
+
+EXTRA_MULTIPLO = Decimal("500")
+
+
+def analizar_opciones_libres(
+    productos,
+    cantidad_productos,
+    precio_kit,
+    proteger_rentabilidad=True,
+):
+    """
+    Clasifica las opciones de un kit libre según su capacidad de sostener
+    el escenario Agresivo de la calculadora.
+
+    Cada lugar del kit recibe una parte proporcional del precio base. Si un
+    producto necesita más precio para sostener ese escenario, la diferencia
+    se transforma en un extra redondeado hacia arriba. Sumando los extras de
+    los productos seleccionados se mantiene una regla aditiva y predecible.
+    """
+    productos = list(productos)
+    cantidad = max(int(cantidad_productos or 0), 0)
+    precio = _decimal(precio_kit)
+
+    resultado = {
+        "disponible": False,
+        "proteger_rentabilidad": bool(proteger_rentabilidad),
+        "cantidad_productos": cantidad,
+        "precio_kit": precio,
+        "precio_base_por_lugar": Decimal("0"),
+        "margen_piso": MARGEN_MINIMO,
+        "incluidos": [],
+        "premium": [],
+        "opciones": [],
+        "cantidad_incluidos": 0,
+        "cantidad_premium": 0,
+        "extra_minimo": Decimal("0"),
+        "extra_maximo": Decimal("0"),
+    }
+
+    if cantidad <= 0 or precio <= 0 or not productos:
+        return resultado
+
+    divisor = Decimal(cantidad)
+    precio_base_por_lugar = precio / divisor
+    resultado["precio_base_por_lugar"] = precio_base_por_lugar
+
+    extras_positivos = []
+
+    for producto in productos:
+        calculo = calcular_escenarios_producto(
+            producto,
+            cantidad,
+            forzar_filamento_economico=True,
+        )
+        escenario_agresivo = calculo["escenarios"]["agresivo"]
+        referencia_total = _decimal(
+            escenario_agresivo["total_recomendado"]
+        )
+        referencia_por_lugar = (
+            referencia_total / divisor
+            if divisor > 0
+            else Decimal("0")
+        )
+
+        extra_sugerido = Decimal("0")
+        if referencia_por_lugar > precio_base_por_lugar:
+            extra_sugerido = redondear_arriba(
+                referencia_por_lugar - precio_base_por_lugar,
+                EXTRA_MULTIPLO,
+            )
+
+        requiere_extra = extra_sugerido > 0
+        extra_aplicado = (
+            extra_sugerido
+            if proteger_rentabilidad
+            else Decimal("0")
+        )
+
+        opcion = {
+            "producto": producto,
+            "producto_id": producto.id,
+            "codigo": producto.codigo,
+            "nombre": producto.nombre,
+            "precio_lista": _decimal(producto.subtotal),
+            "costo_productivo": _decimal(
+                calculo["costo_productivo"]
+            ),
+            "referencia_agresiva_por_lugar": referencia_por_lugar,
+            "requiere_extra": requiere_extra,
+            "incluido": not requiere_extra or not proteger_rentabilidad,
+            "extra_sugerido": extra_sugerido,
+            "extra": extra_aplicado,
+            "precio_kit_con_extra": precio + extra_aplicado,
+        }
+        resultado["opciones"].append(opcion)
+
+        if requiere_extra and proteger_rentabilidad:
+            resultado["premium"].append(opcion)
+            extras_positivos.append(extra_aplicado)
+        else:
+            resultado["incluidos"].append(opcion)
+
+    resultado["opciones"].sort(
+        key=lambda item: (
+            0 if item["incluido"] else 1,
+            item["extra"],
+            item["nombre"].casefold(),
+            item["producto_id"],
+        )
+    )
+    resultado["cantidad_incluidos"] = len(resultado["incluidos"])
+    resultado["cantidad_premium"] = len(resultado["premium"])
+    resultado["extra_minimo"] = (
+        min(extras_positivos)
+        if extras_positivos
+        else Decimal("0")
+    )
+    resultado["extra_maximo"] = (
+        max(extras_positivos)
+        if extras_positivos
+        else Decimal("0")
+    )
+    resultado["disponible"] = True
+    return resultado
+
+
+def analizar_opciones_kit(kit, productos_categoria=None):
+    if (
+        kit.modalidad != "LIBRE_CATEGORIA"
+        or not kit.tipo_producto_id
+    ):
+        return analizar_opciones_libres(
+            [],
+            getattr(kit, "cantidad_productos", 0),
+            getattr(kit, "precio", 0),
+            getattr(kit, "proteger_rentabilidad_libre", False),
+        )
+
+    productos = (
+        list(productos_categoria)
+        if productos_categoria is not None
+        else _productos_categoria(kit)
+    )
+
+    return analizar_opciones_libres(
+        productos,
+        kit.cantidad_productos,
+        kit.precio,
+        getattr(kit, "proteger_rentabilidad_libre", False),
+    )
+
+
+def precio_automatico_kit_libre(kit, productos):
+    """
+    Precio unitario automático del kit para una selección concreta.
+    Los extras se aplican por posición elegida y son aditivos.
+    """
+    if kit.modalidad != "LIBRE_CATEGORIA":
+        return _decimal(kit.precio)
+
+    seleccion = list(productos)
+    if len(seleccion) != int(kit.cantidad_productos or 0):
+        raise ValueError(
+            f"El kit {kit.nombre} necesita {kit.cantidad_productos} productos."
+        )
+
+    analisis = analizar_opciones_kit(
+        kit,
+        productos_categoria=list(
+            Producto.objects.filter(
+                tipo_id=kit.tipo_producto_id,
+                activo=True,
+                solo_produccion=False,
+            ).order_by("id")
+        ),
+    )
+    opciones = {
+        item["producto_id"]: item
+        for item in analisis["opciones"]
+    }
+
+    total_extra = Decimal("0")
+    for producto in seleccion:
+        opcion = opciones.get(producto.id)
+        if not opcion:
+            raise ValueError(
+                f"{producto.nombre} no está disponible para {kit.nombre}."
+            )
+        total_extra += _decimal(opcion["extra"])
+
+    return _decimal(kit.precio) + total_extra
 
 
 def recomendacion_kit(kit, productos_categoria=None):
