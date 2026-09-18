@@ -540,41 +540,6 @@
             {% endif %}
         </section>
 
-        {% if kit.modalidad == "LIBRE_CATEGORIA" %}Elegí {{ kit.cantidad_productos }} productos{% else %}Composición fija{% endif %}
-                    </span>
-                </div>
-
-                <div class="dv-kit-qty">
-                    <label for="dv-kit-qty">CANTIDAD DE KITS</label>
-                    <input id="dv-kit-qty" data-dv-kit-qty type="number" min="1" max="20" value="1" inputmode="numeric">
-                </div>
-
-                <div class="dv-kit-cart-price">
-                    <span>TOTAL DE LISTA</span>
-                    <strong data-dv-kit-total>$ {{ kit.precio|floatformat:"0g" }}</strong>
-                </div>
-
-                <div class="dv-kit-cart-action" data-dv-kit-cart-action>
-                    <button class="dv-kit-cart-add" type="button" data-dv-kit-add {% if kit.modalidad == "LIBRE_CATEGORIA" %}disabled{% endif %}>
-                        {% if kit.modalidad == "LIBRE_CATEGORIA" %}ELEGÍ {{ kit.cantidad_productos }} MÁS{% else %}AGREGAR AL CARRITO{% endif %}
-                    </button>
-                    <div class="dv-cart-inline-stepper dv-kit-added-stepper" data-dv-kit-added-stepper hidden aria-label="Cantidad de esta configuración en el carrito">
-                        <button type="button" data-dv-kit-cart-minus aria-label="Disminuir cantidad de kits">−</button>
-                        <span data-dv-kit-cart-qty>1</span>
-                        <button type="button" data-dv-kit-cart-plus aria-label="Aumentar cantidad de kits">+</button>
-                    </div>
-                </div>
-
-                <div class="dv-kit-cart-discount-note">El descuento por cantidad se calcula en el carrito.</div>
-
-                {% if kit.modalidad == "LIBRE_CATEGORIA" %}
-                    <div class="dv-kit-progress" aria-hidden="true">
-                        <span data-dv-kit-progress-fill></span>
-                    </div>
-                {% endif %}
-            </div>
-        </section>
-
         {% if kit.modalidad == "LIBRE_CATEGORIA" %}
             <section class="shell section">
                 <div class="section-head">
