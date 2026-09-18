@@ -133,6 +133,71 @@ class StockRealImpresionesPorProductoTests(TestCase):
             produccion.observaciones,
         )
 
+
+    def test_marcar_un_pedido_listo_reduce_demanda_y_stock_en_paralelo(self):
+        pepino = Producto.objects.create(
+            nombre="Pepino Sensorial regresion",
+            categoria="PRODUCTO",
+            tipo=self.pieza.tipo,
+            horas=1,
+            minutos=0,
+            peso_gramos=Decimal("10"),
+            margen_ganancia=Decimal("50"),
+            requiere_impresion=True,
+            stock=9,
+            activo=True,
+            tipo_fabricacion="SIMPLE",
+            solo_produccion=False,
+        )
+        cliente = Cliente.objects.first()
+        pedidos = []
+
+        for _ in range(9):
+            pedido = Pedido.objects.create(
+                cliente=cliente,
+                estado="PENDIENTE",
+            )
+            DetallePedido.objects.create(
+                pedido=pedido,
+                tipo_item="PRODUCTO",
+                producto=pepino,
+                cantidad=1,
+                precio_unitario=Decimal("1000"),
+                estado="PENDIENTE",
+            )
+            pedidos.append(pedido)
+
+        # Reproduce la pantalla "Impresiones por pedido": crea los estados
+        # operativos que luego usa la acción para marcar una unidad como LISTO.
+        respuesta = self.client.get(reverse("pedidos:impresiones"))
+        self.assertEqual(respuesta.status_code, 200)
+
+        estado = pedidos[0].estados_impresion.get(producto=pepino)
+        respuesta = self.client.post(
+            reverse("pedidos:cambiar_listo"),
+            {
+                "estado_id": estado.id,
+                "listo": "1",
+            },
+        )
+        self.assertEqual(respuesta.status_code, 302)
+
+        pepino.refresh_from_db()
+        self.assertEqual(pepino.stock, 8)
+
+        item = next(
+            item
+            for item in obtener_impresiones_por_producto()
+            if item["producto"].id == pepino.id
+        )
+
+        self.assertEqual(item["cantidad_normal"], 8)
+        self.assertEqual(item["cantidad_pedida"], 8)
+        self.assertEqual(item["stock"], 8)
+        self.assertEqual(item["necesidad_normal_impresion"], 0)
+        self.assertEqual(item["a_imprimir"], 0)
+        self.assertEqual(item["falta_iniciar"], 0)
+
     def test_stock_no_cubre_personalizados_genericos(self):
         DetallePedido.objects.create(
             pedido=Pedido.objects.first(),
