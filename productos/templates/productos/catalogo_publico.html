@@ -537,9 +537,14 @@
                 <span>Impresiones 3D · Productos y kits</span>
             </div>
         </div>
-        {% if es_ambiente_no_productivo %}
-            <span class="env">{{ ambiente_catalogo }}</span>
-        {% endif %}
+        <div class="dv-catalog-top-actions">
+            <button class="dv-how-buy-trigger" type="button" data-dv-how-buy-open>
+                ¿Cómo comprar?
+            </button>
+            {% if es_ambiente_no_productivo %}
+                <span class="env">{{ ambiente_catalogo }}</span>
+            {% endif %}
+        </div>
     </header>
 
     <main>
@@ -876,5 +881,6 @@
             restoreFromUrl();
         })();
     </script>
+    {% include "productos/_catalogo_como_comprar.html" %}
 </body>
 </html>
