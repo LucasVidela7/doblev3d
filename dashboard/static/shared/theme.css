@@ -581,3 +581,325 @@ html[data-dv-theme="dark"] body.dv-pedido-form-page .personalizado-recomendacion
         left:calc(50% - 154px);
     }
 }
+
+
+/* =========================================================
+   DARK MODE AUDIT — compatibilidad global con templates legacy
+   ========================================================= */
+:root{
+    --dv-success-soft:#eaf7ee;
+    --dv-success-text:#28633c;
+    --dv-warning-soft:#fff5d8;
+    --dv-warning-text:#775a13;
+    --dv-danger-soft:#fdeaea;
+    --dv-danger-text:#913b3b;
+    --dv-purple-soft:#eee4fb;
+    --dv-purple-text:#67458e;
+}
+
+html[data-dv-theme="dark"]{
+    --dv-success-soft:#173424;
+    --dv-success-text:#9fe0b1;
+    --dv-warning-soft:#3a3018;
+    --dv-warning-text:#f3d77b;
+    --dv-danger-soft:#3a2024;
+    --dv-danger-text:#ffadb2;
+    --dv-purple-soft:#2e2742;
+    --dv-purple-text:#d3baff;
+
+    /* Nombres usados por templates anteriores al tema compartido. */
+    --surface:var(--dv-surface);
+    --line:var(--dv-border);
+    --dark:var(--dv-brand-blue);
+    --f:var(--dv-bg);
+    --b:var(--dv-border);
+    --t:var(--dv-text);
+    --m:var(--dv-muted);
+    --o:var(--dv-brand-blue);
+    --oscuro:var(--dv-brand-blue);
+}
+
+/* Superficies principales que históricamente quedaron blancas. */
+html[data-dv-theme="dark"] .entrega,
+html[data-dv-theme="dark"] .filtros,
+html[data-dv-theme="dark"] .tabla,
+html[data-dv-theme="dark"] .tabla-contenedor,
+html[data-dv-theme="dark"] .pedido,
+html[data-dv-theme="dark"] .pedido-cabecera,
+html[data-dv-theme="dark"] .pie-pedido,
+html[data-dv-theme="dark"] .pago-dato,
+html[data-dv-theme="dark"] .lista-pedidos,
+html[data-dv-theme="dark"] .panel-ultimos,
+html[data-dv-theme="dark"] .config,
+html[data-dv-theme="dark"] .tab,
+html[data-dv-theme="dark"] .valor-principal,
+html[data-dv-theme="dark"] .cliente-card,
+html[data-dv-theme="dark"] .resumen-card,
+html[data-dv-theme="dark"] .cliente,
+html[data-dv-theme="dark"] .vacio,
+html[data-dv-theme="dark"] .kit-fotos,
+html[data-dv-theme="dark"] .modal,
+html[data-dv-theme="dark"] .more-popover,
+html[data-dv-theme="dark"] .foto,
+html[data-dv-theme="dark"] .queue tr,
+html[data-dv-theme="dark"] .sin-pedidos{
+    background:var(--dv-surface)!important;
+    border-color:var(--dv-border)!important;
+    color:var(--dv-text)!important;
+}
+
+/* Subsuperficies y bloques de información. */
+html[data-dv-theme="dark"] .panel-cabecera,
+html[data-dv-theme="dark"] .titulo-seccion,
+html[data-dv-theme="dark"] .progreso,
+html[data-dv-theme="dark"] .prep-resumen,
+html[data-dv-theme="dark"] .resumen-pedido,
+html[data-dv-theme="dark"] .kit-componentes,
+html[data-dv-theme="dark"] .numero,
+html[data-dv-theme="dark"] .nbox,
+html[data-dv-theme="dark"] .quick-info,
+html[data-dv-theme="dark"] .plan-dato,
+html[data-dv-theme="dark"] .caja-mini,
+html[data-dv-theme="dark"] .saldo-cobro,
+html[data-dv-theme="dark"] .composicion,
+html[data-dv-theme="dark"] .dato,
+html[data-dv-theme="dark"] .escenario,
+html[data-dv-theme="dark"] .kit-foto-media,
+html[data-dv-theme="dark"] .kit-foto-extra,
+html[data-dv-theme="dark"] .regla,
+html[data-dv-theme="dark"] .how div,
+html[data-dv-theme="dark"] .pill,
+html[data-dv-theme="dark"] .existing span,
+html[data-dv-theme="dark"] .check,
+html[data-dv-theme="dark"] .ayuda,
+html[data-dv-theme="dark"] .pieza,
+html[data-dv-theme="dark"] .resumen > div,
+html[data-dv-theme="dark"] .preview,
+html[data-dv-theme="dark"] .more-item-icon,
+html[data-dv-theme="dark"] .saldo-modal,
+html[data-dv-theme="dark"] .personalizado-precios,
+html[data-dv-theme="dark"] .precio-producto-box,
+html[data-dv-theme="dark"] details summary{
+    background:var(--dv-surface-soft)!important;
+    border-color:var(--dv-border)!important;
+    color:var(--dv-text)!important;
+}
+
+/* Controles secundarios y botones claros. */
+html[data-dv-theme="dark"] .btn-secundario,
+html[data-dv-theme="dark"] .btn-cabecera.secundario,
+html[data-dv-theme="dark"] .ver-detalle,
+html[data-dv-theme="dark"] .menu-btn,
+html[data-dv-theme="dark"] .entrega-link,
+html[data-dv-theme="dark"] .btn-lapiz,
+html[data-dv-theme="dark"] .btn-ver,
+html[data-dv-theme="dark"] .btn-editar-pedido,
+html[data-dv-theme="dark"] .btn-editar,
+html[data-dv-theme="dark"] .agregar,
+html[data-dv-theme="dark"] .boton-volver,
+html[data-dv-theme="dark"] .navbtn,
+html[data-dv-theme="dark"] .usar-precio,
+html[data-dv-theme="dark"] .modal-cancelar,
+html[data-dv-theme="dark"] .cancelar-modal,
+html[data-dv-theme="dark"] .cerrar,
+html[data-dv-theme="dark"] .modal-cerrar,
+html[data-dv-theme="dark"] .boton-mini,
+html[data-dv-theme="dark"] .caja-accion,
+html[data-dv-theme="dark"] .brand-header-back{
+    background:var(--dv-surface-soft)!important;
+    border-color:var(--dv-border)!important;
+    color:var(--dv-text)!important;
+}
+
+/* Acciones primarias: contraste inequívoco. */
+html[data-dv-theme="dark"] .btn.principal,
+html[data-dv-theme="dark"] .btn-cabecera.principal,
+html[data-dv-theme="dark"] .btn-principal,
+html[data-dv-theme="dark"] .boton.principal,
+html[data-dv-theme="dark"] .brand-header-home{
+    background:var(--dv-brand-blue)!important;
+    border-color:var(--dv-brand-blue)!important;
+    color:#fff!important;
+}
+
+/* Hover y filas interactivas. */
+html[data-dv-theme="dark"] .entrega:hover,
+html[data-dv-theme="dark"] .menu-lista a:hover,
+html[data-dv-theme="dark"] .menu-lista button:hover,
+html[data-dv-theme="dark"] tr[data-url]:hover,
+html[data-dv-theme="dark"] tbody tr:hover,
+html[data-dv-theme="dark"] .more-item:hover,
+html[data-dv-theme="dark"] .fin-tab:hover,
+html[data-dv-theme="dark"] .boton-volver:hover,
+html[data-dv-theme="dark"] .boton-agregar:hover{
+    background:var(--dv-surface-muted)!important;
+    color:var(--dv-text)!important;
+}
+
+/* Chips y badges neutros. Las variantes semánticas se redefinen debajo. */
+html[data-dv-theme="dark"] .badge,
+html[data-dv-theme="dark"] .chip,
+html[data-dv-theme="dark"] .pedido-meta span,
+html[data-dv-theme="dark"] .item-dato,
+html[data-dv-theme="dark"] .codigo-cliente{
+    background:var(--dv-surface-muted)!important;
+    color:var(--dv-text)!important;
+    border-color:var(--dv-border)!important;
+}
+
+/* Estado OK / listo / pagado. */
+html[data-dv-theme="dark"] .badge-ok,
+html[data-dv-theme="dark"] .badge-proteccion,
+html[data-dv-theme="dark"] .pedido-LISTO,
+html[data-dv-theme="dark"] .pedido-ENTREGADO,
+html[data-dv-theme="dark"] .estado-PAGADO,
+html[data-dv-theme="dark"] .prep-estado.ok,
+html[data-dv-theme="dark"] .chip.ok,
+html[data-dv-theme="dark"] .status.ready,
+html[data-dv-theme="dark"] .status.done,
+html[data-dv-theme="dark"] .producto.listo,
+html[data-dv-theme="dark"] .prep-item.listo,
+html[data-dv-theme="dark"] .fila-baja,
+html[data-dv-theme="dark"] .escenario.recomendado,
+html[data-dv-theme="dark"] .mensaje.success,
+html[data-dv-theme="dark"] .message.ok{
+    background:var(--dv-success-soft)!important;
+    color:var(--dv-success-text)!important;
+    border-color:color-mix(in srgb,var(--dv-success-text) 28%,var(--dv-border))!important;
+}
+
+/* Estado pendiente / atención. */
+html[data-dv-theme="dark"] .badge-advertencia,
+html[data-dv-theme="dark"] .badge-premium,
+html[data-dv-theme="dark"] .kit-foto-estado.premium,
+html[data-dv-theme="dark"] .pedido-PENDIENTE,
+html[data-dv-theme="dark"] .estado-PARCIAL,
+html[data-dv-theme="dark"] .prep-estado.manual,
+html[data-dv-theme="dark"] .chip.manual,
+html[data-dv-theme="dark"] .status.warn,
+html[data-dv-theme="dark"] .proteccion-aviso,
+html[data-dv-theme="dark"] .escenario.conservador,
+html[data-dv-theme="dark"] .warning,
+html[data-dv-theme="dark"] .interno,
+html[data-dv-theme="dark"] .prioridad-media,
+html[data-dv-theme="dark"] .fila-media{
+    background:var(--dv-warning-soft)!important;
+    color:var(--dv-warning-text)!important;
+    border-color:color-mix(in srgb,var(--dv-warning-text) 25%,var(--dv-border))!important;
+}
+
+/* Estado error / cancelado / prioridad alta. */
+html[data-dv-theme="dark"] .badge-alerta,
+html[data-dv-theme="dark"] .pedido-CANCELADO,
+html[data-dv-theme="dark"] .estado-SIN_PAGAR,
+html[data-dv-theme="dark"] .estado-CANCELADO,
+html[data-dv-theme="dark"] .prep-estado.falta,
+html[data-dv-theme="dark"] .chip.falta,
+html[data-dv-theme="dark"] .status.error,
+html[data-dv-theme="dark"] .cancelado-aviso,
+html[data-dv-theme="dark"] .pedido.cancelado,
+html[data-dv-theme="dark"] .pedido.cancelado .pedido-cabecera,
+html[data-dv-theme="dark"] .producto.cancelado,
+html[data-dv-theme="dark"] .item.cancelado,
+html[data-dv-theme="dark"] .item-resumen.cancelado,
+html[data-dv-theme="dark"] .mensaje.error,
+html[data-dv-theme="dark"] .message.error,
+html[data-dv-theme="dark"] .errores,
+html[data-dv-theme="dark"] .alerta,
+html[data-dv-theme="dark"] .prioridad-alta,
+html[data-dv-theme="dark"] .fila-alta{
+    background:var(--dv-danger-soft)!important;
+    color:var(--dv-danger-text)!important;
+    border-color:color-mix(in srgb,var(--dv-danger-text) 25%,var(--dv-border))!important;
+}
+
+/* Estado informativo / preparando. */
+html[data-dv-theme="dark"] .badge-estimado,
+html[data-dv-theme="dark"] .pedido-PREPARANDO,
+html[data-dv-theme="dark"] .edicion-aviso,
+html[data-dv-theme="dark"] .status.replace,
+html[data-dv-theme="dark"] .status.upload,
+html[data-dv-theme="dark"] .personal,
+html[data-dv-theme="dark"] .pieza-nueva,
+html[data-dv-theme="dark"] .armado,
+html[data-dv-theme="dark"] .recomendacion.recomendado,
+html[data-dv-theme="dark"] .recomendacion-precio.recomendado,
+html[data-dv-theme="dark"] .personalizado-recomendacion.recomendado{
+    background:var(--dv-brand-blue-soft)!important;
+    color:var(--dv-accent-blue-text)!important;
+    border-color:color-mix(in srgb,var(--dv-accent-blue-text) 24%,var(--dv-border))!important;
+}
+
+html[data-dv-theme="dark"] .compuesto{
+    background:var(--dv-purple-soft)!important;
+    color:var(--dv-purple-text)!important;
+}
+
+/* Inputs deshabilitados, checks y selectores. */
+html[data-dv-theme="dark"] input:disabled,
+html[data-dv-theme="dark"] select:disabled,
+html[data-dv-theme="dark"] textarea:disabled,
+html[data-dv-theme="dark"] .prep-check input:disabled + .prep-check-ui,
+html[data-dv-theme="dark"] .check input:disabled + .check-ui{
+    background:var(--dv-surface-muted)!important;
+    color:var(--dv-muted)!important;
+    border-color:var(--dv-border)!important;
+}
+
+html[data-dv-theme="dark"] .prep-check-ui,
+html[data-dv-theme="dark"] .check-ui{
+    background:var(--dv-surface-soft)!important;
+    color:var(--dv-muted)!important;
+    border-color:var(--dv-border)!important;
+}
+
+/* Texto auxiliar hardcodeado en templates históricos. */
+html[data-dv-theme="dark"] .campo label,
+html[data-dv-theme="dark"] .campo-pago label,
+html[data-dv-theme="dark"] .field label,
+html[data-dv-theme="dark"] .metrica-label,
+html[data-dv-theme="dark"] .dato-label,
+html[data-dv-theme="dark"] .pago-label,
+html[data-dv-theme="dark"] .prep-dato,
+html[data-dv-theme="dark"] .prep-contador,
+html[data-dv-theme="dark"] .cod,
+html[data-dv-theme="dark"] .dato-valor.vacio,
+html[data-dv-theme="dark"] .resumen-pedido summary,
+html[data-dv-theme="dark"] .obs,
+html[data-dv-theme="dark"] .escenario-nombre,
+html[data-dv-theme="dark"] .escenario-margen,
+html[data-dv-theme="dark"] .kit-foto-vacia,
+html[data-dv-theme="dark"] .dv-calculadora-filamento-info{
+    color:var(--dv-muted)!important;
+}
+
+/* Navegaciones legacy que algunos templates todavía declaran. */
+html[data-dv-theme="dark"] .nav-item.activo,
+html[data-dv-theme="dark"] .nav-item.nuevo-nav,
+html[data-dv-theme="dark"] .nav a.active,
+html[data-dv-theme="dark"] .nav .act,
+html[data-dv-theme="dark"] .nav a.activo,
+html[data-dv-theme="dark"] .nav .activo{
+    background:var(--dv-brand-blue)!important;
+    color:#fff!important;
+}
+
+/* Popovers y menús. */
+html[data-dv-theme="dark"] .menu-lista,
+html[data-dv-theme="dark"] .more-popover{
+    background:var(--dv-surface)!important;
+    border-color:var(--dv-border)!important;
+    color:var(--dv-text)!important;
+    box-shadow:0 16px 42px rgba(0,0,0,.34)!important;
+}
+
+/* Evita blancos residuales en capturas y tarjetas de cálculo. */
+html[data-dv-theme="dark"] body.modo-captura,
+html[data-dv-theme="dark"] .comparador-wrap,
+html[data-dv-theme="dark"] .comparador th:first-child,
+html[data-dv-theme="dark"] .comparador td:first-child,
+html[data-dv-theme="dark"] .cargando{
+    background:var(--dv-surface)!important;
+    color:var(--dv-text)!important;
+    border-color:var(--dv-border)!important;
+}

@@ -1,2 +1,3 @@
-Deploy QA: tema en menú, contraste oscuro y loading global
-Source: 360e8b6dccdc86f2668eec76dfc0b3d6049a9c8f
+Deploy QA: auditoría completa modo oscuro en pantallas de gestión
+Base: 9e59c53ec777e632866468b42c8564ef5e360edc
+Cambio: variables legacy, superficies, controles, estados y contraste
