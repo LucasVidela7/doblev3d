@@ -158,7 +158,7 @@ class ListadoRecomendacionesKitTests(TestCase):
         )
         self.assertContains(
             respuesta,
-            "PREMIUM + EXTRA",
+            "CON ADICIONAL",
         )
         self.assertContains(
             respuesta,
