@@ -58,41 +58,44 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
     <div class="grid">
         {% for kit in kits %}
             {% with reco=kit.recomendacion_calculadora %}
-            <div class="card {% if kit.alerta_proteccion_sin_incluidos %}card-alerta{% elif reco.estado == 'REVISAR' %}card-alerta{% elif reco.estado == 'ADVERTENCIA' %}card-advertencia{% elif kit.modalidad == 'LIBRE_CATEGORIA' and kit.proteger_rentabilidad_libre %}card-protegida{% endif %}">
+            <div class="card {% if kit.modalidad == 'LIBRE_CATEGORIA' and kit.proteger_rentabilidad_libre %}{% if kit.alerta_proteccion_sin_incluidos %}card-alerta{% else %}card-protegida{% endif %}{% elif reco.estado == 'REVISAR' %}card-alerta{% elif reco.estado == 'ADVERTENCIA' %}card-advertencia{% endif %}">
                 <div class="card-head">
                     <div class="card-titulo">
                         <div class="nombre">{{ kit.nombre }}</div>
                         <div class="meta">{{ kit.codigo }} · {{ kit.get_modalidad_display }}</div>
                         <div class="badges">
-                            {% if kit.alerta_proteccion_sin_incluidos %}
-                                <span class="badge badge-alerta">⚠ SIN OPCIONES INCLUIDAS</span>
-                            {% elif not reco.disponible %}
-                                <span class="badge badge-alerta">⚠ REVISAR DATOS</span>
-                            {% elif reco.estado == "REVISAR" %}
-                                <span class="badge badge-alerta">⚠ REVISAR PRECIO</span>
-                            {% elif reco.estado == "ADVERTENCIA" %}
-                                <span class="badge badge-advertencia">● BASE BAJO RECOMENDADO</span>
-                            {% else %}
-                                <span class="badge badge-ok">✓ PRECIO BASE OK</span>
-                            {% endif %}
-
-                            {% if kit.modalidad == "LIBRE_CATEGORIA" %}
-                                {% if kit.proteger_rentabilidad_libre %}
-                                    <span class="badge badge-proteccion">✓ PROTECCIÓN ACTIVA</span>
-                                    {% if kit.opciones_libres_analisis.cantidad_premium %}
-                                        <span class="badge badge-premium">{{ kit.opciones_libres_analisis.cantidad_premium }} PREMIUM + EXTRA</span>
-                                    {% endif %}
-                                {% elif kit.opciones_libres_analisis.cantidad_requieren_extra %}
-                                    <span class="badge badge-advertencia">⚠ PROTECCIÓN DESACTIVADA</span>
+                            {% if kit.modalidad == "LIBRE_CATEGORIA" and kit.proteger_rentabilidad_libre %}
+                                {% if kit.alerta_proteccion_sin_incluidos %}
+                                    <span class="badge badge-alerta">⚠ SIN OPCIONES INCLUIDAS</span>
                                 {% else %}
-                                    <span class="badge">PROTECCIÓN DESACTIVADA</span>
+                                    <span class="badge badge-ok">✓ BASE PROTEGIDA</span>
+                                {% endif %}
+                                <span class="badge badge-proteccion">✓ PROTECCIÓN ACTIVA</span>
+                                {% if kit.opciones_libres_analisis.cantidad_premium %}
+                                    <span class="badge badge-premium">{{ kit.opciones_libres_analisis.cantidad_premium }} PREMIUM + EXTRA</span>
+                                {% endif %}
+                                <span class="badge badge-estimado">PRECIO MODULAR</span>
+                            {% else %}
+                                {% if not reco.disponible %}
+                                    <span class="badge badge-alerta">⚠ REVISAR DATOS</span>
+                                {% elif reco.estado == "REVISAR" %}
+                                    <span class="badge badge-alerta">⚠ REVISAR PRECIO</span>
+                                {% elif reco.estado == "ADVERTENCIA" %}
+                                    <span class="badge badge-advertencia">● BAJO RECOMENDADO</span>
+                                {% else %}
+                                    <span class="badge badge-ok">✓ PRECIO OK</span>
                                 {% endif %}
 
-                                <span class="badge badge-estimado">
-                                    {% if kit.recomendacion_sobre_incluidos %}BASE · OPCIONES INCLUIDAS{% else %}CÁLCULO ESTIMADO{% endif %}
-                                </span>
-                            {% else %}
-                                <span class="badge">CÁLCULO EXACTO</span>
+                                {% if kit.modalidad == "LIBRE_CATEGORIA" %}
+                                    {% if kit.opciones_libres_analisis.cantidad_requieren_extra %}
+                                        <span class="badge badge-advertencia">⚠ PROTECCIÓN DESACTIVADA</span>
+                                    {% else %}
+                                        <span class="badge">PROTECCIÓN DESACTIVADA</span>
+                                    {% endif %}
+                                    <span class="badge badge-estimado">CÁLCULO ESTIMADO</span>
+                                {% else %}
+                                    <span class="badge">CÁLCULO EXACTO</span>
+                                {% endif %}
                             {% endif %}
                         </div>
                     </div>
@@ -192,7 +195,14 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                     <div class="dato">
                         <b>PRECIO ACTUAL</b>
                         <span>${{ kit.precio|floatformat:"0g" }}</span>
-                        {% if reco.disponible %}
+                        {% if kit.modalidad == "LIBRE_CATEGORIA" and kit.proteger_rentabilidad_libre %}
+                            <small>
+                                {{ kit.opciones_libres_analisis.cantidad_incluidos }} incluidas
+                                {% if kit.opciones_libres_analisis.cantidad_premium %}
+                                    · {{ kit.opciones_libres_analisis.cantidad_premium }} premium con extra
+                                {% endif %}
+                            </small>
+                        {% elif reco.disponible %}
                             <small>Recomendado: ${{ reco.precio_recomendado|floatformat:"0g" }}</small>
                         {% else %}
                             <small>Sin recomendación disponible</small>
@@ -254,7 +264,7 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                     </div>
                 </div>
 
-                {% if reco.disponible %}
+                {% if reco.disponible and not kit.proteger_rentabilidad_libre %}
                     <div class="escenarios">
                         <div class="escenarios-titulo">
                             <b>REFERENCIAS DE PRECIO</b>
@@ -310,6 +320,12 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                         Todos los productos de la categoría necesitan un adicional con el precio actual.
                         Subí el precio base o revisá la cantidad de productos del kit.
                     </div>
+                {% elif kit.modalidad == "LIBRE_CATEGORIA" and kit.proteger_rentabilidad_libre %}
+                    <div class="aviso-precio protegido">
+                        <strong>✓ Precio modular protegido.</strong>
+                        El precio base define las opciones incluidas y cada producto premium suma su adicional.
+                        No se muestra un precio recomendado único porque cambiar la base también cambia la cobertura del kit.
+                    </div>
                 {% elif not reco.disponible %}
                     <div class="aviso-precio alerta">
                         <strong>⚠ No se pudo calcular una recomendación.</strong>
@@ -333,21 +349,13 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                             Actual ${{ kit.precio|floatformat:"0g" }} · Recomendado ${{ reco.precio_recomendado|floatformat:"0g" }}
                         </div>
                     </div>
-                {% elif kit.recomendacion_sobre_incluidos %}
-                    <div class="aviso-precio protegido">
-                        <strong>✓ Precio base cubierto por la protección.</strong>
-                        Las opciones incluidas están dentro del rango recomendado.
-                        {% if kit.opciones_libres_analisis.cantidad_premium %}
-                            Las {{ kit.opciones_libres_analisis.cantidad_premium }} opciones premium se cobran con su adicional correspondiente.
-                        {% endif %}
-                    </div>
                 {% endif %}
 
                 {% if kit.modalidad == "LIBRE_CATEGORIA" %}
                     <div class="nota-estimacion">
                         En los kits libres el margen depende de qué productos elija el cliente.
                         {% if kit.proteger_rentabilidad_libre %}
-                            Las opciones premium suman un extra automático para sostener el escenario Agresivo de la calculadora.
+                            El precio base define la cobertura de opciones incluidas; las premium suman su extra automático.
                         {% else %}
                             La protección está desactivada: todos los productos de la categoría se venden al precio base del kit.
                         {% endif %}
