@@ -2,6 +2,149 @@
 <link rel="stylesheet" href="{% static 'shared/layout.css' %}">
 <link rel="stylesheet" href="{% static 'shared/theme.css' %}">
 <link rel="stylesheet" href="{% static 'shared/navigation.css' %}">
+<link rel="stylesheet" href="{% static 'shared/management_menu.css' %}">
+<button
+    type="button"
+    id="dvManagementMenuToggle"
+    class="dv-management-menu-toggle"
+    aria-label="Abrir menú de gestión"
+    aria-controls="dvManagementMenu"
+    aria-expanded="false"
+>
+    <span class="dv-management-menu-toggle__icon" aria-hidden="true">
+        <span></span><span></span><span></span>
+    </span>
+</button>
+
+<aside
+    id="dvManagementMenu"
+    class="dv-management-menu"
+    aria-label="Menú de gestión"
+>
+    <div class="dv-management-menu__head">
+        <div class="dv-management-menu__brand">
+            <span class="dv-management-menu__mark">DV</span>
+            <div>
+                <h2 class="dv-management-menu__title">Gestión</h2>
+                <div class="dv-management-menu__hint">Doble V 3D</div>
+            </div>
+        </div>
+        <button
+            type="button"
+            id="dvManagementMenuClose"
+            class="dv-management-menu__close"
+            aria-label="Cerrar menú"
+        >×</button>
+    </div>
+
+    <nav class="dv-management-menu__links" aria-label="Accesos de gestión">
+        <a
+            href="{% url 'pedidos:nuevo' %}"
+            class="dv-management-menu__link is-primary {% if request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name == 'nuevo' %}is-active{% endif %}"
+        >
+            <span class="dv-management-menu__icon">＋</span>
+            <span>
+                <span class="dv-management-menu__label">Nuevo presupuesto</span>
+                <span class="dv-management-menu__description">Cotizar producto, kit o personalizado.</span>
+            </span>
+        </a>
+
+        <a
+            href="{% url 'pedidos:presupuestos' %}"
+            class="dv-management-menu__link {% if request.resolver_match.url_name == 'presupuestos' or request.resolver_match.url_name == 'presupuesto_detalle' or request.resolver_match.url_name == 'presupuesto_editar' %}is-active{% endif %}"
+        >
+            <span class="dv-management-menu__icon">📄</span>
+            <span>
+                <span class="dv-management-menu__label">Presupuestos</span>
+                <span class="dv-management-menu__description">Pendientes, aprobados y rechazados.</span>
+            </span>
+        </a>
+
+        <a
+            href="{% url 'pedidos:impresiones' %}"
+            class="dv-management-menu__link {% if request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name == 'impresiones' or request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name == 'detalle' or request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name == 'editar' or request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name == 'cancelados' %}is-active{% endif %}"
+        >
+            <span class="dv-management-menu__icon">📦</span>
+            <span>
+                <span class="dv-management-menu__label">Pedidos</span>
+                <span class="dv-management-menu__description">Preparación, entregas y seguimiento.</span>
+            </span>
+        </a>
+
+        <a
+            href="{% url 'produccion:lista' %}"
+            class="dv-management-menu__link {% if request.resolver_match.namespace == 'produccion' %}is-active{% endif %}"
+        >
+            <span class="dv-management-menu__icon">🖨</span>
+            <span>
+                <span class="dv-management-menu__label">Planificación</span>
+                <span class="dv-management-menu__description">Necesidad, cola e impresoras.</span>
+            </span>
+        </a>
+
+        <a
+            href="{% url 'productos:lista' %}"
+            class="dv-management-menu__link {% if request.resolver_match.namespace == 'productos' %}is-active{% endif %}"
+        >
+            <span class="dv-management-menu__icon">▦</span>
+            <span>
+                <span class="dv-management-menu__label">Productos</span>
+                <span class="dv-management-menu__description">Catálogo, stock, precios y tiempos.</span>
+            </span>
+        </a>
+
+        <a
+            href="{% url 'kits:lista' %}"
+            class="dv-management-menu__link {% if request.resolver_match.namespace == 'kits' %}is-active{% endif %}"
+        >
+            <span class="dv-management-menu__icon">🧰</span>
+            <span>
+                <span class="dv-management-menu__label">Kits</span>
+                <span class="dv-management-menu__description">Composición, precios y rentabilidad.</span>
+            </span>
+        </a>
+
+        <a
+            href="{% url 'clientes:lista' %}"
+            class="dv-management-menu__link {% if request.resolver_match.namespace == 'clientes' %}is-active{% endif %}"
+        >
+            <span class="dv-management-menu__icon">👥</span>
+            <span>
+                <span class="dv-management-menu__label">Clientes</span>
+                <span class="dv-management-menu__description">Contactos, historial y saldos.</span>
+            </span>
+        </a>
+
+        <a
+            href="{% url 'pedidos:finanzas' %}"
+            class="dv-management-menu__link {% if request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name == 'finanzas' %}is-active{% endif %}"
+        >
+            <span class="dv-management-menu__icon">↗</span>
+            <span>
+                <span class="dv-management-menu__label">Finanzas</span>
+                <span class="dv-management-menu__description">Cobros, caja, gastos y rentabilidad.</span>
+            </span>
+        </a>
+
+        <a
+            href="{% url 'calculadora:precios' %}"
+            class="dv-management-menu__link {% if request.resolver_match.namespace == 'calculadora' %}is-active{% endif %}"
+        >
+            <span class="dv-management-menu__icon">🧮</span>
+            <span>
+                <span class="dv-management-menu__label">Calculadora</span>
+                <span class="dv-management-menu__description">Costos, precios y mayorista.</span>
+            </span>
+        </a>
+    </nav>
+</aside>
+
+<div
+    id="dvManagementMenuOverlay"
+    class="dv-management-menu-overlay"
+    aria-hidden="true"
+></div>
+
 <div class="dv-global-nav-spacer" aria-hidden="true"></div>
 <nav class="dv-global-nav" aria-label="Navegación principal">
     <label class="dv-theme-control" title="Cambiar tema">
@@ -58,3 +201,4 @@
 </nav>
 
 <script src="{% static 'shared/theme.js' %}"></script>
+<script src="{% static 'shared/management_menu.js' %}"></script>
