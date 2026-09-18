@@ -81,7 +81,6 @@ class CargaMasivaImagenesTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Carga masiva de fotos")
         self.assertContains(response, self.producto.codigo)
-        self.assertContains(response, "Piña sensorial")
         self.assertNotContains(response, "Pieza interna")
 
         producto_json = next(
@@ -89,6 +88,7 @@ class CargaMasivaImagenesTests(TestCase):
             for item in response.context["productos_json"]
             if item["id"] == self.producto.id
         )
+        self.assertEqual(producto_json["nombre"], "Piña sensorial")
         self.assertEqual(producto_json["fotos"], 1)
         self.assertEqual(len(producto_json["imagenes"]), 1)
         self.assertEqual(producto_json["imagenes"][0]["orden"], 1)
