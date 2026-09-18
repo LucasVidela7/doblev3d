@@ -471,13 +471,7 @@ h1{margin:0;font-size:clamp(28px,4vw,38px)}
     </section>
 </div>
 
-<nav class="nav" aria-label="Navegación principal">
-    <a href="{% url 'dashboard:inicio' %}"><b>⌂</b><span>INICIO</span></a>
-    <a href="{% url 'pedidos:impresiones' %}"><b>📦</b><span>PEDIDOS</span></a>
-    <a href="{% url 'pedidos:nuevo' %}"><b>＋</b><span>NUEVO</span></a>
-    <a class="active" href="{% url 'produccion:lista' %}"><b>🖨</b><span>PLANIF.</span></a>
-    <a href="{% url 'productos:lista' %}"><b>▦</b><span>PRODUCTOS</span></a>
-</nav>
+{% include "shared/navigation.html" %}
 
 <script>
 (function(){
