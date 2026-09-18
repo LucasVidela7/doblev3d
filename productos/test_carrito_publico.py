@@ -5,9 +5,10 @@ from decimal import Decimal
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from calculadora.precios import calcular_escenarios_producto
 from costos.models import ConfiguracionCostos
 from kits.economia import precio_automatico_kit_libre
-from kits.models import Kit
+from kits.models import Kit, KitComponente
 from pedidos.models import Presupuesto, SolicitudWeb
 from clientes.models import Cliente
 from productos.models import Producto, TipoProducto
@@ -84,9 +85,24 @@ class CarritoPublicoTests(TestCase):
 
         solicitud = SolicitudWeb.objects.get()
         item = solicitud.items.get()
-        self.assertEqual(item.precio_unitario, self.producto.subtotal)
+        calculo = calcular_escenarios_producto(self.producto, 2)
+        recomendado = Decimal(
+            str(
+                calculo["escenarios"]["recomendado"][
+                    "total_recomendado"
+                ]
+            )
+        )
+        lista_total = self.producto.subtotal * Decimal("2")
+        esperado_total = min(lista_total, recomendado)
+        esperado_unitario = (
+            esperado_total / Decimal("2")
+        ).quantize(Decimal("0.01"))
+
+        self.assertEqual(item.precio_base_unitario, self.producto.subtotal)
+        self.assertEqual(item.precio_unitario, esperado_unitario)
         self.assertEqual(item.cantidad, 2)
-        self.assertEqual(solicitud.total, self.producto.subtotal * 2)
+        self.assertEqual(solicitud.total, esperado_unitario * Decimal("2"))
 
     def test_solicitud_duplicada_no_genera_dos_registros(self):
         payload = [
@@ -204,3 +220,98 @@ class CarritoPublicoTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "necesita exactamente")
         self.assertEqual(SolicitudWeb.objects.count(), 0)
+
+
+    def test_api_precios_aplica_descuento_de_producto_por_cantidad(self):
+        response = self.client.post(
+            reverse("catalogo_carrito_precios"),
+            data=json.dumps(
+                [
+                    {
+                        "key": "product:%s:" % self.producto.id,
+                        "kind": "product",
+                        "id": self.producto.id,
+                        "qty": 10,
+                        "selections": [],
+                    }
+                ]
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["ok"])
+        linea = data["lineas"][0]
+        self.assertLess(
+            linea["precio_final_total"],
+            linea["precio_lista_total"],
+        )
+        self.assertGreater(linea["descuento_porcentaje"], 0)
+
+    def test_api_precios_aplica_volumen_desde_cinco_kits(self):
+        kit = Kit.objects.create(
+            nombre="Kit fijo volumen web",
+            modalidad="FIJO",
+            cantidad_productos=1,
+            precio=Decimal("5000"),
+            activo=True,
+        )
+        KitComponente.objects.create(
+            kit=kit,
+            producto=self.producto,
+            cantidad=1,
+        )
+
+        response = self.client.post(
+            reverse("catalogo_carrito_precios"),
+            data=json.dumps(
+                [
+                    {
+                        "key": "kit:%s:" % kit.id,
+                        "kind": "kit",
+                        "id": kit.id,
+                        "qty": 5,
+                        "selections": [],
+                    }
+                ]
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["ok"])
+        linea = data["lineas"][0]
+        self.assertLessEqual(
+            linea["precio_final_total"],
+            linea["precio_lista_total"],
+        )
+        self.assertGreaterEqual(linea["descuento_porcentaje"], 0)
+
+    def test_confirmacion_ofrece_whatsapp_con_detalle(self):
+        response = self._post(
+            [
+                {
+                    "kind": "product",
+                    "id": self.producto.id,
+                    "qty": 1,
+                }
+            ],
+            telefono="+54 11 5555 7777",
+        )
+        self.assertEqual(response.status_code, 302)
+
+        gracias = self.client.get(
+            reverse("catalogo_carrito_gracias")
+        )
+        self.assertEqual(gracias.status_code, 200)
+        self.assertContains(
+            gracias,
+            "ENVIAR DETALLE POR WHATSAPP",
+        )
+        self.assertContains(
+            gracias,
+            "https://wa.me/5491164760709",
+        )
+        self.assertContains(gracias, "WEB0001")
