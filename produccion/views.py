@@ -135,6 +135,11 @@ def _impresora_ocupada(
 # ============================================================
 
 def lista_produccion(request):
+    from pedidos.impresiones_stock import obtener_impresiones_por_producto
+    from pedidos.personalizados_produccion import sincronizar_personalizados_pendientes
+
+    sincronizar_personalizados_pendientes()
+
     """
     Vista operativa de producción.
 
@@ -486,6 +491,79 @@ def lista_produccion(request):
         if p.estado == "LISTO"
     )
 
+    necesidades = list(
+        obtener_impresiones_por_producto()
+    )
+
+    if busqueda:
+        termino = busqueda.casefold()
+        necesidades = [
+            item
+            for item in necesidades
+            if (
+                termino in item["producto"].nombre.casefold()
+                or termino in item["producto"].codigo.casefold()
+            )
+        ]
+
+    for item in necesidades:
+        producto = item["producto"]
+        falta = max(int(item.get("falta_iniciar") or 0), 0)
+        peso_unitario = getattr(producto, "peso_gramos", 0) or 0
+        item["peso_faltante_gramos"] = float(peso_unitario) * falta
+        item["cantidad_sugerida"] = max(
+            int(item.get("falta_normal_planificar") or 0),
+            1,
+        )
+
+    total_falta_planificar = sum(
+        max(int(item.get("falta_iniciar") or 0), 0)
+        for item in necesidades
+    )
+    total_planificado_unidades = sum(
+        max(int(item.get("planificadas") or 0), 0)
+        for item in necesidades
+    )
+    total_imprimiendo_unidades = sum(
+        max(int(item.get("en_produccion") or 0), 0)
+        for item in necesidades
+    )
+    productos_con_necesidad = sum(
+        1
+        for item in necesidades
+        if int(item.get("falta_iniciar") or 0) > 0
+    )
+    peso_faltante_gramos = sum(
+        item["peso_faltante_gramos"]
+        for item in necesidades
+    )
+
+    impresoras = list(impresoras)
+    trabajos_imprimiendo = {
+        trabajo.impresora_id: trabajo
+        for trabajo in (
+            Produccion.objects
+            .filter(
+                estado="IMPRIMIENDO",
+                impresora__in=impresoras,
+            )
+            .select_related("producto", "impresora")
+            .order_by("id")
+        )
+        if trabajo.impresora_id
+    }
+
+    for impresora in impresoras:
+        impresora.trabajo_actual = trabajos_imprimiendo.get(
+            impresora.id
+        )
+        impresora.esta_libre = impresora.trabajo_actual is None
+
+    ahora_input = timezone.localtime(
+        ahora,
+        ARGENTINA_TZ,
+    ).strftime("%Y-%m-%dT%H:%M")
+
     return render(
         request,
         "produccion/lista.html",
@@ -518,6 +596,14 @@ def lista_produccion(request):
                 cantidad_pendientes,
             "cantidad_listas":
                 cantidad_listas,
+
+            "necesidades": necesidades,
+            "total_falta_planificar": total_falta_planificar,
+            "total_planificado_unidades": total_planificado_unidades,
+            "total_imprimiendo_unidades": total_imprimiendo_unidades,
+            "productos_con_necesidad": productos_con_necesidad,
+            "peso_faltante_gramos": peso_faltante_gramos,
+            "ahora_input": ahora_input,
         },
     )
 
