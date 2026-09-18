@@ -27,6 +27,8 @@ class ConfiguracionCatalogoAdmin(admin.ModelAdmin):
                     "mostrar_whatsapp",
                     "whatsapp_numero",
                     "whatsapp_mensaje",
+                    "whatsapp_mensaje_respuesta_solicitud",
+                    "whatsapp_mensaje_post_solicitud",
                 ),
             },
         ),
