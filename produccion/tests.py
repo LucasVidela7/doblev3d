@@ -167,6 +167,49 @@ class PlanificacionProduccionTests(TestCase):
             "Cola y producción",
         )
 
+    def test_filtro_predeterminado_muestra_imprimiendo_y_planificadas(self):
+        Produccion.objects.create(
+            producto=self.producto,
+            cantidad=1,
+            estado="PENDIENTE",
+            tiempo_impresion_minutos=150,
+        )
+        Produccion.objects.create(
+            producto=self.producto,
+            cantidad=2,
+            impresora=self.impresora,
+            estado="IMPRIMIENDO",
+            tiempo_impresion_minutos=150,
+        )
+        Produccion.objects.create(
+            producto=self.producto,
+            cantidad=3,
+            estado="LISTO",
+            tiempo_impresion_minutos=150,
+        )
+
+        respuesta = self.client.get(
+            reverse("produccion:lista")
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(
+            respuesta.context["estado_filtro"],
+            "ACTIVAS",
+        )
+        estados = {
+            produccion.estado
+            for produccion in respuesta.context["producciones"]
+        }
+        self.assertEqual(
+            estados,
+            {"PENDIENTE", "IMPRIMIENDO"},
+        )
+        self.assertContains(
+            respuesta,
+            "Imprimiendo + Planificadas",
+        )
+
     @patch("produccion.views.timezone.now")
     def test_planificacion_vencida_muestra_fin_si_inicia_ahora(
         self,
