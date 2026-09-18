@@ -181,6 +181,33 @@ class ListadoRecomendacionesKitTests(TestCase):
             "Recomendado:",
         )
 
+        visuales = {
+            visual["producto"].id: visual
+            for visual in kit_listado.productos_visuales
+        }
+        self.assertTrue(visuales[incluido.id]["incluido"])
+        premium_visual = next(
+            visual
+            for visual in kit_listado.productos_visuales
+            if not visual["incluido"]
+        )
+        self.assertGreater(
+            premium_visual["extra"],
+            Decimal("0"),
+        )
+        self.assertContains(
+            respuesta,
+            "INCLUIDA EN EL PRECIO",
+        )
+        self.assertContains(
+            respuesta,
+            "kit-foto-estado incluida",
+        )
+        self.assertContains(
+            respuesta,
+            "kit-foto-estado premium",
+        )
+
     def test_listado_protegido_alerta_si_no_hay_opciones_incluidas(self):
         self.producto(
             "Premium único A",
