@@ -402,8 +402,16 @@ h1{margin:0;font-size:clamp(28px,4vw,38px)}
                                 {% if produccion.impresora %}🖨 {{ produccion.impresora.nombre }}{% else %}<span class="queue-meta">Sin asignar</span>{% endif %}
                             </td>
                             <td data-label="PROGRAMACIÓN">
-                                <div>{{ produccion.inicio_impresion|date:"d/m H:i"|default:"—" }}</div>
-                                <div class="queue-meta">Fin: {{ produccion.fin_estimado|date:"d/m H:i"|default:"—" }}</div>
+                                {% if produccion.estado == "PENDIENTE" and produccion.es_planificada_vencida %}
+                                    <div><strong>Disponible para iniciar</strong></div>
+                                    {% if produccion.fin_si_inicia_ahora %}
+                                        <div class="queue-meta">Si inicia ahora · termina {{ produccion.fin_si_inicia_ahora|date:"H:i" }}</div>
+                                    {% endif %}
+                                    <div class="queue-meta">Programada originalmente · {{ produccion.inicio_impresion|date:"d/m H:i" }}</div>
+                                {% else %}
+                                    <div>{{ produccion.inicio_impresion|date:"d/m H:i"|default:"—" }}</div>
+                                    <div class="queue-meta">Fin: {{ produccion.fin_estimado|date:"d/m H:i"|default:"—" }}</div>
+                                {% endif %}
                             </td>
                             <td data-label="DESTINO">
                                 <span class="status {% if produccion.destino == 'PEDIDO' %}s-IMPRIMIENDO{% else %}s-PENDIENTE{% endif %}">{{ produccion.get_destino_display|upper }}</span>
