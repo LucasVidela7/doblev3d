@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from django.db import models
 from django.db.models import Sum
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.utils import timezone
 
 from .models import Pago, Pedido
@@ -122,111 +122,8 @@ def pedidos_cancelados(request):
 
 
 def pagos(request):
-    """Listado de cobros incluyendo cancelados como historial, sin saldo exigible."""
-    hoy = timezone.localdate()
-    inicio_mes = hoy.replace(day=1)
-
-    filtro_estado = request.GET.get("estado", "TODOS").upper()
-    estados_validos = {
-        "TODOS",
-        "SIN_PAGAR",
-        "PARCIAL",
-        "PAGADO",
-        "CANCELADOS",
-    }
-    if filtro_estado not in estados_validos:
-        filtro_estado = "TODOS"
-
-    busqueda = request.GET.get("q", "").strip()
-
-    pedidos = (
-        Pedido.objects
-        .select_related("cliente")
-        .prefetch_related("detalles", "pagos")
-        .order_by("-id")
-    )
-
-    if busqueda:
-        filtros = models.Q(cliente__nombre__icontains=busqueda)
-        if busqueda.upper().startswith("PED"):
-            try:
-                filtros |= models.Q(id=int(busqueda[3:]))
-            except (TypeError, ValueError):
-                pass
-        elif busqueda.isdigit():
-            filtros |= models.Q(id=int(busqueda))
-        pedidos = pedidos.filter(filtros)
-
-    filas = []
-    saldo_total = Decimal("0")
-    pedidos_con_saldo = 0
-
-    for pedido in pedidos:
-        cancelado = pedido.estado == "CANCELADO"
-        total = pedido.total
-        pagado = pedido.total_pagado
-        saldo_modelo = pedido.saldo_pendiente
-
-        if not cancelado and saldo_modelo > 0:
-            saldo_total += saldo_modelo
-            pedidos_con_saldo += 1
-
-        if filtro_estado == "CANCELADOS":
-            if not cancelado:
-                continue
-        elif filtro_estado != "TODOS":
-            if cancelado or pedido.estado_pago != filtro_estado:
-                continue
-
-        filas.append(
-            {
-                "pedido": pedido,
-                "total": total,
-                "pagado": pagado,
-                "saldo": Decimal("0") if cancelado else saldo_modelo,
-                "saldo_historico": saldo_modelo,
-                "estado_pago": "CANCELADO" if cancelado else pedido.estado_pago,
-                "estado_pago_display": (
-                    "Cancelado" if cancelado else pedido.estado_pago_display
-                ),
-                "pagos": list(pedido.pagos.all()),
-                "cancelado": cancelado,
-            }
-        )
-
-    cobrado_hoy = (
-        Pago.objects
-        .filter(fecha__date=hoy)
-        .aggregate(total=Sum("monto"))
-        .get("total")
-        or Decimal("0")
-    )
-
-    cobrado_mes = (
-        Pago.objects
-        .filter(fecha__date__gte=inicio_mes)
-        .aggregate(total=Sum("monto"))
-        .get("total")
-        or Decimal("0")
-    )
-
-    ultimos_pagos = (
-        Pago.objects
-        .select_related("pedido", "pedido__cliente")
-        .order_by("-fecha", "-id")[:8]
-    )
-
-    return render(
-        request,
-        "pedidos/pagos.html",
-        {
-            "filas": filas,
-            "filtro_estado": filtro_estado,
-            "busqueda": busqueda,
-            "cobrado_hoy": cobrado_hoy,
-            "cobrado_mes": cobrado_mes,
-            "saldo_total": saldo_total,
-            "pedidos_con_saldo": pedidos_con_saldo,
-            "ultimos_pagos": ultimos_pagos,
-        },
-    )
+    """
+    Ruta histórica de Pagos.
+    El módulo fue unificado dentro de Finanzas.
+    """
+    return redirect("/pedidos/finanzas/#cobros")
