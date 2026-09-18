@@ -1,120 +1,92 @@
 import html
+import re
 
+from django.templatetags.static import static
 from django.urls import reverse
 
 from productos.models import ConfiguracionCatalogo
 
 
-CONTACT_STYLE = r"""
+HEADER_STYLE = r"""
 <style id="dv-catalog-contact-style">
-.dv-catalog-contact{
-    position:fixed;
-    right:clamp(14px,2vw,24px);
-    bottom:calc(82px + env(safe-area-inset-bottom, 0px));
-    z-index:80;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:4px;
-    padding:6px;
-    border:1px solid rgba(19,74,154,.12);
-    border-radius:999px;
-    background:rgba(255,255,255,.94);
-    box-shadow:0 12px 30px rgba(14,31,58,.16);
-    backdrop-filter:blur(10px);
-    -webkit-backdrop-filter:blur(10px);
-    transform:translateZ(0);
-    backface-visibility:hidden;
-    contain:layout paint;
-    pointer-events:auto;
+:root{--dv-catalog-header-height:68px}
+body{padding-top:var(--dv-catalog-header-height)!important}
+header.shell.topbar,
+header.shell.top{display:none!important}
+.toolbar{top:var(--dv-catalog-header-height)!important}
+.dv-catalog-header{
+    position:fixed;inset:0 0 auto 0;z-index:110;
+    height:var(--dv-catalog-header-height);
+    border-bottom:1px solid rgba(19,74,154,.12);
+    background:rgba(255,255,255,.96);
+    box-shadow:0 7px 22px rgba(18,31,52,.08);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px)
 }
-.dv-catalog-contact__link{
-    width:44px;
-    height:44px;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    flex:0 0 auto;
-    border:0;
-    border-radius:50%;
-    color:#fff;
-    text-decoration:none;
-    box-shadow:none;
-    transition:filter .16s ease,background .16s ease;
-    -webkit-tap-highlight-color:transparent;
-    pointer-events:auto;
+.dv-catalog-header__inner{
+    width:min(1180px,calc(100% - 24px));height:100%;margin:0 auto;
+    display:flex;align-items:center;justify-content:space-between;gap:14px
 }
-button.dv-catalog-contact__link{
-    padding:0;
-    font:inherit;
-    cursor:pointer;
+.dv-catalog-header__brand{
+    min-width:0;display:inline-flex;align-items:center;gap:9px;
+    color:#0d376f;text-decoration:none
 }
-.dv-catalog-contact__link svg{
-    width:23px;
-    height:23px;
-    flex:0 0 auto;
-    fill:none;
-    stroke:currentColor;
-    stroke-width:2;
-    stroke-linecap:round;
-    stroke-linejoin:round;
+.dv-catalog-header__brand img{width:48px;height:48px;object-fit:contain;flex:0 0 auto}
+.dv-catalog-header__brand strong{
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    font-size:.92rem;font-weight:950
 }
-.dv-catalog-contact__link--instagram{
+.dv-catalog-header__actions{display:flex;align-items:center;gap:6px}
+.dv-catalog-header__action{
+    position:relative;width:42px;height:42px;flex:0 0 auto;
+    display:inline-grid;place-items:center;padding:0;
+    border:1px solid #dfe5ef;border-radius:13px;background:#fff;
+    color:#134a9a;text-decoration:none;cursor:pointer;
+    box-shadow:0 4px 12px rgba(19,74,154,.04);
+    transition:transform .15s ease,box-shadow .15s ease;
+    -webkit-tap-highlight-color:transparent
+}
+.dv-catalog-header__action svg{
+    width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;
+    stroke-linecap:round;stroke-linejoin:round
+}
+.dv-catalog-header__help{font:inherit;background:#eef4ff;color:#134a9a;font-size:1rem;font-weight:950}
+.dv-catalog-header__instagram{
+    border-color:transparent;
     background:linear-gradient(145deg,#5b51d8 0%,#c13584 45%,#f77737 100%);
+    color:#fff
 }
-.dv-catalog-contact__link--whatsapp{
-    background:#25d366;
+.dv-catalog-header__whatsapp{border-color:#25d366;background:#25d366;color:#fff}
+.dv-catalog-header__cart{border-color:#134a9a;background:#134a9a;color:#fff}
+.dv-catalog-header__label{
+    position:absolute!important;width:1px!important;height:1px!important;
+    padding:0!important;margin:-1px!important;overflow:hidden!important;
+    clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important
 }
-.dv-catalog-contact__help{
-    background:#eef4ff;
-    color:#134a9a;
-    font-size:1.02rem;
-    font-weight:950;
-}
-.dv-catalog-contact__help[hidden]{
-    display:none!important;
-}
-.dv-catalog-contact__separator{
-    width:26px;
-    height:1px;
-    margin:1px 0;
-    background:#e4e9f1;
-}
-.dv-catalog-contact__label{
-    position:absolute!important;
-    width:1px!important;
-    height:1px!important;
-    padding:0!important;
-    margin:-1px!important;
-    overflow:hidden!important;
-    clip:rect(0,0,0,0)!important;
-    white-space:nowrap!important;
-    border:0!important;
+.dv-catalog-header__cart .dv-cart-count{
+    position:absolute;right:-6px;top:-6px;z-index:3;
+    min-width:21px;height:21px;padding:0 5px;display:grid;place-items:center;
+    border:2px solid #fff;border-radius:999px;background:#f0393b;color:#fff;
+    box-shadow:none;font-size:.62rem;font-weight:950
 }
 @media(hover:hover){
-    .dv-catalog-contact__link:hover{
-        filter:saturate(1.08) brightness(.98);
+    .dv-catalog-header__action:hover{
+        transform:translateY(-1px);box-shadow:0 7px 17px rgba(18,31,52,.10)
     }
 }
-.dv-catalog-contact__link:focus-visible{
-    outline:3px solid rgba(19,74,154,.30);
-    outline-offset:2px;
+.dv-catalog-header__action:focus-visible,
+.dv-catalog-header__brand:focus-visible{
+    outline:3px solid rgba(19,74,154,.25);outline-offset:2px
 }
 @media(max-width:640px){
-    .dv-catalog-contact{
-        right:12px;
-        bottom:calc(70px + env(safe-area-inset-bottom, 0px));
-        gap:3px;
-        padding:5px;
-    }
-    .dv-catalog-contact__link{
-        width:42px;
-        height:42px;
-    }
-    .dv-catalog-contact__link svg{
-        width:22px;
-        height:22px;
-    }
+    :root{--dv-catalog-header-height:60px}
+    .dv-catalog-header__inner{width:calc(100% - 16px);gap:7px}
+    .dv-catalog-header__brand{gap:6px}
+    .dv-catalog-header__brand img{width:42px;height:42px}
+    .dv-catalog-header__brand strong{display:none}
+    .dv-catalog-header__actions{gap:4px}
+    .dv-catalog-header__action{width:38px;height:38px;border-radius:11px}
+    .dv-catalog-header__action svg{width:19px;height:19px}
 }
 </style>
 """
@@ -136,53 +108,81 @@ WHATSAPP_ICON = """
 </svg>
 """
 
+CART_ICON = """
+<svg viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M3 4h2l2.2 10h10.6L20 7H7"></path>
+  <circle cx="9" cy="19" r="1.6"></circle>
+  <circle cx="17" cy="19" r="1.6"></circle>
+</svg>
+"""
+
 CONTACT_NAV_ID = "dv-catalog-contact-links"
+HEADER_ID = "dv-catalog-header"
 
 
-def _contactos_html():
+def _header_html():
     config = ConfiguracionCatalogo.objects.first() or ConfiguracionCatalogo()
-    links = []
+    actions = [
+        (
+            '<button class="dv-catalog-header__action dv-catalog-header__help" '
+            'type="button" data-dv-how-buy-open aria-label="Cómo comprar" '
+            'title="Cómo comprar"><span aria-hidden="true">?</span>'
+            '<span class="dv-catalog-header__label">Cómo comprar</span></button>'
+        )
+    ]
 
     usuario = (config.instagram_usuario or "").strip().lstrip("@")
     if config.mostrar_instagram and usuario:
         usuario_safe = html.escape(usuario)
         url = reverse("catalogo_contacto", kwargs={"canal": "instagram"})
-        links.append(
-            '<a class="dv-catalog-contact__link dv-catalog-contact__link--instagram" '
+        actions.append(
+            '<a class="dv-catalog-header__action dv-catalog-header__instagram" '
             f'href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" '
             f'aria-label="Abrir Instagram @{usuario_safe}" title="Instagram @{usuario_safe}">'
             + INSTAGRAM_ICON
-            + f'<span class="dv-catalog-contact__label">Instagram @{usuario_safe}</span></a>'
+            + f'<span class="dv-catalog-header__label">Instagram @{usuario_safe}</span></a>'
         )
 
     numero = "".join(ch for ch in (config.whatsapp_numero or "") if ch.isdigit())
     if config.mostrar_whatsapp and numero:
         url = reverse("catalogo_contacto", kwargs={"canal": "whatsapp"})
-        links.append(
-            '<a class="dv-catalog-contact__link dv-catalog-contact__link--whatsapp" '
+        actions.append(
+            '<a class="dv-catalog-header__action dv-catalog-header__whatsapp" '
             f'href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" '
             'aria-label="Escribir por WhatsApp" title="WhatsApp">'
             + WHATSAPP_ICON
-            + '<span class="dv-catalog-contact__label">WhatsApp</span></a>'
+            + '<span class="dv-catalog-header__label">WhatsApp</span></a>'
         )
 
-    if not links:
-        return ""
+    actions.append(
+        '<button class="dv-catalog-header__action dv-catalog-header__cart" '
+        'type="button" data-dv-cart-open aria-label="Abrir carrito" title="Carrito">'
+        + CART_ICON
+        + '<span class="dv-cart-count" data-dv-cart-count>0</span>'
+        + '<span class="dv-catalog-header__label">Carrito</span></button>'
+    )
+
+    logo_url = html.escape(static("brand/logo.png"), quote=True)
+    catalogo_url = html.escape(reverse("catalogo"), quote=True)
 
     return (
-        f'<nav id="{CONTACT_NAV_ID}" class="dv-catalog-contact" '
-        'aria-label="Contacto y redes sociales">'
-        + "".join(links)
-        + "</nav>"
+        f'<header id="{HEADER_ID}" class="dv-catalog-header">'
+        '<div class="dv-catalog-header__inner">'
+        f'<a class="dv-catalog-header__brand" href="{catalogo_url}" aria-label="Ir al catálogo">'
+        f'<img src="{logo_url}" alt="Doble V 3D"><strong>Doble V 3D</strong></a>'
+        f'<nav id="{CONTACT_NAV_ID}" class="dv-catalog-header__actions" '
+        'aria-label="Acciones del catálogo">'
+        + "".join(actions)
+        + "</nav></div></header>"
     )
 
 
-def _contactos_insertados(contenido):
-    return f'id="{CONTACT_NAV_ID}"' in contenido
+def _header_insertado(contenido):
+    return f'id="{HEADER_ID}"' in contenido
 
 
 class CatalogContactMiddleware:
-    """Agrega al catálogo los accesos sociales definidos desde Django Admin."""
+    """Agrega un header fijo y común a todas las pantallas públicas del catálogo."""
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -219,28 +219,26 @@ class CatalogContactMiddleware:
         except (AttributeError, UnicodeDecodeError):
             return response
 
-        contactos = _contactos_html()
-        if not contactos:
-            return response
-
         if "dv-catalog-contact-style" not in contenido and "</head>" in contenido:
             contenido = contenido.replace(
                 "</head>",
-                CONTACT_STYLE + "\n</head>",
+                HEADER_STYLE + "\n</head>",
                 1,
             )
 
-        if not _contactos_insertados(contenido):
-            if "</body>" in contenido:
-                contenido = contenido.replace(
-                    "</body>",
-                    contactos + "\n</body>",
-                    1,
-                )
-            elif "</header>" in contenido:
+        if not _header_insertado(contenido):
+            header = _header_html()
+            contenido, cantidad = re.subn(
+                r"(<body\b[^>]*>)",
+                r"\1\n" + header,
+                contenido,
+                count=1,
+                flags=re.IGNORECASE,
+            )
+            if cantidad == 0 and "</header>" in contenido:
                 contenido = contenido.replace(
                     "</header>",
-                    contactos + "\n</header>",
+                    "</header>\n" + header,
                     1,
                 )
 
