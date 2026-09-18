@@ -1,4 +1,5 @@
 {% load static %}
+{% load l10n %}
 <!doctype html>
 <html lang="es">
 <head>
@@ -405,6 +406,37 @@
             </div>
         </section>
 
+        <section
+            class="shell"
+            data-dv-kit-config
+            data-kit-id="{{ kit.id }}"
+            data-kit-name="{{ kit.nombre }}"
+            data-mode="{{ kit.modalidad }}"
+            data-required="{{ kit.cantidad_productos }}"
+            data-base-price="{{ kit.precio|unlocalize }}"
+            data-image="{{ kit.catalogo_imagen_url }}"
+        >
+            <div class="dv-kit-cart-panel">
+                <div class="dv-kit-cart-status">
+                    <strong>{% if kit.modalidad == "LIBRE_CATEGORIA" %}Armá tu kit{% else %}Agregar al carrito{% endif %}</strong>
+                    <span data-dv-kit-status>
+                        {% if kit.modalidad == "LIBRE_CATEGORIA" %}0 de {{ kit.cantidad_productos }} seleccionados{% else %}Composición fija{% endif %}
+                    </span>
+                </div>
+                <div class="dv-kit-qty">
+                    <label for="dv-kit-qty">CANTIDAD</label>
+                    <input id="dv-kit-qty" data-dv-kit-qty type="number" min="1" max="20" value="1" inputmode="numeric">
+                </div>
+                <div class="dv-kit-cart-price">
+                    <span>TOTAL</span>
+                    <strong data-dv-kit-total>$ {{ kit.precio|floatformat:"0g" }}</strong>
+                </div>
+                <button class="dv-kit-cart-add" type="button" data-dv-kit-add {% if kit.modalidad == "LIBRE_CATEGORIA" %}disabled{% endif %}>
+                    AGREGAR AL CARRITO
+                </button>
+            </div>
+        </section>
+
         {% if kit.modalidad == "LIBRE_CATEGORIA" %}
             <section class="shell section">
                 <div class="section-head">
@@ -418,7 +450,14 @@
                 {% if seleccionables %}
                     <div class="options">
                         {% for opcion in seleccionables %}
-                            <article class="option">
+                            <article
+                                class="option dv-kit-option"
+                                data-dv-kit-option
+                                data-product-id="{{ opcion.producto_id }}"
+                                data-product-name="{{ opcion.nombre }}"
+                                data-extra="0"
+                                data-count="0"
+                            >
                                 <div class="photo">
                                     {% if opcion.imagen_url %}
                                         <img src="{{ opcion.imagen_url }}" alt="{{ opcion.nombre }}" loading="lazy">
@@ -430,7 +469,14 @@
                                     <div class="code">{{ opcion.codigo }}</div>
                                     <div class="name" title="{{ opcion.nombre }}">{{ opcion.nombre }}</div>
                                 </div>
-                                <span class="status included">INCLUIDO</span>
+                                <div class="dv-kit-option-actions">
+                                    <span class="status included">INCLUIDO</span>
+                                    <div class="dv-kit-option-control" aria-label="Cantidad de {{ opcion.nombre }}">
+                                        <button type="button" data-kit-option-minus aria-label="Quitar">−</button>
+                                        <span data-kit-option-count>0</span>
+                                        <button type="button" data-kit-option-plus aria-label="Agregar">+</button>
+                                    </div>
+                                </div>
                             </article>
                         {% endfor %}
                     </div>
@@ -453,7 +499,14 @@
                 {% if adicionales %}
                     <div class="options">
                         {% for opcion in adicionales %}
-                            <article class="option">
+                            <article
+                                class="option dv-kit-option"
+                                data-dv-kit-option
+                                data-product-id="{{ opcion.producto_id }}"
+                                data-product-name="{{ opcion.nombre }}"
+                                data-extra="{{ opcion.extra|unlocalize }}"
+                                data-count="0"
+                            >
                                 <div class="photo">
                                     {% if opcion.imagen_url %}
                                         <img src="{{ opcion.imagen_url }}" alt="{{ opcion.nombre }}" loading="lazy">
@@ -465,9 +518,16 @@
                                     <div class="code">{{ opcion.codigo }}</div>
                                     <div class="name" title="{{ opcion.nombre }}">{{ opcion.nombre }}</div>
                                 </div>
-                                <div class="extra">
-                                    <strong>ADICIONAL +$ {{ opcion.extra|floatformat:"0g" }}</strong>
-                                    <span>por selección</span>
+                                <div class="dv-kit-option-actions">
+                                    <div class="extra">
+                                        <strong>ADICIONAL +$ {{ opcion.extra|floatformat:"0g" }}</strong>
+                                        <span>por selección</span>
+                                    </div>
+                                    <div class="dv-kit-option-control" aria-label="Cantidad de {{ opcion.nombre }}">
+                                        <button type="button" data-kit-option-minus aria-label="Quitar">−</button>
+                                        <span data-kit-option-count>0</span>
+                                        <button type="button" data-kit-option-plus aria-label="Agregar">+</button>
+                                    </div>
                                 </div>
                             </article>
                         {% endfor %}
@@ -524,6 +584,7 @@
         Doble V 3D · Los precios y las opciones pueden actualizarse.
         {% if es_ambiente_no_productivo %} Vista de prueba {{ ambiente_catalogo|upper }}.{% endif %}
     </footer>
+    {% include "productos/_catalogo_carrito.html" %}
     {% include "productos/_catalogo_como_comprar.html" %}
 </body>
 </html>
