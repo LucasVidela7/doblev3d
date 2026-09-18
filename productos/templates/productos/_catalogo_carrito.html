@@ -1,0 +1,42 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'productos/catalog_cart.css' %}">
+<div data-dv-cart-root>
+    <button class="dv-cart-fab" type="button" data-dv-cart-open aria-label="Abrir carrito">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 4h2l2.2 10h10.6L20 7H7"></path>
+            <circle cx="9" cy="19" r="1.6"></circle>
+            <circle cx="17" cy="19" r="1.6"></circle>
+        </svg>
+        <span>CARRITO</span>
+        <span class="dv-cart-count" data-dv-cart-count>0</span>
+    </button>
+
+    <div class="dv-cart-overlay" data-dv-cart-overlay></div>
+    <aside class="dv-cart-drawer" data-dv-cart-drawer aria-label="Carrito de compras">
+        <div class="dv-cart-head">
+            <div class="dv-cart-head-copy">
+                <h2>Tu carrito</h2>
+                <p>Revisá productos, kits y cantidades.</p>
+            </div>
+            <button class="dv-cart-close" type="button" data-dv-cart-close aria-label="Cerrar carrito">×</button>
+        </div>
+        <div class="dv-cart-body" data-dv-cart-body>
+            <div class="dv-cart-skeleton">
+                <div class="dv-cart-skeleton-row"></div>
+                <div class="dv-cart-skeleton-row"></div>
+            </div>
+        </div>
+        <div class="dv-cart-foot">
+            <div class="dv-cart-total">
+                <span>TOTAL PRODUCTOS</span>
+                <strong data-dv-cart-total>$ 0</strong>
+            </div>
+            <a class="dv-cart-checkout is-disabled" data-dv-cart-checkout href="{% url 'catalogo_carrito' %}">
+                CONTINUAR
+            </a>
+            <p class="dv-cart-delivery-note">Entrega a coordinar · no incluida en este total.</p>
+        </div>
+        <div class="dv-cart-toast" data-dv-cart-toast role="status" aria-live="polite"></div>
+    </aside>
+</div>
+<script src="{% static 'productos/catalog_cart.js' %}" defer></script>
