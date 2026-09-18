@@ -102,6 +102,11 @@ def _formulario_kit(
             == "1"
         )
 
+        proteger_rentabilidad_libre = (
+            request.POST.get("proteger_rentabilidad_libre")
+            == "1"
+        )
+
         if not nombre:
             messages.error(
                 request,
@@ -157,6 +162,11 @@ def _formulario_kit(
         kit.modalidad = modalidad
         kit.precio = precio
         kit.activo = activo
+        kit.proteger_rentabilidad_libre = (
+            proteger_rentabilidad_libre
+            if modalidad == "LIBRE_CATEGORIA"
+            else False
+        )
 
         if modalidad == "LIBRE_CATEGORIA":
 
