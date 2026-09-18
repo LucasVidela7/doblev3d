@@ -9,6 +9,15 @@
 
     if (!summary || !payloadInput || !form) return;
 
+    const escapeHtml = (value) =>
+        String(value ?? '').replace(/[&<>"']/g, (char) => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;',
+        }[char]));
+
     const money = (value) =>
         new Intl.NumberFormat('es-AR', {
             style: 'currency',
@@ -47,7 +56,7 @@
         }
 
         summary.innerHTML = items.map((item) => {
-            const selected = (item.selections || []).map((entry) => entry.name).join(' · ');
+            const selected = (item.selections || []).map((entry) => escapeHtml(entry.name)).join(' · ');
             const additional = (item.selections || []).reduce(
                 (sum, entry) => sum + Number(entry.extra || 0),
                 0,
@@ -59,7 +68,7 @@
                 ? '<span class="checkout-extra">+' + money(additional) + ' adicional</span>'
                 : '';
             return '<article class="checkout-line">'
-                + '<div><strong>' + item.name + '</strong><span>' + meta + '</span>' + extra + '</div>'
+                + '<div><strong>' + escapeHtml(item.name) + '</strong><span>' + meta + '</span>' + extra + '</div>'
                 + '<div class="checkout-line-money"><b>' + money(Number(item.unitPrice || 0) * Number(item.qty || 1)) + '</b><span>x ' + item.qty + '</span></div>'
                 + '</article>';
         }).join('');
