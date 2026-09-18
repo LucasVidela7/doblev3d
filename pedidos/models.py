@@ -254,6 +254,231 @@ class DetalleKitProducto(models.Model):
         return f"{self.detalle} - {self.producto.nombre}"
 
 
+class Presupuesto(models.Model):
+    ESTADOS = [
+        ("PENDIENTE", "Pendiente"),
+        ("APROBADO", "Aprobado"),
+        ("RECHAZADO", "Rechazado"),
+    ]
+
+    fecha = models.DateField(auto_now_add=True)
+    actualizado_en = models.DateTimeField(auto_now=True)
+
+    cliente = models.ForeignKey(
+        Cliente,
+        on_delete=models.PROTECT,
+        related_name="presupuestos",
+    )
+
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADOS,
+        default="PENDIENTE",
+    )
+
+    fecha_entrega = models.DateField(
+        null=True,
+        blank=True,
+    )
+
+    observaciones = models.TextField(
+        blank=True,
+    )
+
+    pedido_generado = models.OneToOneField(
+        Pedido,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="presupuesto_origen",
+    )
+
+    class Meta:
+        ordering = ["-id"]
+
+    @property
+    def codigo(self):
+        return f"PRE{self.id:04d}" if self.id else "NUEVO"
+
+    @property
+    def total_lista(self):
+        return sum(
+            (
+                detalle.subtotal_lista
+                for detalle in self.detalles.all()
+            ),
+            Decimal("0"),
+        )
+
+    @property
+    def total(self):
+        return sum(
+            (
+                detalle.subtotal
+                for detalle in self.detalles.all()
+            ),
+            Decimal("0"),
+        )
+
+    @property
+    def descuento_total(self):
+        return max(
+            self.total_lista - self.total,
+            Decimal("0"),
+        )
+
+    @property
+    def descuento_porcentaje(self):
+        if self.total_lista <= 0:
+            return Decimal("0")
+        return (
+            self.descuento_total
+            / self.total_lista
+            * Decimal("100")
+        ).quantize(Decimal("0.1"))
+
+    def __str__(self):
+        return f"{self.codigo} - {self.cliente.nombre}"
+
+
+class DetallePresupuesto(models.Model):
+    TIPOS_ITEM = DetallePedido.TIPOS_ITEM
+
+    presupuesto = models.ForeignKey(
+        Presupuesto,
+        on_delete=models.CASCADE,
+        related_name="detalles",
+    )
+
+    tipo_item = models.CharField(
+        max_length=20,
+        choices=TIPOS_ITEM,
+    )
+
+    producto = models.ForeignKey(
+        Producto,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="detalles_presupuesto",
+    )
+
+    kit = models.ForeignKey(
+        Kit,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="detalles_presupuesto",
+    )
+
+    cantidad = models.PositiveIntegerField(
+        default=1,
+    )
+
+    precio_lista_unitario = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+    )
+
+    precio_unitario = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+    )
+
+    precio_kit_manual = models.BooleanField(
+        default=False,
+    )
+
+    costo_unitario = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )
+
+    personalizado = models.BooleanField(
+        default=False,
+    )
+
+    detalle_personalizacion = models.TextField(
+        blank=True,
+    )
+
+    color_personalizacion = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+
+    precio_total_personalizado = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )
+
+    @property
+    def subtotal_lista(self):
+        return (
+            self.precio_lista_unitario
+            * Decimal(self.cantidad)
+        )
+
+    @property
+    def subtotal(self):
+        if (
+            self.tipo_item == "PERSONALIZADO"
+            and self.precio_total_personalizado is not None
+        ):
+            return self.precio_total_personalizado
+
+        return self.precio_unitario * Decimal(self.cantidad)
+
+    @property
+    def descuento(self):
+        return max(
+            self.subtotal_lista - self.subtotal,
+            Decimal("0"),
+        )
+
+    @property
+    def descuento_porcentaje(self):
+        if self.subtotal_lista <= 0:
+            return Decimal("0")
+        return (
+            self.descuento
+            / self.subtotal_lista
+            * Decimal("100")
+        ).quantize(Decimal("0.1"))
+
+    def __str__(self):
+        return f"{self.presupuesto.codigo} - {self.tipo_item}"
+
+
+class DetallePresupuestoKitProducto(models.Model):
+    detalle = models.ForeignKey(
+        DetallePresupuesto,
+        on_delete=models.CASCADE,
+        related_name="productos_kit",
+    )
+
+    producto = models.ForeignKey(
+        Producto,
+        on_delete=models.PROTECT,
+    )
+
+    cantidad = models.PositiveIntegerField(
+        default=1,
+    )
+
+    def __str__(self):
+        return (
+            f"{self.detalle.presupuesto.codigo} - "
+            f"{self.producto.nombre}"
+        )
+
+
 class EstadoImpresionPedido(models.Model):
     pedido = models.ForeignKey(
         Pedido,
