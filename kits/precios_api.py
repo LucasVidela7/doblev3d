@@ -238,7 +238,7 @@ def recomendar_precio_libre(request):
             status=422,
         )
 
-    calculo = calcular_escenarios_kit_libre(
+    calculo_categoria = calcular_escenarios_kit_libre(
         productos,
         cantidad,
     )
@@ -255,7 +255,20 @@ def recomendar_precio_libre(request):
         proteger_rentabilidad=proteger_rentabilidad,
     )
 
-    if calculo["costo_peor_caso"] <= 0:
+    productos_incluidos = [
+        item["producto"]
+        for item in opciones["incluidos"]
+    ]
+    escenarios_visibles = not proteger_rentabilidad
+    calculo = calculo_categoria
+
+    if proteger_rentabilidad and productos_incluidos:
+        calculo = calcular_escenarios_kit_libre(
+            productos_incluidos,
+            cantidad,
+        )
+
+    if calculo_categoria["costo_peor_caso"] <= 0:
         return JsonResponse(
             {
                 "ok": False,
@@ -299,10 +312,23 @@ def recomendar_precio_libre(request):
             "ok": True,
             "tipo": "LIBRE_CATEGORIA",
             "categoria": tipo.nombre,
-            "cantidad": calculo["cantidad"],
-            "productos_categoria": calculo[
-                "cantidad_productos_categoria"
-            ],
+            "cantidad": cantidad,
+            "productos_categoria": len(productos),
+            "productos_referencia": (
+                len(productos_incluidos)
+                if proteger_rentabilidad
+                else len(productos)
+            ),
+            "escenarios_visibles": escenarios_visibles,
+            "escenarios_sobre_incluidos": bool(
+                proteger_rentabilidad
+                and productos_incluidos
+            ),
+            "sin_opciones_incluidas": bool(
+                proteger_rentabilidad
+                and opciones["disponible"]
+                and not productos_incluidos
+            ),
             "costo_promedio": _decimal_texto(
                 calculo["costo_promedio"]
             ),
