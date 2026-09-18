@@ -9,6 +9,7 @@ from calculadora.precios import (
     precio_mayorista,
     redondear_arriba,
 )
+from kits.economia import precio_automatico_kit_libre
 from kits.models import Kit
 from productos.models import Producto
 
@@ -57,7 +58,15 @@ def _preparar_linea(item):
     cantidad_kits = max(int(item.get("cantidad") or 0), 0)
     componentes = list(item.get("componentes") or [])
 
-    precio_unitario_lista = max(_decimal(kit.precio), Decimal("0"))
+    precio_unitario_lista = max(
+        _decimal(
+            item.get(
+                "precio_unitario_lista",
+                kit.precio,
+            )
+        ),
+        Decimal("0"),
+    )
     precio_lista_total = precio_unitario_lista * Decimal(cantidad_kits)
 
     costo_total = Decimal("0")
@@ -424,18 +433,64 @@ def items_desde_pedido(pedido):
 
     items = []
     for detalle in detalles:
+        componentes_guardados = list(
+            detalle.productos_kit.all()
+        )
+        precio_unitario_lista = _decimal(
+            detalle.kit.precio
+        )
+
+        if (
+            detalle.kit.modalidad == "LIBRE_CATEGORIA"
+            and detalle.cantidad > 0
+        ):
+            seleccion = []
+            seleccion_valida = True
+
+            for componente in componentes_guardados:
+                total = int(componente.cantidad or 0)
+                if (
+                    total <= 0
+                    or total % detalle.cantidad != 0
+                ):
+                    seleccion_valida = False
+                    break
+
+                repeticiones = total // detalle.cantidad
+                seleccion.extend(
+                    [componente.producto] * repeticiones
+                )
+
+            if (
+                seleccion_valida
+                and len(seleccion)
+                == int(detalle.kit.cantidad_productos or 0)
+            ):
+                try:
+                    precio_unitario_lista = (
+                        precio_automatico_kit_libre(
+                            detalle.kit,
+                            seleccion,
+                        )
+                    )
+                except ValueError:
+                    precio_unitario_lista = _decimal(
+                        detalle.kit.precio
+                    )
+
         items.append(
             {
                 "key": str(detalle.id),
                 "detalle": detalle,
                 "kit": detalle.kit,
                 "cantidad": detalle.cantidad,
+                "precio_unitario_lista": precio_unitario_lista,
                 "componentes": [
                     {
                         "producto": componente.producto,
                         "cantidad": componente.cantidad,
                     }
-                    for componente in detalle.productos_kit.all()
+                    for componente in componentes_guardados
                 ],
             }
         )
@@ -534,6 +589,10 @@ def items_desde_payload(payload):
                     f"Hay productos inválidos en la selección de {kit.nombre}."
                 )
 
+            seleccion_productos = [
+                productos[producto_id]
+                for producto_id in ids
+            ]
             conteo = Counter(ids)
             componentes = [
                 {
@@ -543,11 +602,19 @@ def items_desde_payload(payload):
                 for producto_id, veces in conteo.items()
             ]
 
+        precio_unitario_lista = _decimal(kit.precio)
+        if kit.modalidad == "LIBRE_CATEGORIA":
+            precio_unitario_lista = precio_automatico_kit_libre(
+                kit,
+                seleccion_productos,
+            )
+
         items.append(
             {
                 "key": key,
                 "kit": kit,
                 "cantidad": cantidad,
+                "precio_unitario_lista": precio_unitario_lista,
                 "componentes": componentes,
             }
         )
