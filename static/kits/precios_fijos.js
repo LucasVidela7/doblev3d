@@ -205,6 +205,92 @@
         `;
     }
 
+    function opcionesRentabilidadHtml(data){
+        const info = data.opciones_rentabilidad;
+        if (!info || !info.disponible) return "";
+
+        const opciones = Array.isArray(info.opciones)
+            ? info.opciones
+            : [];
+
+        if (!info.proteger_rentabilidad) {
+            const potenciales = opciones.filter(function(item){
+                return item.requiere_extra;
+            }).length;
+
+            return `
+                <div class="dv-kit-opciones-rentabilidad desactivada">
+                    <div class="dv-kit-opciones-titulo">
+                        PROTECCIÓN DE RENTABILIDAD DESACTIVADA
+                    </div>
+                    <div class="dv-kit-opciones-ayuda">
+                        Todos los productos de la categoría quedan incluidos al precio base.
+                        ${potenciales > 0
+                            ? potenciales + " opción" + (potenciales === 1 ? "" : "es")
+                                + " necesitaría" + (potenciales === 1 ? "" : "n")
+                                + " extra si activaras la protección."
+                            : "Ninguna opción necesita extra con el precio actual."}
+                    </div>
+                </div>
+            `;
+        }
+
+        const incluidos = opciones.filter(function(item){
+            return item.incluido;
+        });
+        const premium = opciones.filter(function(item){
+            return !item.incluido;
+        });
+
+        const chipsIncluidos = incluidos.map(function(item){
+            return `<span class="dv-kit-opcion-chip incluida">${item.nombre}</span>`;
+        }).join("");
+
+        const chipsPremium = premium.map(function(item){
+            return `
+                <span class="dv-kit-opcion-chip premium">
+                    ${item.nombre}
+                    <strong>+${dinero(item.extra)}</strong>
+                </span>
+            `;
+        }).join("");
+
+        return `
+            <div class="dv-kit-opciones-rentabilidad">
+                <div class="dv-kit-opciones-resumen">
+                    <div>
+                        <div class="dv-kit-opciones-titulo">OPCIONES INCLUIDAS</div>
+                        <div class="dv-kit-opciones-numero">${incluidos.length}</div>
+                    </div>
+                    <div>
+                        <div class="dv-kit-opciones-titulo">PREMIUM CON EXTRA</div>
+                        <div class="dv-kit-opciones-numero">${premium.length}</div>
+                    </div>
+                    <div>
+                        <div class="dv-kit-opciones-titulo">BASE POR LUGAR</div>
+                        <div class="dv-kit-opciones-numero">${dinero(info.precio_base_por_lugar)}</div>
+                    </div>
+                </div>
+
+                <div class="dv-kit-opciones-grupo">
+                    <div class="dv-kit-opciones-subtitulo">Incluidas en el precio del kit</div>
+                    <div class="dv-kit-opciones-chips">
+                        ${chipsIncluidos || '<span class="dv-kit-opciones-vacio">No hay opciones incluidas con este precio.</span>'}
+                    </div>
+                </div>
+
+                ${premium.length ? `
+                    <div class="dv-kit-opciones-grupo">
+                        <div class="dv-kit-opciones-subtitulo">Opciones premium</div>
+                        <div class="dv-kit-opciones-chips">
+                            ${chipsPremium}
+                        </div>
+                    </div>
+                ` : ""}
+            </div>
+        `;
+    }
+
     function renderizarLibre(data){
         const estado = estadoPrecioActual(data);
         const tarjetas = [
@@ -234,6 +320,7 @@
                     ${estado.texto}
                 </div>
             </div>
+            ${opcionesRentabilidadHtml(data)}
             <div class="dv-kit-escenarios-grid">${tarjetas}</div>
         `;
     }
@@ -290,8 +377,20 @@
             };
         }
 
+        const precio = Number(
+            document.getElementById("precio_kit")?.value || 0
+        );
+        const proteger = !!document.getElementById(
+            "proteger_rentabilidad_libre"
+        )?.checked;
+
         datos.append("tipo_producto", tipoId);
         datos.append("cantidad", cantidad);
+        datos.append("precio", precio);
+        datos.append(
+            "proteger_rentabilidad",
+            proteger ? "1" : "0"
+        );
 
         return {
             endpoint:endpointLibre,
