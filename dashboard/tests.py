@@ -69,6 +69,27 @@ class DashboardProduccionTests(TestCase):
             "CLARO",
         )
 
+        self.assertContains(
+            respuesta,
+            'id="dvManagementMenu"',
+        )
+        self.assertContains(
+            respuesta,
+            'id="dvManagementMenuToggle"',
+        )
+        self.assertRegex(
+            contenido,
+            r"/static/shared/management_menu(?:\.[0-9a-f]+)?\.css",
+        )
+        self.assertRegex(
+            contenido,
+            r"/static/shared/management_menu(?:\.[0-9a-f]+)?\.js",
+        )
+        self.assertNotContains(
+            respuesta,
+            'id="dv-dashboard-menu-script"',
+        )
+
     def test_dashboard_muestra_impresoras_y_planificaciones(self):
         ahora = timezone.now()
 
