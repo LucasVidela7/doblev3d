@@ -1,0 +1,406 @@
+<style id="dv-how-buy-style">
+.dv-catalog-top-actions{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:9px;
+    flex-wrap:wrap;
+}
+.dv-how-buy-trigger{
+    min-height:38px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    padding:0 13px;
+    border:1px solid rgba(19,74,154,.18);
+    border-radius:999px;
+    background:#fff;
+    color:#0d376f;
+    cursor:pointer;
+    font:inherit;
+    font-size:.78rem;
+    font-weight:800;
+    box-shadow:0 5px 16px rgba(19,74,154,.05);
+    transition:.18s ease;
+}
+.dv-how-buy-trigger:hover{
+    border-color:#134a9a;
+    background:#eef4ff;
+}
+.dv-how-buy-trigger:focus-visible,
+.dv-how-buy-close:focus-visible,
+.dv-how-buy-ok:focus-visible{
+    outline:3px solid rgba(19,74,154,.22);
+    outline-offset:3px;
+}
+.dv-how-buy-dialog{
+    width:min(620px,calc(100% - 24px));
+    max-height:min(760px,calc(100dvh - 30px));
+    margin:auto;
+    padding:0;
+    overflow:hidden;
+    border:1px solid #dfe5ef;
+    border-radius:26px;
+    background:#fff;
+    color:#17233a;
+    box-shadow:0 30px 80px rgba(18,31,52,.24);
+}
+.dv-how-buy-dialog::backdrop{
+    background:rgba(15,24,39,.48);
+    backdrop-filter:blur(5px);
+}
+.dv-how-buy-shell{
+    max-height:min(760px,calc(100dvh - 30px));
+    overflow:auto;
+}
+.dv-how-buy-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:18px;
+    padding:24px 24px 17px;
+    border-bottom:1px solid #edf0f5;
+}
+.dv-how-buy-eyebrow{
+    margin:0 0 5px;
+    color:#cf2730;
+    font-size:.7rem;
+    font-weight:850;
+    letter-spacing:.11em;
+    text-transform:uppercase;
+}
+.dv-how-buy-title{
+    margin:0;
+    color:#0d376f;
+    font-size:clamp(1.45rem,4vw,2rem);
+    line-height:1.05;
+    letter-spacing:-.035em;
+}
+.dv-how-buy-intro{
+    max-width:470px;
+    margin:8px 0 0;
+    color:#667085;
+    font-size:.9rem;
+    line-height:1.55;
+}
+.dv-how-buy-close{
+    width:38px;
+    height:38px;
+    flex:0 0 auto;
+    display:grid;
+    place-items:center;
+    border:1px solid #dfe5ef;
+    border-radius:50%;
+    background:#f8fafc;
+    color:#40506a;
+    cursor:pointer;
+    font-size:1.25rem;
+    line-height:1;
+}
+.dv-how-buy-body{
+    padding:20px 24px 24px;
+}
+.dv-how-buy-steps{
+    display:grid;
+    gap:10px;
+}
+.dv-how-buy-step{
+    display:grid;
+    grid-template-columns:34px minmax(0,1fr);
+    gap:11px;
+    align-items:flex-start;
+    padding:10px 0;
+}
+.dv-how-buy-number{
+    width:34px;
+    height:34px;
+    display:grid;
+    place-items:center;
+    border-radius:11px;
+    background:#eef4ff;
+    color:#134a9a;
+    font-size:.78rem;
+    font-weight:900;
+}
+.dv-how-buy-step strong{
+    display:block;
+    color:#17233a;
+    font-size:.9rem;
+}
+.dv-how-buy-step p{
+    margin:3px 0 0;
+    color:#667085;
+    font-size:.82rem;
+    line-height:1.45;
+}
+.dv-how-buy-divider{
+    height:1px;
+    margin:19px 0;
+    background:#edf0f5;
+}
+.dv-how-buy-section-title{
+    margin:0 0 4px;
+    color:#0d376f;
+    font-size:1rem;
+}
+.dv-how-buy-section-copy{
+    margin:0 0 12px;
+    color:#667085;
+    font-size:.8rem;
+    line-height:1.45;
+}
+.dv-how-buy-delivery{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:9px;
+}
+.dv-how-buy-method{
+    min-width:0;
+    padding:13px;
+    border:1px solid #dfe5ef;
+    border-radius:15px;
+    background:#fafbfc;
+}
+.dv-how-buy-method-icon{
+    width:31px;
+    height:31px;
+    display:grid;
+    place-items:center;
+    margin-bottom:9px;
+    border-radius:10px;
+    background:#fff1f2;
+    color:#cf2730;
+    font-size:.72rem;
+    font-weight:900;
+}
+.dv-how-buy-method strong{
+    display:block;
+    color:#17233a;
+    font-size:.83rem;
+}
+.dv-how-buy-method p{
+    margin:5px 0 0;
+    color:#667085;
+    font-size:.74rem;
+    line-height:1.42;
+}
+.dv-how-buy-note{
+    margin-top:13px;
+    padding:11px 12px;
+    border-radius:13px;
+    background:#eef4ff;
+    color:#345f91;
+    font-size:.77rem;
+    line-height:1.45;
+}
+.dv-how-buy-actions{
+    display:flex;
+    justify-content:flex-end;
+    padding-top:18px;
+}
+.dv-how-buy-ok{
+    min-height:43px;
+    min-width:122px;
+    padding:0 17px;
+    border:0;
+    border-radius:13px;
+    background:#134a9a;
+    color:#fff;
+    cursor:pointer;
+    font:inherit;
+    font-size:.8rem;
+    font-weight:850;
+}
+@media(max-width:640px){
+    .dv-catalog-top-actions{
+        width:100%;
+        justify-content:space-between;
+    }
+    .dv-how-buy-dialog{
+        width:min(100% - 16px,620px);
+        border-radius:21px;
+    }
+    .dv-how-buy-head{
+        padding:20px 18px 15px;
+    }
+    .dv-how-buy-body{
+        padding:16px 18px 20px;
+    }
+    .dv-how-buy-delivery{
+        grid-template-columns:1fr;
+    }
+    .dv-how-buy-method{
+        display:grid;
+        grid-template-columns:31px minmax(0,1fr);
+        column-gap:10px;
+        align-items:start;
+    }
+    .dv-how-buy-method-icon{
+        grid-row:1 / span 2;
+        margin:0;
+    }
+    .dv-how-buy-method p{
+        margin-top:3px;
+    }
+    .dv-how-buy-ok{
+        width:100%;
+    }
+}
+</style>
+
+<dialog
+    id="dv-how-buy-dialog"
+    class="dv-how-buy-dialog"
+    aria-labelledby="dv-how-buy-title"
+>
+    <div class="dv-how-buy-shell">
+        <div class="dv-how-buy-head">
+            <div>
+                <p class="dv-how-buy-eyebrow">Doble V 3D</p>
+                <h2 class="dv-how-buy-title" id="dv-how-buy-title">¿Cómo realizar un pedido?</h2>
+                <p class="dv-how-buy-intro">
+                    Primero elegís lo que te gusta. Antes de producir, confirmamos con vos
+                    productos, total y forma de entrega.
+                </p>
+            </div>
+            <button
+                class="dv-how-buy-close"
+                type="button"
+                data-dv-how-buy-close
+                aria-label="Cerrar"
+            >×</button>
+        </div>
+
+        <div class="dv-how-buy-body">
+            <div class="dv-how-buy-steps">
+                <div class="dv-how-buy-step">
+                    <span class="dv-how-buy-number">1</span>
+                    <div>
+                        <strong>Elegí tus productos o kits</strong>
+                        <p>Revisá precios, opciones disponibles y adicionales cuando correspondan.</p>
+                    </div>
+                </div>
+                <div class="dv-how-buy-step">
+                    <span class="dv-how-buy-number">2</span>
+                    <div>
+                        <strong>Envianos tu selección</strong>
+                        <p>Indicá qué productos querés, cantidades y cualquier detalle especial.</p>
+                    </div>
+                </div>
+                <div class="dv-how-buy-step">
+                    <span class="dv-how-buy-number">3</span>
+                    <div>
+                        <strong>Confirmamos el pedido con vos</strong>
+                        <p>Revisamos disponibilidad, total y forma de entrega antes de darlo de alta.</p>
+                    </div>
+                </div>
+                <div class="dv-how-buy-step">
+                    <span class="dv-how-buy-number">4</span>
+                    <div>
+                        <strong>Comienza la preparación</strong>
+                        <p>Una vez confirmado, tu pedido pasa a producción y coordinamos la entrega.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dv-how-buy-divider"></div>
+
+            <h3 class="dv-how-buy-section-title">Entregas y retiro</h3>
+            <p class="dv-how-buy-section-copy">
+                La modalidad se coordina al confirmar el pedido. Por ahora esta información es solo orientativa.
+            </p>
+
+            <div class="dv-how-buy-delivery">
+                <div class="dv-how-buy-method">
+                    <span class="dv-how-buy-method-icon">COR</span>
+                    <strong>Correo</strong>
+                    <p>Realizamos envíos por correo. Costo y plazo se confirman según destino.</p>
+                </div>
+                <div class="dv-how-buy-method">
+                    <span class="dv-how-buy-method-icon">MOTO</span>
+                    <strong>Motomensajería</strong>
+                    <p>Entrega coordinada según zona y disponibilidad del servicio.</p>
+                </div>
+                <div class="dv-how-buy-method">
+                    <span class="dv-how-buy-method-icon">RET</span>
+                    <strong>Retiro</strong>
+                    <p>Retiro coordinado en domicilio. La dirección exacta y el horario se informan al confirmar.</p>
+                </div>
+            </div>
+
+            <div class="dv-how-buy-note">
+                Los precios del catálogo corresponden a los productos. Cualquier costo de entrega
+                se informa y confirma por separado antes de cerrar el pedido.
+            </div>
+
+            <div class="dv-how-buy-actions">
+                <button class="dv-how-buy-ok" type="button" data-dv-how-buy-close>ENTENDIDO</button>
+            </div>
+        </div>
+    </div>
+</dialog>
+
+<script id="dv-how-buy-script">
+(() => {
+    const dialog = document.getElementById('dv-how-buy-dialog');
+    if (!dialog) return;
+
+    const seenKey = 'dv-catalog-how-buy-seen-v1';
+    const openers = [...document.querySelectorAll('[data-dv-how-buy-open]')];
+    const closers = [...dialog.querySelectorAll('[data-dv-how-buy-close]')];
+
+    const markSeen = () => {
+        try {
+            window.localStorage.setItem(seenKey, '1');
+        } catch (_) {}
+    };
+
+    const wasSeen = () => {
+        try {
+            return window.localStorage.getItem(seenKey) === '1';
+        } catch (_) {
+            return true;
+        }
+    };
+
+    const openDialog = () => {
+        if (dialog.open) return;
+        if (typeof dialog.showModal === 'function') {
+            dialog.showModal();
+        } else {
+            dialog.setAttribute('open', '');
+        }
+        markSeen();
+    };
+
+    const closeDialog = () => {
+        if (typeof dialog.close === 'function' && dialog.open) {
+            dialog.close();
+        } else {
+            dialog.removeAttribute('open');
+        }
+    };
+
+    openers.forEach((button) => {
+        button.addEventListener('click', openDialog);
+    });
+    closers.forEach((button) => {
+        button.addEventListener('click', closeDialog);
+    });
+
+    dialog.addEventListener('click', (event) => {
+        const rect = dialog.getBoundingClientRect();
+        const inside =
+            event.clientX >= rect.left &&
+            event.clientX <= rect.right &&
+            event.clientY >= rect.top &&
+            event.clientY <= rect.bottom;
+        if (!inside) closeDialog();
+    });
+
+    if (!wasSeen()) {
+        window.setTimeout(openDialog, 450);
+    }
+})();
+</script>
