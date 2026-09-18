@@ -44,7 +44,7 @@ class CatalogoContactoTests(TestCase):
         self.assertContains(response, "dv-catalog-contact__link--instagram")
         self.assertContains(response, "dv-catalog-contact__link--whatsapp")
         self.assertContains(response, "position:fixed")
-        self.assertContains(response, "bottom:calc(18px")
+        self.assertContains(response, "bottom:calc(86px")
         self.assertContains(response, 'aria-label="Abrir Instagram @doblev3d"')
         self.assertContains(response, 'aria-label="Escribir por WhatsApp"')
 
@@ -132,3 +132,21 @@ class CatalogoContactoTests(TestCase):
 
         self.assertEqual(self.config.instagram_usuario, "doblev3d")
         self.assertEqual(self.config.whatsapp_numero, "5491164760709")
+
+
+    def test_contactos_se_mantienen_en_checkout_y_confirmacion(self):
+        checkout = self.client.get(reverse("catalogo_carrito"))
+        gracias = self.client.get(reverse("catalogo_carrito_gracias"))
+
+        self.assertEqual(checkout.status_code, 200)
+        self.assertEqual(gracias.status_code, 200)
+        self.assertContains(
+            checkout,
+            'id="dv-catalog-contact-links"',
+        )
+        self.assertContains(
+            gracias,
+            'id="dv-catalog-contact-links"',
+        )
+        self.assertContains(checkout, "data-dv-cart-root")
+        self.assertContains(gracias, "data-dv-cart-root")
