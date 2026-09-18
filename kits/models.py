@@ -60,6 +60,14 @@ class Kit(models.Model):
         default=0,
     )
 
+    proteger_rentabilidad_libre = models.BooleanField(
+        default=False,
+        help_text=(
+            "En kits libres, separa opciones incluidas de opciones premium "
+            "con extra según la calculadora de costos."
+        ),
+    )
+
     activo = models.BooleanField(
         default=True,
     )
