@@ -292,6 +292,63 @@
     }
 
     function renderizarLibre(data){
+        const info = data.opciones_rentabilidad || {};
+        const protegido = !!info.proteger_rentabilidad;
+        const sinIncluidos = !!data.sin_opciones_incluidas;
+
+        if (protegido) {
+            const estadoTexto = sinIncluidos
+                ? "Sin opciones incluidas con el precio base actual"
+                : "Precio base protegido";
+
+            contenedor.innerHTML = `
+                <div class="dv-kit-escenarios-cabecera">
+                    <div>
+                        <div class="dv-kit-escenarios-etiqueta">PRECIO BASE DEL KIT</div>
+                        <div class="dv-kit-escenarios-titulo">Libre por categoría · ${data.categoria}</div>
+                        <div class="dv-kit-escenarios-detalle">
+                            La protección está activa. El precio base define qué productos quedan incluidos;
+                            las opciones más exigentes se ofrecen como premium con un adicional propio.
+                            Por eso no se muestra un único precio recomendado para todo el kit.
+                        </div>
+                        <div class="dv-kit-costos">
+                            <span class="dv-kit-costo-chip">
+                                ${data.productos_referencia} opciones incluidas
+                            </span>
+                            <span class="dv-kit-costo-chip">
+                                Costo promedio incluidos ${dinero(data.costo_promedio)}
+                            </span>
+                            <span class="dv-kit-costo-chip riesgo">
+                                Mayor costo incluido ${dinero(data.costo_peor_caso)}
+                            </span>
+                            ${chipFilamento(data)}
+                        </div>
+                    </div>
+                    <div class="dv-kit-precio-actual ${sinIncluidos ? "alerta" : "protegido"}">
+                        ${estadoTexto}
+                    </div>
+                </div>
+
+                ${opcionesRentabilidadHtml(data)}
+
+                <div class="dv-kit-base-protegida ${sinIncluidos ? "alerta" : ""}">
+                    ${sinIncluidos
+                        ? `
+                            <strong>Revisá el precio base.</strong>
+                            Con el valor actual todos los productos necesitan adicional.
+                            Subí el precio o reducí la cantidad de productos del kit para que exista al menos una opción incluida.
+                        `
+                        : `
+                            <strong>El precio base se administra por cobertura, no por una recomendación única.</strong>
+                            Mientras una opción permanezca incluida, cumple el escenario mínimo definido por la protección.
+                            Los productos premium completan su rentabilidad mediante el extra mostrado arriba.
+                        `
+                    }
+                </div>
+            `;
+            return;
+        }
+
         const estado = estadoPrecioActual(data);
         const tarjetas = [
             "agresivo",
@@ -307,7 +364,8 @@
                     <div class="dv-kit-escenarios-etiqueta">PRECIOS SEGÚN CALCULADORA</div>
                     <div class="dv-kit-escenarios-titulo">Libre por categoría · ${data.categoria}</div>
                     <div class="dv-kit-escenarios-detalle">
-                        La categoría tiene ${data.productos_categoria} productos comerciales. El kit usa el costo de filamento para cantidad y compara el comportamiento promedio con el producto más exigente.
+                        La protección está desactivada. Todos los productos de la categoría comparten el mismo precio base,
+                        por eso la recomendación contempla promedio y peor caso de toda la categoría.
                     </div>
                     <div class="dv-kit-costos">
                         <span class="dv-kit-costo-chip">Costo promedio ${dinero(data.costo_promedio)}</span>
