@@ -4,6 +4,11 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from clientes.models import Cliente
+from productos.models import ConfiguracionCatalogo
+from productos.whatsapp import (
+    renderizar_mensaje_solicitud,
+    whatsapp_url,
+)
 
 from .models import (
     DetallePresupuesto,
@@ -49,6 +54,16 @@ def detalle_solicitud_web(request, solicitud_id):
         id=solicitud_id,
     )
 
+    config = ConfiguracionCatalogo.objects.first() or ConfiguracionCatalogo()
+    mensaje_whatsapp = renderizar_mensaje_solicitud(
+        config.whatsapp_mensaje_respuesta_solicitud,
+        solicitud,
+    )
+    whatsapp_url_cliente = whatsapp_url(
+        solicitud.telefono_normalizado,
+        mensaje_whatsapp,
+    )
+
     return render(
         request,
         "pedidos/solicitud_web_detalle.html",
@@ -56,6 +71,7 @@ def detalle_solicitud_web(request, solicitud_id):
             "solicitud": solicitud,
             "items": list(solicitud.items.all()),
             "whatsapp_numero": solicitud.telefono_normalizado,
+            "whatsapp_url_cliente": whatsapp_url_cliente,
         },
     )
 
@@ -215,7 +231,10 @@ def convertir_solicitud_web(request, solicitud_id):
                 tipo_item="PRODUCTO",
                 producto=item.producto,
                 cantidad=item.cantidad,
-                precio_lista_unitario=item.precio_unitario,
+                precio_lista_unitario=(
+                    item.precio_base_unitario
+                    + item.adicional_unitario
+                ),
                 precio_unitario=item.precio_unitario,
             )
             continue
