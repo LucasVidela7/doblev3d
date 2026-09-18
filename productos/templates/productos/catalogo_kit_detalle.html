@@ -506,11 +506,41 @@
             data-base-price="{{ kit.precio|unlocalize }}"
             data-image="{{ kit.catalogo_imagen_url }}"
         >
-            <div class="dv-kit-cart-panel">
-                <div class="dv-kit-cart-status">
-                    <strong>{% if kit.modalidad == "LIBRE_CATEGORIA" %}Armá tu kit{% else %}Agregar al carrito{% endif %}</strong>
-                    <span data-dv-kit-status>
-                        {% if kit.modalidad == "LIBRE_CATEGORIA" %}Elegí {{ kit.cantidad_productos }} productos{% else %}Composición fija{% endif %}
+            {% if kit.modalidad == "LIBRE_CATEGORIA" %}
+                <div class="dv-kit-cart-panel dv-kit-cart-panel--simple">
+                    <div class="dv-kit-cart-action is-ready" data-dv-kit-cart-action>
+                        <button class="dv-kit-cart-add" type="button" data-dv-kit-add disabled>
+                            ELEGÍ {{ kit.cantidad_productos }} MÁS
+                        </button>
+                    </div>
+                    <div class="dv-kit-progress" aria-hidden="true">
+                        <span data-dv-kit-progress-fill></span>
+                    </div>
+                </div>
+            {% else %}
+                <div class="dv-kit-cart-panel">
+                    <div class="dv-kit-cart-status">
+                        <strong>Agregar al carrito</strong>
+                        <span>Composición fija</span>
+                    </div>
+                    <div class="dv-kit-qty">
+                        <label for="dv-kit-qty">CANTIDAD DE KITS</label>
+                        <input id="dv-kit-qty" data-dv-kit-qty type="number" min="1" max="20" value="1" inputmode="numeric">
+                    </div>
+                    <div class="dv-kit-cart-price">
+                        <span>TOTAL DE LISTA</span>
+                        <strong data-dv-kit-total>$ {{ kit.precio|floatformat:"0g" }}</strong>
+                    </div>
+                    <div class="dv-kit-cart-action is-ready" data-dv-kit-cart-action>
+                        <button class="dv-kit-cart-add" type="button" data-dv-kit-add>
+                            AGREGAR AL CARRITO
+                        </button>
+                    </div>
+                </div>
+            {% endif %}
+        </section>
+
+        {% if kit.modalidad == "LIBRE_CATEGORIA" %}Elegí {{ kit.cantidad_productos }} productos{% else %}Composición fija{% endif %}
                     </span>
                 </div>
 
