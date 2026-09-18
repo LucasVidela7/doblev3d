@@ -16,6 +16,7 @@ class LoginRequiredMiddleware:
         "login",
         "catalogo",
         "catalogo_legacy",
+        "catalogo_kit_detalle",
         "catalogo_contacto",
     }
 
