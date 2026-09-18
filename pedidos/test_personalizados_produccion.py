@@ -265,7 +265,7 @@ class PersonalizadosProduccionTests(TestCase):
         self.assertEqual(detalle.estado, "PENDIENTE")
 
         respuesta = self.client.get(
-            reverse("pedidos:impresiones_productos")
+            reverse("produccion:lista")
         )
         self.assertEqual(respuesta.status_code, 200)
 
@@ -363,9 +363,15 @@ class PersonalizadosProduccionTests(TestCase):
         )
 
         respuesta = self.client.get(
-            reverse("pedidos:impresiones_productos")
+            reverse("produccion:lista")
         )
 
         self.assertEqual(respuesta.status_code, 200)
-        self.assertContains(respuesta, "dv-planificador-libre-script")
-        self.assertContains(respuesta, "Cantidad libre")
+        self.assertContains(
+            respuesta,
+            "Podés producir más; el excedente irá a stock.",
+        )
+        self.assertContains(
+            respuesta,
+            "PLANIFICAR ESTE PRODUCTO",
+        )
