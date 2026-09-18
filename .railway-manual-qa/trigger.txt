@@ -1,3 +1,3 @@
-Deploy QA: header fijo y flujo de kits
-Base: e5389ea07d0ca81927260ec66e9801210fba377d
-Incluye: logo + ayuda + redes + carrito, barra minima del kit, reset y apertura automatica
+Deploy QA: barra inferior fija del configurador de kits
+Base: 1a4544261ed2cbc583eff3d2f6f520f5dc2baa24
+Incluye: barra inferior centrada y fija, progreso a ancho completo y estado/CTA ocupando las dos columnas
