@@ -4,7 +4,7 @@ from django.shortcuts import render
 
 from productos.models import Producto
 
-from .economia import recomendacion_kit
+from .economia import analizar_opciones_kit, recomendacion_kit
 from .imagenes import adjuntar_imagenes_reutilizadas
 from .models import Kit
 
@@ -60,6 +60,11 @@ def lista_kits(request):
             kit,
             productos_categoria=productos_categoria,
         )
+        if kit.modalidad == "LIBRE_CATEGORIA":
+            kit.opciones_libres_analisis = analizar_opciones_kit(
+                kit,
+                productos_categoria=productos_categoria,
+            )
 
     return render(
         request,
