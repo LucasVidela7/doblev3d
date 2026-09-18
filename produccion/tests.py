@@ -148,18 +148,23 @@ class PlanificacionProduccionTests(TestCase):
             ahora + timedelta(minutes=210),
         )
 
-    def test_formulario_precarga_fecha_y_hora_actual(self):
+    def test_modulo_unificado_muestra_necesidad_y_planificacion_manual(self):
         respuesta = self.client.get(
             reverse("produccion:lista")
         )
 
+        self.assertEqual(respuesta.status_code, 200)
         self.assertContains(
             respuesta,
-            "inicio.value = fechaHoraLocalActual();",
+            "Necesidad de impresión",
         )
         self.assertContains(
             respuesta,
-            "+ PLANIFICAR PRODUCCIÓN",
+            "PLANIFICACIÓN MANUAL / PRODUCIR PARA STOCK",
+        )
+        self.assertContains(
+            respuesta,
+            "Cola y producción",
         )
 
     @patch("produccion.views.timezone.now")
@@ -190,9 +195,9 @@ class PlanificacionProduccionTests(TestCase):
 
         self.assertContains(
             respuesta,
-            "Si inicia ahora · termina 13:11",
+            "15/09 10:41",
         )
         self.assertContains(
             respuesta,
-            "Programada originalmente · 15/09 08:41",
+            "Fin: 15/09 13:11",
         )
