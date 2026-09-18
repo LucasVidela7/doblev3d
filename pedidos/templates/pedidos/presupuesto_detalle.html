@@ -1,0 +1,177 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
+<link rel="stylesheet" href="{% static 'brand/brand.css' %}">
+<title>{{ presupuesto.codigo }} | Doble V 3D</title>
+<style>
+:root{
+    --bg:#f4f5f7;--card:#fff;--text:#24272b;--muted:#73777f;--border:#e2e5e9;
+    --green:#e5f5ea;--green-t:#26653c;--yellow:#fff3ce;--yellow-t:#775b00;
+    --red:#fde8e8;--red-t:#963838;--blue:#eaf2ff;--blue-t:#285b9b;
+}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
+.shell{width:min(1050px,100%);margin:auto;padding:22px 14px 50px}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px}
+h1{margin:0;font-size:30px}.sub{margin-top:5px;color:var(--muted);font-size:12px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 14px;border-radius:12px;border:1px solid var(--border);background:#fff;color:var(--text);text-decoration:none;font-size:10px;font-weight:900;cursor:pointer}.btn.primary{background:#24272b;border-color:#24272b;color:#fff}.btn.approve{background:#2f7747;border-color:#2f7747;color:#fff}.btn.reject{background:#fff1f1;border-color:#e6bcbc;color:#913434}
+.status{display:inline-flex;margin-top:9px;padding:7px 10px;border-radius:999px;font-size:9px;font-weight:900}.PENDIENTE{background:var(--yellow);color:var(--yellow-t)}.APROBADO{background:var(--green);color:var(--green-t)}.RECHAZADO{background:var(--red);color:var(--red-t)}
+.card{padding:17px;border:1px solid var(--border);border-radius:18px;background:#fff;margin-bottom:13px;box-shadow:0 4px 15px rgba(20,25,35,.05)}
+.info{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}.label{font-size:8px;font-weight:900;color:var(--muted);letter-spacing:.25px}.value{margin-top:4px;font-size:13px;font-weight:800}
+.items{display:grid;gap:10px}.item{padding:14px;border:1px solid #e7e9ed;border-radius:14px;background:#fafbfc}.item-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.item-title{font-size:13px;font-weight:900}.item-type{margin-top:3px;color:var(--muted);font-size:9px;font-weight:800}.qty{font-size:10px;font-weight:900}
+.kit-products{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}.chip{padding:6px 8px;border-radius:999px;background:#eef1f4;color:#535960;font-size:8px;font-weight:800}
+.personal{margin-top:9px;padding:9px;border-radius:10px;background:#f3f7ff;color:#395f91;font-size:9px;line-height:1.45}
+.money{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.money > div{padding:9px;border-radius:10px;background:#fff;border:1px solid #e6e8eb}.money b{display:block;margin-top:4px;font-size:13px}.discount b{color:#2e7043}
+.totals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.total-box{padding:13px;border-radius:13px;background:#f7f8fa}.total-box strong{display:block;margin-top:5px;font-size:21px}.total-box.discount strong{color:#2e7043}.total-box.final{background:#24272b;color:#fff}.obs{white-space:pre-wrap;font-size:11px;line-height:1.5;color:#555b63}
+form{margin:0}
+@media(max-width:720px){.head{flex-direction:column}.actions{justify-content:flex-start}.info,.money,.totals{grid-template-columns:1fr}.item-head{gap:8px}}
+</style>
+</head>
+<body>
+<div class="shell">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="card">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="head">
+        <div>
+            <h1>{{ presupuesto.codigo }}</h1>
+            <div class="sub">{{ presupuesto.cliente.nombre }} · creado {{ presupuesto.fecha|date:"d/m/Y" }}</div>
+            <span class="status {{ presupuesto.estado }}">{{ presupuesto.get_estado_display|upper }}</span>
+        </div>
+        <div class="actions">
+            <a class="btn" href="{% url 'pedidos:presupuestos' %}">← PRESUPUESTOS</a>
+            {% if presupuesto.estado == "PENDIENTE" %}
+                <a class="btn" href="{% url 'pedidos:presupuesto_editar' presupuesto.id %}">EDITAR</a>
+                <form method="post" action="{% url 'pedidos:presupuesto_rechazar' presupuesto.id %}">
+                    {% csrf_token %}
+                    <button class="btn reject" type="submit">RECHAZAR</button>
+                </form>
+                <form method="post" action="{% url 'pedidos:presupuesto_aprobar' presupuesto.id %}">
+                    {% csrf_token %}
+                    <button class="btn approve" type="submit">APROBAR Y CREAR PEDIDO</button>
+                </form>
+            {% elif presupuesto.pedido_generado %}
+                <a class="btn primary" href="{% url 'pedidos:detalle' presupuesto.pedido_generado.id %}">
+                    VER {{ presupuesto.pedido_generado.codigo }}
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card info">
+        <div>
+            <div class="label">CLIENTE</div>
+            <div class="value">{{ presupuesto.cliente.nombre }}</div>
+        </div>
+        <div>
+            <div class="label">FECHA ESTIMADA DE ENTREGA</div>
+            <div class="value">{% if presupuesto.fecha_entrega %}{{ presupuesto.fecha_entrega|date:"d/m/Y" }}{% else %}Sin definir{% endif %}</div>
+        </div>
+        <div>
+            <div class="label">ÚLTIMA ACTUALIZACIÓN</div>
+            <div class="value">{{ presupuesto.actualizado_en|date:"d/m/Y H:i" }}</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="label" style="margin-bottom:10px">DETALLE</div>
+        <div class="items">
+            {% for detalle in detalles %}
+                <div class="item">
+                    <div class="item-head">
+                        <div>
+                            <div class="item-title">
+                                {% if detalle.tipo_item == "KIT" %}
+                                    {{ detalle.kit.nombre }}
+                                {% else %}
+                                    {{ detalle.producto.nombre }}
+                                {% endif %}
+                            </div>
+                            <div class="item-type">
+                                {{ detalle.get_tipo_item_display|upper }}
+                                {% if detalle.tipo_item == "KIT" and detalle.precio_kit_manual %} · PRECIO ACORDADO{% endif %}
+                            </div>
+                        </div>
+                        <div class="qty">x {{ detalle.cantidad }}</div>
+                    </div>
+
+                    {% if detalle.tipo_item == "KIT" %}
+                        <div class="kit-products">
+                            {% for componente in detalle.productos_kit.all %}
+                                <span class="chip">{{ componente.cantidad }}× {{ componente.producto.nombre }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {% if detalle.tipo_item == "PERSONALIZADO" %}
+                        <div class="personal">
+                            {{ detalle.detalle_personalizacion }}
+                            {% if detalle.color_personalizacion %}<br>Color: {{ detalle.color_personalizacion }}{% endif %}
+                        </div>
+                    {% endif %}
+
+                    <div class="money">
+                        <div>
+                            <span class="label">SUBTOTAL LISTA</span>
+                            <b>$ {{ detalle.subtotal_lista|floatformat:"0g" }}</b>
+                        </div>
+                        <div class="discount">
+                            <span class="label">DESCUENTO</span>
+                            <b>
+                                {% if detalle.descuento %}
+                                    − $ {{ detalle.descuento|floatformat:"0g" }}
+                                    · {{ detalle.descuento_porcentaje|floatformat:"1g" }}%
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </b>
+                        </div>
+                        <div>
+                            <span class="label">SUBTOTAL FINAL</span>
+                            <b>$ {{ detalle.subtotal|floatformat:"0g" }}</b>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card totals">
+        <div class="total-box">
+            <span class="label">SUBTOTAL LISTA</span>
+            <strong>$ {{ presupuesto.total_lista|floatformat:"0g" }}</strong>
+        </div>
+        <div class="total-box discount">
+            <span class="label">DESCUENTOS</span>
+            <strong>
+                {% if presupuesto.descuento_total %}
+                    − $ {{ presupuesto.descuento_total|floatformat:"0g" }}
+                {% else %}
+                    $ 0
+                {% endif %}
+            </strong>
+            {% if presupuesto.descuento_total %}
+                <div class="sub">{{ presupuesto.descuento_porcentaje|floatformat:"1g" }}% sobre precio de lista</div>
+            {% endif %}
+        </div>
+        <div class="total-box final">
+            <span class="label" style="color:#d6d9dd">TOTAL PRESUPUESTADO</span>
+            <strong>$ {{ presupuesto.total|floatformat:"0g" }}</strong>
+        </div>
+    </div>
+
+    {% if presupuesto.observaciones %}
+        <div class="card">
+            <div class="label" style="margin-bottom:8px">OBSERVACIONES</div>
+            <div class="obs">{{ presupuesto.observaciones }}</div>
+        </div>
+    {% endif %}
+</div>
+</body>
+</html>
