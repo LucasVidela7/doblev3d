@@ -469,6 +469,83 @@
                 <h1>{{ kit.nombre }}</h1>
                 <p class="hero-detail">
                     {% if kit.modalidad == "LIBRE_CATEGORIA" %}
+                        Elegí {{ kit.cantidad_productos }} producto{{ kit.cantidad_productos|pluralize }}
+                        {% if kit.tipo_producto %}de {{ kit.tipo_producto.nombre }}{% endif %}.
+                        Podés combinar opciones incluidas y opciones con adicional.
+                    {% else %}
+                        Este kit tiene una composición fija de {{ kit.cantidad_productos }} pieza{{ kit.cantidad_productos|pluralize }}.
+                    {% endif %}
+                </p>
+            </div>
+        </section>
+
+        <section class="shell summary" aria-label="Resumen del kit">
+            <div class="summary-card">
+                <span>Precio base</span>
+                <strong>
+                    {% if kit.precio %}$ {{ kit.precio|floatformat:"0g" }}{% else %}Consultar{% endif %}
+                </strong>
+            </div>
+            <div class="summary-card">
+                <span>{% if kit.modalidad == "FIJO" %}Piezas por kit{% else %}Productos a elegir{% endif %}</span>
+                <strong>{{ kit.cantidad_productos }}</strong>
+            </div>
+            <div class="summary-card">
+                <span>Tipo</span>
+                <strong>{% if kit.modalidad == "FIJO" %}Fijo{% else %}Armalo vos{% endif %}</strong>
+            </div>
+        </section>
+
+        <section
+            class="{% if kit.modalidad == "LIBRE_CATEGORIA" %}dv-kit-builder{% else %}shell{% endif %}"
+            data-dv-kit-config
+            data-kit-id="{{ kit.id }}"
+            data-kit-name="{{ kit.nombre }}"
+            data-mode="{{ kit.modalidad }}"
+            data-required="{{ kit.cantidad_productos }}"
+            data-base-price="{{ kit.precio|unlocalize }}"
+            data-image="{{ kit.catalogo_imagen_url }}"
+        >
+            <div class="dv-kit-cart-panel">
+                <div class="dv-kit-cart-status">
+                    <strong>{% if kit.modalidad == "LIBRE_CATEGORIA" %}Armá tu kit{% else %}Agregar al carrito{% endif %}</strong>
+                    <span data-dv-kit-status>
+                        {% if kit.modalidad == "LIBRE_CATEGORIA" %}Elegí {{ kit.cantidad_productos }} productos{% else %}Composición fija{% endif %}
+                    </span>
+                </div>
+
+                <div class="dv-kit-qty">
+                    <label for="dv-kit-qty">CANTIDAD DE KITS</label>
+                    <input id="dv-kit-qty" data-dv-kit-qty type="number" min="1" max="20" value="1" inputmode="numeric">
+                </div>
+
+                <div class="dv-kit-cart-price">
+                    <span>TOTAL DE LISTA</span>
+                    <strong data-dv-kit-total>$ {{ kit.precio|floatformat:"0g" }}</strong>
+                </div>
+
+                <div class="dv-kit-cart-action" data-dv-kit-cart-action>
+                    <button class="dv-kit-cart-add" type="button" data-dv-kit-add {% if kit.modalidad == "LIBRE_CATEGORIA" %}disabled{% endif %}>
+                        {% if kit.modalidad == "LIBRE_CATEGORIA" %}ELEGÍ {{ kit.cantidad_productos }} MÁS{% else %}AGREGAR AL CARRITO{% endif %}
+                    </button>
+                    <div class="dv-cart-inline-stepper dv-kit-added-stepper" data-dv-kit-added-stepper hidden aria-label="Cantidad de esta configuración en el carrito">
+                        <button type="button" data-dv-kit-cart-minus aria-label="Disminuir cantidad de kits">−</button>
+                        <span data-dv-kit-cart-qty>1</span>
+                        <button type="button" data-dv-kit-cart-plus aria-label="Aumentar cantidad de kits">+</button>
+                    </div>
+                </div>
+
+                <div class="dv-kit-cart-discount-note">El descuento por cantidad se calcula en el carrito.</div>
+
+                {% if kit.modalidad == "LIBRE_CATEGORIA" %}
+                    <div class="dv-kit-progress" aria-hidden="true">
+                        <span data-dv-kit-progress-fill></span>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+
+        {% if kit.modalidad == "LIBRE_CATEGORIA" %}
             <section class="shell section">
                 <div class="section-head">
                     <div>
@@ -593,6 +670,7 @@
         Doble V 3D · Los precios y las opciones pueden actualizarse.
         {% if es_ambiente_no_productivo %} Vista de prueba {{ ambiente_catalogo|upper }}.{% endif %}
     </footer>
+
     {% include "productos/_catalogo_carrito.html" %}
     {% include "productos/_catalogo_como_comprar.html" %}
 </body>
