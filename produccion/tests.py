@@ -195,9 +195,9 @@ class PlanificacionProduccionTests(TestCase):
 
         self.assertContains(
             respuesta,
-            "15/09 10:41",
+            "Si inicia ahora · termina 13:11",
         )
         self.assertContains(
             respuesta,
-            "Fin: 15/09 13:11",
+            "Programada originalmente · 15/09 08:41",
         )
