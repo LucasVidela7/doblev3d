@@ -85,9 +85,9 @@ class KitImagenesTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "PRODUCTOS DEL KIT")
-        self.assertContains(response, "thumb-qa-pina-principal.jpg")
-        self.assertNotContains(response, "thumb-qa-pina-secundaria.jpg")
-        self.assertNotContains(response, "thumb-production-pina-production.jpg")
+        self.assertContains(response, "https://ik.imagekit.io/demo/qa-pina-principal.jpg")
+        self.assertNotContains(response, "https://ik.imagekit.io/demo/qa-pina-secundaria.jpg")
+        self.assertNotContains(response, "https://ik.imagekit.io/demo/production-pina-production.jpg")
         self.assertContains(response, "Piña sensorial")
         self.assertContains(response, "x 2")
 
@@ -109,9 +109,9 @@ class KitImagenesTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "OPCIONES DISPONIBLES")
-        self.assertContains(response, "thumb-qa-pina.jpg")
-        self.assertContains(response, "thumb-qa-cubo.jpg")
-        self.assertNotContains(response, "thumb-qa-interna.jpg")
+        self.assertContains(response, "https://ik.imagekit.io/demo/qa-pina.jpg")
+        self.assertContains(response, "https://ik.imagekit.io/demo/qa-cubo.jpg")
+        self.assertNotContains(response, "https://ik.imagekit.io/demo/qa-interna.jpg")
         self.assertNotContains(response, "thumb-production-pina-production.jpg")
         self.assertContains(response, "Piña sensorial")
         self.assertContains(response, "Cubo sensorial")
