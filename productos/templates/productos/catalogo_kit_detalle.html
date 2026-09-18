@@ -429,9 +429,11 @@
             .code { font-size: .58rem; }
             .name { font-size: .75rem; min-height: 2.3em; }
             .dv-kit-builder {
-                bottom: 9px;
-                width: calc(100% - 78px);
-                transform: translateX(calc(-50% - 28px));
+                left: 50%;
+                bottom: max(8px, env(safe-area-inset-bottom));
+                width: calc(100% - 20px);
+                max-width: none;
+                transform: translateX(-50%);
             }
             .dv-kit-configurable-page {
                 padding-bottom: 126px;

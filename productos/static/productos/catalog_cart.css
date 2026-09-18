@@ -232,8 +232,11 @@ html.dv-cart-open .dv-cart-body{
     padding:10px;
 }
 .dv-kit-cart-panel--simple .dv-kit-cart-action{
+    grid-column:1 / -1;
+    grid-row:2;
     width:100%;
     min-width:0;
+    justify-content:stretch;
 }
 .dv-kit-cart-panel--simple .dv-kit-cart-add{
     width:100%;
@@ -242,5 +245,7 @@ html.dv-cart-open .dv-cart-body{
     font-size:.82rem;
 }
 .dv-kit-cart-panel--simple .dv-kit-progress{
+    grid-column:1 / -1;
+    grid-row:1;
     width:100%;
 }
