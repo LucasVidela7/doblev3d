@@ -126,9 +126,9 @@ class ListadoRecomendacionesKitTests(TestCase):
         )
 
         self.assertEqual(respuesta.status_code, 200)
-        self.assertContains(respuesta, "AGRESIVO", count=2)
-        self.assertContains(respuesta, "RECOMENDADO", count=2)
-        self.assertContains(respuesta, "CONSERVADOR", count=2)
+        self.assertContains(respuesta, 'class="escenario agresivo"', count=2)
+        self.assertContains(respuesta, 'class="escenario recomendado"', count=2)
+        self.assertContains(respuesta, 'class="escenario conservador"', count=2)
         self.assertContains(
             respuesta,
             "Peor caso actual",
