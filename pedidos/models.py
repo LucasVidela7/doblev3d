@@ -598,6 +598,31 @@ class SolicitudWebItem(models.Model):
     )
 
     @property
+    def precio_lista_unitario(self):
+        return (
+            Decimal(str(self.precio_base_unitario or 0))
+            + Decimal(str(self.adicional_unitario or 0))
+        )
+
+    @property
+    def ahorro_unitario(self):
+        return max(
+            self.precio_lista_unitario
+            - Decimal(str(self.precio_unitario or 0)),
+            Decimal("0"),
+        )
+
+    @property
+    def descuento_porcentaje(self):
+        if self.precio_lista_unitario <= 0:
+            return Decimal("0")
+        return (
+            self.ahorro_unitario
+            / self.precio_lista_unitario
+            * Decimal("100")
+        ).quantize(Decimal("0.1"))
+
+    @property
     def subtotal(self):
         return self.precio_unitario * Decimal(self.cantidad)
 
