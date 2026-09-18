@@ -445,7 +445,7 @@ a,button{touch-action:manipulation}
         </div>
     </a>
 
-    <a href="{% url 'pedidos:impresiones_productos' %}" class="metrica m-imprimir">
+    <a href="{% url 'produccion:lista' %}#necesidad" class="metrica m-imprimir">
         <div class="metrica-cabecera">
             <div class="metrica-titulo">A IMPRIMIR</div>
             <div class="metrica-icono">🖨</div>
@@ -532,13 +532,9 @@ a,button{touch-action:manipulation}
             <div class="accion-icono">📦</div>
             <div><div class="accion-titulo">Preparar pedidos</div><div class="accion-texto">Ver pedidos y marcar productos listos.</div></div>
         </a>
-        <a href="{% url 'pedidos:impresiones_productos' %}" class="accion">
-            <div class="accion-icono">🖨</div>
-            <div><div class="accion-titulo">Qué imprimir</div><div class="accion-texto">Cantidades pendientes y prioridades.</div></div>
-        </a>
         <a href="{% url 'produccion:lista' %}" class="accion">
-            <div class="accion-icono">⚙</div>
-            <div><div class="accion-titulo">Producción</div><div class="accion-texto">Cola, impresiones en curso y tiempos.</div></div>
+            <div class="accion-icono">🖨</div>
+            <div><div class="accion-titulo">Planificación</div><div class="accion-texto">Necesidad, cola, impresoras y trabajos en curso.</div></div>
         </a>
         <a href="{% url 'productos:lista' %}" class="accion">
             <div class="accion-icono">▦</div>
@@ -571,7 +567,7 @@ a,button{touch-action:manipulation}
 <section class="seccion">
     <div class="seccion-cabecera">
         <h2 class="seccion-titulo">Estado del taller</h2>
-        <a href="{% url 'produccion:lista' %}" class="ver-todo" aria-label="Ver toda la producción">Ver todo <span aria-hidden="true">→</span></a>
+        <a href="{% url 'produccion:lista' %}" class="ver-todo" aria-label="Ver toda la planificación">Ver todo <span aria-hidden="true">→</span></a>
     </div>
 
     <div class="paneles">
@@ -671,7 +667,7 @@ a,button{touch-action:manipulation}
     <a href="{% url 'dashboard:inicio' %}" class="nav-item activo"><span>⌂</span><span>INICIO</span></a>
     <a href="{% url 'pedidos:impresiones' %}" class="nav-item"><span>📦</span><span>PEDIDOS</span></a>
     <a href="{% url 'pedidos:nuevo' %}" class="nav-item nuevo-nav"><span>＋</span><span>NUEVO</span></a>
-    <a href="{% url 'produccion:lista' %}" class="nav-item"><span>⚙</span><span>PRODUCCIÓN</span></a>
+    <a href="{% url 'produccion:lista' %}" class="nav-item"><span>🖨</span><span>PLANIF.</span></a>
     <a href="{% url 'productos:lista' %}" class="nav-item"><span>▦</span><span>PRODUCTOS</span></a>
 </nav>
 
