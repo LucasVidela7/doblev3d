@@ -11,7 +11,13 @@ from kits.economia import precio_automatico_kit_libre
 from kits.models import Kit, KitComponente
 from productos.models import Producto, TipoProducto
 
-from .models import DetalleKitProducto, DetallePedido, Pedido
+from .models import (
+    DetalleKitProducto,
+    DetallePedido,
+    DetallePresupuesto,
+    Pedido,
+    Presupuesto,
+)
 
 
 @override_settings(
@@ -130,7 +136,12 @@ class PrecioAcordadoKitTests(TestCase):
         )
 
         self.assertEqual(respuesta.status_code, 302)
-        detalle = DetallePedido.objects.get(tipo_item="KIT")
+        self.assertEqual(Pedido.objects.count(), 0)
+        presupuesto = Presupuesto.objects.get()
+        detalle = DetallePresupuesto.objects.get(
+            presupuesto=presupuesto,
+            tipo_item="KIT",
+        )
         self.assertTrue(detalle.precio_kit_manual)
         self.assertEqual(detalle.precio_unitario, Decimal("44000.00"))
         self.assertEqual(detalle.subtotal, Decimal("220000.00"))
@@ -252,7 +263,8 @@ class PrecioAcordadoKitTests(TestCase):
         )
 
         self.assertEqual(respuesta.status_code, 302)
-        detalle = DetallePedido.objects.get(
+        self.assertEqual(Pedido.objects.count(), 0)
+        detalle = DetallePresupuesto.objects.get(
             tipo_item="KIT",
             kit=kit_libre,
         )
