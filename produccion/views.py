@@ -559,6 +559,23 @@ def lista_produccion(request):
         )
         impresora.esta_libre = impresora.trabajo_actual is None
 
+    impresoras_libres = sum(
+        1 for impresora in impresoras
+        if impresora.esta_libre
+    )
+
+    if peso_faltante_gramos >= 1000:
+        peso_faltante_texto = (
+            f"{peso_faltante_gramos / 1000:.2f}"
+            .rstrip("0")
+            .rstrip(".")
+            + " kg"
+        )
+    else:
+        peso_faltante_texto = (
+            f"{peso_faltante_gramos:.0f} g"
+        )
+
     ahora_input = timezone.localtime(
         ahora,
         ARGENTINA_TZ,
@@ -604,6 +621,8 @@ def lista_produccion(request):
             "productos_con_necesidad": productos_con_necesidad,
             "peso_faltante_gramos": peso_faltante_gramos,
             "ahora_input": ahora_input,
+            "impresoras_libres": impresoras_libres,
+            "peso_faltante_texto": peso_faltante_texto,
         },
     )
 
