@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
@@ -15,6 +16,11 @@ ARGENTINA_TZ = ZoneInfo("America/Argentina/Buenos_Aires")
 
 class PlanificacionProduccionTests(TestCase):
     def setUp(self):
+        usuario = get_user_model().objects.create_user(
+            username="produccion-test",
+            password="test-pass",
+        )
+        self.client.force_login(usuario)
         tipo = TipoProducto.objects.create(
             nombre="Test producción",
         )
