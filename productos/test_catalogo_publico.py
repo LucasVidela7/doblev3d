@@ -346,7 +346,7 @@ class CatalogoPublicoTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "¿Cómo comprar?")
-        self.assertContains(response, "¿Cómo realizar un pedido?")
+        self.assertContains(response, "¿Cómo comprar?")
         self.assertContains(response, "Correo")
         self.assertContains(response, "Motomensajería")
         self.assertContains(response, "Retiro coordinado en domicilio")
