@@ -12,6 +12,15 @@
     const toast = root.querySelector('[data-dv-cart-toast]');
     let loadingTimer = null;
 
+    const escapeHtml = (value) =>
+        String(value ?? '').replace(/[&<>"']/g, (char) => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;',
+        }[char]));
+
     const money = (value) =>
         new Intl.NumberFormat('es-AR', {
             style: 'currency',
@@ -99,7 +108,7 @@
         if (item.kind !== 'kit') return 'Producto';
         const selections = item.selections || [];
         if (!selections.length) return 'Kit de composición fija';
-        const names = selections.map((entry) => entry.name).join(' · ');
+        const names = selections.map((entry) => escapeHtml(entry.name)).join(' · ');
         const extra = selections.reduce((sum, entry) => sum + Number(entry.extra || 0), 0);
         return extra > 0
             ? names + ' · <b>+' + money(extra) + ' adicional</b>'
@@ -121,12 +130,12 @@
         body.innerHTML = '<div class="dv-cart-items">' + items.map((item) => {
             const subtotal = Number(item.unitPrice || 0) * Number(item.qty || 0);
             const media = item.image
-                ? '<img src="' + item.image + '" alt="">'
-                : '<span>' + String(item.name || '?').slice(0, 1).toUpperCase() + '</span>';
+                ? '<img src="' + escapeHtml(item.image) + '" alt="">'
+                : '<span>' + escapeHtml(String(item.name || '?').slice(0, 1).toUpperCase()) + '</span>';
             return '<article class="dv-cart-item" data-cart-key="' + signature(item) + '">'
                 + '<div class="dv-cart-item-media">' + media + '</div>'
                 + '<div class="dv-cart-item-main">'
-                + '<div class="dv-cart-item-row"><div class="dv-cart-item-name">' + item.name + '</div>'
+                + '<div class="dv-cart-item-row"><div class="dv-cart-item-name">' + escapeHtml(item.name) + '</div>'
                 + '<button class="dv-cart-item-remove" type="button" data-cart-remove aria-label="Quitar">×</button></div>'
                 + '<div class="dv-cart-item-meta">' + itemMeta(item) + '</div>'
                 + '<div class="dv-cart-item-bottom">'
