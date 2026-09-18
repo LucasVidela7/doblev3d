@@ -48,10 +48,10 @@ class DetalleClienteAccionesPedidoTests(TestCase):
     def test_pendiente_muestra_editar_cancelar_y_eliminar(self):
         respuesta = self.client.get(self.url)
 
-        self.assertContains(respuesta, "EDITAR PEDIDO")
-        self.assertContains(respuesta, "CANCELAR PEDIDO")
-        self.assertContains(respuesta, "ELIMINAR PEDIDO")
-        self.assertNotContains(respuesta, "ENTREGAR PEDIDO")
+        self.assertContains(respuesta, "btn-editar-pedido")
+        self.assertContains(respuesta, "btn-cancelar-pedido")
+        self.assertContains(respuesta, "btn-eliminar-pedido")
+        self.assertNotContains(respuesta, "btn-entregar-pedido")
 
     def test_listo_muestra_entregar_y_oculta_edicion(self):
         self.pedido.estado = "LISTO"
@@ -59,10 +59,10 @@ class DetalleClienteAccionesPedidoTests(TestCase):
 
         respuesta = self.client.get(self.url)
 
-        self.assertContains(respuesta, "ENTREGAR PEDIDO")
-        self.assertNotContains(respuesta, "EDITAR PEDIDO")
-        self.assertNotContains(respuesta, "CANCELAR PEDIDO")
-        self.assertNotContains(respuesta, "ELIMINAR PEDIDO")
+        self.assertContains(respuesta, "btn-entregar-pedido")
+        self.assertNotContains(respuesta, "btn-editar-pedido")
+        self.assertNotContains(respuesta, "btn-cancelar-pedido")
+        self.assertNotContains(respuesta, "btn-eliminar-pedido")
 
     def test_preparando_no_permite_acciones_de_modificacion(self):
         self.pedido.estado = "PREPARANDO"
@@ -70,10 +70,10 @@ class DetalleClienteAccionesPedidoTests(TestCase):
 
         respuesta = self.client.get(self.url)
 
-        self.assertNotContains(respuesta, "EDITAR PEDIDO")
-        self.assertNotContains(respuesta, "CANCELAR PEDIDO")
-        self.assertNotContains(respuesta, "ELIMINAR PEDIDO")
-        self.assertNotContains(respuesta, "ENTREGAR PEDIDO")
+        self.assertNotContains(respuesta, "btn-editar-pedido")
+        self.assertNotContains(respuesta, "btn-cancelar-pedido")
+        self.assertNotContains(respuesta, "btn-eliminar-pedido")
+        self.assertNotContains(respuesta, "btn-entregar-pedido")
 
     def test_detalle_abre_en_modo_consulta(self):
         respuesta = self.client.get(self.url)
