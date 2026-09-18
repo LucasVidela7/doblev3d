@@ -28,7 +28,7 @@ class CatalogoContactoTests(TestCase):
             },
         )
 
-    def test_catalogo_muestra_contactos_flotantes_con_rutas_auditables(self):
+    def test_catalogo_muestra_header_fijo_con_rutas_auditables(self):
         response = self.client.get(reverse("catalogo"))
 
         self.assertEqual(response.status_code, 200)
@@ -41,11 +41,15 @@ class CatalogoContactoTests(TestCase):
             response,
             reverse("catalogo_contacto", kwargs={"canal": "whatsapp"}),
         )
-        self.assertContains(response, "dv-catalog-contact__link--instagram")
-        self.assertContains(response, "dv-catalog-contact__link--whatsapp")
+        self.assertContains(response, 'id="dv-catalog-header"')
+        self.assertContains(response, "dv-catalog-header__instagram")
+        self.assertContains(response, "dv-catalog-header__whatsapp")
+        self.assertContains(response, "dv-catalog-header__help")
+        self.assertContains(response, "dv-catalog-header__cart")
         self.assertContains(response, "position:fixed")
-        self.assertContains(response, "bottom:calc(82px")
-        self.assertContains(response, "backdrop-filter:blur(10px)")
+        self.assertContains(response, "backdrop-filter:blur(14px)")
+        self.assertContains(response, "data-dv-cart-open")
+        self.assertContains(response, "data-dv-how-buy-open")
         self.assertContains(response, 'aria-label="Abrir Instagram @doblev3d"')
         self.assertContains(response, 'aria-label="Escribir por WhatsApp"')
 
@@ -116,9 +120,12 @@ class CatalogoContactoTests(TestCase):
 
         response = self.client.get(reverse("catalogo"))
 
-        self.assertNotContains(response, 'id="dv-catalog-contact-links"')
-        self.assertNotContains(response, "dv-catalog-contact__link--instagram")
-        self.assertNotContains(response, "dv-catalog-contact__link--whatsapp")
+        self.assertContains(response, 'id="dv-catalog-contact-links"')
+        self.assertContains(response, 'id="dv-catalog-header"')
+        self.assertNotContains(response, "dv-catalog-header__instagram")
+        self.assertNotContains(response, "dv-catalog-header__whatsapp")
+        self.assertContains(response, "dv-catalog-header__help")
+        self.assertContains(response, "dv-catalog-header__cart")
 
         instagram = self.client.get(
             reverse("catalogo_contacto", kwargs={"canal": "instagram"}),
@@ -151,3 +158,7 @@ class CatalogoContactoTests(TestCase):
         )
         self.assertContains(checkout, "data-dv-cart-root")
         self.assertContains(gracias, "data-dv-cart-root")
+        self.assertContains(checkout, 'id="dv-catalog-header"')
+        self.assertContains(gracias, 'id="dv-catalog-header"')
+        self.assertContains(checkout, "data-dv-how-buy-open")
+        self.assertContains(gracias, "data-dv-how-buy-open")
