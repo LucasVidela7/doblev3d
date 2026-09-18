@@ -36,6 +36,14 @@
 
     const minimalPayload = (items) =>
         items.map((item) => ({
+            key: [
+                item.kind,
+                item.id,
+                (item.selections || [])
+                    .map((entry) => Number(entry.id))
+                    .sort((a, b) => a - b)
+                    .join(','),
+            ].join(':'),
             kind: item.kind,
             id: Number(item.id),
             qty: Number(item.qty || 1),
@@ -67,8 +75,21 @@
             const extra = additional > 0
                 ? '<span class="checkout-extra">+' + money(additional) + ' adicional</span>'
                 : '';
+            const discount = Number(item.discountPercent || 0);
+            const listUnit = Number(item.listUnitPrice ?? item.unitPrice ?? 0);
+            const finalUnit = Number(item.unitPrice || 0);
+            const savings = Math.max(
+                Number(item.savings || 0),
+                (listUnit - finalUnit) * Number(item.qty || 1),
+            );
+            const discountHtml = discount > 0 && savings > 0
+                ? '<span class="checkout-discount">'
+                    + discount.toLocaleString('es-AR', {maximumFractionDigits: 1})
+                    + '% desc. · ahorrás ' + money(savings)
+                    + '</span>'
+                : '';
             return '<article class="checkout-line">'
-                + '<div><strong>' + escapeHtml(item.name) + '</strong><span>' + meta + '</span>' + extra + '</div>'
+                + '<div><strong>' + escapeHtml(item.name) + '</strong><span>' + meta + '</span>' + extra + discountHtml + '</div>'
                 + '<div class="checkout-line-money"><b>' + money(Number(item.unitPrice || 0) * Number(item.qty || 1)) + '</b><span>x ' + item.qty + '</span></div>'
                 + '</article>';
         }).join('');
@@ -82,6 +103,7 @@
     };
 
     window.setTimeout(render, 220);
+    document.addEventListener('dv-cart-change', render);
 
     form.addEventListener('submit', (event) => {
         const items = read();
