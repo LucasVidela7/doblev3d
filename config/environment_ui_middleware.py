@@ -23,7 +23,7 @@ html[data-dv-env="qa"] body::after{
     content:"QA";
     position:fixed;
     right:12px;
-    bottom:12px;
+    bottom:calc(92px + env(safe-area-inset-bottom, 0px));
     z-index:2147483646;
     display:flex;
     align-items:center;
@@ -65,63 +65,11 @@ html[data-dv-env="qa"] header{
     border-color:rgba(124,58,237,.28)!important;
 }
 
-.dv-qa-banner{
-    position:sticky;
-    top:0;
-    z-index:2147483647;
-    min-height:42px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:10px;
-    padding:8px 16px;
-    box-sizing:border-box;
-    background:linear-gradient(100deg,#5b21b6 0%,#7c3aed 58%,#c2410c 100%);
-    color:#fff;
-    border-bottom:3px solid #fbbf24;
-    box-shadow:0 5px 18px rgba(76,29,149,.24);
-    font-family:Arial,sans-serif;
-    text-align:center;
-}
-
-.dv-qa-banner__pill{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    min-height:24px;
-    padding:0 9px;
-    border:1px solid rgba(255,255,255,.55);
-    border-radius:999px;
-    background:rgba(255,255,255,.15);
-    font-size:11px;
-    font-weight:900;
-    letter-spacing:1px;
-}
-
-.dv-qa-banner__text{
-    font-size:11px;
-    font-weight:900;
-    letter-spacing:.35px;
-}
-
-.dv-qa-banner__hint{
-    font-size:10px;
-    font-weight:700;
-    opacity:.9;
-}
 
 @media(max-width:640px){
-    .dv-qa-banner{
-        min-height:46px;
-        gap:7px;
-        padding:7px 10px;
-        flex-wrap:wrap;
-    }
-    .dv-qa-banner__text{font-size:10px}
-    .dv-qa-banner__hint{display:none}
     html[data-dv-env="qa"] body::after{
         right:8px;
-        bottom:8px;
+        bottom:calc(84px + env(safe-area-inset-bottom, 0px));
         width:48px;
         height:48px;
         border-radius:15px;
@@ -130,14 +78,6 @@ html[data-dv-env="qa"] header{
 }
 </style>
 <link id="dv-qa-favicon" rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%237c3aed'/%3E%3Ctext x='32' y='41' text-anchor='middle' font-family='Arial' font-size='24' font-weight='900' fill='white'%3EQA%3C/text%3E%3C/svg%3E">
-"""
-
-QA_BANNER = r"""
-<div id="dv-qa-banner" class="dv-qa-banner" role="status" aria-label="Entorno QA de pruebas">
-    <span class="dv-qa-banner__pill">QA</span>
-    <span class="dv-qa-banner__text">ENTORNO DE PRUEBAS</span>
-    <span class="dv-qa-banner__hint">Los cambios realizados aquí no modifican Producción.</span>
-</div>
 """
 
 DASHBOARD_MENU_HEAD = r"""
@@ -523,7 +463,6 @@ _TITLE_RE = re.compile(
     r"(<title\b[^>]*>)(.*?)(</title>)",
     re.IGNORECASE | re.DOTALL,
 )
-_BODY_RE = re.compile(r"(<body\b[^>]*>)", re.IGNORECASE)
 
 
 def _marcar_html_qa(html):
@@ -538,13 +477,6 @@ def _marcar_html_qa(html):
 
     if "dv-qa-environment-style" not in html and "</head>" in html:
         html = html.replace("</head>", QA_HEAD + "\n</head>", 1)
-
-    if "dv-qa-banner" not in html:
-        html = _BODY_RE.sub(
-            lambda match: match.group(1) + "\n" + QA_BANNER,
-            html,
-            count=1,
-        )
 
     if "<title" in html.lower():
         def prefijar_titulo(match):
