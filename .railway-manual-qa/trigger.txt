@@ -1,0 +1,2 @@
+Deploy QA: tema en menú, contraste oscuro y loading global
+Source: 360e8b6dccdc86f2668eec76dfc0b3d6049a9c8f
