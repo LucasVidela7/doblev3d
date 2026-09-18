@@ -31,6 +31,8 @@ class EnvironmentVisualMiddlewareTests(SimpleTestCase):
         self.assertIn('<html lang="es" data-dv-env="qa">', html)
         self.assertIn('content:"QA"', html)
         self.assertIn("bottom:calc(92px", html)
+        self.assertIn("left:12px", html)
+        self.assertIn("right:auto", html)
         self.assertIn("[QA] Doble V 3D", html)
         self.assertIn('id="dv-qa-favicon"', html)
         self.assertIn('id="dv-qa-environment-style"', html)
