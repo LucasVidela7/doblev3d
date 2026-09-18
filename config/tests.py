@@ -92,9 +92,7 @@ class AutenticacionTests(TestCase):
                     "dv-dashboard-kits-menu-script",
                     html,
                 )
-                self.assertIn("function crearEnAcciones", html)
-                self.assertIn("function crearEnMenu", html)
-                self.assertIn("data-dv-menu', 'kits", html)
+                self.assertIn('href="/gestion/kits/"', html)
 
     def test_login_incorrecto_no_inicia_sesion(self):
         respuesta = self.client.post(
