@@ -118,7 +118,7 @@
 .dv-kit-option-control span{height:28px;display:grid;place-items:center;font-size:.72rem;font-weight:900}
 .dv-kit-option.is-selected{border-color:rgba(19,74,154,.55);box-shadow:0 0 0 3px rgba(19,74,154,.08)}
 @media(max-width:640px){
-    .dv-cart-fab{right:12px;bottom:76px;min-height:47px;padding:0 13px}
+    .dv-cart-fab{right:72px;bottom:14px;min-height:47px;padding:0 13px}
     .dv-cart-drawer{width:100%}
     .dv-kit-cart-panel{grid-template-columns:1fr 1fr}.dv-kit-cart-status{grid-column:1/-1}.dv-kit-cart-add{grid-column:1/-1;min-height:46px}
     .dv-kit-cart-price{text-align:left}
