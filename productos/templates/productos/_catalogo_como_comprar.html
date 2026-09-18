@@ -20,9 +20,21 @@
     cursor:pointer;
     font:inherit;
     font-size:.78rem;
-    font-weight:800;
+    font-weight:850;
     box-shadow:0 5px 16px rgba(19,74,154,.05);
     transition:.18s ease;
+}
+.dv-how-buy-trigger::before{
+    content:"?";
+    width:21px;
+    height:21px;
+    display:grid;
+    place-items:center;
+    border-radius:50%;
+    background:#eef4ff;
+    color:#134a9a;
+    font-size:.72rem;
+    font-weight:900;
 }
 .dv-how-buy-trigger:hover{
     border-color:#134a9a;
@@ -35,120 +47,158 @@
     outline-offset:3px;
 }
 .dv-how-buy-dialog{
-    width:min(620px,calc(100% - 24px));
-    max-height:min(760px,calc(100dvh - 30px));
+    width:min(760px,calc(100% - 24px));
+    max-height:min(760px,calc(100dvh - 24px));
     margin:auto;
     padding:0;
     overflow:hidden;
     border:1px solid #dfe5ef;
-    border-radius:26px;
+    border-radius:28px;
     background:#fff;
     color:#17233a;
-    box-shadow:0 30px 80px rgba(18,31,52,.24);
+    box-shadow:0 32px 90px rgba(18,31,52,.25);
 }
 .dv-how-buy-dialog::backdrop{
     background:rgba(15,24,39,.48);
-    backdrop-filter:blur(5px);
+    backdrop-filter:blur(6px);
 }
 .dv-how-buy-shell{
-    max-height:min(760px,calc(100dvh - 30px));
+    max-height:min(760px,calc(100dvh - 24px));
     overflow:auto;
 }
 .dv-how-buy-head{
-    display:flex;
-    align-items:flex-start;
-    justify-content:space-between;
-    gap:18px;
-    padding:24px 24px 17px;
+    position:relative;
+    padding:26px 64px 18px 26px;
+    background:
+        radial-gradient(circle at 100% 0,rgba(240,57,59,.09),transparent 170px),
+        linear-gradient(135deg,#fff 0%,#f7faff 100%);
     border-bottom:1px solid #edf0f5;
 }
 .dv-how-buy-eyebrow{
     margin:0 0 5px;
     color:#cf2730;
-    font-size:.7rem;
-    font-weight:850;
+    font-size:.69rem;
+    font-weight:900;
     letter-spacing:.11em;
     text-transform:uppercase;
 }
 .dv-how-buy-title{
     margin:0;
     color:#0d376f;
-    font-size:clamp(1.45rem,4vw,2rem);
-    line-height:1.05;
-    letter-spacing:-.035em;
+    font-size:clamp(1.6rem,4vw,2.15rem);
+    line-height:1;
+    letter-spacing:-.04em;
 }
 .dv-how-buy-intro{
-    max-width:470px;
     margin:8px 0 0;
     color:#667085;
-    font-size:.9rem;
-    line-height:1.55;
+    font-size:.86rem;
+    font-weight:650;
 }
 .dv-how-buy-close{
+    position:absolute;
+    right:20px;
+    top:20px;
     width:38px;
     height:38px;
-    flex:0 0 auto;
     display:grid;
     place-items:center;
     border:1px solid #dfe5ef;
     border-radius:50%;
-    background:#f8fafc;
+    background:#fff;
     color:#40506a;
     cursor:pointer;
     font-size:1.25rem;
     line-height:1;
+    box-shadow:0 5px 14px rgba(19,74,154,.07);
 }
 .dv-how-buy-body{
     padding:20px 24px 24px;
 }
 .dv-how-buy-steps{
     display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
     gap:10px;
 }
 .dv-how-buy-step{
-    display:grid;
-    grid-template-columns:34px minmax(0,1fr);
-    gap:11px;
-    align-items:flex-start;
-    padding:10px 0;
+    position:relative;
+    min-width:0;
+    padding:14px 11px 13px;
+    border:1px solid #e4e9f1;
+    border-radius:17px;
+    background:#fff;
+    text-align:center;
 }
-.dv-how-buy-number{
-    width:34px;
-    height:34px;
+.dv-how-buy-step-number{
+    position:absolute;
+    right:9px;
+    top:9px;
+    width:22px;
+    height:22px;
     display:grid;
     place-items:center;
-    border-radius:11px;
+    border-radius:50%;
+    background:#f3f5f8;
+    color:#7a8495;
+    font-size:.65rem;
+    font-weight:900;
+}
+.dv-how-buy-icon{
+    width:52px;
+    height:52px;
+    display:grid;
+    place-items:center;
+    margin:1px auto 10px;
+    border-radius:16px;
     background:#eef4ff;
     color:#134a9a;
-    font-size:.78rem;
-    font-weight:900;
+}
+.dv-how-buy-step:nth-child(even) .dv-how-buy-icon{
+    background:#fff1f2;
+    color:#cf2730;
+}
+.dv-how-buy-icon svg,
+.dv-how-buy-method-icon svg{
+    width:25px;
+    height:25px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.8;
+    stroke-linecap:round;
+    stroke-linejoin:round;
 }
 .dv-how-buy-step strong{
     display:block;
     color:#17233a;
-    font-size:.9rem;
+    font-size:.85rem;
 }
 .dv-how-buy-step p{
-    margin:3px 0 0;
+    margin:4px 0 0;
     color:#667085;
-    font-size:.82rem;
-    line-height:1.45;
+    font-size:.72rem;
+    line-height:1.32;
 }
 .dv-how-buy-divider{
     height:1px;
-    margin:19px 0;
+    margin:20px 0 17px;
     background:#edf0f5;
 }
+.dv-how-buy-delivery-head{
+    display:flex;
+    align-items:end;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:10px;
+}
 .dv-how-buy-section-title{
-    margin:0 0 4px;
+    margin:0;
     color:#0d376f;
     font-size:1rem;
 }
 .dv-how-buy-section-copy{
-    margin:0 0 12px;
-    color:#667085;
-    font-size:.8rem;
-    line-height:1.45;
+    margin:0;
+    color:#8a93a3;
+    font-size:.72rem;
 }
 .dv-how-buy-delivery{
     display:grid;
@@ -156,92 +206,133 @@
     gap:9px;
 }
 .dv-how-buy-method{
+    display:grid;
+    grid-template-columns:42px minmax(0,1fr);
+    gap:10px;
+    align-items:center;
     min-width:0;
-    padding:13px;
-    border:1px solid #dfe5ef;
+    padding:12px;
+    border:1px solid #e4e9f1;
     border-radius:15px;
     background:#fafbfc;
 }
 .dv-how-buy-method-icon{
-    width:31px;
-    height:31px;
+    width:42px;
+    height:42px;
     display:grid;
     place-items:center;
-    margin-bottom:9px;
-    border-radius:10px;
+    border-radius:13px;
     background:#fff1f2;
     color:#cf2730;
-    font-size:.72rem;
-    font-weight:900;
+}
+.dv-how-buy-method:nth-child(2) .dv-how-buy-method-icon{
+    background:#eef4ff;
+    color:#134a9a;
+}
+.dv-how-buy-method:nth-child(3) .dv-how-buy-method-icon{
+    background:#eaf7ee;
+    color:#28633c;
 }
 .dv-how-buy-method strong{
     display:block;
     color:#17233a;
-    font-size:.83rem;
+    font-size:.81rem;
 }
 .dv-how-buy-method p{
-    margin:5px 0 0;
+    margin:3px 0 0;
     color:#667085;
-    font-size:.74rem;
-    line-height:1.42;
+    font-size:.7rem;
+    line-height:1.3;
+}
+.dv-how-buy-retire-note{
+    margin:10px 0 0;
+    color:#667085;
+    font-size:.71rem;
+    text-align:center;
 }
 .dv-how-buy-note{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
     margin-top:13px;
-    padding:11px 12px;
-    border-radius:13px;
+    padding:9px 11px;
+    border-radius:12px;
     background:#eef4ff;
     color:#345f91;
-    font-size:.77rem;
-    line-height:1.45;
+    font-size:.72rem;
+    font-weight:700;
+    text-align:center;
+}
+.dv-how-buy-note svg{
+    width:16px;
+    height:16px;
+    flex:0 0 auto;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
 }
 .dv-how-buy-actions{
     display:flex;
     justify-content:flex-end;
-    padding-top:18px;
+    padding-top:16px;
 }
 .dv-how-buy-ok{
     min-height:43px;
-    min-width:122px;
-    padding:0 17px;
+    min-width:126px;
+    padding:0 18px;
     border:0;
     border-radius:13px;
     background:#134a9a;
     color:#fff;
     cursor:pointer;
     font:inherit;
-    font-size:.8rem;
-    font-weight:850;
+    font-size:.79rem;
+    font-weight:900;
 }
-@media(max-width:640px){
+@media(max-width:680px){
     .dv-catalog-top-actions{
         width:100%;
         justify-content:space-between;
     }
     .dv-how-buy-dialog{
-        width:min(100% - 16px,620px);
-        border-radius:21px;
+        width:min(100% - 14px,760px);
+        border-radius:22px;
     }
     .dv-how-buy-head{
-        padding:20px 18px 15px;
+        padding:21px 56px 16px 18px;
+    }
+    .dv-how-buy-close{
+        right:14px;
+        top:14px;
     }
     .dv-how-buy-body{
-        padding:16px 18px 20px;
+        padding:16px 14px 18px;
+    }
+    .dv-how-buy-steps{
+        grid-template-columns:1fr 1fr;
+        gap:8px;
+    }
+    .dv-how-buy-step{
+        padding:12px 8px 11px;
+    }
+    .dv-how-buy-icon{
+        width:46px;
+        height:46px;
+        border-radius:14px;
+    }
+    .dv-how-buy-delivery-head{
+        align-items:flex-start;
+        flex-direction:column;
+        gap:3px;
     }
     .dv-how-buy-delivery{
         grid-template-columns:1fr;
     }
     .dv-how-buy-method{
-        display:grid;
-        grid-template-columns:31px minmax(0,1fr);
-        column-gap:10px;
-        align-items:start;
-    }
-    .dv-how-buy-method-icon{
-        grid-row:1 / span 2;
-        margin:0;
-    }
-    .dv-how-buy-method p{
-        margin-top:3px;
+        padding:10px 11px;
     }
     .dv-how-buy-ok{
         width:100%;
@@ -256,14 +347,9 @@
 >
     <div class="dv-how-buy-shell">
         <div class="dv-how-buy-head">
-            <div>
-                <p class="dv-how-buy-eyebrow">Doble V 3D</p>
-                <h2 class="dv-how-buy-title" id="dv-how-buy-title">¿Cómo realizar un pedido?</h2>
-                <p class="dv-how-buy-intro">
-                    Primero elegís lo que te gusta. Antes de producir, confirmamos con vos
-                    productos, total y forma de entrega.
-                </p>
-            </div>
+            <p class="dv-how-buy-eyebrow">Doble V 3D</p>
+            <h2 class="dv-how-buy-title" id="dv-how-buy-title">¿Cómo comprar?</h2>
+            <p class="dv-how-buy-intro">Elegí. Enviá. Confirmamos. Preparamos.</p>
             <button
                 class="dv-how-buy-close"
                 type="button"
@@ -275,63 +361,119 @@
         <div class="dv-how-buy-body">
             <div class="dv-how-buy-steps">
                 <div class="dv-how-buy-step">
-                    <span class="dv-how-buy-number">1</span>
-                    <div>
-                        <strong>Elegí tus productos o kits</strong>
-                        <p>Revisá precios, opciones disponibles y adicionales cuando correspondan.</p>
-                    </div>
+                    <span class="dv-how-buy-step-number">1</span>
+                    <span class="dv-how-buy-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M4 6.5 12 3l8 3.5-8 3.5-8-3.5Z"></path>
+                            <path d="M4 6.5V17l8 4 8-4V6.5"></path>
+                            <path d="M12 10v11"></path>
+                        </svg>
+                    </span>
+                    <strong>Elegí</strong>
+                    <p>Productos y kits</p>
                 </div>
+
                 <div class="dv-how-buy-step">
-                    <span class="dv-how-buy-number">2</span>
-                    <div>
-                        <strong>Envianos tu selección</strong>
-                        <p>Indicá qué productos querés, cantidades y cualquier detalle especial.</p>
-                    </div>
+                    <span class="dv-how-buy-step-number">2</span>
+                    <span class="dv-how-buy-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M4 4h16v12H8l-4 4V4Z"></path>
+                            <path d="m8 10 2.4 2.4L16 7"></path>
+                        </svg>
+                    </span>
+                    <strong>Enviá</strong>
+                    <p>Tu selección</p>
                 </div>
+
                 <div class="dv-how-buy-step">
-                    <span class="dv-how-buy-number">3</span>
-                    <div>
-                        <strong>Confirmamos el pedido con vos</strong>
-                        <p>Revisamos disponibilidad, total y forma de entrega antes de darlo de alta.</p>
-                    </div>
+                    <span class="dv-how-buy-step-number">3</span>
+                    <span class="dv-how-buy-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M7 4h10a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3h-4l-4 4v-4H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3Z"></path>
+                            <path d="m8 10 2.2 2.2L16 7.5"></path>
+                        </svg>
+                    </span>
+                    <strong>Confirmamos</strong>
+                    <p>Total y entrega</p>
                 </div>
+
                 <div class="dv-how-buy-step">
-                    <span class="dv-how-buy-number">4</span>
-                    <div>
-                        <strong>Comienza la preparación</strong>
-                        <p>Una vez confirmado, tu pedido pasa a producción y coordinamos la entrega.</p>
-                    </div>
+                    <span class="dv-how-buy-step-number">4</span>
+                    <span class="dv-how-buy-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M5 7h14v10H5z"></path>
+                            <path d="M8 3h8v4H8zM8 17v4h8v-4"></path>
+                            <path d="M8 11h8"></path>
+                        </svg>
+                    </span>
+                    <strong>Preparamos</strong>
+                    <p>Luego de confirmar</p>
                 </div>
             </div>
 
             <div class="dv-how-buy-divider"></div>
 
-            <h3 class="dv-how-buy-section-title">Entregas y retiro</h3>
-            <p class="dv-how-buy-section-copy">
-                La modalidad se coordina al confirmar el pedido. Por ahora esta información es solo orientativa.
-            </p>
+            <div class="dv-how-buy-delivery-head">
+                <h3 class="dv-how-buy-section-title">Entregas y retiro</h3>
+                <p class="dv-how-buy-section-copy">Se coordina al confirmar</p>
+            </div>
 
             <div class="dv-how-buy-delivery">
                 <div class="dv-how-buy-method">
-                    <span class="dv-how-buy-method-icon">COR</span>
-                    <strong>Correo</strong>
-                    <p>Realizamos envíos por correo. Costo y plazo se confirman según destino.</p>
+                    <span class="dv-how-buy-method-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M3 6h13v11H3z"></path>
+                            <path d="M16 10h3l2 3v4h-5z"></path>
+                            <circle cx="7" cy="18" r="2"></circle>
+                            <circle cx="18" cy="18" r="2"></circle>
+                        </svg>
+                    </span>
+                    <div>
+                        <strong>Correo</strong>
+                        <p>Envíos según destino</p>
+                    </div>
                 </div>
+
                 <div class="dv-how-buy-method">
-                    <span class="dv-how-buy-method-icon">MOTO</span>
-                    <strong>Motomensajería</strong>
-                    <p>Entrega coordinada según zona y disponibilidad del servicio.</p>
+                    <span class="dv-how-buy-method-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="6" cy="17" r="3"></circle>
+                            <circle cx="18" cy="17" r="3"></circle>
+                            <path d="M9 17h4l2-6h-5l-2 3H5"></path>
+                            <path d="M15 11h3l2 3M12 8h4"></path>
+                        </svg>
+                    </span>
+                    <div>
+                        <strong>Motomensajería</strong>
+                        <p>Entrega según zona</p>
+                    </div>
                 </div>
+
                 <div class="dv-how-buy-method">
-                    <span class="dv-how-buy-method-icon">RET</span>
-                    <strong>Retiro</strong>
-                    <p>Retiro coordinado en domicilio. La dirección exacta y el horario se informan al confirmar.</p>
+                    <span class="dv-how-buy-method-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
+                            <path d="m3 11 9-7 9 7"></path>
+                            <path d="M5 10v10h14V10"></path>
+                            <path d="M9 20v-6h6v6"></path>
+                        </svg>
+                    </span>
+                    <div>
+                        <strong>Retiro</strong>
+                        <p>Retiro coordinado en domicilio</p>
+                    </div>
                 </div>
             </div>
 
+            <p class="dv-how-buy-retire-note">
+                La dirección exacta y el horario se informan al confirmar.
+            </p>
+
             <div class="dv-how-buy-note">
-                Los precios del catálogo corresponden a los productos. Cualquier costo de entrega
-                se informa y confirma por separado antes de cerrar el pedido.
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 11v5M12 8h.01"></path>
+                </svg>
+                <span>Cualquier costo de entrega se confirma por separado.</span>
             </div>
 
             <div class="dv-how-buy-actions">
@@ -346,7 +488,7 @@
     const dialog = document.getElementById('dv-how-buy-dialog');
     if (!dialog) return;
 
-    const seenKey = 'dv-catalog-how-buy-seen-v1';
+    const seenKey = 'dv-catalog-how-buy-seen-v2';
     const openers = [...document.querySelectorAll('[data-dv-how-buy-open]')];
     const closers = [...dialog.querySelectorAll('[data-dv-how-buy-close]')];
 
@@ -400,7 +542,7 @@
     });
 
     if (!wasSeen()) {
-        window.setTimeout(openDialog, 450);
+        window.setTimeout(openDialog, 350);
     }
 })();
 </script>
