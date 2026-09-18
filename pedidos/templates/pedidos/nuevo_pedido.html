@@ -1913,9 +1913,16 @@ button{font-family:Arial,sans-serif}
 
         try {
 
+            const urlKitProductos =
+                "{% url 'pedidos:productos_kit' 999999 %}"
+                .replace(
+                    "999999",
+                    encodeURIComponent(kitId)
+                );
+
             const respuesta =
                 await fetch(
-                    `/pedidos/api/kit/${kitId}/productos/`
+                    urlKitProductos
                 );
 
             if (!respuesta.ok) {
