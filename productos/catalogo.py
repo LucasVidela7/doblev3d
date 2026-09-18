@@ -247,6 +247,15 @@ def catalogo_kit_detalle(request, kit_id):
             )
         )
 
+    kit.catalogo_imagen_url = next(
+        (
+            visual["imagen_url"]
+            for visual in getattr(kit, "productos_visuales", [])
+            if visual["imagen_url"]
+        ),
+        "",
+    )
+
     return render(
         request,
         "productos/catalogo_kit_detalle.html",
