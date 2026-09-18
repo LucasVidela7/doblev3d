@@ -333,7 +333,7 @@ class AnalisisEconomicoKitTests(TestCase):
             contenido.index(economico.nombre),
             contenido.index(premium.nombre),
         )
-        self.assertIn("ADICIONAL +$", contenido)
+        self.assertIn("ADICIONAL +&#36;", contenido)
 
     def test_detalle_kit_fijo_muestra_composicion(self):
         producto = self.crear_producto("Componente fijo detalle", 120)
