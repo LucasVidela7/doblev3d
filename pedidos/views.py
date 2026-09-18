@@ -6,6 +6,7 @@ from django.db.models import Sum
 from django.utils import timezone
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from clientes.models import Cliente
 from kits.models import Kit
@@ -2004,8 +2005,12 @@ def registrar_pago(request, pedido_id):
     cliente_id = request.POST.get("cliente_id")
 
     def volver():
-        if origen == "pagos":
-            return redirect("pedidos:pagos")
+        if origen in {"pagos", "finanzas"}:
+            url = reverse("pedidos:finanzas")
+            periodo = request.POST.get("periodo", "").strip()
+            if periodo:
+                url += f"?periodo={periodo}"
+            return redirect(f"{url}#cobros")
 
         if origen == "cliente" and cliente_id:
             return redirect(
@@ -3435,6 +3440,65 @@ def finanzas(request):
     )
 
     # ------------------------------------------------------
+    # COBROS Y SALDOS ACTUALES
+    # ------------------------------------------------------
+    cobros_pendientes = []
+    saldo_total_actual = Decimal("0")
+
+    pedidos_cobro = (
+        Pedido.objects
+        .exclude(estado="CANCELADO")
+        .select_related("cliente")
+        .prefetch_related(
+            "detalles",
+            "pagos",
+        )
+        .order_by(
+            "fecha_entrega",
+            "id",
+        )
+    )
+
+    for pedido in pedidos_cobro:
+        saldo_actual = pedido.saldo_pendiente
+
+        if saldo_actual <= 0:
+            continue
+
+        saldo_total_actual += saldo_actual
+
+        cobros_pendientes.append(
+            {
+                "pedido": pedido,
+                "total": pedido.total,
+                "pagado": pedido.total_pagado,
+                "saldo": saldo_actual,
+                "estado_pago": pedido.estado_pago,
+                "estado_pago_display": pedido.estado_pago_display,
+            }
+        )
+
+    cobrado_hoy = (
+        Pago.objects
+        .filter(fecha__date=hoy)
+        .aggregate(total=Sum("monto"))
+        .get("total")
+        or Decimal("0")
+    )
+
+    ultimos_pagos = list(
+        Pago.objects
+        .select_related(
+            "pedido",
+            "pedido__cliente",
+        )
+        .order_by(
+            "-fecha",
+            "-id",
+        )[:8]
+    )
+
+    # ------------------------------------------------------
     # GASTOS DEL PERÍODO - resultado económico
     # ------------------------------------------------------
     gastos_periodo_qs = (
@@ -3758,6 +3822,19 @@ def finanzas(request):
             "cobrado_periodo": cobrado_periodo,
             "cobrado_pedidos": cobrado_pedidos,
             "saldo": saldo,
+
+            "cobros_pendientes":
+                cobros_pendientes,
+            "saldo_total_actual":
+                saldo_total_actual,
+            "pedidos_con_saldo_actual":
+                len(cobros_pendientes),
+            "cobrado_hoy":
+                cobrado_hoy,
+            "ultimos_pagos":
+                ultimos_pagos,
+            "medios_pago":
+                Pago.MEDIOS,
             "cantidad_pedidos": len(filas),
             "detalles_sin_snapshot":
                 detalles_sin_snapshot,
