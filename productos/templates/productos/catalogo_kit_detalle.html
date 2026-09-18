@@ -441,7 +441,7 @@
         }
     </style>
 </head>
-<body class="{% if kit.modalidad == 'LIBRE_CATEGORIA' %}dv-kit-configurable-page{% endif %}">
+<body class="dv-kit-configurable-page">
     <header class="shell topbar">
         <a class="brand" href="{% url 'catalogo' %}">
             <img src="{% static 'brand/logo.png' %}" alt="Doble V 3D">
@@ -499,7 +499,7 @@
         </section>
 
         <section
-            class="{% if kit.modalidad == "LIBRE_CATEGORIA" %}dv-kit-builder{% else %}shell{% endif %}"
+            class="dv-kit-builder"
             data-dv-kit-config
             data-kit-id="{{ kit.id }}"
             data-kit-name="{{ kit.nombre }}"
@@ -520,19 +520,8 @@
                     </div>
                 </div>
             {% else %}
-                <div class="dv-kit-cart-panel">
-                    <div class="dv-kit-cart-status">
-                        <strong>Agregar al carrito</strong>
-                        <span>Composición fija</span>
-                    </div>
-                    <div class="dv-kit-qty">
-                        <label for="dv-kit-qty">CANTIDAD DE KITS</label>
-                        <input id="dv-kit-qty" data-dv-kit-qty type="number" min="1" max="20" value="1" inputmode="numeric">
-                    </div>
-                    <div class="dv-kit-cart-price">
-                        <span>TOTAL DE LISTA</span>
-                        <strong data-dv-kit-total>$ {{ kit.precio|floatformat:"0g" }}</strong>
-                    </div>
+                <div class="dv-kit-cart-panel dv-kit-cart-panel--simple dv-kit-cart-panel--fixed-simple">
+                    <input data-dv-kit-qty type="hidden" value="1">
                     <div class="dv-kit-cart-action is-ready" data-dv-kit-cart-action>
                         <button class="dv-kit-cart-add" type="button" data-dv-kit-add>
                             AGREGAR AL CARRITO
@@ -629,7 +618,7 @@
             <section class="shell section">
                 <div class="section-head">
                     <div>
-                        <h2>COMPOSICIÓN DEL KIT</h2>
+                        <h2>Composición del kit</h2>
                         <p>Estos productos y cantidades forman cada kit.</p>
                     </div>
                     <span class="count">{{ componentes_fijos|length }} productos</span>

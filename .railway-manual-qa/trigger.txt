@@ -1,3 +1,3 @@
-Deploy QA: selector de cantidad compacto en catálogo mobile
-Base: 0aca7d52ef7030c54a6e7c5adc960c32f95ac19c
-Incluye: ajuste visual de - 1 + para tarjetas de dos columnas, sin cambiar la lógica del carrito
+Deploy QA: unificar look and feel de kits
+Base: 113e0337bc605f8f3e5c225f2603b4cae4640f94
+Incluye: kits fijos con barra inferior fija y CTA simple como Libre por categoría; composición mantiene grilla compacta

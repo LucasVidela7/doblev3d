@@ -249,6 +249,9 @@ html.dv-cart-open .dv-cart-body{
     grid-row:1;
     width:100%;
 }
+.dv-kit-cart-panel--fixed-simple .dv-kit-cart-action{
+    grid-row:1;
+}
 
 
 /* Catálogo mobile en 2 columnas: el selector de cantidad debe ser compacto.
