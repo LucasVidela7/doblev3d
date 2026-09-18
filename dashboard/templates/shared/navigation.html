@@ -1,8 +1,16 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'shared/layout.css' %}">
+<link rel="stylesheet" href="{% static 'shared/theme.css' %}">
 <link rel="stylesheet" href="{% static 'shared/navigation.css' %}">
 <div class="dv-global-nav-spacer" aria-hidden="true"></div>
 <nav class="dv-global-nav" aria-label="Navegación principal">
+    <label class="dv-theme-control" title="Cambiar tema">
+        <span class="dv-theme-icon" aria-hidden="true">☀</span>
+        <input id="dvThemeToggle" type="checkbox" role="switch" aria-label="Cambiar a modo oscuro">
+        <span class="dv-theme-track" aria-hidden="true"></span>
+        <span class="dv-theme-icon" aria-hidden="true">☾</span>
+        <span id="dvThemeText">CLARO</span>
+    </label>
     <a
         href="{% url 'dashboard:inicio' %}"
         class="dv-global-nav-item {% if request.resolver_match.namespace == 'dashboard' %}is-active{% endif %}"
@@ -48,3 +56,5 @@
         <span class="dv-global-nav-label">PRODUCTOS</span>
     </a>
 </nav>
+
+<script src="{% static 'shared/theme.js' %}"></script>
