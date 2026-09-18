@@ -15,8 +15,15 @@
     padding:6px;
     border:1px solid rgba(255,255,255,.16);
     border-radius:18px;
-    background:rgba(35,38,43,.97);
-    box-shadow:0 14px 38px rgba(0,0,0,.24);
+    background:
+        linear-gradient(
+            120deg,
+            rgba(19,74,154,.20),
+            transparent 42%,
+            rgba(240,57,59,.09)
+        ),
+        rgba(28,33,43,.97);
+    box-shadow:0 14px 38px rgba(13,55,111,.20);
     backdrop-filter:blur(16px);
     -webkit-backdrop-filter:blur(16px);
 }
@@ -60,13 +67,29 @@
     white-space:nowrap;
 }
 .dv-global-nav-item.is-active{
-    background:#fff;
-    color:#24272b;
-    box-shadow:0 3px 12px rgba(0,0,0,.12);
+    background:var(--dv-brand-blue,#134a9a);
+    color:#fff;
+    box-shadow:0 4px 14px rgba(19,74,154,.34);
 }
 .dv-global-nav-item.is-primary:not(.is-active){
-    background:rgba(255,255,255,.08);
+    background:var(--dv-brand-red,#f0393b);
     color:#fff;
+    box-shadow:0 4px 13px rgba(240,57,59,.22);
+}
+.dv-global-nav-item.is-primary:hover{
+    background:var(--dv-brand-red-strong,#cf2730);
+}
+html[data-dv-theme="dark"] .dv-global-nav{
+    border-color:rgba(130,156,196,.18);
+    background:
+        linear-gradient(
+            120deg,
+            rgba(19,74,154,.28),
+            transparent 45%,
+            rgba(240,57,59,.11)
+        ),
+        rgba(12,17,28,.98);
+    box-shadow:0 16px 44px rgba(0,0,0,.38);
 }
 @media(max-width:560px){
     .dv-global-nav{
