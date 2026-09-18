@@ -28,4 +28,5 @@
 <div class="card"><div class="titulo">CÓMO SE USARÁN</div><div class="reglas"><div class="regla"><strong>PRODUCTO</strong>La foto principal será la imagen de portada. La segunda quedará disponible para detalle y catálogo.</div><div class="regla"><strong>KIT FIJO</strong>Tomará automáticamente las fotos principales de los productos que lo componen, sin duplicar archivos.</div><div class="regla"><strong>KIT LIBRE</strong>Mostrará las fotos de los productos elegibles de la categoría para que el cliente vea las opciones.</div></div></div>
 </div>
 <nav class="nav"><a href="{% url 'dashboard:inicio' %}"><span>⌂</span><span>INICIO</span></a><a href="{% url 'pedidos:impresiones' %}"><span>📦</span><span>PEDIDOS</span></a><a href="{% url 'pedidos:nuevo' %}"><span>＋</span><span>NUEVO</span></a><a href="{% url 'produccion:lista' %}"><span>⚙</span><span>PRODUCCIÓN</span></a><a class="act" href="{% url 'productos:lista' %}"><span>▦</span><span>PRODUCTOS</span></a></nav>
+{% include "shared/navigation.html" %}
 </body></html>
