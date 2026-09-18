@@ -515,17 +515,106 @@
         }
 
         @media (max-width: 580px) {
-            .shell { width: min(100% - 22px, 1180px); }
+            .shell { width: min(100% - 16px, 1180px); }
             .topbar { padding-top: 14px; }
             .brand img { width: 58px; height: 58px; }
             .brand-copy span { display: none; }
             .hero { padding-top: 18px; }
             .hero-card { border-radius: 24px; }
-            .grid { grid-template-columns: 1fr; gap: 14px; }
+
+            .grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 8px;
+            }
+
             .section { padding-bottom: 34px; }
-            .card { border-radius: 18px; }
-            .media { aspect-ratio: 16 / 11; }
             .section-head { align-items: start; }
+
+            .card { border-radius: 14px; }
+            .media { aspect-ratio: 1 / 1; }
+
+            .badge {
+                left: 7px;
+                top: 7px;
+                padding: 4px 6px;
+                font-size: .58rem;
+            }
+
+            .content { padding: 10px; }
+
+            .meta {
+                margin-bottom: 4px;
+                font-size: .58rem;
+            }
+
+            .title {
+                min-height: 2.25em;
+                overflow: hidden;
+                display: -webkit-box;
+                font-size: .86rem;
+                line-height: 1.12;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 2;
+            }
+
+            .detail { display: none; }
+
+            .mini-list {
+                gap: 4px;
+                margin: 7px 0 9px;
+            }
+
+            .mini {
+                padding: 4px 6px;
+                font-size: .62rem;
+            }
+
+            .kit-note {
+                margin: -2px 0 9px;
+                padding: 6px 7px;
+                font-size: .62rem;
+            }
+
+            .price-row {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 7px;
+                padding-top: 8px;
+            }
+
+            .price-label { font-size: .6rem; }
+            .price { font-size: .98rem; }
+
+            .dv-cart-card-control {
+                width: 100%;
+                min-width: 0;
+                justify-content: stretch;
+            }
+
+            .dv-cart-add-btn,
+            .dv-cart-inline-stepper,
+            .catalog-detail-link {
+                width: 100%;
+            }
+
+            .dv-cart-add-btn,
+            .catalog-detail-link {
+                min-height: 34px;
+                padding: 0 7px;
+                border-radius: 9px;
+                font-size: .66rem;
+            }
+
+            .dv-cart-inline-stepper {
+                grid-template-columns: 30px minmax(28px, 1fr) 30px;
+                min-height: 34px;
+                border-radius: 9px;
+            }
+
+            .dv-cart-inline-stepper button,
+            .dv-cart-inline-stepper span {
+                height: 34px;
+            }
         }
     </style>
 </head>
