@@ -7,6 +7,7 @@ from django.urls import reverse
 
 from clientes.models import Cliente
 from costos.models import ConfiguracionCostos
+from kits.economia import precio_automatico_kit_libre
 from kits.models import Kit, KitComponente
 from productos.models import Producto, TipoProducto
 
@@ -182,6 +183,85 @@ class PrecioAcordadoKitTests(TestCase):
         nuevo = pedido.detalles.get(tipo_item="KIT")
         self.assertTrue(nuevo.precio_kit_manual)
         self.assertEqual(nuevo.precio_unitario, Decimal("42000.00"))
+
+    def test_kit_libre_protegido_cobra_extra_automatico(self):
+        premium = Producto.objects.create(
+            nombre="Pieza premium QA",
+            categoria="PRODUCTO",
+            tipo=self.tipo,
+            horas=0,
+            minutos=1,
+            peso_gramos=Decimal("600"),
+            margen_ganancia=Decimal("60"),
+            requiere_impresion=True,
+            personalizable=False,
+            stock=0,
+            activo=True,
+            tipo_fabricacion="SIMPLE",
+            solo_produccion=False,
+        )
+        kit_libre = Kit.objects.create(
+            nombre="Kit libre protegido QA",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=2,
+            precio=Decimal("9000"),
+            proteger_rentabilidad_libre=True,
+            activo=True,
+        )
+
+        esperado = precio_automatico_kit_libre(
+            kit_libre,
+            [self.producto_a, premium],
+        )
+        self.assertGreater(esperado, kit_libre.precio)
+
+        respuesta_api = self.client.get(
+            reverse(
+                "pedidos:productos_kit",
+                args=[kit_libre.id],
+            )
+        )
+        self.assertEqual(respuesta_api.status_code, 200)
+        data = respuesta_api.json()
+        self.assertTrue(data["kit"]["proteger_rentabilidad"])
+        por_id = {
+            item["id"]: item
+            for item in data["productos"]
+        }
+        self.assertTrue(por_id[self.producto_a.id]["incluido"])
+        self.assertFalse(por_id[premium.id]["incluido"])
+        self.assertGreater(por_id[premium.id]["extra"], 0)
+
+        respuesta = self.client.post(
+            reverse("pedidos:nuevo"),
+            data={
+                "cliente": str(self.cliente.id),
+                "fecha_entrega": "",
+                "observaciones": "Kit libre protegido",
+                "item_indice": ["1"],
+                "tipo_item_1": "KIT",
+                "kit_1": str(kit_libre.id),
+                "cantidad_1": "1",
+                "precio_kit_manual_1": "0",
+                "productos_kit_1": [
+                    str(self.producto_a.id),
+                    str(premium.id),
+                ],
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 302)
+        detalle = DetallePedido.objects.get(
+            tipo_item="KIT",
+            kit=kit_libre,
+        )
+        self.assertFalse(detalle.precio_kit_manual)
+        self.assertEqual(detalle.precio_unitario, esperado)
+        self.assertGreater(
+            detalle.precio_unitario,
+            kit_libre.precio,
+        )
 
     def test_editar_kit_libre_reconstruye_productos_repetidos(self):
         kit_libre = Kit.objects.create(
