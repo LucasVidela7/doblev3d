@@ -1,3 +1,3 @@
-Deploy QA: catálogo mobile dos columnas corregido
-Base: 3062255539748907c715fe7af07bf3b3e68cd975
-Incluye: elimina override de una columna en ProductImagesUIMiddleware y compacta tarjetas mobile
+Deploy QA: selector de cantidad compacto en catálogo mobile
+Base: 0aca7d52ef7030c54a6e7c5adc960c32f95ac19c
+Incluye: ajuste visual de - 1 + para tarjetas de dos columnas, sin cambiar la lógica del carrito

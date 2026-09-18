@@ -249,3 +249,32 @@ html.dv-cart-open .dv-cart-body{
     grid-row:1;
     width:100%;
 }
+
+
+/* Catálogo mobile en 2 columnas: el selector de cantidad debe ser compacto.
+   Conserva áreas táctiles cómodas sin ocupar todo el ancho de la tarjeta. */
+@media(max-width:580px){
+    .catalog-item[data-kind="producto"] .dv-cart-card-control{
+        width:100%;
+        justify-content:center;
+    }
+    .catalog-item[data-kind="producto"] .dv-cart-inline-stepper{
+        width:126px!important;
+        max-width:100%;
+        min-height:42px;
+        grid-template-columns:42px minmax(36px,42px) 42px;
+        margin-inline:auto;
+        border-radius:12px;
+        box-shadow:none;
+    }
+    .catalog-item[data-kind="producto"] .dv-cart-inline-stepper button,
+    .catalog-item[data-kind="producto"] .dv-cart-inline-stepper span{
+        height:42px;
+    }
+    .catalog-item[data-kind="producto"] .dv-cart-inline-stepper button{
+        font-size:1.08rem;
+    }
+    .catalog-item[data-kind="producto"] .dv-cart-inline-stepper span{
+        font-size:.82rem;
+    }
+}
