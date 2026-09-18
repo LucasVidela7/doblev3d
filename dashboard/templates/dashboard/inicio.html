@@ -496,7 +496,7 @@ a,button{touch-action:manipulation}
         </div>
     </a>
 
-    <a href="{% url 'pedidos:pagos' %}" class="metrica m-cobrar">
+    <a href="{% url 'pedidos:finanzas' %}#cobros" class="metrica m-cobrar">
         <div class="metrica-cabecera">
             <div class="metrica-titulo">SALDO A COBRAR</div>
             <div class="metrica-icono">$</div>
@@ -507,7 +507,7 @@ a,button{touch-action:manipulation}
         </div>
     </a>
 
-    <a href="{% url 'pedidos:pagos' %}" class="metrica m-cobrado">
+    <a href="{% url 'pedidos:finanzas' %}#cobros" class="metrica m-cobrado">
         <div class="metrica-cabecera">
             <div class="metrica-titulo">COBRADO ESTE MES</div>
             <div class="metrica-icono">✓</div>
@@ -555,13 +555,9 @@ a,button{touch-action:manipulation}
             <div class="accion-icono">👥</div>
             <div><div class="accion-titulo">Clientes</div><div class="accion-texto">Contactos, historial de pedidos y saldos.</div></div>
         </a>
-        <a href="{% url 'pedidos:pagos' %}" class="accion">
-            <div class="accion-icono">$</div>
-            <div><div class="accion-titulo">Pagos</div><div class="accion-texto">Cobros, saldos pendientes e historial.</div></div>
-        </a>
         <a href="{% url 'pedidos:finanzas' %}" class="accion">
             <div class="accion-icono">↗</div>
-            <div><div class="accion-titulo">Finanzas</div><div class="accion-texto">Ventas, costos, ganancia y rentabilidad.</div></div>
+            <div><div class="accion-titulo">Finanzas</div><div class="accion-texto">Cobros, caja, gastos, rentabilidad e inversión.</div></div>
         </a>
         <a href="{% url 'calculadora:precios' %}" class="accion">
             <div class="accion-icono">🧮</div>
