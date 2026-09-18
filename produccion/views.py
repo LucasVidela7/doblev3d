@@ -180,9 +180,9 @@ def lista_produccion(request):
     estado_filtro = (
         request.GET.get(
             "estado",
-            "OPERATIVA",
+            "ACTIVAS",
         ).strip()
-        or "OPERATIVA"
+        or "ACTIVAS"
     )
 
     impresora_filtro = (
@@ -317,36 +317,27 @@ def lista_produccion(request):
             qs_base
         )
 
-    else:
-        # Vista recomendada:
-        # todo lo operativo + últimos 20 finalizados.
-        activas = list(
-            qs_base
-            .filter(
+    elif estado_filtro in ["ACTIVAS", "OPERATIVA"]:
+        producciones = list(
+            qs_base.filter(
                 estado__in=[
                     "PENDIENTE",
                     "IMPRIMIENDO",
                 ]
             )
         )
+        estado_filtro = "ACTIVAS"
 
-        ultimas_listas = list(
-            qs_base
-            .filter(
-                estado="LISTO"
+    else:
+        producciones = list(
+            qs_base.filter(
+                estado__in=[
+                    "PENDIENTE",
+                    "IMPRIMIENDO",
+                ]
             )
-            .order_by(
-                "-inicio_impresion",
-                "-id",
-            )[:20]
         )
-
-        producciones = (
-            activas
-            + ultimas_listas
-        )
-
-        estado_filtro = "OPERATIVA"
+        estado_filtro = "ACTIVAS"
 
     # Orden operativo:
     # 1. IMPRIMIENDO.
