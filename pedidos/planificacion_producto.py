@@ -46,7 +46,7 @@ def planificar_impresion_producto(request):
       personalización de más ni mezclarla con stock genérico.
     """
     if request.method != "POST":
-        return redirect("pedidos:impresiones_productos")
+        return redirect("produccion:lista")
 
     producto = get_object_or_404(
         Producto,
@@ -62,14 +62,14 @@ def planificar_impresion_producto(request):
 
     if cantidad <= 0:
         messages.error(request, "Ingresá una cantidad mayor a cero para la placa.")
-        return redirect("pedidos:impresiones_productos")
+        return redirect("produccion:lista")
 
     inicio = _parsear_inicio(
         request.POST.get("inicio_impresion", "").strip()
     )
     if inicio is None:
         messages.error(request, "Ingresá un día y horario válido para la planificación.")
-        return redirect("pedidos:impresiones_productos")
+        return redirect("produccion:lista")
 
     if inicio < timezone.now():
         inicio = timezone.now()
@@ -78,7 +78,7 @@ def planificar_impresion_producto(request):
     destino = "STOCK"
     pedido = None
     restante = 0
-    observaciones = "Planificada desde Impresiones por producto."
+    observaciones = "Planificada desde Planificación."
 
     if personalizado_id:
         detalle = get_object_or_404(
@@ -99,14 +99,14 @@ def planificar_impresion_producto(request):
                 request,
                 "Ese producto no corresponde a la personalización seleccionada.",
             )
-            return redirect("pedidos:impresiones_productos")
+            return redirect("produccion:lista")
 
         if restante <= 0:
             messages.error(
                 request,
                 "Esa parte de la personalización ya está completamente cubierta.",
             )
-            return redirect("pedidos:impresiones_productos")
+            return redirect("produccion:lista")
 
         if cantidad > restante:
             messages.error(
@@ -116,7 +116,7 @@ def planificar_impresion_producto(request):
                     "personalizadas por planificar."
                 ),
             )
-            return redirect("pedidos:impresiones_productos")
+            return redirect("produccion:lista")
 
         destino = "PEDIDO"
         pedido = detalle.pedido
@@ -142,7 +142,7 @@ def planificar_impresion_producto(request):
         excedente = max(cantidad - restante, 0)
 
         observaciones = (
-            "Planificada desde Impresiones por producto.\n"
+            "Planificada desde Planificación.\n"
             f"Demanda estándar pendiente al planificar: {restante}."
         )
         if excedente > 0:
@@ -157,7 +157,7 @@ def planificar_impresion_producto(request):
             request,
             "La duración debe tener horas válidas y minutos entre 0 y 59.",
         )
-        return redirect("pedidos:impresiones_productos")
+        return redirect("produccion:lista")
 
     if not tiempo_total:
         tiempo_total = obtener_tiempo_recomendado(
@@ -173,7 +173,7 @@ def planificar_impresion_producto(request):
                 "Ingresá la duración estimada de esa placa."
             ),
         )
-        return redirect("pedidos:impresiones_productos")
+        return redirect("produccion:lista")
 
     produccion = Produccion.objects.create(
         producto=producto,
@@ -204,4 +204,4 @@ def planificar_impresion_producto(request):
             f"La impresora se elige al momento de iniciar.{mensaje_extra}"
         ),
     )
-    return redirect("pedidos:impresiones_productos")
+    return redirect("produccion:lista")
