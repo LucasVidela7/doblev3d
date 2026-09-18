@@ -1,0 +1,49 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'shared/navigation.css' %}">
+<div class="dv-global-nav-spacer" aria-hidden="true"></div>
+<nav class="dv-global-nav" aria-label="Navegación principal">
+    <a
+        href="{% url 'dashboard:inicio' %}"
+        class="dv-global-nav-item {% if request.resolver_match.namespace == 'dashboard' %}is-active{% endif %}"
+        {% if request.resolver_match.namespace == 'dashboard' %}aria-current="page"{% endif %}
+    >
+        <span class="dv-global-nav-icon">⌂</span>
+        <span class="dv-global-nav-label">INICIO</span>
+    </a>
+
+    <a
+        href="{% url 'pedidos:impresiones' %}"
+        class="dv-global-nav-item {% if request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name != 'nuevo' %}is-active{% endif %}"
+        {% if request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name != 'nuevo' %}aria-current="page"{% endif %}
+    >
+        <span class="dv-global-nav-icon">📦</span>
+        <span class="dv-global-nav-label">PEDIDOS</span>
+    </a>
+
+    <a
+        href="{% url 'pedidos:nuevo' %}"
+        class="dv-global-nav-item is-primary {% if request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name == 'nuevo' %}is-active{% endif %}"
+        {% if request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name == 'nuevo' %}aria-current="page"{% endif %}
+    >
+        <span class="dv-global-nav-icon">＋</span>
+        <span class="dv-global-nav-label">NUEVO</span>
+    </a>
+
+    <a
+        href="{% url 'produccion:lista' %}"
+        class="dv-global-nav-item {% if request.resolver_match.namespace == 'produccion' %}is-active{% endif %}"
+        {% if request.resolver_match.namespace == 'produccion' %}aria-current="page"{% endif %}
+    >
+        <span class="dv-global-nav-icon">🖨</span>
+        <span class="dv-global-nav-label">PLANIFICACIÓN</span>
+    </a>
+
+    <a
+        href="{% url 'productos:lista' %}"
+        class="dv-global-nav-item {% if request.resolver_match.namespace == 'productos' or request.resolver_match.namespace == 'kits' %}is-active{% endif %}"
+        {% if request.resolver_match.namespace == 'productos' or request.resolver_match.namespace == 'kits' %}aria-current="page"{% endif %}
+    >
+        <span class="dv-global-nav-icon">▦</span>
+        <span class="dv-global-nav-label">PRODUCTOS</span>
+    </a>
+</nav>
