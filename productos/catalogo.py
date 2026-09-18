@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 
 from kits.economia import analizar_opciones_kit
 from kits.imagenes import adjuntar_imagenes_reutilizadas
@@ -136,6 +136,126 @@ def catalogo(request):
             "productos": productos,
             "kits": kits,
             "categorias": categorias,
+            "ambiente_catalogo": ambiente,
+            "es_ambiente_no_productivo": ambiente != "production",
+        },
+    )
+
+
+
+def catalogo_kit_detalle(request, kit_id):
+    """Detalle público de un kit activo, sin exponer la gestión interna."""
+
+    ambiente = entorno_imagenes()
+
+    kit = get_object_or_404(
+        Kit.objects
+        .filter(activo=True)
+        .select_related("tipo_producto")
+        .prefetch_related("componentes__producto__tipo"),
+        id=kit_id,
+    )
+
+    seleccionables = []
+    adicionales = []
+    componentes_fijos = []
+    analisis = None
+
+    if kit.modalidad == "LIBRE_CATEGORIA":
+        productos = list(
+            Producto.objects
+            .filter(
+                tipo_id=kit.tipo_producto_id,
+                activo=True,
+                solo_produccion=False,
+            )
+            .select_related("tipo")
+            .order_by("nombre", "id")
+        )
+
+        analisis = analizar_opciones_kit(
+            kit,
+            productos_categoria=productos,
+        )
+
+        adjuntar_imagenes_reutilizadas(
+            [kit],
+            productos_por_tipo={
+                kit.tipo_producto_id: productos,
+            },
+        )
+
+        imagenes = {
+            visual["producto"].id: visual["imagen_url"]
+            for visual in getattr(kit, "productos_visuales", [])
+        }
+
+        def opcion_publica(item):
+            opcion = dict(item)
+            opcion["imagen_url"] = imagenes.get(
+                item["producto_id"],
+                "",
+            )
+            return opcion
+
+        seleccionables = [
+            opcion_publica(item)
+            for item in analisis["incluidos"]
+        ]
+        adicionales = [
+            opcion_publica(item)
+            for item in analisis["premium"]
+        ]
+
+        seleccionables.sort(
+            key=lambda item: (
+                item["nombre"].casefold(),
+                item["producto_id"],
+            )
+        )
+        adicionales.sort(
+            key=lambda item: (
+                item["extra"],
+                item["nombre"].casefold(),
+                item["producto_id"],
+            )
+        )
+
+    else:
+        adjuntar_imagenes_reutilizadas([kit])
+
+        imagenes = {
+            visual["producto"].id: visual["imagen_url"]
+            for visual in getattr(kit, "productos_visuales", [])
+        }
+
+        componentes_fijos = [
+            {
+                "producto": componente.producto,
+                "cantidad": componente.cantidad,
+                "imagen_url": imagenes.get(
+                    componente.producto_id,
+                    "",
+                ),
+            }
+            for componente in kit.componentes.all()
+        ]
+        componentes_fijos.sort(
+            key=lambda item: (
+                item["producto"].nombre.casefold(),
+                item["producto"].id,
+            )
+        )
+
+    return render(
+        request,
+        "productos/catalogo_kit_detalle.html",
+        {
+            "kit": kit,
+            "seleccionables": seleccionables,
+            "adicionales": adicionales,
+            "componentes_fijos": componentes_fijos,
+            "analisis_opciones": analisis,
             "ambiente_catalogo": ambiente,
             "es_ambiente_no_productivo": ambiente != "production",
         },
