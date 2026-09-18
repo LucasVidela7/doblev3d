@@ -79,6 +79,29 @@ def lista_kits(request):
                 elif kit.opciones_libres_analisis["disponible"]:
                     kit.alerta_proteccion_sin_incluidos = True
 
+            opciones_por_producto = {
+                item["producto_id"]: item
+                for item in kit.opciones_libres_analisis["opciones"]
+            }
+            for visual in getattr(kit, "productos_visuales", []):
+                opcion = opciones_por_producto.get(
+                    visual["producto"].id
+                )
+                if not opcion:
+                    continue
+
+                visual["incluido"] = bool(opcion["incluido"])
+                visual["requiere_extra"] = bool(
+                    opcion["requiere_extra"]
+                )
+                visual["extra"] = opcion["extra"]
+                visual["extra_sugerido"] = opcion[
+                    "extra_sugerido"
+                ]
+                visual["protegido"] = bool(
+                    kit.proteger_rentabilidad_libre
+                )
+
         kit.recomendacion_calculadora = recomendacion_kit(
             kit,
             productos_categoria=productos_referencia,
