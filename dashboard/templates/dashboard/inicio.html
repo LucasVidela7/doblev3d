@@ -67,37 +67,42 @@ a,button{touch-action:manipulation}
 .metricas{
     display:grid;
     grid-auto-flow:column;
-    grid-auto-columns:minmax(190px,1fr);
+    grid-auto-columns:minmax(184px,1fr);
     grid-template-rows:1fr;
-    gap:12px;
+    gap:10px;
     overflow-x:auto;
     overscroll-behavior-inline:contain;
     scroll-snap-type:inline mandatory;
     scrollbar-width:none;
-    padding:2px 2px 12px;
+    padding:2px 2px 10px;
     margin:0 -2px 16px;
 }
 .metricas::-webkit-scrollbar{display:none}
 .metrica{
-    min-height:126px;
+    position:relative;
+    min-height:112px;
+    min-width:0;
     scroll-snap-align:start;
     background:var(--tarjeta);
     border:1px solid var(--borde);
-    border-radius:18px;
-    padding:17px;
-    box-shadow:var(--sombra);
+    border-radius:16px;
+    padding:14px 14px 13px;
+    box-shadow:0 3px 14px rgba(20,25,35,.055);
     text-decoration:none;
     color:inherit;
     display:flex;
     flex-direction:column;
     justify-content:space-between;
+    overflow:hidden;
 }
 .metrica:active,.accion:active,.nav-item:active,.entrega-link:active,.ver-todo:active{transform:scale(.98)}
-.metrica-cabecera{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.metrica-titulo{color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.35px}
-.metrica-icono{width:34px;height:34px;display:grid;place-items:center;border-radius:11px;font-size:17px}
-.metrica-numero{font-size:34px;font-weight:900;line-height:1}
-.metrica-ayuda{margin-top:5px;color:var(--muted);font-size:11px}
+.metrica-cabecera{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.metrica-titulo{color:var(--muted);font-size:9px;font-weight:900;letter-spacing:.45px;line-height:1.25}
+.metrica-icono{width:31px;height:31px;display:grid;place-items:center;border-radius:10px;font-size:15px;flex:0 0 auto}
+.metrica-numero{font-size:31px;font-weight:900;line-height:.95;letter-spacing:-.7px;white-space:nowrap}
+.metrica-ayuda{margin-top:6px;color:var(--muted);font-size:9px;line-height:1.3}
+.m-cobrar,.m-cobrado{background:linear-gradient(180deg,#fff 0%,#fcfcfd 100%)}
+.m-cobrar .metrica-numero,.m-cobrado .metrica-numero{font-size:29px;letter-spacing:-1px}
 .m-pedidos .metrica-icono{background:var(--azul)}
 .m-imprimir .metrica-icono{background:var(--amarillo)}
 .m-produccion .metrica-icono{background:var(--violeta)}
@@ -301,38 +306,45 @@ a,button{touch-action:manipulation}
     .metricas{
         grid-auto-flow:initial;
         grid-auto-columns:auto;
-        grid-template-columns:repeat(7,minmax(0,1fr));
-        gap:10px;
+        grid-template-columns:
+            repeat(5,minmax(140px,.88fr))
+            repeat(2,minmax(205px,1.18fr));
+        gap:9px;
         overflow:visible;
-        padding:2px 0 8px;
+        padding:2px 0 7px;
         margin:0 0 18px;
     }
 
     .metrica{
         min-width:0;
-        min-height:118px;
-        padding:15px 14px;
-        border-radius:16px;
+        min-height:108px;
+        padding:13px 13px 12px;
+        border-radius:15px;
     }
 
     .metrica-numero{
-        font-size:31px;
+        font-size:30px;
+    }
+
+    .m-cobrar .metrica-numero,
+    .m-cobrado .metrica-numero{
+        font-size:29px;
     }
 
     .metrica-titulo{
-        font-size:10px;
+        font-size:9px;
     }
 
     .metrica-ayuda{
-        font-size:10px;
-        line-height:1.3;
+        font-size:9px;
+        line-height:1.25;
     }
 
     .metrica-icono{
-        width:32px;
-        height:32px;
-        border-radius:10px;
-        font-size:16px;
+        width:30px;
+        height:30px;
+        border-radius:9px;
+        font-size:15px;
     }
 
     .seccion{
@@ -358,13 +370,14 @@ a,button{touch-action:manipulation}
     }
 }
 
-@media(min-width:1180px) and (max-width:1550px){
+@media(min-width:1180px) and (max-width:1320px){
     .metricas{
         grid-template-columns:repeat(4,minmax(0,1fr));
     }
 
-    .metrica{
-        min-height:110px;
+    .m-cobrar,
+    .m-cobrado{
+        grid-column:span 2;
     }
 }
 
