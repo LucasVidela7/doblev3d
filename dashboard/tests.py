@@ -51,13 +51,14 @@ class DashboardProduccionTests(TestCase):
         )
 
         self.assertEqual(respuesta.status_code, 200)
-        self.assertContains(
-            respuesta,
-            "shared/theme.css",
+        contenido = respuesta.content.decode()
+        self.assertRegex(
+            contenido,
+            r"/static/shared/theme(?:\.[0-9a-f]+)?\.css",
         )
-        self.assertContains(
-            respuesta,
-            "shared/theme.js",
+        self.assertRegex(
+            contenido,
+            r"/static/shared/theme(?:\.[0-9a-f]+)?\.js",
         )
         self.assertContains(
             respuesta,
