@@ -666,13 +666,7 @@ a,button{touch-action:manipulation}
 </div>
 
 <!-- NAVEGACIÓN TÁCTIL FIJA -->
-<nav class="nav-inferior" aria-label="Navegación principal">
-    <a href="{% url 'dashboard:inicio' %}" class="nav-item activo"><span>⌂</span><span>INICIO</span></a>
-    <a href="{% url 'pedidos:impresiones' %}" class="nav-item"><span>📦</span><span>PEDIDOS</span></a>
-    <a href="{% url 'pedidos:nuevo' %}" class="nav-item nuevo-nav"><span>＋</span><span>NUEVO</span></a>
-    <a href="{% url 'produccion:lista' %}" class="nav-item"><span>🖨</span><span>PLANIF.</span></a>
-    <a href="{% url 'productos:lista' %}" class="nav-item"><span>▦</span><span>PRODUCTOS</span></a>
-</nav>
+{% include "shared/navigation.html" %}
 
 </body>
 </html>
