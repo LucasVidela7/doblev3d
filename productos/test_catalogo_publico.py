@@ -298,8 +298,8 @@ class CatalogoPublicoTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "OPCIONES INCLUIDAS")
-        self.assertContains(response, "OPCIONES CON ADICIONAL")
+        self.assertContains(response, "Elegí los productos de tu kit")
+        self.assertContains(response, "Usá <strong>+</strong> para sumar", html=True)
         self.assertEqual(
             response.context["seleccionables"][0]["producto_id"],
             incluido.id,
@@ -319,6 +319,9 @@ class CatalogoPublicoTests(TestCase):
             contenido.index(premium.nombre),
         )
         self.assertIn("ADICIONAL +$", contenido)
+        self.assertContains(response, "data-dv-kit-progress-fill")
+        self.assertContains(response, "AGREGAR AL CARRITO")
+        self.assertContains(response, "data-dv-kit-options-grid")
 
     def test_detalle_publico_no_expone_kit_inactivo(self):
         self.kit.activo = False

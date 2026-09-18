@@ -654,6 +654,9 @@
         const addedQty = config.querySelector(
             '[data-dv-kit-cart-qty]',
         );
+        const progressFill = config.querySelector(
+            '[data-dv-kit-progress-fill]',
+        );
         const options = [
             ...document.querySelectorAll('[data-dv-kit-option]'),
         ];
@@ -738,28 +741,82 @@
                 priceNode.textContent = money(unitListPrice * qty);
             }
 
+            const complete =
+                mode === 'LIBRE_CATEGORIA'
+                && selected === required;
+            const remaining = Math.max(required - selected, 0);
+
             if (status) {
-                status.textContent = mode === 'LIBRE_CATEGORIA'
-                    ? selected + ' de ' + required + ' seleccionados'
-                    : 'Composición fija';
+                if (mode !== 'LIBRE_CATEGORIA') {
+                    status.textContent = 'Composición fija';
+                } else if (complete) {
+                    status.textContent =
+                        'Kit completo · ' + selected + ' de ' + required;
+                } else {
+                    status.textContent =
+                        'Elegí ' + remaining + ' más · '
+                        + selected + ' de ' + required;
+                }
+            }
+
+            if (progressFill && required > 0) {
+                progressFill.style.width =
+                    Math.min(100, (selected / required) * 100) + '%';
             }
 
             if (addButton) {
                 addButton.disabled =
                     mode === 'LIBRE_CATEGORIA'
-                    && selected !== required;
+                    && !complete;
+                if (
+                    mode === 'LIBRE_CATEGORIA'
+                    && !addButton.hidden
+                ) {
+                    addButton.textContent = complete
+                        ? 'AGREGAR AL CARRITO'
+                        : (
+                            remaining === 1
+                                ? 'ELEGÍ 1 MÁS'
+                                : 'ELEGÍ ' + remaining + ' MÁS'
+                        );
+                }
             }
 
             options.forEach((node) => {
                 const count = optionCount(node);
+                const selectedOption = count > 0;
+                const locked = complete && !selectedOption;
+
                 node.classList.toggle(
                     'is-selected',
-                    count > 0,
+                    selectedOption,
                 );
+                node.classList.toggle(
+                    'is-locked',
+                    locked,
+                );
+                node.setAttribute(
+                    'aria-disabled',
+                    locked ? 'true' : 'false',
+                );
+
                 const counter = node.querySelector(
                     '[data-kit-option-count]',
                 );
+                const plusButton = node.querySelector(
+                    '[data-kit-option-plus]',
+                );
+                const minusButton = node.querySelector(
+                    '[data-kit-option-minus]',
+                );
+
                 if (counter) counter.textContent = String(count);
+                if (plusButton) {
+                    plusButton.disabled = complete;
+                }
+                if (minusButton) {
+                    minusButton.disabled = count <= 0;
+                }
             });
 
             syncKitControl(read());

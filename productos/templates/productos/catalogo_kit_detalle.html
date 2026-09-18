@@ -171,15 +171,15 @@
         }
 
         .section {
-            padding: 24px 0 12px;
+            padding: 18px 0 10px;
         }
 
         .section-head {
             display: flex;
             align-items: end;
             justify-content: space-between;
-            gap: 18px;
-            margin-bottom: 13px;
+            gap: 14px;
+            margin-bottom: 11px;
         }
 
         .section-head h2 {
@@ -190,9 +190,11 @@
         }
 
         .section-head p {
+            max-width: 760px;
             margin: 5px 0 0;
             color: var(--muted);
-            font-size: .9rem;
+            font-size: .84rem;
+            line-height: 1.45;
         }
 
         .count {
@@ -204,31 +206,59 @@
 
         .options {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 10px;
         }
 
         .option {
-            display: grid;
-            grid-template-columns: 92px minmax(0, 1fr) auto;
-            gap: 13px;
-            align-items: center;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
             min-width: 0;
-            padding: 11px;
+            padding: 8px;
             border: 1px solid var(--line);
-            border-radius: 18px;
+            border-radius: 16px;
             background: var(--paper);
-            box-shadow: 0 6px 18px rgba(19, 74, 154, .04);
+            box-shadow: 0 5px 16px rgba(19, 74, 154, .035);
+            transition: border-color .16s ease, box-shadow .16s ease, opacity .16s ease;
+        }
+
+        .dv-kit-option.is-selected {
+            border-color: rgba(19, 74, 154, .55);
+            box-shadow: 0 0 0 3px rgba(19, 74, 154, .08);
+        }
+
+        .dv-kit-option.is-locked {
+            opacity: .58;
+        }
+
+        .dv-kit-option.is-locked::after {
+            content: "KIT COMPLETO";
+            position: absolute;
+            left: 50%;
+            top: 10px;
+            z-index: 3;
+            transform: translateX(-50%);
+            padding: 5px 8px;
+            border-radius: 999px;
+            background: rgba(23, 35, 58, .90);
+            color: #fff;
+            font-size: .58rem;
+            font-weight: 950;
+            letter-spacing: .04em;
+            white-space: nowrap;
+            pointer-events: none;
         }
 
         .photo {
-            width: 92px;
-            aspect-ratio: 1;
+            width: 100%;
+            aspect-ratio: 1.08;
             overflow: hidden;
             display: grid;
             place-items: center;
             border: 1px solid var(--line);
-            border-radius: 14px;
+            border-radius: 12px;
             background: linear-gradient(135deg, var(--brand-blue-soft), var(--brand-red-soft));
         }
 
@@ -257,23 +287,26 @@
         }
 
         .name {
-            margin-top: 4px;
+            margin-top: 2px;
             overflow: hidden;
+            display: -webkit-box;
+            min-height: 2.35em;
             color: var(--ink);
-            font-size: .98rem;
+            font-size: .82rem;
             font-weight: 850;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            line-height: 1.18;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
         }
 
         .status {
             display: inline-flex;
             align-items: center;
-            min-height: 29px;
-            padding: 0 9px;
+            min-height: 25px;
+            padding: 0 8px;
             border-radius: 999px;
-            font-size: .71rem;
-            font-weight: 850;
+            font-size: .62rem;
+            font-weight: 900;
             white-space: nowrap;
         }
 
@@ -283,22 +316,25 @@
         }
 
         .extra {
-            min-width: 112px;
-            text-align: right;
+            min-width: 0;
+            text-align: left;
         }
 
         .extra strong {
-            display: block;
+            display: inline-flex;
+            align-items: center;
+            min-height: 25px;
+            padding: 0 8px;
+            border-radius: 999px;
+            background: var(--premium-bg);
             color: var(--premium-text);
-            font-size: .92rem;
+            font-size: .62rem;
+            font-weight: 900;
             white-space: nowrap;
         }
 
         .extra span {
-            display: block;
-            margin-top: 3px;
-            color: var(--muted);
-            font-size: .68rem;
+            display: none;
         }
 
         .empty {
@@ -324,32 +360,86 @@
             text-align: center;
         }
 
-        @media (max-width: 820px) {
-            .options { grid-template-columns: 1fr; }
-            .summary { grid-template-columns: 1fr 1fr; }
+        .dv-kit-configurable-page {
+            padding-bottom: 104px;
         }
 
-        @media (max-width: 560px) {
-            .shell { width: min(100% - 22px, 1120px); }
-            .topbar { padding-top: 14px; }
-            .brand img { width: 54px; height: 54px; }
+        .dv-kit-builder {
+            position: fixed;
+            left: 50%;
+            bottom: 12px;
+            z-index: 64;
+            width: min(900px, calc(100% - 110px));
+            transform: translateX(-50%);
+            pointer-events: none;
+        }
+
+        .dv-kit-builder .dv-kit-cart-panel {
+            pointer-events: auto;
+        }
+
+        .dv-kit-progress {
+            grid-column: 1 / -1;
+            height: 5px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: #e7edf5;
+        }
+
+        .dv-kit-progress span {
+            display: block;
+            width: 0;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--brand-blue), var(--brand-red));
+            transition: width .18s ease;
+        }
+
+        @media (max-width: 1100px) {
+            .options { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        }
+
+        @media (max-width: 820px) {
+            .options { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+            .summary { grid-template-columns: repeat(3, minmax(0,1fr)); }
+            .hero-card { padding: 24px; }
+        }
+
+        @media (max-width: 680px) {
+            .shell { width: min(100% - 20px, 1120px); }
+            .topbar { padding-top: 12px; }
+            .brand img { width: 50px; height: 50px; }
             .brand-copy span { display: none; }
-            .hero { padding-top: 14px; }
-            .hero-card { border-radius: 22px; }
-            .summary { grid-template-columns: 1fr; }
-            .section-head { align-items: start; flex-direction: column; }
-            .option { grid-template-columns: 72px minmax(0, 1fr); }
-            .photo { width: 72px; }
-            .option > .status,
-            .option > .extra {
-                grid-column: 2;
-                justify-self: start;
-                text-align: left;
+            .hero { padding: 12px 0 10px; }
+            .hero-card { padding: 18px; border-radius: 20px; }
+            h1 { font-size: clamp(1.65rem, 8vw, 2.4rem); }
+            .hero-detail { margin-top: 9px; font-size: .82rem; line-height: 1.45; }
+            .summary { grid-template-columns: repeat(3, minmax(0,1fr)); gap: 6px; padding-top: 10px; }
+            .summary-card { padding: 10px 8px; border-radius: 13px; }
+            .summary-card span { font-size: .56rem; }
+            .summary-card strong { margin-top: 4px; font-size: 1rem; }
+            .section { padding-top: 14px; }
+            .section-head { align-items: start; flex-direction: column; gap: 5px; }
+            .section-head h2 { font-size: 1.18rem; }
+            .section-head p { font-size: .78rem; }
+            .count { display: none; }
+            .options { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+            .option { padding: 7px; border-radius: 14px; gap: 6px; }
+            .photo { border-radius: 10px; }
+            .code { font-size: .58rem; }
+            .name { font-size: .75rem; min-height: 2.3em; }
+            .dv-kit-builder {
+                bottom: 9px;
+                width: calc(100% - 78px);
+                transform: translateX(calc(-50% - 28px));
+            }
+            .dv-kit-configurable-page {
+                padding-bottom: 126px;
             }
         }
     </style>
 </head>
-<body>
+<body class="{% if kit.modalidad == 'LIBRE_CATEGORIA' %}dv-kit-configurable-page{% endif %}">
     <header class="shell topbar">
         <a class="brand" href="{% url 'catalogo' %}">
             <img src="{% static 'brand/logo.png' %}" alt="Doble V 3D">
@@ -379,84 +469,19 @@
                 <h1>{{ kit.nombre }}</h1>
                 <p class="hero-detail">
                     {% if kit.modalidad == "LIBRE_CATEGORIA" %}
-                        Elegí {{ kit.cantidad_productos }} producto{{ kit.cantidad_productos|pluralize }}
-                        {% if kit.tipo_producto %}de {{ kit.tipo_producto.nombre }}{% endif %}.
-                        Primero vas a encontrar las opciones incluidas en el precio base y luego las que tienen adicional.
-                    {% else %}
-                        Este kit tiene una composición fija de {{ kit.cantidad_productos }} pieza{{ kit.cantidad_productos|pluralize }}.
-                    {% endif %}
-                </p>
-            </div>
-        </section>
-
-        <section class="shell summary" aria-label="Resumen del kit">
-            <div class="summary-card">
-                <span>Precio base</span>
-                <strong>
-                    {% if kit.precio %}$ {{ kit.precio|floatformat:"0g" }}{% else %}Consultar{% endif %}
-                </strong>
-            </div>
-            <div class="summary-card">
-                <span>{% if kit.modalidad == "FIJO" %}Piezas por kit{% else %}Productos a elegir{% endif %}</span>
-                <strong>{{ kit.cantidad_productos }}</strong>
-            </div>
-            <div class="summary-card">
-                <span>Tipo</span>
-                <strong>{% if kit.modalidad == "FIJO" %}Composición fija{% else %}Configurable{% endif %}</strong>
-            </div>
-        </section>
-
-        <section
-            class="shell"
-            data-dv-kit-config
-            data-kit-id="{{ kit.id }}"
-            data-kit-name="{{ kit.nombre }}"
-            data-mode="{{ kit.modalidad }}"
-            data-required="{{ kit.cantidad_productos }}"
-            data-base-price="{{ kit.precio|unlocalize }}"
-            data-image="{{ kit.catalogo_imagen_url }}"
-        >
-            <div class="dv-kit-cart-panel">
-                <div class="dv-kit-cart-status">
-                    <strong>{% if kit.modalidad == "LIBRE_CATEGORIA" %}Armá tu kit{% else %}Agregar al carrito{% endif %}</strong>
-                    <span data-dv-kit-status>
-                        {% if kit.modalidad == "LIBRE_CATEGORIA" %}0 de {{ kit.cantidad_productos }} seleccionados{% else %}Composición fija{% endif %}
-                    </span>
-                </div>
-                <div class="dv-kit-qty">
-                    <label for="dv-kit-qty">CANTIDAD DE KITS</label>
-                    <input id="dv-kit-qty" data-dv-kit-qty type="number" min="1" max="20" value="1" inputmode="numeric">
-                </div>
-                <div class="dv-kit-cart-price">
-                    <span>TOTAL DE LISTA</span>
-                    <strong data-dv-kit-total>$ {{ kit.precio|floatformat:"0g" }}</strong>
-                </div>
-                <div class="dv-kit-cart-action" data-dv-kit-cart-action>
-                    <button class="dv-kit-cart-add" type="button" data-dv-kit-add {% if kit.modalidad == "LIBRE_CATEGORIA" %}disabled{% endif %}>
-                        AGREGAR AL CARRITO
-                    </button>
-                    <div class="dv-cart-inline-stepper dv-kit-added-stepper" data-dv-kit-added-stepper hidden aria-label="Cantidad de esta configuración en el carrito">
-                        <button type="button" data-dv-kit-cart-minus aria-label="Disminuir cantidad de kits">−</button>
-                        <span data-dv-kit-cart-qty>1</span>
-                        <button type="button" data-dv-kit-cart-plus aria-label="Aumentar cantidad de kits">+</button>
-                    </div>
-                </div>
-                <div class="dv-kit-cart-discount-note">El descuento por cantidad se calcula en el carrito.</div>
-            </div>
-        </section>
-
-        {% if kit.modalidad == "LIBRE_CATEGORIA" %}
             <section class="shell section">
                 <div class="section-head">
                     <div>
-                        <h2>OPCIONES INCLUIDAS</h2>
-                        <p>Podés elegirlas sin sumar nada al precio base.</p>
+                        <h2>Elegí los productos de tu kit</h2>
+                        <p>
+                            Usá <strong>+</strong> para sumar un producto y <strong>−</strong> para quitarlo.
+                            Elegí {{ kit.cantidad_productos }} en total. Cuando completes el kit, se habilita el botón de abajo.
+                        </p>
                     </div>
-                    <span class="count">{{ seleccionables|length }} disponibles</span>
                 </div>
 
-                {% if seleccionables %}
-                    <div class="options">
+                {% if seleccionables or adicionales %}
+                    <div class="options" data-dv-kit-options-grid>
                         {% for opcion in seleccionables %}
                             <article
                                 class="option dv-kit-option"
@@ -480,32 +505,14 @@
                                 <div class="dv-kit-option-actions">
                                     <span class="status included">INCLUIDO</span>
                                     <div class="dv-kit-option-control" aria-label="Cantidad de {{ opcion.nombre }}">
-                                        <button type="button" data-kit-option-minus aria-label="Quitar">−</button>
+                                        <button type="button" data-kit-option-minus aria-label="Quitar {{ opcion.nombre }}">−</button>
                                         <span data-kit-option-count>0</span>
-                                        <button type="button" data-kit-option-plus aria-label="Agregar">+</button>
+                                        <button type="button" data-kit-option-plus aria-label="Agregar {{ opcion.nombre }}">+</button>
                                     </div>
                                 </div>
                             </article>
                         {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="empty premium-empty">
-                        Con el precio base actual no hay opciones incluidas. Las opciones disponibles se muestran debajo con su adicional.
-                    </div>
-                {% endif %}
-            </section>
 
-            <section class="shell section">
-                <div class="section-head">
-                    <div>
-                        <h2>OPCIONES CON ADICIONAL</h2>
-                        <p>También podés elegirlas; se suma el monto indicado por cada selección.</p>
-                    </div>
-                    <span class="count">{{ adicionales|length }} disponibles</span>
-                </div>
-
-                {% if adicionales %}
-                    <div class="options">
                         {% for opcion in adicionales %}
                             <article
                                 class="option dv-kit-option"
@@ -532,22 +539,16 @@
                                         <span>por selección</span>
                                     </div>
                                     <div class="dv-kit-option-control" aria-label="Cantidad de {{ opcion.nombre }}">
-                                        <button type="button" data-kit-option-minus aria-label="Quitar">−</button>
+                                        <button type="button" data-kit-option-minus aria-label="Quitar {{ opcion.nombre }}">−</button>
                                         <span data-kit-option-count>0</span>
-                                        <button type="button" data-kit-option-plus aria-label="Agregar">+</button>
+                                        <button type="button" data-kit-option-plus aria-label="Agregar {{ opcion.nombre }}">+</button>
                                     </div>
                                 </div>
                             </article>
                         {% endfor %}
                     </div>
-                {% elif kit.proteger_rentabilidad_libre %}
-                    <div class="empty">
-                        Todas las opciones actuales están incluidas en el precio base.
-                    </div>
                 {% else %}
-                    <div class="empty">
-                        Este kit es de libre elección: todas las opciones disponibles están incluidas y no tienen adicional.
-                    </div>
+                    <div class="empty">Este kit todavía no tiene opciones disponibles.</div>
                 {% endif %}
             </section>
         {% else %}
