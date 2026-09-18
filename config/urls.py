@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
-from productos.catalogo import catalogo
+from productos.catalogo import catalogo, catalogo_kit_detalle
 from productos.catalogo_contacto import catalogo_contacto
 
 
@@ -19,6 +19,13 @@ urlpatterns = [
         "catalogo/",
         catalogo,
         name="catalogo_legacy",
+    ),
+
+    # Detalle público de kits del catálogo.
+    path(
+        "kits/<int:kit_id>/",
+        catalogo_kit_detalle,
+        name="catalogo_kit_detalle",
     ),
 
     # Los enlaces sociales pasan por el sistema para registrar el click antes
