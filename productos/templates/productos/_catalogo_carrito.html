@@ -1,16 +1,6 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'productos/catalog_cart.css' %}">
 <div data-dv-cart-root data-pricing-url="{% url 'catalogo_carrito_precios' %}">
-    <button class="dv-cart-fab" type="button" data-dv-cart-open aria-label="Abrir carrito">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M3 4h2l2.2 10h10.6L20 7H7"></path>
-            <circle cx="9" cy="19" r="1.6"></circle>
-            <circle cx="17" cy="19" r="1.6"></circle>
-        </svg>
-        <span class="dv-cart-fab__label">CARRITO</span>
-        <span class="dv-cart-count" data-dv-cart-count>0</span>
-    </button>
-
     <div class="dv-cart-overlay" data-dv-cart-overlay></div>
     <aside class="dv-cart-drawer" data-dv-cart-drawer aria-label="Carrito de compras">
         <div class="dv-cart-head">
