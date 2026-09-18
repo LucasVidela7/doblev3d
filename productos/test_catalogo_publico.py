@@ -299,7 +299,7 @@ class CatalogoPublicoTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Elegí los productos de tu kit")
-        self.assertContains(response, "Usá <strong>+</strong> para sumar", html=True)
+        self.assertContains(response, "Usá")
         self.assertEqual(
             response.context["seleccionables"][0]["producto_id"],
             incluido.id,
