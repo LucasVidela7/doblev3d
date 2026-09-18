@@ -313,15 +313,34 @@ def _dashboard_kits_html(total_kits, kits_alerta):
 (function(){{
     var kitsUrl = {json.dumps(kits_url)};
 
-    function existeEnMenu(contenedor){{
+    function enlaceExistente(contenedor){{
         var destino = new URL(kitsUrl, window.location.origin).pathname;
-        return Array.from(contenedor.querySelectorAll('a')).some(function(link){{
+        return Array.from(contenedor.querySelectorAll('a')).find(function(link){{
             return link.pathname === destino;
-        }});
+        }}) || null;
+    }}
+
+    function enriquecerEnlace(enlace){{
+        if (!enlace) return false;
+
+        enlace.id = 'dv-dashboard-kits';
+        enlace.setAttribute('data-dv-menu', 'kits');
+        enlace.classList.toggle('dv-kits-alerta', {str(bool(False)).lower()});
+        if ({kits_alerta} > 0) enlace.classList.add('dv-kits-alerta');
+
+        var descripcionNodo = enlace.querySelector(
+            '.accion-texto, .dv-dashboard-menu__description'
+        );
+        if (descripcionNodo){{
+            descripcionNodo.textContent = {json.dumps(descripcion)};
+        }}
+
+        return true;
     }}
 
     function crearEnAcciones(acciones){{
-        if (document.getElementById('dv-dashboard-kits')) return true;
+        var existente = enlaceExistente(acciones);
+        if (existente) return enriquecerEnlace(existente);
 
         var enlace = document.createElement('a');
         enlace.id = 'dv-dashboard-kits';
@@ -340,7 +359,8 @@ def _dashboard_kits_html(total_kits, kits_alerta):
     }}
 
     function crearEnMenu(contenedor){{
-        if (existeEnMenu(contenedor)) return true;
+        var existente = enlaceExistente(contenedor);
+        if (existente) return enriquecerEnlace(existente);
 
         var enlace = document.createElement('a');
         enlace.id = 'dv-dashboard-kits';
