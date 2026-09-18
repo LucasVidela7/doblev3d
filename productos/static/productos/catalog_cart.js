@@ -703,20 +703,13 @@
                 )
                 : null;
 
-            if (mode === 'LIBRE_CATEGORIA') {
-                if (addButton) addButton.hidden = false;
-                config.querySelector('[data-dv-kit-cart-action]')
-                    ?.classList.add('is-ready');
-            } else {
-                if (addButton) addButton.hidden = Boolean(item);
-                if (addedStepper) addedStepper.hidden = !item;
-                if (qtyWrap) qtyWrap.hidden = Boolean(item);
-                panel?.classList.toggle('is-in-cart', Boolean(item));
-            }
+            if (addButton) addButton.hidden = false;
+            config.querySelector('[data-dv-kit-cart-action]')
+                ?.classList.add('is-ready');
 
-            if (addedQty && item) {
-                addedQty.textContent = String(item.qty || 1);
-            }
+            if (addedStepper) addedStepper.hidden = true;
+            if (qtyWrap) qtyWrap.hidden = false;
+            panel?.classList.remove('is-in-cart');
 
             if (item && priceNode) {
                 const listUnit = Number(
@@ -919,15 +912,22 @@
                 image: config.dataset.image || '',
                 selections,
             }, addButton, {
-                restore: mode !== 'LIBRE_CATEGORIA',
+                restore: false,
             });
 
-            if (mode === 'LIBRE_CATEGORIA') {
-                window.setTimeout(() => {
+            window.setTimeout(() => {
+                if (mode === 'LIBRE_CATEGORIA') {
                     resetKitSelection();
-                    open();
-                }, 430);
-            }
+                } else {
+                    if (qtyInput) qtyInput.value = '1';
+                    if (addButton) {
+                        addButton.disabled = false;
+                        addButton.textContent = 'AGREGAR AL CARRITO';
+                    }
+                    updateKit();
+                }
+                open();
+            }, 430);
         });
 
         updateKit();
