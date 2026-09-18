@@ -127,6 +127,27 @@ class AccionesPedidoEstadoTests(TestCase):
         self.pedido.estado = estado
         self.pedido.save(update_fields=["estado"])
 
+    def test_editar_pendiente_carga_menu_y_tema_global(self):
+        respuesta = self.client.get(
+            reverse("pedidos:editar", args=[self.pedido.id])
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        contenido = respuesta.content.decode()
+        self.assertIn('id="dvManagementMenu"', contenido)
+        self.assertRegex(
+            contenido,
+            r"/static/shared/management_menu(?:\.[0-9a-f]+)?\.css",
+        )
+        self.assertRegex(
+            contenido,
+            r"/static/shared/theme(?:\.[0-9a-f]+)?\.css",
+        )
+        self.assertIn(
+            'id="dv-pedido-form-style"',
+            contenido,
+        )
+
     def test_editar_solo_se_permite_en_pendiente(self):
         for estado in ("PREPARANDO", "LISTO", "ENTREGADO", "CANCELADO"):
             self._estado(estado)
