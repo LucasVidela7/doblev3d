@@ -1,3 +1,3 @@
-Deploy QA: catálogo mobile en dos columnas
-Base: a73d4c63acb1065b39755db831d8dc274b12051d
-Incluye: dos productos por fila en mobile y tarjetas compactas para mantener legibilidad
+Deploy QA: catálogo mobile dos columnas corregido
+Base: 3062255539748907c715fe7af07bf3b3e68cd975
+Incluye: elimina override de una columna en ProductImagesUIMiddleware y compacta tarjetas mobile

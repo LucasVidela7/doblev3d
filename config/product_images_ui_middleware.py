@@ -447,7 +447,7 @@ CATALOG_STYLE = r"""
 
 @media(max-width:580px){
     .shell{
-        width:min(100% - 20px,1180px)!important;
+        width:min(100% - 16px,1180px)!important;
     }
     .hero{
         padding:14px 0 18px!important;
@@ -457,20 +457,32 @@ CATALOG_STYLE = r"""
         border-radius:22px!important;
     }
     .grid{
-        grid-template-columns:1fr!important;
-        gap:14px!important;
+        grid-template-columns:repeat(2,minmax(0,1fr))!important;
+        gap:8px!important;
+    }
+    .card:not(.hidden-by-filter){
+        border-radius:14px!important;
     }
     .media{
         aspect-ratio:1 / 1!important;
     }
     .content{
-        padding:16px!important;
+        padding:10px!important;
     }
     .title{
-        font-size:1.18rem!important;
+        min-height:2.25em!important;
+        font-size:.86rem!important;
+        line-height:1.12!important;
+    }
+    .detail{
+        display:none!important;
+    }
+    .price-row{
+        gap:7px!important;
+        padding-top:8px!important;
     }
     .price{
-        font-size:1.35rem!important;
+        font-size:.98rem!important;
     }
 }
 </style>
