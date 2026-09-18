@@ -190,6 +190,11 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
 
+# Protección opcional del checkout público. Si las claves quedan vacías,
+# el resto de defensas anti-spam sigue funcionando sin mostrar captcha.
+TURNSTILE_SITE_KEY = os.getenv("TURNSTILE_SITE_KEY", "").strip()
+TURNSTILE_SECRET_KEY = os.getenv("TURNSTILE_SECRET_KEY", "").strip()
+
 
 # Internationalization
 
