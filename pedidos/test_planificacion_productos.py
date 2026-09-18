@@ -244,4 +244,7 @@ class PlanificacionDesdeImpresionesTests(TestCase):
         self.assertEqual(planificacion.status_code, 200)
         self.assertContains(planificacion, "Necesidad de impresión")
         self.assertContains(planificacion, "PLANIFICAR ESTE PRODUCTO")
-        self.assertContains(planificacion, "Cantidad")
+        self.assertContains(
+            planificacion,
+            "Podés producir más; el excedente irá a stock.",
+        )
