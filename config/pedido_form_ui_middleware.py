@@ -316,6 +316,34 @@ PEDIDO_FORM_SCRIPT = r"""
         catch(error){ cacheKits.delete(key); throw error; }
     }
 
+    function precioAutomaticoKit(item, indice, data){
+        const base = Number(data?.kit?.precio || 0);
+        let extra = 0;
+
+        if (
+            data?.kit?.modalidad === 'LIBRE_CATEGORIA'
+            && data?.kit?.proteger_rentabilidad
+        ){
+            const porId = new Map(
+                (data.productos || []).map(function(producto){
+                    return [String(producto.id), Number(producto.extra || 0)];
+                })
+            );
+
+            item.querySelectorAll(
+                `select[name="productos_kit_${indice}"]`
+            ).forEach(function(select){
+                extra += porId.get(String(select.value || '')) || 0;
+            });
+        }
+
+        return {
+            base:base,
+            extra:extra,
+            total:base + extra
+        };
+    }
+
     function actualizarTotal(item, indice){
         const cantidad = Number(
             item.querySelector(`#cantidad_${indice}`)?.value || 0
@@ -403,8 +431,8 @@ PEDIDO_FORM_SCRIPT = r"""
         });
 
         boton.addEventListener('click', function(){
-            const lista = Number(caja.dataset.precioLista || 0);
-            if (lista > 0) precio.value = lista.toFixed(2);
+            const automatico = Number(caja.dataset.precioAutomatico || 0);
+            if (automatico > 0) precio.value = automatico.toFixed(2);
             manual.value = '0';
             pintarEstado(item, indice);
             actualizarTotal(item, indice);
@@ -441,10 +469,15 @@ PEDIDO_FORM_SCRIPT = r"""
             if (!data || String(selector.value) !== kitId) return;
 
             const precioLista = Number(data.kit?.precio || 0);
-            const precioListaTexto = String(precioLista || 0);
-            if (caja.dataset.precioLista !== precioListaTexto) {
-                caja.dataset.precioLista = precioListaTexto;
-            }
+            const automatico = precioAutomaticoKit(
+                item,
+                indice,
+                data
+            );
+            caja.dataset.precioLista = String(precioLista || 0);
+            caja.dataset.precioAutomatico = String(
+                automatico.total || 0
+            );
 
             const precio = caja.querySelector(`#precio_unitario_kit_${indice}`);
             const manual = caja.querySelector(`#precio_kit_manual_${indice}`);
@@ -453,25 +486,45 @@ PEDIDO_FORM_SCRIPT = r"""
             const coincideInicial = existente && String(existente.kit_id || '') === kitId;
 
             if (!caja.dataset.kitId || cambioKit){
-                if (coincideInicial && !cambioKit){
-                    const historico = Number(existente.precio_unitario || 0);
-                    precio.value = historico > 0
-                        ? historico.toFixed(2)
-                        : (precioLista > 0 ? precioLista.toFixed(2) : '');
-                    manual.value = existente.precio_kit_manual ? '1' : '0';
-                } else {
-                    precio.value = precioLista > 0 ? precioLista.toFixed(2) : '';
-                    manual.value = '0';
-                }
+                manual.value = (
+                    coincideInicial
+                    && !cambioKit
+                    && existente.precio_kit_manual
+                ) ? '1' : '0';
                 caja.dataset.kitId = kitId;
             }
 
-            const refHtml = precioLista > 0
-                ? `Precio configurado del kit: <strong>$${moneda(precioLista)}/u</strong>. `
-                    + (manual.value === '1'
-                        ? 'El importe acordado prevalece sobre el descuento automático.'
-                        : 'Si el pedido califica por volumen, el sistema puede recalcularlo al guardar.')
+            if (manual.value !== '1'){
+                precio.value = automatico.total > 0
+                    ? automatico.total.toFixed(2)
+                    : '';
+            } else if (!precio.value && coincideInicial) {
+                const historico = Number(existente.precio_unitario || 0);
+                precio.value = historico > 0
+                    ? historico.toFixed(2)
+                    : '';
+            }
+
+            let refHtml = precioLista > 0
+                ? `Precio base del kit: <strong>${moneda(precioLista)}/u</strong>. `
                 : 'Este kit no tiene un precio de lista válido.';
+
+            if (
+                data.kit?.modalidad === 'LIBRE_CATEGORIA'
+                && data.kit?.proteger_rentabilidad
+                && automatico.extra > 0
+            ){
+                refHtml += `Extras por selección: <strong>+${moneda(automatico.extra)}</strong>. Precio automático <strong>${moneda(automatico.total)}/u</strong>. `;
+            } else if (
+                data.kit?.modalidad === 'LIBRE_CATEGORIA'
+                && data.kit?.proteger_rentabilidad
+            ){
+                refHtml += 'La selección actual está completamente incluida. ';
+            }
+
+            refHtml += manual.value === '1'
+                ? 'El importe acordado manualmente prevalece.'
+                : 'Si el pedido califica por volumen, el sistema puede recalcularlo al guardar.';
             htmlSiCambio(referencia, refHtml);
 
             pintarEstado(item, indice);
