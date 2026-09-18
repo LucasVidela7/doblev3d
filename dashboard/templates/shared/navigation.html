@@ -50,6 +50,17 @@
         </a>
 
         <a
+            href="{% url 'pedidos:solicitudes_web' %}"
+            class="dv-management-menu__link {% if request.resolver_match.url_name == 'solicitudes_web' or request.resolver_match.url_name == 'solicitud_web_detalle' %}is-active{% endif %}"
+        >
+            <span class="dv-management-menu__icon">🛒</span>
+            <span>
+                <span class="dv-management-menu__label">Solicitudes web</span>
+                <span class="dv-management-menu__description">Carritos recibidos desde el catálogo.</span>
+            </span>
+        </a>
+
+        <a
             href="{% url 'pedidos:presupuestos' %}"
             class="dv-management-menu__link {% if request.resolver_match.url_name == 'presupuestos' or request.resolver_match.url_name == 'presupuesto_detalle' or request.resolver_match.url_name == 'presupuesto_editar' %}is-active{% endif %}"
         >
