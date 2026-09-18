@@ -6,6 +6,7 @@
 <link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
 <link rel="apple-touch-icon" href="{% static 'brand/apple-touch-icon.png' %}">
 <link rel="stylesheet" href="{% static 'brand/brand.css' %}">
+<link rel="stylesheet" href="{% static 'kits/precios_fijos.css' %}">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>{% if kit and kit.id %}Editar{% else %}Nuevo{% endif %} kit | Doble V 3D</title>
@@ -193,18 +194,13 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
 {{ componentes_iniciales|json_script:"componentes-iniciales" }}
 
 <script>
-const MARGEN_MINIMO = 20;
-const MULTIPLO_PRECIO = 500;
-
 const productos = [
 {% for producto in productos %}
     {
         id: "{{ producto.id }}",
         nombre: "{{ producto.codigo|escapejs }} · {{ producto.nombre|escapejs }}",
         tipoId: "{{ producto.tipo_id }}",
-        soloProduccion: {{ producto.solo_produccion|yesno:"true,false" }},
-        costo: Number("{{ producto.costo|unlocalize }}") || 0,
-        seguro: Number("{{ producto.seguro|unlocalize }}") || 0
+        soloProduccion: {{ producto.solo_produccion|yesno:"true,false" }}
     },
 {% endfor %}
 ];
@@ -221,184 +217,8 @@ function modalidadActual(){
     )?.value || "LIBRE_CATEGORIA";
 }
 
-function dinero(valor){
-    return new Intl.NumberFormat(
-        "es-AR",
-        {
-            style: "currency",
-            currency: "ARS",
-            maximumFractionDigits: 0
-        }
-    ).format(valor || 0);
-}
-
-function porcentaje(valor){
-    if (valor === null || !Number.isFinite(valor)) {
-        return "—";
-    }
-    return `${valor.toFixed(1).replace(".", ",")}%`;
-}
-
-function margenSobrePrecio(costo, precio){
-    if (!precio || precio <= 0) {
-        return null;
-    }
-    return ((precio - costo) / precio) * 100;
-}
-
-function precioParaMargen(costo){
-    if (!costo || costo <= 0) {
-        return 0;
-    }
-
-    const proporcion = 1 - (MARGEN_MINIMO / 100);
-    const teorico = costo / proporcion;
-    return Math.ceil(teorico / MULTIPLO_PRECIO) * MULTIPLO_PRECIO;
-}
-
-function datosEconomicosActuales(){
-    if (modalidadActual() === "FIJO") {
-        let costo = 0;
-        let componentesValidos = 0;
-
-        document.querySelectorAll(".componente").forEach(fila => {
-            const productoId = fila.querySelector(
-                '[name="componente_producto"]'
-            )?.value || "";
-            const cantidad = Number(
-                fila.querySelector('[name="componente_cantidad"]')?.value || 0
-            );
-            const producto = productos.find(
-                item => String(item.id) === String(productoId)
-            );
-
-            if (producto && cantidad > 0) {
-                costo += (producto.costo + producto.seguro) * cantidad;
-                componentesValidos += 1;
-            }
-        });
-
-        if (!componentesValidos) {
-            return null;
-        }
-
-        return {
-            tipo: "EXACTO",
-            costoEstimado: costo,
-            costoPeor: costo
-        };
-    }
-
-    const tipoId = document.getElementById("tipo_producto").value;
-    const cantidad = Number(
-        document.getElementById("cantidad_productos").value || 0
-    );
-
-    if (!tipoId || cantidad <= 0) {
-        return null;
-    }
-
-    const disponibles = productos.filter(
-        producto =>
-            String(producto.tipoId) === String(tipoId)
-            && !producto.soloProduccion
-    );
-
-    if (!disponibles.length) {
-        return {
-            tipo: "SIN_PRODUCTOS",
-            costoEstimado: 0,
-            costoPeor: 0
-        };
-    }
-
-    const costos = disponibles.map(
-        producto => producto.costo + producto.seguro
-    );
-    const promedio = costos.reduce(
-        (total, costo) => total + costo,
-        0
-    ) / costos.length;
-
-    return {
-        tipo: "ESTIMADO",
-        costoEstimado: promedio * cantidad,
-        costoPeor: Math.max(...costos) * cantidad
-    };
-}
-
-function actualizarRecomendacion(){
-    const panel = document.getElementById("recomendacion_precio");
-    const detalle = document.getElementById("recomendacion_detalle");
-    const estado = document.getElementById("recomendacion_estado");
-    const precioRecomendado = document.getElementById("precio_recomendado");
-    const precioActual = Number(
-        document.getElementById("precio_kit").value || 0
-    );
-    const datos = datosEconomicosActuales();
-
-    panel.classList.remove("revisar");
-
-    if (!datos) {
-        precioRecomendado.textContent = "—";
-        detalle.textContent = modalidadActual() === "FIJO"
-            ? "Agregá los productos y cantidades de la composición fija."
-            : "Elegí una categoría y cantidad para calcular la recomendación.";
-        estado.textContent = "FALTA INFORMACIÓN";
-        return;
-    }
-
-    if (datos.tipo === "SIN_PRODUCTOS") {
-        precioRecomendado.textContent = "—";
-        detalle.textContent = "No hay productos comerciales activos en esta categoría para estimar el costo.";
-        estado.textContent = "SIN DATOS";
-        panel.classList.add("revisar");
-        return;
-    }
-
-    if (datos.costoPeor <= 0) {
-        precioRecomendado.textContent = "—";
-        detalle.textContent = "Los productos seleccionados no tienen un costo operativo calculable actualmente.";
-        estado.textContent = "REVISAR COSTOS";
-        panel.classList.add("revisar");
-        return;
-    }
-
-    const recomendado = precioParaMargen(datos.costoPeor);
-    const margenEstimado = margenSobrePrecio(
-        datos.costoEstimado,
-        precioActual
-    );
-    const margenPeor = margenSobrePrecio(
-        datos.costoPeor,
-        precioActual
-    );
-
-    precioRecomendado.textContent = dinero(recomendado);
-
-    if (datos.tipo === "EXACTO") {
-        detalle.textContent =
-            `Costo operativo actual: ${dinero(datos.costoEstimado)} · `
-            + `margen con el precio ingresado: ${porcentaje(margenEstimado)}. `
-            + `La sugerencia conserva al menos ${MARGEN_MINIMO}% de margen y redondea a ${dinero(MULTIPLO_PRECIO)}.`;
-    } else {
-        detalle.textContent =
-            `Costo estimado promedio: ${dinero(datos.costoEstimado)} · `
-            + `peor escenario: ${dinero(datos.costoPeor)} · `
-            + `margen estimado: ${porcentaje(margenEstimado)} · `
-            + `margen peor escenario: ${porcentaje(margenPeor)}. `
-            + `La sugerencia se calcula sobre el escenario más costoso.`;
-    }
-
-    if (!precioActual || precioActual < recomendado || (margenPeor !== null && margenPeor < MARGEN_MINIMO)) {
-        panel.classList.add("revisar");
-        estado.textContent = precioActual
-            ? "PRECIO A REVISAR"
-            : "INGRESÁ UN PRECIO";
-    } else {
-        estado.textContent = "MARGEN OK";
-    }
-}
+// El cálculo económico vive en static/kits/precios_fijos.js y en sus APIs.
+function actualizarRecomendacion(){}
 
 function actualizarModalidad(){
     const fijo =
@@ -537,5 +357,10 @@ document.addEventListener(
     }
 );
 </script>
+<script
+    src="{% static 'kits/precios_fijos.js' %}"
+    data-recomendacion-fija-url="{% url 'kits:recomendacion_fija' %}"
+    data-recomendacion-libre-url="{% url 'kits:recomendacion_libre' %}"
+></script>
 </body>
 </html>
