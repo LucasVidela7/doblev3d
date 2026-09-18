@@ -185,6 +185,27 @@ class CatalogoPublicoTests(TestCase):
             },
         )
 
+    def test_catalogo_muestra_libre_eleccion_en_kit_sin_proteccion(self):
+        kit_libre = Kit.objects.create(
+            nombre="Kit libre elección",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=2,
+            precio=Decimal("9000"),
+            proteger_rentabilidad_libre=False,
+            activo=True,
+        )
+
+        response = self.client.get(reverse("catalogo"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Kit libre elección")
+        self.assertContains(response, "Libre elección")
+        self.assertContains(
+            response,
+            "Elegí cualquiera de las opciones disponibles sin restricciones ni adicionales.",
+        )
+
     def test_productos_con_imagen_aparecen_antes_que_los_sin_imagen(self):
         sin_imagen = Producto.objects.create(
             nombre="Abeja sin foto",
