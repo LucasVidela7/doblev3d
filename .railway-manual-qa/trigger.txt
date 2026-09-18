@@ -1,3 +1,3 @@
-Deploy QA: barra inferior fija del configurador de kits
-Base: 1a4544261ed2cbc583eff3d2f6f520f5dc2baa24
-Incluye: barra inferior centrada y fija, progreso a ancho completo y estado/CTA ocupando las dos columnas
+Deploy QA: catálogo mobile en dos columnas
+Base: a73d4c63acb1065b39755db831d8dc274b12051d
+Incluye: dos productos por fila en mobile y tarjetas compactas para mantener legibilidad
