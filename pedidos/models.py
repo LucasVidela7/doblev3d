@@ -479,6 +479,154 @@ class DetallePresupuestoKitProducto(models.Model):
         )
 
 
+
+class SolicitudWeb(models.Model):
+    ESTADOS = [
+        ("NUEVA", "Nueva"),
+        ("CONTACTADA", "Contactada"),
+        ("CONVERTIDA", "Convertida"),
+        ("RECHAZADA", "Rechazada"),
+    ]
+
+    creada_en = models.DateTimeField(auto_now_add=True)
+    actualizada_en = models.DateTimeField(auto_now=True)
+
+    nombre = models.CharField(max_length=150)
+    telefono = models.CharField(max_length=40)
+    telefono_normalizado = models.CharField(
+        max_length=30,
+        blank=True,
+        db_index=True,
+    )
+    email = models.EmailField(blank=True)
+    observaciones = models.TextField(blank=True)
+
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADOS,
+        default="NUEVA",
+        db_index=True,
+    )
+
+    presupuesto_generado = models.OneToOneField(
+        Presupuesto,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="solicitud_web_origen",
+    )
+
+    ip_hash = models.CharField(
+        max_length=64,
+        blank=True,
+        db_index=True,
+    )
+    fingerprint = models.CharField(
+        max_length=64,
+        blank=True,
+        db_index=True,
+    )
+    user_agent = models.CharField(
+        max_length=250,
+        blank=True,
+    )
+
+    class Meta:
+        ordering = ["-id"]
+
+    @property
+    def codigo(self):
+        return f"WEB{self.id:04d}" if self.id else "WEB-NUEVA"
+
+    @property
+    def total(self):
+        return sum(
+            (item.subtotal for item in self.items.all()),
+            Decimal("0"),
+        )
+
+    def __str__(self):
+        return f"{self.codigo} - {self.nombre}"
+
+
+class SolicitudWebItem(models.Model):
+    TIPOS = [
+        ("PRODUCTO", "Producto"),
+        ("KIT", "Kit"),
+    ]
+
+    solicitud = models.ForeignKey(
+        SolicitudWeb,
+        on_delete=models.CASCADE,
+        related_name="items",
+    )
+    tipo_item = models.CharField(
+        max_length=20,
+        choices=TIPOS,
+    )
+    producto = models.ForeignKey(
+        Producto,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="solicitudes_web",
+    )
+    kit = models.ForeignKey(
+        Kit,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="solicitudes_web",
+    )
+    cantidad = models.PositiveIntegerField(default=1)
+
+    nombre_snapshot = models.CharField(max_length=200)
+    precio_base_unitario = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+    )
+    adicional_unitario = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+    )
+    precio_unitario = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+    )
+
+    @property
+    def subtotal(self):
+        return self.precio_unitario * Decimal(self.cantidad)
+
+    def __str__(self):
+        return (
+            f"{self.solicitud.codigo} - "
+            f"{self.nombre_snapshot} x{self.cantidad}"
+        )
+
+
+class SolicitudWebKitProducto(models.Model):
+    item = models.ForeignKey(
+        SolicitudWebItem,
+        on_delete=models.CASCADE,
+        related_name="productos_kit",
+    )
+    producto = models.ForeignKey(
+        Producto,
+        on_delete=models.PROTECT,
+    )
+    cantidad = models.PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return (
+            f"{self.item.solicitud.codigo} - "
+            f"{self.producto.nombre} x{self.cantidad}"
+        )
+
+
 class EstadoImpresionPedido(models.Model):
     pedido = models.ForeignKey(
         Pedido,
