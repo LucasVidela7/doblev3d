@@ -1,3 +1,3 @@
-Deploy QA: configurador de kits compacto
-Base: 02c5fc1117cbb18978f70d278bbfdcd055d7442f
-Incluye: grilla responsive, kit completo, CTA fijo y contador carrito visible
+Deploy QA: header fijo y flujo de kits
+Base: e5389ea07d0ca81927260ec66e9801210fba377d
+Incluye: logo + ayuda + redes + carrito, barra minima del kit, reset y apertura automatica
