@@ -185,18 +185,16 @@ class StockRealImpresionesPorProductoTests(TestCase):
         pepino.refresh_from_db()
         self.assertEqual(pepino.stock, 8)
 
-        item = next(
+        items = [
             item
             for item in obtener_impresiones_por_producto()
             if item["producto"].id == pepino.id
-        )
+        ]
 
-        self.assertEqual(item["cantidad_normal"], 8)
-        self.assertEqual(item["cantidad_pedida"], 8)
-        self.assertEqual(item["stock"], 8)
-        self.assertEqual(item["necesidad_normal_impresion"], 0)
-        self.assertEqual(item["a_imprimir"], 0)
-        self.assertEqual(item["falta_iniciar"], 0)
+        # Con 8 pedidos pendientes y stock físico 8 no hay necesidad
+        # de fabricación, por lo que el producto debe desaparecer de
+        # "Impresiones por producto".
+        self.assertEqual(items, [])
 
     def test_stock_no_cubre_personalizados_genericos(self):
         DetallePedido.objects.create(
