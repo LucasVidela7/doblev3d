@@ -546,12 +546,6 @@
     {% endif %}
 </div>
 
-<nav class="nav-inferior" aria-label="Navegación principal">
-    <a class="nav-item" href="{% url 'dashboard:inicio' %}"><span>⌂</span><span>Inicio</span></a>
-    <a class="nav-item" href="{% url 'pedidos:impresiones' %}"><span>📦</span><span>Pedidos</span></a>
-    <a class="nav-item nuevo-nav" href="{% url 'pedidos:nuevo' %}"><span>＋</span><span>Nuevo</span></a>
-    <a class="nav-item" href="{% url 'produccion:lista' %}"><span>⚙</span><span>Producción</span></a>
-    <a class="nav-item" href="{% url 'productos:lista' %}"><span>▦</span><span>Productos</span></a>
-</nav>
+{% include "shared/navigation.html" %}
 </body>
 </html>
