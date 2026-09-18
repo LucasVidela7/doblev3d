@@ -22,7 +22,8 @@ html[data-dv-env="qa"] body{
 html[data-dv-env="qa"] body::after{
     content:"QA";
     position:fixed;
-    right:12px;
+    left:12px;
+    right:auto;
     bottom:calc(92px + env(safe-area-inset-bottom, 0px));
     z-index:2147483646;
     display:flex;
@@ -68,7 +69,8 @@ html[data-dv-env="qa"] header{
 
 @media(max-width:640px){
     html[data-dv-env="qa"] body::after{
-        right:8px;
+        left:8px;
+        right:auto;
         bottom:calc(84px + env(safe-area-inset-bottom, 0px));
         width:48px;
         height:48px;
