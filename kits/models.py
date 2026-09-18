@@ -2,10 +2,11 @@ from decimal import Decimal, ROUND_CEILING
 
 from django.db import models
 
+from calculadora.precios import MARGEN_MINIMO
 from productos.models import Producto, TipoProducto
 
 
-MARGEN_MINIMO_KIT = Decimal("20")
+MARGEN_MINIMO_KIT = MARGEN_MINIMO
 MULTIPLO_PRECIO_KIT = Decimal("500")
 
 
