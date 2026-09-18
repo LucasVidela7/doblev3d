@@ -263,7 +263,7 @@
                         <div class="dv-kit-opciones-numero">${incluidos.length}</div>
                     </div>
                     <div>
-                        <div class="dv-kit-opciones-titulo">PREMIUM CON EXTRA</div>
+                        <div class="dv-kit-opciones-titulo">CON ADICIONAL</div>
                         <div class="dv-kit-opciones-numero">${premium.length}</div>
                     </div>
                     <div>
@@ -281,7 +281,7 @@
 
                 ${premium.length ? `
                     <div class="dv-kit-opciones-grupo">
-                        <div class="dv-kit-opciones-subtitulo">Opciones premium</div>
+                        <div class="dv-kit-opciones-subtitulo">Opciones con adicional</div>
                         <div class="dv-kit-opciones-chips">
                             ${chipsPremium}
                         </div>
@@ -308,7 +308,7 @@
                         <div class="dv-kit-escenarios-titulo">Libre por categoría · ${data.categoria}</div>
                         <div class="dv-kit-escenarios-detalle">
                             La protección está activa. El precio base define qué productos quedan incluidos;
-                            las opciones más exigentes se ofrecen como premium con un adicional propio.
+                            las opciones más exigentes se ofrecen con un adicional propio.
                             Por eso no se muestra un único precio recomendado para todo el kit.
                         </div>
                         <div class="dv-kit-costos">
@@ -343,7 +343,7 @@
                         : `
                             <strong>El precio base se administra por cobertura, no por una recomendación única.</strong>
                             Mientras una opción permanezca incluida, cumple el escenario mínimo definido por la protección.
-                            Los productos premium completan su rentabilidad mediante el extra mostrado arriba.
+                            Los productos con adicional completan su rentabilidad mediante el importe mostrado arriba.
                         `
                     }
                 </div>
