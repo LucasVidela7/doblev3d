@@ -1,3 +1,3 @@
-Deploy QA: vista detalle de kits
-Base: 2ed4104b15cb622be5931e976099b8ee384ee3c1
-Incluye: detalle, seleccionables primero, adicionales con monto y acceso desde listado
+Deploy QA: detalle público de kits en catálogo
+Base: 886238f96010cb6f7e834bc8be29d15043ecf4a7
+Corrige: detalle removido de Gestión y agregado al catálogo público
