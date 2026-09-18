@@ -1,0 +1,79 @@
+:root{
+    --dv-page-max:1360px;
+    --dv-page-gutter-desktop:24px;
+    --dv-page-gutter-tablet:16px;
+    --dv-page-gutter-mobile:10px;
+}
+
+html{
+    overflow-x:hidden;
+}
+
+body{
+    padding-left:0 !important;
+    padding-right:0 !important;
+}
+
+/*
+ * Contenedores históricos del sistema.
+ * El ancho horizontal se administra acá para mantener
+ * alineación consistente entre módulos.
+ */
+.contenedor,
+.shell,
+.c,
+.dv-page{
+    width:min(
+        var(--dv-page-max),
+        calc(100% - (var(--dv-page-gutter-desktop) * 2))
+    ) !important;
+    max-width:none !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
+    padding-left:0 !important;
+    padding-right:0 !important;
+}
+
+/*
+ * Utilidades para pantallas que necesiten una lectura
+ * más acotada sin volver a definir breakpoints.
+ */
+.dv-page-standard{
+    --dv-page-max:1180px;
+}
+
+.dv-page-narrow{
+    --dv-page-max:920px;
+}
+
+.dv-page-wide{
+    --dv-page-max:1360px;
+}
+
+@media(max-width:1199px){
+    .contenedor,
+    .shell,
+    .c,
+    .dv-page{
+        width:calc(
+            100% - (var(--dv-page-gutter-tablet) * 2)
+        ) !important;
+    }
+}
+
+@media(max-width:767px){
+    .contenedor,
+    .shell,
+    .c,
+    .dv-page{
+        width:calc(
+            100% - (var(--dv-page-gutter-mobile) * 2)
+        ) !important;
+    }
+}
+
+@media(max-width:420px){
+    :root{
+        --dv-page-gutter-mobile:8px;
+    }
+}
