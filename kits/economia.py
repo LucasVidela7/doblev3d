@@ -109,8 +109,11 @@ def analizar_opciones_libres(
         "opciones": [],
         "cantidad_incluidos": 0,
         "cantidad_premium": 0,
+        "cantidad_requieren_extra": 0,
         "extra_minimo": Decimal("0"),
         "extra_maximo": Decimal("0"),
+        "extra_sugerido_minimo": Decimal("0"),
+        "extra_sugerido_maximo": Decimal("0"),
     }
 
     if cantidad <= 0 or precio <= 0 or not productos:
@@ -121,6 +124,7 @@ def analizar_opciones_libres(
     resultado["precio_base_por_lugar"] = precio_base_por_lugar
 
     extras_positivos = []
+    extras_sugeridos = []
 
     for producto in productos:
         calculo = calcular_escenarios_producto(
@@ -170,6 +174,9 @@ def analizar_opciones_libres(
         }
         resultado["opciones"].append(opcion)
 
+        if requiere_extra:
+            extras_sugeridos.append(extra_sugerido)
+
         if requiere_extra and proteger_rentabilidad:
             resultado["premium"].append(opcion)
             extras_positivos.append(extra_aplicado)
@@ -186,6 +193,7 @@ def analizar_opciones_libres(
     )
     resultado["cantidad_incluidos"] = len(resultado["incluidos"])
     resultado["cantidad_premium"] = len(resultado["premium"])
+    resultado["cantidad_requieren_extra"] = len(extras_sugeridos)
     resultado["extra_minimo"] = (
         min(extras_positivos)
         if extras_positivos
@@ -194,6 +202,16 @@ def analizar_opciones_libres(
     resultado["extra_maximo"] = (
         max(extras_positivos)
         if extras_positivos
+        else Decimal("0")
+    )
+    resultado["extra_sugerido_minimo"] = (
+        min(extras_sugeridos)
+        if extras_sugeridos
+        else Decimal("0")
+    )
+    resultado["extra_sugerido_maximo"] = (
+        max(extras_sugeridos)
+        if extras_sugeridos
         else Decimal("0")
     )
     resultado["disponible"] = True
