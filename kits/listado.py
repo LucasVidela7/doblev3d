@@ -50,21 +50,39 @@ def lista_kits(request):
 
     for kit in kits:
         productos_categoria = None
+        productos_referencia = None
+
+        kit.recomendacion_sobre_incluidos = False
+        kit.alerta_proteccion_sin_incluidos = False
+
         if kit.modalidad == "LIBRE_CATEGORIA":
             productos_categoria = productos_por_tipo.get(
                 kit.tipo_producto_id,
                 [],
             )
-
-        kit.recomendacion_calculadora = recomendacion_kit(
-            kit,
-            productos_categoria=productos_categoria,
-        )
-        if kit.modalidad == "LIBRE_CATEGORIA":
             kit.opciones_libres_analisis = analizar_opciones_kit(
                 kit,
                 productos_categoria=productos_categoria,
             )
+
+            productos_referencia = productos_categoria
+
+            if kit.proteger_rentabilidad_libre:
+                incluidos = [
+                    item["producto"]
+                    for item in kit.opciones_libres_analisis["incluidos"]
+                ]
+
+                if incluidos:
+                    productos_referencia = incluidos
+                    kit.recomendacion_sobre_incluidos = True
+                elif kit.opciones_libres_analisis["disponible"]:
+                    kit.alerta_proteccion_sin_incluidos = True
+
+        kit.recomendacion_calculadora = recomendacion_kit(
+            kit,
+            productos_categoria=productos_referencia,
+        )
 
     return render(
         request,
