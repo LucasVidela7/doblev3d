@@ -322,6 +322,9 @@ class CatalogoPublicoTests(TestCase):
         self.assertContains(response, "data-dv-kit-progress-fill")
         self.assertContains(response, "data-dv-kit-add")
         self.assertContains(response, "data-dv-kit-options-grid")
+        self.assertContains(response, "dv-kit-cart-panel--simple")
+        self.assertNotContains(response, "TOTAL DE LISTA")
+        self.assertNotContains(response, "CANTIDAD DE KITS")
 
     def test_detalle_publico_no_expone_kit_inactivo(self):
         self.kit.activo = False
