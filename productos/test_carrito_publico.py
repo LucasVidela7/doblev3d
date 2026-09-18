@@ -63,7 +63,7 @@ class CarritoPublicoTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "SOLICITAR PRESUPUESTO")
         self.assertContains(response, "Validando tu solicitud")
-        self.assertContains(response, "catalog_checkout.js")
+        self.assertContains(response, "data-checkout-loader")
 
     def test_producto_crea_solicitud_sin_crear_cliente_ni_presupuesto(self):
         response = self._post(
