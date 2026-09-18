@@ -159,7 +159,7 @@ class PlanificacionProduccionTests(TestCase):
         )
         self.assertContains(
             respuesta,
-            "REPROGRAMAR IMPRESIÓN",
+            "+ PLANIFICAR PRODUCCIÓN",
         )
 
     @patch("produccion.views.timezone.now")
