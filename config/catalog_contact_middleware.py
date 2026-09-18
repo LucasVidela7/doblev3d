@@ -10,7 +10,7 @@ CONTACT_STYLE = r"""
 .dv-catalog-contact{
     position:fixed;
     right:clamp(14px,2vw,24px);
-    bottom:calc(18px + env(safe-area-inset-bottom, 0px));
+    bottom:calc(86px + env(safe-area-inset-bottom, 0px));
     z-index:80;
     display:flex;
     flex-direction:column;
@@ -74,7 +74,7 @@ CONTACT_STYLE = r"""
 @media(max-width:640px){
     .dv-catalog-contact{
         right:12px;
-        bottom:calc(14px + env(safe-area-inset-bottom, 0px));
+        bottom:calc(72px + env(safe-area-inset-bottom, 0px));
         gap:8px;
     }
     .dv-catalog-contact__link{
@@ -163,7 +163,13 @@ class CatalogContactMiddleware:
         view_name = match.view_name if match else ""
 
         if (
-            view_name not in {"catalogo", "catalogo_legacy"}
+            view_name not in {
+                "catalogo",
+                "catalogo_legacy",
+                "catalogo_kit_detalle",
+                "catalogo_carrito",
+                "catalogo_carrito_gracias",
+            }
             or response.status_code != 200
             or getattr(response, "streaming", False)
             or "text/html" not in response.get("Content-Type", "")
@@ -186,12 +192,19 @@ class CatalogContactMiddleware:
                 1,
             )
 
-        if not _contactos_insertados(contenido) and "</header>" in contenido:
-            contenido = contenido.replace(
-                "</header>",
-                contactos + "\n</header>",
-                1,
-            )
+        if not _contactos_insertados(contenido):
+            if "</body>" in contenido:
+                contenido = contenido.replace(
+                    "</body>",
+                    contactos + "\n</body>",
+                    1,
+                )
+            elif "</header>" in contenido:
+                contenido = contenido.replace(
+                    "</header>",
+                    contactos + "\n</header>",
+                    1,
+                )
 
         encoded = contenido.encode(response.charset or "utf-8")
         response.content = encoded
