@@ -51,5 +51,6 @@ function agregarPiezaNueva(){document.getElementById('piezas').appendChild(docum
 function actualizarFabricacion(){const tipo=document.getElementById('tipo_fabricacion');const solo=document.getElementById('solo_produccion');if(solo.checked){tipo.value='SIMPLE';tipo.disabled=true}else tipo.disabled=false;document.getElementById('bloque-simple').style.display=tipo.value==='SIMPLE'?'block':'none';document.getElementById('bloque-compuesto').style.display=tipo.value==='COMPUESTO'?'block':'none';document.getElementById('ayuda-stock-compuesto').style.display=tipo.value==='COMPUESTO'?'block':'none'}
 document.getElementById('tipo_fabricacion').addEventListener('change',actualizarFabricacion);document.getElementById('solo_produccion').addEventListener('change',actualizarFabricacion);document.getElementById('form-producto').addEventListener('submit',()=>document.getElementById('tipo_fabricacion').disabled=false);actualizarFabricacion();if(document.getElementById('tipo_fabricacion').value==='COMPUESTO'&&!document.querySelector('.pieza'))agregarPiezaNueva();
 </script>
+{% include "shared/navigation.html" %}
 </body>
 </html>
