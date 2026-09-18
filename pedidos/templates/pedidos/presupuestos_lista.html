@@ -1,0 +1,76 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
+<link rel="stylesheet" href="{% static 'brand/brand.css' %}">
+<title>Presupuestos | Doble V 3D</title>
+<style>
+:root{
+    --bg:#f4f5f7;--card:#fff;--text:#24272b;--muted:#73777f;--border:#e3e6ea;
+    --green:#e5f5ea;--green-t:#26653c;--yellow:#fff3ce;--yellow-t:#775b00;
+    --red:#fde8e8;--red-t:#963838;--blue:#eaf2ff;--blue-t:#285b9b;
+}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
+.shell{width:min(1180px,100%);margin:auto;padding:22px 16px 48px}
+.head{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px}
+h1{margin:0;font-size:30px}.sub{margin-top:5px;color:var(--muted);font-size:12px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--border);background:#fff;color:var(--text);text-decoration:none;font-size:10px;font-weight:900}.btn.primary{background:#24272b;color:#fff;border-color:#24272b}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}.stat{padding:14px;border:1px solid var(--border);border-radius:15px;background:#fff}.stat b{display:block;font-size:24px}.stat span{font-size:9px;font-weight:900;color:var(--muted)}
+.grid{display:grid;gap:11px}.card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:15px;border:1px solid var(--border);border-radius:17px;background:#fff;box-shadow:0 4px 14px rgba(20,25,35,.05)}
+.title{font-size:15px;font-weight:900}.meta{margin-top:5px;color:var(--muted);font-size:10px}.amount{margin-top:8px;font-size:18px;font-weight:900}
+.badge{display:inline-flex;margin-top:8px;padding:6px 9px;border-radius:999px;font-size:9px;font-weight:900}.PENDIENTE{background:var(--yellow);color:var(--yellow-t)}.APROBADO{background:var(--green);color:var(--green-t)}.RECHAZADO{background:var(--red);color:var(--red-t)}
+.card-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.card-actions a{display:inline-flex;min-height:38px;align-items:center;padding:0 11px;border:1px solid var(--border);border-radius:10px;color:var(--text);text-decoration:none;font-size:9px;font-weight:900}.card-actions a.primary{background:#24272b;color:#fff;border-color:#24272b}
+.empty{padding:36px;text-align:center;color:var(--muted);background:#fff;border:1px dashed var(--border);border-radius:17px}
+@media(max-width:700px){.head{align-items:flex-start;flex-direction:column}.stats{grid-template-columns:1fr}.card{grid-template-columns:1fr}.card-actions{justify-content:flex-start}}
+</style>
+</head>
+<body>
+<div class="shell">
+    <div class="head">
+        <div>
+            <h1>Presupuestos</h1>
+            <div class="sub">Consultas comerciales antes de convertirse en pedidos.</div>
+        </div>
+        <div class="actions">
+            <a class="btn" href="{% url 'dashboard:inicio' %}">INICIO</a>
+            <a class="btn primary" href="{% url 'pedidos:nuevo' %}">＋ NUEVO PRESUPUESTO</a>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="stat"><b>{{ pendientes }}</b><span>PENDIENTES</span></div>
+        <div class="stat"><b>{{ aprobados }}</b><span>APROBADOS</span></div>
+        <div class="stat"><b>{{ rechazados }}</b><span>RECHAZADOS</span></div>
+    </div>
+
+    {% if presupuestos %}
+        <div class="grid">
+            {% for presupuesto in presupuestos %}
+                <div class="card">
+                    <div>
+                        <div class="title">{{ presupuesto.codigo }} · {{ presupuesto.cliente.nombre }}</div>
+                        <div class="meta">
+                            {{ presupuesto.fecha|date:"d/m/Y" }}
+                            {% if presupuesto.fecha_entrega %} · entrega {{ presupuesto.fecha_entrega|date:"d/m/Y" }}{% endif %}
+                        </div>
+                        <div class="amount">$ {{ presupuesto.total|floatformat:"0g" }}</div>
+                        <span class="badge {{ presupuesto.estado }}">{{ presupuesto.get_estado_display|upper }}</span>
+                    </div>
+                    <div class="card-actions">
+                        {% if presupuesto.pedido_generado %}
+                            <a href="{% url 'pedidos:detalle' presupuesto.pedido_generado.id %}">VER {{ presupuesto.pedido_generado.codigo }}</a>
+                        {% endif %}
+                        <a class="primary" href="{% url 'pedidos:presupuesto_detalle' presupuesto.id %}">VER PRESUPUESTO</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty">Todavía no hay presupuestos.</div>
+    {% endif %}
+</div>
+</body>
+</html>
