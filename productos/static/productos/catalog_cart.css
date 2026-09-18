@@ -80,11 +80,12 @@
 .dv-cart-item-remove{border:0;background:transparent;color:#9a4450;cursor:pointer;font-size:1rem;padding:0 2px}
 .dv-cart-item-meta{margin-top:4px;color:#667085;font-size:.69rem;line-height:1.35}
 .dv-cart-item-meta b{color:#79500f}
-.dv-cart-item-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:9px}
+.dv-cart-pricing-slot{min-height:24px;display:flex;align-items:center;margin-top:4px}
+.dv-cart-item-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:5px}
 .dv-cart-stepper{display:inline-grid;grid-template-columns:28px 30px 28px;align-items:center;border:1px solid #dfe5ef;border-radius:10px;overflow:hidden}
 .dv-cart-stepper button{height:28px;border:0;background:#f7f9fc;color:#0d376f;cursor:pointer;font-size:1rem;font-weight:900}
 .dv-cart-stepper span{display:grid;place-items:center;height:28px;font-size:.73rem;font-weight:900}
-.dv-cart-item-price{text-align:right}.dv-cart-item-price strong{display:block;color:#0d376f;font-size:.87rem}.dv-cart-item-price span{display:block;margin-top:2px;color:#8a93a3;font-size:.63rem}
+.dv-cart-item-price{min-width:96px;min-height:34px;text-align:right}.dv-cart-item-price strong{display:block;color:#0d376f;font-size:.87rem}.dv-cart-item-price span{display:block;margin-top:2px;color:#8a93a3;font-size:.63rem}
 .dv-cart-empty{padding:42px 22px;text-align:center;color:#667085}.dv-cart-empty-icon{
     width:64px;height:64px;display:grid;place-items:center;margin:0 auto 12px;border-radius:20px;
     background:#eef4ff;color:#134a9a
@@ -92,7 +93,7 @@
 .dv-cart-empty strong{display:block;color:#17233a;font-size:.95rem}.dv-cart-empty p{margin:5px 0 0;font-size:.76rem;line-height:1.45}
 .dv-cart-foot{padding:15px 18px 18px;border-top:1px solid #e7ebf1;background:#fff}
 .dv-cart-total{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:11px}
-.dv-cart-total span{color:#667085;font-size:.74rem}.dv-cart-total strong{color:#0d376f;font-size:1.38rem}
+.dv-cart-total span{color:#667085;font-size:.74rem}.dv-cart-total strong{min-width:108px;min-height:29px;display:block;color:#0d376f;font-size:1.38rem;text-align:right}
 .dv-cart-checkout{
     width:100%;min-height:48px;display:flex;align-items:center;justify-content:center;border:0;border-radius:14px;
     background:#134a9a;color:#fff;text-decoration:none;font-size:.82rem;font-weight:950;letter-spacing:.02em
@@ -108,10 +109,22 @@
     opacity:0;pointer-events:none;transition:.18s ease;font-size:.75rem;font-weight:850
 }
 .dv-cart-toast.is-show{opacity:1;transform:translate(-50%,0)}
+.dv-cart-card-control,.dv-kit-cart-action{display:flex;align-items:center;justify-content:flex-end;min-width:104px}
 .dv-cart-add-btn,.dv-kit-cart-add{
     min-height:38px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;
     border:0;border-radius:12px;background:#134a9a;color:#fff;cursor:pointer;font:inherit;font-size:.76rem;font-weight:900
 }
+.dv-cart-inline-stepper{
+    display:grid;grid-template-columns:34px 36px 34px;align-items:center;overflow:hidden;
+    min-height:38px;border:1px solid #cfd8e6;border-radius:12px;background:#fff;box-shadow:0 5px 14px rgba(19,74,154,.06)
+}
+.dv-cart-inline-stepper[hidden]{display:none!important}
+.dv-cart-inline-stepper button{
+    height:38px;border:0;background:#f5f8fc;color:#0d376f;cursor:pointer;font:inherit;font-size:1rem;font-weight:950
+}
+.dv-cart-inline-stepper button:hover{background:#eef4ff}
+.dv-cart-inline-stepper span{height:38px;display:grid;place-items:center;color:#17233a;font-size:.78rem;font-weight:950}
+.dv-kit-added-stepper{grid-template-columns:38px 42px 38px}
 .dv-cart-add-btn[disabled],.dv-kit-cart-add[disabled]{opacity:.45;cursor:not-allowed}
 .dv-cart-add-btn.is-loading,.dv-kit-cart-add.is-loading{pointer-events:none}
 .dv-cart-button-spinner{
@@ -137,7 +150,7 @@
     .dv-cart-fab{right:12px;bottom:14px;min-height:50px;min-width:132px;padding:0 13px}
     .dv-cart-fab.is-compact{width:50px;min-width:50px;height:50px;padding:0}
     .dv-cart-drawer{width:100%}
-    .dv-kit-cart-panel{grid-template-columns:1fr 1fr}.dv-kit-cart-status{grid-column:1/-1}.dv-kit-cart-add{grid-column:1/-1;min-height:46px}
+    .dv-kit-cart-panel{grid-template-columns:1fr 1fr}.dv-kit-cart-status{grid-column:1/-1}.dv-kit-cart-action{grid-column:1/-1;justify-content:stretch}.dv-kit-cart-add,.dv-kit-added-stepper{width:100%;min-height:46px}.dv-kit-added-stepper{grid-template-columns:46px 1fr 46px}
     .dv-kit-cart-price{text-align:left}
 }
 
@@ -156,15 +169,29 @@
     font-size:.61rem!important;
     font-weight:900;
 }
-.dv-cart-item.is-pricing .dv-cart-item-price{opacity:.52}
-.dv-cart-total-saving{
-    margin:-4px 0 10px;
-    color:#28633c;
-    font-size:.68rem;
-    font-weight:850;
-    text-align:right;
+.dv-cart-price-loading,
+.dv-cart-price-loading-line,
+.dv-cart-total strong.is-pricing{
+    position:relative;overflow:hidden;background:#eef1f5;border-radius:999px;color:transparent!important
 }
-.dv-cart-total-saving[hidden]{display:none!important}
+.dv-cart-price-loading{width:112px;height:19px}
+.dv-cart-price-loading-line{display:block;margin-left:auto;width:82px;height:12px}
+.dv-cart-price-loading-line + .dv-cart-price-loading-line{width:58px;height:8px;margin-top:5px}
+.dv-cart-price-loading::after,
+.dv-cart-price-loading-line::after,
+.dv-cart-total strong.is-pricing::after{
+    content:"";position:absolute;inset:0;transform:translateX(-100%);
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.78),transparent);
+    animation:dvCartInlineShimmer .9s infinite
+}
+@keyframes dvCartInlineShimmer{to{transform:translateX(100%)}}
+.dv-cart-discount-placeholder{display:block;width:1px;height:19px}
+.dv-cart-stepper button:disabled{cursor:wait;opacity:.65}
+.dv-cart-total strong.is-pricing{height:29px}
+.dv-cart-total-saving{
+    min-height:17px;margin:-4px 0 10px;color:#28633c;font-size:.68rem;font-weight:850;text-align:right
+}
+.dv-cart-total-saving.is-empty{color:#8a93a3}
 
 .dv-kit-cart-discount-note{
     grid-column:1/-1;
@@ -173,3 +200,5 @@
     font-size:.66rem;
     font-weight:700;
 }
+
+.dv-kit-cart-panel.is-in-cart .dv-kit-qty{display:none}

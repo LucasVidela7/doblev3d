@@ -625,15 +625,26 @@
                                         {% endif %}
                                     </div>
                                     {% if producto.catalogo_precio %}
-                                        <button
-                                            class="dv-cart-add-btn"
-                                            type="button"
-                                            data-dv-cart-product
+                                        <div
+                                            class="dv-cart-card-control"
+                                            data-dv-product-control
                                             data-product-id="{{ producto.id }}"
-                                            data-product-name="{{ producto.nombre }}"
-                                            data-product-price="{{ producto.catalogo_precio|unlocalize }}"
-                                            data-product-image="{% if producto.catalogo_imagen %}{{ producto.catalogo_imagen.url }}{% endif %}"
-                                        >AGREGAR</button>
+                                        >
+                                            <button
+                                                class="dv-cart-add-btn"
+                                                type="button"
+                                                data-dv-cart-product
+                                                data-product-id="{{ producto.id }}"
+                                                data-product-name="{{ producto.nombre }}"
+                                                data-product-price="{{ producto.catalogo_precio|unlocalize }}"
+                                                data-product-image="{% if producto.catalogo_imagen %}{{ producto.catalogo_imagen.url }}{% endif %}"
+                                            >AGREGAR</button>
+                                            <div class="dv-cart-inline-stepper" data-dv-product-stepper hidden aria-label="Cantidad en carrito">
+                                                <button type="button" data-dv-product-inline-minus aria-label="Disminuir cantidad">−</button>
+                                                <span data-dv-product-inline-qty>1</span>
+                                                <button type="button" data-dv-product-inline-plus aria-label="Aumentar cantidad">+</button>
+                                            </div>
+                                        </div>
                                     {% endif %}
                                 </div>
                             </div>

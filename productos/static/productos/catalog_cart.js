@@ -80,17 +80,13 @@
         );
     };
 
-    const resetLinePricing = (item) => {
-        const listPrice = Number(
-            item.listUnitPrice ?? item.unitPrice ?? 0,
-        );
-        item.listUnitPrice = listPrice;
-        item.unitPrice = listPrice;
-        item.discountPercent = 0;
-        item.savings = 0;
+    const markPricingPending = (item) => {
+        if (!item) return;
+        item.pricingPending = true;
     };
 
     const write = (items, recalculate = true) => {
+        pricingSequence += 1;
         setRaw(items);
         if (recalculate) schedulePricing();
     };
@@ -135,6 +131,7 @@
         incoming.unitPrice = incoming.listUnitPrice;
         incoming.discountPercent = 0;
         incoming.savings = 0;
+        incoming.pricingPending = true;
 
         const key = signature(incoming);
         const current = items.find(
@@ -149,7 +146,7 @@
             if (!current.listUnitPrice) {
                 current.listUnitPrice = incoming.listUnitPrice;
             }
-            resetLinePricing(current);
+            markPricingPending(current);
         } else {
             items.push({
                 ...incoming,
@@ -242,17 +239,29 @@
                         )
                         + '</span>';
 
-                const discountHtml = discount > 0 && savings > 0
-                    ? '<span class="dv-cart-discount">'
-                        + discount.toLocaleString('es-AR', {
-                            maximumFractionDigits: 1,
-                        })
-                        + '% desc. · ahorrás '
-                        + money(savings)
-                        + '</span>'
-                    : '';
+                const pending = Boolean(item.pricingPending);
+                const pricingHtml = pending
+                    ? '<span class="dv-cart-price-loading" aria-label="Actualizando precio"></span>'
+                    : (
+                        discount > 0 && savings > 0
+                            ? '<span class="dv-cart-discount">'
+                                + discount.toLocaleString('es-AR', {
+                                    maximumFractionDigits: 1,
+                                })
+                                + '% desc. · ahorrás '
+                                + money(savings)
+                                + '</span>'
+                            : '<span class="dv-cart-discount-placeholder" aria-hidden="true"></span>'
+                    );
+                const priceHtml = pending
+                    ? '<span class="dv-cart-price-loading-line" aria-hidden="true"></span>'
+                        + '<span class="dv-cart-price-loading-line" aria-hidden="true"></span>'
+                    : '<strong>' + money(subtotal) + '</strong>'
+                        + '<span>' + money(unit) + ' c/u</span>';
 
-                return '<article class="dv-cart-item" data-cart-key="'
+                return '<article class="dv-cart-item'
+                    + (pending ? ' is-pricing' : '')
+                    + '" data-cart-key="'
                     + escapeHtml(signature(item))
                     + '">'
                     + '<div class="dv-cart-item-media">' + media + '</div>'
@@ -266,7 +275,9 @@
                     + '</div>'
                     + '<div class="dv-cart-item-meta">'
                     + itemMeta(item)
-                    + discountHtml
+                    + '</div>'
+                    + '<div class="dv-cart-pricing-slot">'
+                    + pricingHtml
                     + '</div>'
                     + '<div class="dv-cart-item-bottom">'
                     + '<div class="dv-cart-stepper">'
@@ -275,8 +286,7 @@
                     + '<button type="button" data-cart-plus>+</button>'
                     + '</div>'
                     + '<div class="dv-cart-item-price">'
-                    + '<strong>' + money(subtotal) + '</strong>'
-                    + '<span>' + money(unit) + ' c/u</span>'
+                    + priceHtml
                     + '</div></div></div></article>';
             }).join('')
             + '</div>';
@@ -301,16 +311,27 @@
 
         const savings = Math.max(listTotal - total, 0);
 
-        totalNode.textContent = money(total);
+        const hasPending = items.some(
+            (item) => Boolean(item.pricingPending),
+        );
+        totalNode.classList.toggle('is-pricing', hasPending);
+        totalNode.textContent = hasPending ? '' : money(total);
         checkout.classList.remove('is-disabled');
         checkout.removeAttribute('aria-disabled');
 
         if (savingNode) {
-            savingNode.hidden = savings <= 0;
-            savingNode.textContent =
-                savings > 0
-                    ? 'Ahorrás ' + money(savings) + ' por cantidad'
-                    : '';
+            savingNode.hidden = false;
+            savingNode.classList.toggle(
+                'is-empty',
+                hasPending || savings <= 0,
+            );
+            savingNode.textContent = hasPending
+                ? 'Actualizando precios…'
+                : (
+                    savings > 0
+                        ? 'Ahorrás ' + money(savings) + ' por cantidad'
+                        : ''
+                );
         }
     };
 
@@ -334,6 +355,7 @@
                 line.descuento_porcentaje || 0,
             );
             item.savings = Number(line.ahorro || 0);
+            item.pricingPending = false;
         });
 
         setRaw(current);
@@ -374,6 +396,16 @@
             applyPricingResult(data);
         } catch (_) {
             if (sequence !== pricingSequence) return;
+            const current = read();
+            current.forEach((item) => {
+                item.pricingPending = false;
+                item.unitPrice = Number(
+                    item.listUnitPrice ?? item.unitPrice ?? 0,
+                );
+                item.discountPercent = 0;
+                item.savings = 0;
+            });
+            setRaw(current);
             render();
         }
     };
@@ -382,6 +414,64 @@
         window.clearTimeout(pricingTimer);
         pricingTimer = window.setTimeout(refreshPricing, delay);
     }
+
+    const changeQuantity = (key, delta) => {
+        const items = read();
+        const index = items.findIndex(
+            (item) => signature(item) === key,
+        );
+        if (index < 0) return;
+
+        const next = Math.max(
+            0,
+            Math.min(
+                20,
+                Number(items[index].qty || 1) + Number(delta || 0),
+            ),
+        );
+
+        if (next <= 0) {
+            items.splice(index, 1);
+        } else {
+            items[index].qty = next;
+            markPricingPending(items[index]);
+        }
+
+        write(items);
+        render();
+    };
+
+    let syncKitControl = () => {};
+
+    const syncProductControls = (items = read()) => {
+        const byKey = new Map(
+            items.map((item) => [signature(item), item]),
+        );
+
+        document.querySelectorAll('[data-dv-product-control]')
+            .forEach((control) => {
+                const id = Number(control.dataset.productId || 0);
+                const item = byKey.get('product:' + id + ':');
+                const add = control.querySelector('[data-dv-cart-product]');
+                const stepper = control.querySelector(
+                    '[data-dv-product-stepper]',
+                );
+                const qty = control.querySelector(
+                    '[data-dv-product-inline-qty]',
+                );
+
+                if (add) add.hidden = Boolean(item);
+                if (stepper) stepper.hidden = !item;
+                if (qty && item) {
+                    qty.textContent = String(item.qty || 1);
+                }
+            });
+    };
+
+    const syncInlineControls = (items = read()) => {
+        syncProductControls(items);
+        syncKitControl(items);
+    };
 
     const open = () => {
         document.documentElement.classList.add('dv-cart-open');
@@ -405,6 +495,25 @@
 
         if (event.target.closest('[data-dv-cart-close]')) {
             close();
+            return;
+        }
+
+        const productInline = event.target.closest(
+            '[data-dv-product-inline-minus], [data-dv-product-inline-plus]',
+        );
+        if (productInline) {
+            const control = productInline.closest(
+                '[data-dv-product-control]',
+            );
+            const id = Number(control?.dataset.productId || 0);
+            if (id) {
+                changeQuantity(
+                    'product:' + id + ':',
+                    productInline.matches('[data-dv-product-inline-plus]')
+                        ? 1
+                        : -1,
+                );
+            }
             return;
         }
 
@@ -448,25 +557,12 @@
         }
 
         if (event.target.closest('[data-cart-minus]')) {
-            items[index].qty = Number(items[index].qty || 1) - 1;
-            if (items[index].qty <= 0) {
-                items.splice(index, 1);
-            } else {
-                resetLinePricing(items[index]);
-            }
-            write(items);
-            render();
+            changeQuantity(key, -1);
             return;
         }
 
         if (event.target.closest('[data-cart-plus]')) {
-            items[index].qty = Math.min(
-                20,
-                Number(items[index].qty || 1) + 1,
-            );
-            resetLinePricing(items[index]);
-            write(items);
-            render();
+            changeQuantity(key, 1);
         }
     });
 
@@ -480,6 +576,7 @@
         if (event.key !== STORAGE_KEY) return;
         syncCount();
         render();
+        syncInlineControls();
         schedulePricing(80);
     });
 
@@ -492,12 +589,72 @@
         const status = config.querySelector('[data-dv-kit-status]');
         const priceNode = config.querySelector('[data-dv-kit-total]');
         const addButton = config.querySelector('[data-dv-kit-add]');
+        const panel = config.querySelector('.dv-kit-cart-panel');
+        const qtyWrap = qtyInput?.closest('.dv-kit-qty');
+        const addedStepper = config.querySelector(
+            '[data-dv-kit-added-stepper]',
+        );
+        const addedQty = config.querySelector(
+            '[data-dv-kit-cart-qty]',
+        );
         const options = [
             ...document.querySelectorAll('[data-dv-kit-option]'),
         ];
 
         const optionCount = (node) =>
             Number(node.dataset.count || 0);
+
+        const kitSelections = () => {
+            const selections = [];
+            options.forEach((node) => {
+                const count = optionCount(node);
+                for (let i = 0; i < count; i += 1) {
+                    selections.push({
+                        id: Number(node.dataset.productId),
+                        name:
+                            node.dataset.productName
+                            || 'Producto',
+                        extra: Number(node.dataset.extra || 0),
+                    });
+                }
+            });
+            return selections;
+        };
+
+        const currentKitKey = () => signature({
+            kind: 'kit',
+            id: Number(config.dataset.kitId),
+            selections: kitSelections(),
+        });
+
+        syncKitControl = (items = read()) => {
+            const selections = kitSelections();
+            const valid =
+                mode !== 'LIBRE_CATEGORIA'
+                || selections.length === required;
+            const item = valid
+                ? items.find(
+                    (entry) => signature(entry) === currentKitKey(),
+                )
+                : null;
+
+            if (addButton) addButton.hidden = Boolean(item);
+            if (addedStepper) addedStepper.hidden = !item;
+            if (addedQty && item) {
+                addedQty.textContent = String(item.qty || 1);
+            }
+            if (qtyWrap) qtyWrap.hidden = Boolean(item);
+            panel?.classList.toggle('is-in-cart', Boolean(item));
+
+            if (item && priceNode) {
+                const listUnit = Number(
+                    item.listUnitPrice ?? item.unitPrice ?? base,
+                );
+                priceNode.textContent = money(
+                    listUnit * Number(item.qty || 1),
+                );
+            }
+        };
 
         const updateKit = () => {
             const selected = options.reduce(
@@ -545,9 +702,25 @@
                 );
                 if (counter) counter.textContent = String(count);
             });
+
+            syncKitControl(read());
         };
 
         document.addEventListener('click', (event) => {
+            const cartPlus = event.target.closest(
+                '[data-dv-kit-cart-plus]',
+            );
+            const cartMinus = event.target.closest(
+                '[data-dv-kit-cart-minus]',
+            );
+            if (cartPlus || cartMinus) {
+                changeQuantity(
+                    currentKitKey(),
+                    cartPlus ? 1 : -1,
+                );
+                return;
+            }
+
             const plus = event.target.closest(
                 '[data-kit-option-plus]',
             );
@@ -577,20 +750,7 @@
         qtyInput?.addEventListener('input', updateKit);
 
         addButton?.addEventListener('click', () => {
-            const selections = [];
-
-            options.forEach((node) => {
-                const count = optionCount(node);
-                for (let i = 0; i < count; i += 1) {
-                    selections.push({
-                        id: Number(node.dataset.productId),
-                        name:
-                            node.dataset.productName
-                            || 'Producto',
-                        extra: Number(node.dataset.extra || 0),
-                    });
-                }
-            });
+            const selections = kitSelections();
 
             if (
                 mode === 'LIBRE_CATEGORIA'
@@ -630,8 +790,13 @@
         updateKit();
     }
 
+    document.addEventListener('dv-cart-change', (event) => {
+        syncInlineControls(event.detail || read());
+    });
+
     syncCount();
     render();
+    syncInlineControls();
     schedulePricing(260);
 
     if (fab) {
@@ -647,6 +812,7 @@
         addItem,
         money,
         refreshPricing,
+        changeQuantity,
         storageKey: STORAGE_KEY,
     };
 })();
