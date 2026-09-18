@@ -522,7 +522,11 @@ a,button{touch-action:manipulation}
     <div class="acciones">
         <a href="{% url 'pedidos:nuevo' %}" class="accion accion-principal">
             <div class="accion-icono">＋</div>
-            <div><div class="accion-titulo">Nuevo pedido</div><div class="accion-texto">Cargar producto, kit o personalizado.</div></div>
+            <div><div class="accion-titulo">Nuevo presupuesto</div><div class="accion-texto">Cotizar producto, kit o personalizado.</div></div>
+        </a>
+        <a href="{% url 'pedidos:presupuestos' %}" class="accion">
+            <div class="accion-icono">📄</div>
+            <div><div class="accion-titulo">Presupuestos</div><div class="accion-texto">Pendientes, aprobados y rechazados.</div></div>
         </a>
         <a href="{% url 'pedidos:impresiones' %}" class="accion">
             <div class="accion-icono">📦</div>
