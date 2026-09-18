@@ -371,3 +371,112 @@ html[data-dv-theme="dark"] .m-entregas.alerta{
         font-size:8px;
     }
 }
+
+/* ---------------------------------------------------------
+   Formularios de pedido/presupuesto
+   --------------------------------------------------------- */
+body.dv-pedido-form-page .tarjeta,
+body.dv-pedido-form-page .card,
+body.dv-pedido-form-page .item,
+body.dv-pedido-form-page .kit-box,
+body.dv-pedido-form-page .personal-box,
+body.dv-pedido-form-page .precio-box,
+body.dv-pedido-form-page .componentes-kit,
+body.dv-pedido-form-page .selector-personalizado,
+body.dv-pedido-form-page .precio-producto-box{
+    border-color:var(--dv-border)!important;
+    background:var(--dv-surface)!important;
+    color:var(--dv-text)!important;
+}
+
+body.dv-pedido-form-page .item{
+    border-left-color:var(--dv-brand-blue)!important;
+    box-shadow:var(--dv-shadow-soft)!important;
+}
+
+body.dv-pedido-form-page .item[data-dv-kind="KIT"]{
+    border-left-color:var(--dv-brand-red)!important;
+}
+
+body.dv-pedido-form-page .item[data-dv-kind="PERSONALIZADO"]{
+    border-left-color:var(--dv-brand-blue-strong)!important;
+}
+
+body.dv-pedido-form-page .item-numero,
+body.dv-pedido-form-page .dv-item-kind{
+    background:var(--dv-brand-blue-soft)!important;
+    color:var(--dv-brand-blue-strong)!important;
+}
+
+body.dv-pedido-form-page .item[data-dv-kind="KIT"] .dv-item-kind{
+    background:var(--dv-brand-red-soft)!important;
+    color:var(--dv-brand-red-strong)!important;
+}
+
+body.dv-pedido-form-page .boton-guardar,
+body.dv-pedido-form-page .guardar{
+    border-color:var(--dv-brand-blue)!important;
+    background:var(--dv-brand-blue)!important;
+    color:#fff!important;
+    box-shadow:0 8px 22px rgba(19,74,154,.22)!important;
+}
+
+body.dv-pedido-form-page .boton-guardar:hover,
+body.dv-pedido-form-page .guardar:hover{
+    background:var(--dv-brand-blue-strong)!important;
+}
+
+body.dv-pedido-form-page .boton-agregar,
+body.dv-pedido-form-page .agregar{
+    border-color:rgba(19,74,154,.38)!important;
+    background:var(--dv-brand-blue-soft)!important;
+    color:var(--dv-brand-blue-strong)!important;
+}
+
+body.dv-pedido-form-page .boton-volver,
+body.dv-pedido-form-page .navbtn{
+    border-color:var(--dv-border)!important;
+    background:var(--dv-surface)!important;
+    color:var(--dv-text)!important;
+}
+
+body.dv-pedido-form-page .boton-inicio{
+    border-color:var(--dv-brand-blue)!important;
+    background:var(--dv-brand-blue)!important;
+    color:#fff!important;
+}
+
+body.dv-pedido-form-page .acciones{
+    background:color-mix(in srgb,var(--dv-bg) 88%,transparent)!important;
+    border:1px solid color-mix(in srgb,var(--dv-brand-blue) 10%,var(--dv-border))!important;
+}
+
+body.dv-pedido-form-page .nuevo-cliente,
+body.dv-pedido-form-page .precio-total-actual,
+body.dv-pedido-form-page .precio-lista-info,
+body.dv-pedido-form-page .personalizado-precio-lista,
+body.dv-pedido-form-page .dv-kit-reference{
+    border-color:var(--dv-border)!important;
+    background:var(--dv-surface-soft)!important;
+    color:var(--dv-text)!important;
+}
+
+html[data-dv-theme="dark"] body.dv-pedido-form-page .recomendacion,
+html[data-dv-theme="dark"] body.dv-pedido-form-page .recomendacion-precio,
+html[data-dv-theme="dark"] body.dv-pedido-form-page .personalizado-recomendacion{
+    border-color:var(--dv-border)!important;
+    color:var(--dv-text)!important;
+}
+
+html[data-dv-theme="dark"] body.dv-pedido-form-page .recomendacion.recomendado,
+html[data-dv-theme="dark"] body.dv-pedido-form-page .recomendacion-precio.recomendado,
+html[data-dv-theme="dark"] body.dv-pedido-form-page .personalizado-recomendacion.recomendado{
+    border-color:rgba(19,74,154,.35)!important;
+    background:var(--dv-brand-blue-soft)!important;
+}
+
+@media(min-width:1180px){
+    body.dv-management-menu-ready.dv-pedido-form-page .guardar{
+        left:calc(50% - 154px);
+    }
+}
