@@ -325,7 +325,7 @@ def _dashboard_kits_html(total_kits, kits_alerta):
 
         enlace.id = 'dv-dashboard-kits';
         enlace.setAttribute('data-dv-menu', 'kits');
-        enlace.classList.toggle('dv-kits-alerta', {str(bool(False)).lower()});
+        enlace.classList.remove('dv-kits-alerta');
         if ({kits_alerta} > 0) enlace.classList.add('dv-kits-alerta');
 
         var descripcionNodo = enlace.querySelector(
