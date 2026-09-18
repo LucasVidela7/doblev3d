@@ -103,14 +103,14 @@ a,button{touch-action:manipulation}
 .metrica-ayuda{margin-top:6px;color:var(--muted);font-size:9px;line-height:1.3}
 .m-cobrar,.m-cobrado{background:linear-gradient(180deg,#fff 0%,#fcfcfd 100%)}
 .m-cobrar .metrica-numero,.m-cobrado .metrica-numero{font-size:29px;letter-spacing:-1px}
+.m-presupuestos .metrica-icono{background:var(--violeta);color:var(--violeta-texto)}
 .m-pedidos .metrica-icono{background:var(--azul)}
-.m-imprimir .metrica-icono{background:var(--amarillo)}
-.m-produccion .metrica-icono{background:var(--violeta)}
-.m-listos .metrica-icono{background:var(--verde)}
-.m-atrasados .metrica-icono{background:var(--rojo)}
+.m-planificacion .metrica-icono{background:var(--amarillo);color:var(--amarillo-texto)}
+.m-entregas .metrica-icono{background:var(--verde);color:var(--verde-texto)}
+.m-entregas.alerta{border-color:#efb5b5;background:linear-gradient(180deg,#fff 0%,#fffafa 100%)}
+.m-entregas.alerta .metrica-icono{background:var(--rojo);color:var(--rojo-texto)}
 .m-cobrar .metrica-icono{background:var(--naranja)}
 .m-cobrado .metrica-icono{background:var(--verde)}
-.m-atrasados.alerta{border-color:#efb5b5}
 
 /* SECCIONES / ACCIONES */
 .seccion{margin-top:24px}
@@ -307,8 +307,8 @@ a,button{touch-action:manipulation}
         grid-auto-flow:initial;
         grid-auto-columns:auto;
         grid-template-columns:
-            repeat(5,minmax(140px,.88fr))
-            repeat(2,minmax(205px,1.18fr));
+            repeat(4,minmax(145px,.9fr))
+            repeat(2,minmax(210px,1.2fr));
         gap:9px;
         overflow:visible;
         padding:2px 0 7px;
@@ -372,12 +372,7 @@ a,button{touch-action:manipulation}
 
 @media(min-width:1180px) and (max-width:1320px){
     .metricas{
-        grid-template-columns:repeat(4,minmax(0,1fr));
-    }
-
-    .m-cobrar,
-    .m-cobrado{
-        grid-column:span 2;
+        grid-template-columns:repeat(3,minmax(0,1fr));
     }
 }
 
@@ -446,7 +441,24 @@ a,button{touch-action:manipulation}
 </header>
 
 <!-- MÉTRICAS DESLIZABLES -->
-<section class="metricas" aria-label="Resumen del taller">
+<section class="metricas" aria-label="Resumen del negocio">
+    <a href="{% url 'pedidos:presupuestos' %}" class="metrica m-presupuestos">
+        <div class="metrica-cabecera">
+            <div class="metrica-titulo">PRESUPUESTOS PENDIENTES</div>
+            <div class="metrica-icono">📄</div>
+        </div>
+        <div>
+            <div class="metrica-numero">{{ presupuestos_pendientes }}</div>
+            <div class="metrica-ayuda">
+                {% if presupuestos_pendientes %}
+                    &#36;{{ monto_presupuestado_pendiente|floatformat:0 }} cotizados sin definir
+                {% else %}
+                    no hay consultas pendientes
+                {% endif %}
+            </div>
+        </div>
+    </a>
+
     <a href="{% url 'pedidos:impresiones' %}" class="metrica m-pedidos">
         <div class="metrica-cabecera">
             <div class="metrica-titulo">PEDIDOS ACTIVOS</div>
@@ -458,47 +470,29 @@ a,button{touch-action:manipulation}
         </div>
     </a>
 
-    <a href="{% url 'produccion:lista' %}#necesidad" class="metrica m-imprimir">
+    <a href="{% url 'produccion:lista' %}" class="metrica m-planificacion">
         <div class="metrica-cabecera">
-            <div class="metrica-titulo">A IMPRIMIR</div>
+            <div class="metrica-titulo">PLANIFICACIÓN</div>
             <div class="metrica-icono">🖨</div>
         </div>
         <div>
             <div class="metrica-numero">{{ total_a_imprimir }}</div>
-            <div class="metrica-ayuda">unidades pendientes</div>
+            <div class="metrica-ayuda">
+                {{ producciones_pendientes }} planificadas · {{ producciones_imprimiendo }} imprimiendo
+            </div>
         </div>
     </a>
 
-    <a href="{% url 'produccion:lista' %}" class="metrica m-produccion">
+    <a href="#entregas" class="metrica m-entregas {% if pedidos_atrasados %}alerta{% endif %}">
         <div class="metrica-cabecera">
-            <div class="metrica-titulo">IMPRIMIENDO</div>
-            <div class="metrica-icono">⚙</div>
-        </div>
-        <div>
-            <div class="metrica-numero">{{ producciones_imprimiendo }}</div>
-            <div class="metrica-ayuda">{{ unidades_en_produccion }} unidades en cola / curso</div>
-        </div>
-    </a>
-
-    <a href="{% url 'pedidos:impresiones' %}" class="metrica m-listos">
-        <div class="metrica-cabecera">
-            <div class="metrica-titulo">LISTOS</div>
-            <div class="metrica-icono">✓</div>
+            <div class="metrica-titulo">LISTOS / ENTREGAS</div>
+            <div class="metrica-icono">{% if pedidos_atrasados %}!{% else %}✓{% endif %}</div>
         </div>
         <div>
             <div class="metrica-numero">{{ pedidos_listos }}</div>
-            <div class="metrica-ayuda">pedidos para entregar</div>
-        </div>
-    </a>
-
-    <a href="#entregas" class="metrica m-atrasados {% if pedidos_atrasados %}alerta{% endif %}">
-        <div class="metrica-cabecera">
-            <div class="metrica-titulo">ATRASADOS</div>
-            <div class="metrica-icono">!</div>
-        </div>
-        <div>
-            <div class="metrica-numero">{{ pedidos_atrasados }}</div>
-            <div class="metrica-ayuda">requieren atención</div>
+            <div class="metrica-ayuda">
+                {{ pedidos_hoy }} para hoy · {{ pedidos_atrasados }} atrasados
+            </div>
         </div>
     </a>
 
@@ -508,18 +502,18 @@ a,button{touch-action:manipulation}
             <div class="metrica-icono">$</div>
         </div>
         <div>
-            <div class="metrica-numero">${{ saldo_a_cobrar|floatformat:0 }}</div>
+            <div class="metrica-numero">&#36;{{ saldo_a_cobrar|floatformat:0 }}</div>
             <div class="metrica-ayuda">{{ pedidos_con_saldo }} pedidos con saldo</div>
         </div>
     </a>
 
     <a href="{% url 'pedidos:pagos' %}" class="metrica m-cobrado">
         <div class="metrica-cabecera">
-            <div class="metrica-titulo">COBRADO MES</div>
+            <div class="metrica-titulo">COBRADO ESTE MES</div>
             <div class="metrica-icono">✓</div>
         </div>
         <div>
-            <div class="metrica-numero">${{ cobrado_mes|floatformat:0 }}</div>
+            <div class="metrica-numero">&#36;{{ cobrado_mes|floatformat:0 }}</div>
             <div class="metrica-ayuda">pagos registrados este mes</div>
         </div>
     </a>
