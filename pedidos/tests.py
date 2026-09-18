@@ -1,6 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
@@ -13,6 +14,11 @@ from .models import Pedido
 
 class PrecioProductoApiTests(TestCase):
     def setUp(self):
+        usuario = get_user_model().objects.create_user(
+            username="pedidos-precio-test",
+            password="test-pass",
+        )
+        self.client.force_login(usuario)
         self.tipo = TipoProducto.objects.create(nombre="Test pedidos")
         ConfiguracionCostos.objects.create(
             nombre="Test",
@@ -103,6 +109,11 @@ class PrecioProductoApiTests(TestCase):
 
 class AccionesPedidoEstadoTests(TestCase):
     def setUp(self):
+        usuario = get_user_model().objects.create_user(
+            username="pedidos-acciones-test",
+            password="test-pass",
+        )
+        self.client.force_login(usuario)
         self.cliente = Cliente.objects.create(
             nombre="Cliente test",
             activo=True,
