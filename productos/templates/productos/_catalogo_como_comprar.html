@@ -47,8 +47,8 @@
     outline-offset:3px;
 }
 .dv-how-buy-dialog{
-    width:min(760px,calc(100% - 24px));
-    max-height:min(760px,calc(100dvh - 24px));
+    width:min(690px,calc(100% - 22px));
+    max-height:min(790px,calc(100dvh - 22px));
     margin:auto;
     padding:0;
     overflow:hidden;
@@ -63,14 +63,14 @@
     backdrop-filter:blur(6px);
 }
 .dv-how-buy-shell{
-    max-height:min(760px,calc(100dvh - 24px));
+    max-height:min(790px,calc(100dvh - 22px));
     overflow:auto;
 }
 .dv-how-buy-head{
     position:relative;
-    padding:26px 64px 18px 26px;
+    padding:25px 64px 18px 26px;
     background:
-        radial-gradient(circle at 100% 0,rgba(240,57,59,.09),transparent 170px),
+        radial-gradient(circle at 100% 0,rgba(240,57,59,.10),transparent 170px),
         linear-gradient(135deg,#fff 0%,#f7faff 100%);
     border-bottom:1px solid #edf0f5;
 }
@@ -85,14 +85,14 @@
 .dv-how-buy-title{
     margin:0;
     color:#0d376f;
-    font-size:clamp(1.6rem,4vw,2.15rem);
+    font-size:clamp(1.65rem,4vw,2.2rem);
     line-height:1;
     letter-spacing:-.04em;
 }
 .dv-how-buy-intro{
     margin:8px 0 0;
     color:#667085;
-    font-size:.86rem;
+    font-size:.84rem;
     font-weight:650;
 }
 .dv-how-buy-close{
@@ -113,74 +113,88 @@
     box-shadow:0 5px 14px rgba(19,74,154,.07);
 }
 .dv-how-buy-body{
-    padding:20px 24px 24px;
+    padding:18px 24px 24px;
 }
 .dv-how-buy-steps{
     display:grid;
-    grid-template-columns:repeat(4,minmax(0,1fr));
-    gap:10px;
+    gap:2px;
 }
 .dv-how-buy-step{
-    position:relative;
+    display:grid;
+    grid-template-columns:58px 52px minmax(0,1fr);
+    gap:12px;
+    align-items:center;
     min-width:0;
-    padding:14px 11px 13px;
-    border:1px solid #e4e9f1;
-    border-radius:17px;
-    background:#fff;
-    text-align:center;
+    padding:11px 8px;
+    border-radius:16px;
+    transition:.16s ease;
+}
+.dv-how-buy-step:hover{
+    background:#fafbfc;
 }
 .dv-how-buy-step-number{
-    position:absolute;
-    right:9px;
-    top:9px;
-    width:22px;
-    height:22px;
+    width:50px;
+    height:50px;
     display:grid;
     place-items:center;
     border-radius:50%;
-    background:#f3f5f8;
-    color:#7a8495;
-    font-size:.65rem;
-    font-weight:900;
+    background:#f0393b;
+    color:#fff;
+    font-size:1.45rem;
+    font-weight:950;
+    line-height:1;
+    box-shadow:0 8px 18px rgba(240,57,59,.18);
 }
 .dv-how-buy-icon{
-    width:52px;
-    height:52px;
+    width:48px;
+    height:48px;
     display:grid;
     place-items:center;
-    margin:1px auto 10px;
-    border-radius:16px;
+    border-radius:15px;
     background:#eef4ff;
     color:#134a9a;
 }
-.dv-how-buy-step:nth-child(even) .dv-how-buy-icon{
+.dv-how-buy-step:nth-child(2) .dv-how-buy-icon{
     background:#fff1f2;
     color:#cf2730;
 }
+.dv-how-buy-step:nth-child(3) .dv-how-buy-icon{
+    background:#e9f9ef;
+    color:#1f9d55;
+}
+.dv-how-buy-step:nth-child(4) .dv-how-buy-icon{
+    background:#eef4ff;
+    color:#134a9a;
+}
 .dv-how-buy-icon svg,
 .dv-how-buy-method-icon svg{
-    width:25px;
-    height:25px;
+    width:27px;
+    height:27px;
     fill:none;
     stroke:currentColor;
     stroke-width:1.8;
     stroke-linecap:round;
     stroke-linejoin:round;
 }
+.dv-how-buy-step-copy{
+    min-width:0;
+}
 .dv-how-buy-step strong{
     display:block;
-    color:#17233a;
-    font-size:.85rem;
+    color:#0d376f;
+    font-size:.96rem;
+    font-weight:900;
+    letter-spacing:-.01em;
 }
 .dv-how-buy-step p{
-    margin:4px 0 0;
+    margin:3px 0 0;
     color:#667085;
-    font-size:.72rem;
-    line-height:1.32;
+    font-size:.75rem;
+    line-height:1.3;
 }
 .dv-how-buy-divider{
     height:1px;
-    margin:20px 0 17px;
+    margin:17px 0 15px;
     background:#edf0f5;
 }
 .dv-how-buy-delivery-head{
@@ -211,7 +225,7 @@
     gap:10px;
     align-items:center;
     min-width:0;
-    padding:12px;
+    padding:11px;
     border:1px solid #e4e9f1;
     border-radius:15px;
     background:#fafbfc;
@@ -236,18 +250,18 @@
 .dv-how-buy-method strong{
     display:block;
     color:#17233a;
-    font-size:.81rem;
+    font-size:.8rem;
 }
 .dv-how-buy-method p{
     margin:3px 0 0;
     color:#667085;
-    font-size:.7rem;
-    line-height:1.3;
+    font-size:.68rem;
+    line-height:1.25;
 }
 .dv-how-buy-retire-note{
-    margin:10px 0 0;
+    margin:9px 0 0;
     color:#667085;
-    font-size:.71rem;
+    font-size:.7rem;
     text-align:center;
 }
 .dv-how-buy-note{
@@ -255,12 +269,12 @@
     align-items:center;
     justify-content:center;
     gap:7px;
-    margin-top:13px;
+    margin-top:12px;
     padding:9px 11px;
     border-radius:12px;
     background:#eef4ff;
     color:#345f91;
-    font-size:.72rem;
+    font-size:.71rem;
     font-weight:700;
     text-align:center;
 }
@@ -277,7 +291,7 @@
 .dv-how-buy-actions{
     display:flex;
     justify-content:flex-end;
-    padding-top:16px;
+    padding-top:15px;
 }
 .dv-how-buy-ok{
     min-height:43px;
@@ -298,30 +312,43 @@
         justify-content:space-between;
     }
     .dv-how-buy-dialog{
-        width:min(100% - 14px,760px);
+        width:min(100% - 12px,690px);
         border-radius:22px;
     }
     .dv-how-buy-head{
-        padding:21px 56px 16px 18px;
+        padding:20px 54px 15px 17px;
     }
     .dv-how-buy-close{
-        right:14px;
-        top:14px;
+        right:13px;
+        top:13px;
     }
     .dv-how-buy-body{
-        padding:16px 14px 18px;
-    }
-    .dv-how-buy-steps{
-        grid-template-columns:1fr 1fr;
-        gap:8px;
+        padding:13px 12px 17px;
     }
     .dv-how-buy-step{
-        padding:12px 8px 11px;
+        grid-template-columns:48px 44px minmax(0,1fr);
+        gap:9px;
+        padding:9px 4px;
+    }
+    .dv-how-buy-step-number{
+        width:43px;
+        height:43px;
+        font-size:1.2rem;
     }
     .dv-how-buy-icon{
-        width:46px;
-        height:46px;
-        border-radius:14px;
+        width:42px;
+        height:42px;
+        border-radius:13px;
+    }
+    .dv-how-buy-icon svg{
+        width:23px;
+        height:23px;
+    }
+    .dv-how-buy-step strong{
+        font-size:.86rem;
+    }
+    .dv-how-buy-step p{
+        font-size:.69rem;
     }
     .dv-how-buy-delivery-head{
         align-items:flex-start;
@@ -332,7 +359,7 @@
         grid-template-columns:1fr;
     }
     .dv-how-buy-method{
-        padding:10px 11px;
+        padding:9px 10px;
     }
     .dv-how-buy-ok{
         width:100%;
@@ -347,9 +374,9 @@
 >
     <div class="dv-how-buy-shell">
         <div class="dv-how-buy-head">
-            <p class="dv-how-buy-eyebrow">Doble V 3D</p>
+            <p class="dv-how-buy-eyebrow">Guía rápida · Doble V 3D</p>
             <h2 class="dv-how-buy-title" id="dv-how-buy-title">¿Cómo comprar?</h2>
-            <p class="dv-how-buy-intro">Elegí. Enviá. Confirmamos. Preparamos.</p>
+            <p class="dv-how-buy-intro">Cuatro pasos simples para hacer tu pedido.</p>
             <button
                 class="dv-how-buy-close"
                 type="button"
@@ -363,51 +390,67 @@
                 <div class="dv-how-buy-step">
                     <span class="dv-how-buy-step-number">1</span>
                     <span class="dv-how-buy-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M4 6.5 12 3l8 3.5-8 3.5-8-3.5Z"></path>
-                            <path d="M4 6.5V17l8 4 8-4V6.5"></path>
-                            <path d="M12 10v11"></path>
+                        <svg viewBox="0 0 32 32">
+                            <path d="M5 9 11 6l6 3-6 3-6-3Z"></path>
+                            <path d="M5 9v8l6 3 6-3V9"></path>
+                            <path d="M11 12v8"></path>
+                            <path d="m17 13 5-2.5 5 2.5-5 2.5-5-2.5Z"></path>
+                            <path d="M17 13v7l5 2.5 5-2.5v-7"></path>
+                            <path d="M22 15.5v7"></path>
                         </svg>
                     </span>
-                    <strong>Elegí</strong>
-                    <p>Productos y kits</p>
+                    <div class="dv-how-buy-step-copy">
+                        <strong>Explorá productos y/o kits</strong>
+                        <p>Mirá opciones, precios y combinaciones.</p>
+                    </div>
                 </div>
 
                 <div class="dv-how-buy-step">
                     <span class="dv-how-buy-step-number">2</span>
                     <span class="dv-how-buy-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M4 4h16v12H8l-4 4V4Z"></path>
-                            <path d="m8 10 2.4 2.4L16 7"></path>
+                        <svg viewBox="0 0 32 32">
+                            <path d="M4 6h4l3 14h13l3-9H10"></path>
+                            <circle cx="13" cy="25" r="2"></circle>
+                            <circle cx="23" cy="25" r="2"></circle>
+                            <path d="M13 14h10M15 10v8M21 10v8"></path>
                         </svg>
                     </span>
-                    <strong>Enviá</strong>
-                    <p>Tu selección</p>
+                    <div class="dv-how-buy-step-copy">
+                        <strong>Enviá tu selección</strong>
+                        <p>Indicá productos, kits y cantidades.</p>
+                    </div>
                 </div>
 
                 <div class="dv-how-buy-step">
                     <span class="dv-how-buy-step-number">3</span>
                     <span class="dv-how-buy-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M7 4h10a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3h-4l-4 4v-4H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3Z"></path>
-                            <path d="m8 10 2.2 2.2L16 7.5"></path>
+                        <svg viewBox="0 0 32 32">
+                            <path d="M26 15a10 10 0 0 1-14.7 8.8L6 25.5l1.8-5A10 10 0 1 1 26 15Z"></path>
+                            <path d="M12 10.7c.5 3.7 3.1 6.3 7.2 7.4"></path>
+                            <path d="m12 10.7-1.2 1.7M19.2 18.1l1.6-1.4"></path>
                         </svg>
                     </span>
-                    <strong>Confirmamos</strong>
-                    <p>Total y entrega</p>
+                    <div class="dv-how-buy-step-copy">
+                        <strong>Confirmamos por WhatsApp</strong>
+                        <p>Validamos pedido, total y entrega.</p>
+                    </div>
                 </div>
 
                 <div class="dv-how-buy-step">
                     <span class="dv-how-buy-step-number">4</span>
                     <span class="dv-how-buy-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M5 7h14v10H5z"></path>
-                            <path d="M8 3h8v4H8zM8 17v4h8v-4"></path>
-                            <path d="M8 11h8"></path>
+                        <svg viewBox="0 0 32 32">
+                            <path d="M8 8h16v5H8z"></path>
+                            <path d="M5 13h22v11H5z"></path>
+                            <path d="M9 24v4h14v-4"></path>
+                            <path d="M10 18h12"></path>
+                            <circle cx="23.5" cy="16.5" r=".8" fill="currentColor" stroke="none"></circle>
                         </svg>
                     </span>
-                    <strong>Preparamos</strong>
-                    <p>Luego de confirmar</p>
+                    <div class="dv-how-buy-step-copy">
+                        <strong>Preparamos tu pedido</strong>
+                        <p>Comenzamos una vez confirmado.</p>
+                    </div>
                 </div>
             </div>
 
@@ -459,7 +502,7 @@
                     </span>
                     <div>
                         <strong>Retiro</strong>
-                        <p>Retiro coordinado en domicilio</p>
+                        <p>Coordinado en domicilio</p>
                     </div>
                 </div>
             </div>
@@ -488,7 +531,7 @@
     const dialog = document.getElementById('dv-how-buy-dialog');
     if (!dialog) return;
 
-    const seenKey = 'dv-catalog-how-buy-seen-v2';
+    const seenKey = 'dv-catalog-how-buy-seen-v3';
     const openers = [...document.querySelectorAll('[data-dv-how-buy-open]')];
     const closers = [...dialog.querySelectorAll('[data-dv-how-buy-close]')];
 
