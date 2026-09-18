@@ -6,6 +6,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from productos.models import Producto, TipoProducto
 
+from .economia import analizar_opciones_kit
+from .imagenes import adjuntar_imagenes_reutilizadas
 from .models import Kit, KitComponente
 
 
@@ -24,6 +26,116 @@ def lista_kits(request):
         "kits/lista.html",
         {
             "kits": kits,
+        },
+    )
+
+
+def detalle_kit(request, kit_id):
+    kit = get_object_or_404(
+        Kit.objects
+        .select_related("tipo_producto")
+        .prefetch_related("componentes__producto"),
+        id=kit_id,
+    )
+
+    seleccionables = []
+    adicionales = []
+    componentes_fijos = []
+    analisis_opciones = None
+
+    if kit.modalidad == "LIBRE_CATEGORIA":
+        productos = list(
+            Producto.objects
+            .filter(
+                tipo_id=kit.tipo_producto_id,
+                activo=True,
+                solo_produccion=False,
+            )
+            .select_related("tipo")
+            .order_by("nombre", "id")
+        )
+
+        analisis_opciones = analizar_opciones_kit(
+            kit,
+            productos_categoria=productos,
+        )
+
+        adjuntar_imagenes_reutilizadas(
+            [kit],
+            productos_por_tipo={
+                kit.tipo_producto_id: productos,
+            },
+        )
+
+        imagenes = {
+            visual["producto"].id: visual["imagen_url"]
+            for visual in getattr(kit, "productos_visuales", [])
+        }
+
+        def preparar_opcion(item):
+            opcion = dict(item)
+            opcion["imagen_url"] = imagenes.get(
+                item["producto_id"],
+                "",
+            )
+            return opcion
+
+        seleccionables = [
+            preparar_opcion(item)
+            for item in analisis_opciones["incluidos"]
+        ]
+        adicionales = [
+            preparar_opcion(item)
+            for item in analisis_opciones["premium"]
+        ]
+
+        seleccionables.sort(
+            key=lambda item: (
+                item["nombre"].casefold(),
+                item["producto_id"],
+            )
+        )
+        adicionales.sort(
+            key=lambda item: (
+                item["extra"],
+                item["nombre"].casefold(),
+                item["producto_id"],
+            )
+        )
+
+    else:
+        adjuntar_imagenes_reutilizadas([kit])
+        imagenes = {
+            visual["producto"].id: visual["imagen_url"]
+            for visual in getattr(kit, "productos_visuales", [])
+        }
+        componentes_fijos = [
+            {
+                "producto": componente.producto,
+                "cantidad": componente.cantidad,
+                "imagen_url": imagenes.get(
+                    componente.producto_id,
+                    "",
+                ),
+            }
+            for componente in kit.componentes.all()
+        ]
+        componentes_fijos.sort(
+            key=lambda item: (
+                item["producto"].nombre.casefold(),
+                item["producto"].id,
+            )
+        )
+
+    return render(
+        request,
+        "kits/detalle.html",
+        {
+            "kit": kit,
+            "seleccionables": seleccionables,
+            "adicionales": adicionales,
+            "componentes_fijos": componentes_fijos,
+            "analisis_opciones": analisis_opciones,
         },
     )
 

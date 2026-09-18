@@ -33,6 +33,11 @@ urlpatterns = [
         name="recomendacion_libre",
     ),
     path(
+        "<int:kit_id>/",
+        views.detalle_kit,
+        name="detalle",
+    ),
+    path(
         "<int:kit_id>/editar/",
         views.editar_kit,
         name="editar",

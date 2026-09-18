@@ -1,0 +1,219 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
+<link rel="apple-touch-icon" href="{% static 'brand/apple-touch-icon.png' %}">
+<link rel="stylesheet" href="{% static 'brand/brand.css' %}">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>{{ kit.nombre }} | Kits | Doble V 3D</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:var(--dv-bg,#f4f5f7);color:var(--dv-text,#272a2f);font-family:Arial,sans-serif;padding-bottom:96px}
+.contenedor{width:min(1180px,100%);margin:auto;padding:20px 14px 38px}
+.header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}
+.header-copy{min-width:0}
+h1{margin:4px 0 0;font-size:clamp(27px,4vw,38px);line-height:1}
+.sub{margin-top:7px;color:var(--dv-muted,#747981);font-size:11px;line-height:1.45}
+.meta{margin-top:5px;color:var(--dv-muted,#747981);font-size:9px;font-weight:900}
+.acciones{display:flex;gap:8px;flex-wrap:wrap}
+.btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 13px;border:1px solid var(--dv-border,#e3e5e8);border-radius:11px;background:var(--dv-surface,#fff);color:var(--dv-text,#292c31);text-decoration:none;font-size:9px;font-weight:900}
+.btn.primary{background:var(--dv-brand-blue,#134a9a);border-color:var(--dv-brand-blue,#134a9a);color:#fff}
+.resumen{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-bottom:20px}
+.dato{min-width:0;padding:13px 14px;border:1px solid var(--dv-border,#e3e5e8);border-radius:15px;background:var(--dv-surface,#fff);box-shadow:var(--dv-shadow-soft,0 3px 14px rgba(20,25,35,.05))}
+.dato span{display:block;color:var(--dv-muted,#747981);font-size:8px;font-weight:900;letter-spacing:.3px}
+.dato strong{display:block;margin-top:6px;font-size:21px;line-height:1}
+.dato small{display:block;margin-top:6px;color:var(--dv-muted,#747981);font-size:8px;line-height:1.35}
+.seccion{margin-top:18px}
+.seccion-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:9px}
+.seccion h2{margin:0;font-size:19px}
+.seccion-help{color:var(--dv-muted,#747981);font-size:9px;line-height:1.4;text-align:right}
+.grid-productos{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:9px}
+.producto{display:grid;grid-template-columns:76px minmax(0,1fr) auto;align-items:center;gap:11px;min-width:0;padding:10px;border:1px solid var(--dv-border,#e3e5e8);border-radius:14px;background:var(--dv-surface,#fff)}
+.producto-media{width:76px;aspect-ratio:1/1;border:1px solid var(--dv-border,#e3e5e8);border-radius:11px;overflow:hidden;background:var(--dv-surface-soft,#f7f8fa);display:grid;place-items:center}
+.producto-media img{width:100%;height:100%;object-fit:cover;display:block}
+.sin-foto{padding:8px;color:var(--dv-muted,#747981);font-size:7px;font-weight:900;text-align:center}
+.producto-info{min-width:0}
+.producto-codigo{color:var(--dv-muted,#747981);font-size:8px;font-weight:900}
+.producto-nombre{margin-top:4px;font-size:12px;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.producto-link{color:inherit;text-decoration:none}
+.producto-link:hover{text-decoration:underline;text-underline-offset:3px}
+.estado{display:inline-flex;align-items:center;justify-content:center;min-height:27px;padding:0 8px;border-radius:999px;font-size:7px;font-weight:900;white-space:nowrap}
+.estado.incluido{background:var(--dv-success-soft,#e4f5e9);color:var(--dv-success-text,#26653c)}
+.estado.extra{background:var(--dv-warning-soft,#fff3cf);color:var(--dv-warning-text,#745900)}
+.extra-monto{text-align:right}
+.extra-monto b{display:block;color:var(--dv-warning-text,#745900);font-size:13px}
+.extra-monto span{display:block;margin-top:3px;color:var(--dv-muted,#747981);font-size:7px;font-weight:800}
+.aviso{padding:14px;border:1px solid var(--dv-border,#e3e5e8);border-radius:14px;background:var(--dv-surface-soft,#f7f8fa);color:var(--dv-muted,#747981);font-size:10px;line-height:1.5}
+.aviso.warning{background:var(--dv-warning-soft,#fff3cf);color:var(--dv-warning-text,#745900)}
+.componente{display:grid;grid-template-columns:76px minmax(0,1fr) auto;align-items:center;gap:11px;padding:10px;border:1px solid var(--dv-border,#e3e5e8);border-radius:14px;background:var(--dv-surface,#fff)}
+.cantidad{min-width:58px;text-align:center;padding:8px 10px;border-radius:10px;background:var(--dv-surface-soft,#f7f8fa);font-size:12px;font-weight:900}
+@media(max-width:780px){.header{align-items:flex-start;flex-direction:column}.acciones{width:100%}.acciones .btn{flex:1}.resumen{grid-template-columns:1fr 1fr}.seccion-head{align-items:flex-start;flex-direction:column}.seccion-help{text-align:left}}
+@media(max-width:520px){.contenedor{padding:15px 11px 28px}.resumen{grid-template-columns:1fr}.grid-productos{grid-template-columns:1fr}.producto,.componente{grid-template-columns:62px minmax(0,1fr)}.producto-media{width:62px}.producto>.estado,.extra-monto,.cantidad{grid-column:2;justify-self:start;text-align:left}}
+</style>
+</head>
+<body>
+<div class="contenedor">
+    <header class="header">
+        <div class="header-copy">
+            <div class="encabezado-marca">{% include "shared/brand_bar.html" %}</div>
+            <div class="meta">{{ kit.codigo }} · {{ kit.get_modalidad_display }}</div>
+            <h1>{{ kit.nombre }}</h1>
+            <div class="sub">
+                {% if kit.modalidad == "LIBRE_CATEGORIA" %}
+                    El cliente elige {{ kit.cantidad_productos }} producto{{ kit.cantidad_productos|pluralize }} de la categoría {{ kit.tipo_producto.nombre }}.
+                {% else %}
+                    Composición fija de {{ kit.cantidad_productos }} pieza{{ kit.cantidad_productos|pluralize }}.
+                {% endif %}
+            </div>
+        </div>
+        <div class="acciones">
+            <a class="btn" href="{% url 'kits:lista' %}">← KITS</a>
+            <a class="btn primary" href="{% url 'kits:editar' kit.id %}">✎ EDITAR</a>
+        </div>
+    </header>
+
+    <section class="resumen" aria-label="Resumen del kit">
+        <div class="dato">
+            <span>PRECIO BASE</span>
+            <strong>&#36;{{ kit.precio|floatformat:"0g" }}</strong>
+            <small>Antes de adicionales.</small>
+        </div>
+        <div class="dato">
+            <span>ESTADO</span>
+            <strong>{% if kit.activo %}ACTIVO{% else %}INACTIVO{% endif %}</strong>
+            <small>{{ kit.get_modalidad_display }}</small>
+        </div>
+        <div class="dato">
+            <span>{% if kit.modalidad == "FIJO" %}PIEZAS{% else %}ELECCIONES{% endif %}</span>
+            <strong>{{ kit.cantidad_productos }}</strong>
+            <small>{% if kit.modalidad == "LIBRE_CATEGORIA" %}por cada kit{% else %}en la composición{% endif %}</small>
+        </div>
+        <div class="dato">
+            <span>{% if kit.modalidad == "LIBRE_CATEGORIA" %}PROTECCIÓN{% else %}COMPOSICIÓN{% endif %}</span>
+            <strong>
+                {% if kit.modalidad == "LIBRE_CATEGORIA" %}
+                    {% if kit.proteger_rentabilidad_libre %}ACTIVA{% else %}DESACTIVADA{% endif %}
+                {% else %}
+                    FIJA
+                {% endif %}
+            </strong>
+            <small>
+                {% if kit.modalidad == "LIBRE_CATEGORIA" %}
+                    {% if kit.proteger_rentabilidad_libre %}Separa incluidos de opciones con adicional.{% else %}Todas las opciones quedan incluidas.{% endif %}
+                {% else %}
+                    Productos y cantidades definidas.
+                {% endif %}
+            </small>
+        </div>
+    </section>
+
+    {% if kit.modalidad == "LIBRE_CATEGORIA" %}
+        <section class="seccion">
+            <div class="seccion-head">
+                <h2>PRODUCTOS SELECCIONABLES</h2>
+                <div class="seccion-help">Se pueden elegir sin sumar importe al precio base.</div>
+            </div>
+
+            {% if seleccionables %}
+                <div class="grid-productos">
+                    {% for opcion in seleccionables %}
+                        <article class="producto">
+                            <div class="producto-media">
+                                {% if opcion.imagen_url %}
+                                    <img src="{{ opcion.imagen_url }}" alt="{{ opcion.nombre }}" loading="lazy">
+                                {% else %}
+                                    <div class="sin-foto">SIN FOTO</div>
+                                {% endif %}
+                            </div>
+                            <div class="producto-info">
+                                <div class="producto-codigo">{{ opcion.codigo }}</div>
+                                <a class="producto-nombre producto-link" href="{% url 'productos:detalle' opcion.producto_id %}">
+                                    {{ opcion.nombre }}
+                                </a>
+                            </div>
+                            <span class="estado incluido">INCLUIDO</span>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="aviso warning">
+                    No hay productos incluidos con el precio base actual. Todas las opciones disponibles requieren adicional.
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="seccion">
+            <div class="seccion-head">
+                <h2>PRODUCTOS CON ADICIONAL</h2>
+                <div class="seccion-help">Se pueden elegir sumando el monto indicado por cada selección.</div>
+            </div>
+
+            {% if adicionales %}
+                <div class="grid-productos">
+                    {% for opcion in adicionales %}
+                        <article class="producto">
+                            <div class="producto-media">
+                                {% if opcion.imagen_url %}
+                                    <img src="{{ opcion.imagen_url }}" alt="{{ opcion.nombre }}" loading="lazy">
+                                {% else %}
+                                    <div class="sin-foto">SIN FOTO</div>
+                                {% endif %}
+                            </div>
+                            <div class="producto-info">
+                                <div class="producto-codigo">{{ opcion.codigo }}</div>
+                                <a class="producto-nombre producto-link" href="{% url 'productos:detalle' opcion.producto_id %}">
+                                    {{ opcion.nombre }}
+                                </a>
+                            </div>
+                            <div class="extra-monto">
+                                <b>ADICIONAL +&#36;{{ opcion.extra|floatformat:"0g" }}</b>
+                                <span>por selección</span>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% elif kit.proteger_rentabilidad_libre %}
+                <div class="aviso">No hay productos con adicional: todas las opciones actuales están cubiertas por el precio base.</div>
+            {% else %}
+                <div class="aviso">La protección de rentabilidad está desactivada, por lo que todas las opciones se consideran seleccionables sin adicional.</div>
+            {% endif %}
+        </section>
+    {% else %}
+        <section class="seccion">
+            <div class="seccion-head">
+                <h2>COMPOSICIÓN FIJA</h2>
+                <div class="seccion-help">Productos y cantidades que forman cada kit.</div>
+            </div>
+            {% if componentes_fijos %}
+                <div class="grid-productos">
+                    {% for item in componentes_fijos %}
+                        <article class="componente">
+                            <div class="producto-media">
+                                {% if item.imagen_url %}
+                                    <img src="{{ item.imagen_url }}" alt="{{ item.producto.nombre }}" loading="lazy">
+                                {% else %}
+                                    <div class="sin-foto">SIN FOTO</div>
+                                {% endif %}
+                            </div>
+                            <div class="producto-info">
+                                <div class="producto-codigo">{{ item.producto.codigo }}</div>
+                                <a class="producto-nombre producto-link" href="{% url 'productos:detalle' item.producto.id %}">
+                                    {{ item.producto.nombre }}
+                                </a>
+                            </div>
+                            <div class="cantidad">x {{ item.cantidad }}</div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="aviso warning">Este kit fijo no tiene componentes configurados.</div>
+            {% endif %}
+        </section>
+    {% endif %}
+</div>
+
+{% include "shared/navigation.html" %}
+</body>
+</html>
