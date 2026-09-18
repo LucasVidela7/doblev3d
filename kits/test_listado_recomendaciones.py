@@ -162,11 +162,23 @@ class ListadoRecomendacionesKitTests(TestCase):
         )
         self.assertContains(
             respuesta,
-            "BASE · OPCIONES INCLUIDAS",
+            "BASE PROTEGIDA",
+        )
+        self.assertContains(
+            respuesta,
+            "PRECIO MODULAR",
         )
         self.assertNotContains(
             respuesta,
             "⚠ REVISAR PRECIO",
+        )
+        self.assertNotContains(
+            respuesta,
+            "REFERENCIAS DE PRECIO",
+        )
+        self.assertNotContains(
+            respuesta,
+            "Recomendado:",
         )
 
     def test_listado_protegido_alerta_si_no_hay_opciones_incluidas(self):
