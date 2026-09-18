@@ -200,7 +200,15 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                     </div>
 
                     <div class="dato">
-                        <b>{% if kit.modalidad == "FIJO" %}MARGEN ACTUAL{% else %}MARGEN PROMEDIO ACTUAL{% endif %}</b>
+                        <b>
+                            {% if kit.modalidad == "FIJO" %}
+                                MARGEN ACTUAL
+                            {% elif kit.recomendacion_sobre_incluidos %}
+                                MARGEN PROMEDIO · INCLUIDOS
+                            {% else %}
+                                MARGEN PROMEDIO ACTUAL
+                            {% endif %}
+                        </b>
                         <span>
                             {% if reco.margen_actual != None %}
                                 {{ reco.margen_actual|floatformat:"1g" }}%
@@ -209,17 +217,31 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                             {% endif %}
                         </span>
                         {% if kit.modalidad == "LIBRE_CATEGORIA" and reco.margen_peor_caso != None %}
-                            <small>Peor caso actual: {{ reco.margen_peor_caso|floatformat:"1g" }}%</small>
+                            <small>
+                                {% if kit.recomendacion_sobre_incluidos %}Peor incluido:{% else %}Peor caso actual:{% endif %}
+                                {{ reco.margen_peor_caso|floatformat:"1g" }}%
+                            </small>
                         {% else %}
                             <small>Piso calculadora: {{ reco.margen_piso|floatformat:"1g" }}%</small>
                         {% endif %}
                     </div>
 
                     <div class="dato">
-                        <b>{% if kit.modalidad == "FIJO" %}COSTO PRODUCTIVO{% else %}COSTO PROMEDIO{% endif %}</b>
+                        <b>
+                            {% if kit.modalidad == "FIJO" %}
+                                COSTO PRODUCTIVO
+                            {% elif kit.recomendacion_sobre_incluidos %}
+                                COSTO PROMEDIO · INCLUIDOS
+                            {% else %}
+                                COSTO PROMEDIO
+                            {% endif %}
+                        </b>
                         <span>${{ reco.costo_estimado|floatformat:"0g" }}</span>
                         {% if kit.modalidad == "LIBRE_CATEGORIA" %}
-                            <small>Peor costo: ${{ reco.costo_peor_caso|floatformat:"0g" }}</small>
+                            <small>
+                                {% if kit.recomendacion_sobre_incluidos %}Mayor costo incluido:{% else %}Peor costo:{% endif %}
+                                ${{ reco.costo_peor_caso|floatformat:"0g" }}
+                            </small>
                         {% else %}
                             <small>Productos + cobertura productiva</small>
                         {% endif %}
@@ -236,7 +258,13 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
                     <div class="escenarios">
                         <div class="escenarios-titulo">
                             <b>REFERENCIAS DE PRECIO</b>
-                            <span>Conservador es una referencia opcional; Recomendado es el objetivo principal.</span>
+                            <span>
+                                {% if kit.recomendacion_sobre_incluidos %}
+                                    Referencias sobre las opciones incluidas; los premium se cobran aparte.
+                                {% else %}
+                                    Conservador es una referencia opcional; Recomendado es el objetivo principal.
+                                {% endif %}
+                            </span>
                         </div>
                         <div class="escenarios-grid">
                             <div class="escenario agresivo">
