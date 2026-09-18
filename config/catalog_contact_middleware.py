@@ -162,14 +162,22 @@ class CatalogContactMiddleware:
         match = getattr(request, "resolver_match", None)
         view_name = match.view_name if match else ""
 
-        if (
-            view_name not in {
+        path = getattr(request, "path_info", "") or ""
+        es_catalogo_publico = (
+            view_name in {
                 "catalogo",
                 "catalogo_legacy",
                 "catalogo_kit_detalle",
                 "catalogo_carrito",
                 "catalogo_carrito_gracias",
             }
+            or path in {"/", "/catalogo/"}
+            or path.startswith("/kits/")
+            or path.startswith("/carrito/")
+        )
+
+        if (
+            not es_catalogo_publico
             or response.status_code != 200
             or getattr(response, "streaming", False)
             or "text/html" not in response.get("Content-Type", "")
