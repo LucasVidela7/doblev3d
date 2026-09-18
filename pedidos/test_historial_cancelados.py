@@ -84,30 +84,33 @@ class HistorialCanceladosPedidosTests(TestCase):
         self.assertNotContains(respuesta, "Cancelar pedido")
         self.assertNotContains(respuesta, "Eliminar pedido")
 
-    def test_pagos_todos_incluye_cancelado_pero_sin_saldo_exigible(self):
-        respuesta = self.client.get(reverse("pedidos:pagos"))
+    def test_ruta_pagos_redirige_a_finanzas_cobros(self):
+        respuesta = self.client.get(
+            reverse("pedidos:pagos")
+        )
+
+        self.assertEqual(respuesta.status_code, 302)
+        self.assertEqual(
+            respuesta.url,
+            f"{reverse('pedidos:finanzas')}#cobros",
+        )
+
+    def test_finanzas_muestra_solo_saldo_vigente(self):
+        respuesta = self.client.get(
+            reverse("pedidos:finanzas")
+        )
 
         self.assertEqual(respuesta.status_code, 200)
         self.assertContains(respuesta, self.activo.codigo)
-        self.assertContains(respuesta, self.cancelado.codigo)
+        self.assertNotContains(respuesta, self.cancelado.codigo)
         self.assertEqual(
-            respuesta.context["saldo_total"],
+            respuesta.context["saldo_total_actual"],
             Decimal("3000"),
         )
         self.assertEqual(
-            respuesta.context["pedidos_con_saldo"],
+            respuesta.context["pedidos_con_saldo_actual"],
             1,
         )
-
-    def test_filtro_pagos_cancelados_muestra_solo_cancelados(self):
-        respuesta = self.client.get(
-            reverse("pedidos:pagos"),
-            {"estado": "CANCELADOS"},
-        )
-
-        self.assertContains(respuesta, self.cancelado.codigo)
-        self.assertNotContains(respuesta, self.activo.codigo)
-        self.assertContains(respuesta, "Pedido cancelado")
 
     def test_eliminado_no_aparece_en_listados(self):
         eliminado = Pedido.objects.create(
@@ -118,7 +121,7 @@ class HistorialCanceladosPedidosTests(TestCase):
         eliminado.delete()
 
         historial = self.client.get(reverse("pedidos:cancelados"))
-        pagos = self.client.get(reverse("pedidos:pagos"))
+        finanzas = self.client.get(reverse("pedidos:finanzas"))
 
         self.assertNotContains(historial, codigo)
-        self.assertNotContains(pagos, codigo)
+        self.assertNotContains(finanzas, codigo)
