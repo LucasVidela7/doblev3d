@@ -435,6 +435,26 @@
             line-height: 1.25;
         }
 
+        .mini.incluido {
+            background: #e8f6ec;
+            color: #285e3a;
+        }
+
+        .mini.premium {
+            background: #fff0db;
+            color: #79500f;
+        }
+
+        .kit-note {
+            margin: -7px 0 15px;
+            padding: 9px 10px;
+            border-radius: 10px;
+            background: #fff8ec;
+            color: #71511b;
+            font-size: .76rem;
+            line-height: 1.4;
+        }
+
         .empty {
             padding: 44px 20px;
             border: 1px dashed rgba(19, 74, 154, .24);
@@ -595,7 +615,7 @@
                             class="card catalog-item"
                             data-kind="kit"
                             data-category="{% if kit.tipo_producto %}{{ kit.tipo_producto.nombre|lower }}{% endif %}"
-                            data-search="{{ kit.nombre|lower }} {% if kit.tipo_producto %}{{ kit.tipo_producto.nombre|lower }}{% endif %}"
+                            data-search="{{ kit.nombre|lower }} {% if kit.tipo_producto %}{{ kit.tipo_producto.nombre|lower }}{% endif %} {{ kit.catalogo_busqueda_productos|default:''|lower }}"
                         >
                             <div class="media">
                                 <span class="badge">Kit</span>
@@ -632,6 +652,26 @@
                                         Elegí {{ kit.cantidad_productos }} producto{{ kit.cantidad_productos|pluralize }}
                                         {% if kit.tipo_producto %}de {{ kit.tipo_producto.nombre }}{% endif %}.
                                     </p>
+
+                                    {% if kit.proteger_rentabilidad_libre and kit.opciones_libres_analisis.disponible %}
+                                        <div class="mini-list">
+                                            <span class="mini incluido">
+                                                {{ kit.opciones_libres_analisis.cantidad_incluidos }} opciones incluidas
+                                            </span>
+                                            {% if kit.opciones_libres_analisis.cantidad_premium %}
+                                                <span class="mini premium">
+                                                    {{ kit.opciones_libres_analisis.cantidad_premium }} premium
+                                                    · desde +$ {{ kit.opciones_libres_analisis.extra_minimo|floatformat:"0g" }}
+                                                </span>
+                                            {% endif %}
+                                        </div>
+
+                                        {% if kit.opciones_libres_analisis.cantidad_premium %}
+                                            <div class="kit-note">
+                                                Algunas opciones premium tienen un adicional según el producto elegido.
+                                            </div>
+                                        {% endif %}
+                                    {% endif %}
                                 {% endif %}
 
                                 <div class="price-row">
