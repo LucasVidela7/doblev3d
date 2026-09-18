@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -6,6 +6,7 @@ from django.views.decorators.http import require_POST
 from calculadora.precios import calcular_escenarios_kit_libre
 from productos.models import Producto, TipoProducto
 
+from .economia import analizar_opciones_libres
 from .precio_fijo_combinado import calcular_escenarios_kit_fijo
 
 
@@ -174,6 +175,13 @@ def recomendar_precio_libre(request):
     cantidad_raw = str(
         request.POST.get("cantidad") or ""
     ).strip()
+    precio_raw = str(
+        request.POST.get("precio") or "0"
+    ).strip().replace(",", ".")
+    proteger_rentabilidad = (
+        request.POST.get("proteger_rentabilidad")
+        == "1"
+    )
 
     try:
         tipo_id_int = int(tipo_id)
@@ -233,6 +241,18 @@ def recomendar_precio_libre(request):
     calculo = calcular_escenarios_kit_libre(
         productos,
         cantidad,
+    )
+
+    try:
+        precio_actual = Decimal(precio_raw)
+    except (InvalidOperation, TypeError, ValueError):
+        precio_actual = Decimal("0")
+
+    opciones = analizar_opciones_libres(
+        productos,
+        cantidad,
+        precio_actual,
+        proteger_rentabilidad=proteger_rentabilidad,
     )
 
     if calculo["costo_peor_caso"] <= 0:
@@ -295,5 +315,36 @@ def recomendar_precio_libre(request):
             ),
             "filamento": _filamento_json(calculo),
             "escenarios": escenarios,
+            "opciones_rentabilidad": {
+                "disponible": bool(opciones["disponible"]),
+                "proteger_rentabilidad": bool(
+                    opciones["proteger_rentabilidad"]
+                ),
+                "precio_base_por_lugar": _decimal_texto(
+                    opciones["precio_base_por_lugar"]
+                ),
+                "cantidad_incluidos": opciones["cantidad_incluidos"],
+                "cantidad_premium": opciones["cantidad_premium"],
+                "extra_minimo": _decimal_texto(
+                    opciones["extra_minimo"]
+                ),
+                "extra_maximo": _decimal_texto(
+                    opciones["extra_maximo"]
+                ),
+                "opciones": [
+                    {
+                        "id": item["producto_id"],
+                        "codigo": item["codigo"],
+                        "nombre": item["nombre"],
+                        "incluido": bool(item["incluido"]),
+                        "requiere_extra": bool(item["requiere_extra"]),
+                        "extra": _decimal_texto(item["extra"]),
+                        "extra_sugerido": _decimal_texto(
+                            item["extra_sugerido"]
+                        ),
+                    }
+                    for item in opciones["opciones"]
+                ],
+            },
         }
     )
