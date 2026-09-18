@@ -364,9 +364,9 @@ h1{margin:0;font-size:clamp(28px,4vw,38px)}
 
         <form method="get" class="card toolbar">
             <select class="small" name="estado">
-                <option value="OPERATIVA" {% if estado_filtro == "OPERATIVA" %}selected{% endif %}>Operativas + últimas 20</option>
-                <option value="IMPRIMIENDO" {% if estado_filtro == "IMPRIMIENDO" %}selected{% endif %}>Imprimiendo</option>
-                <option value="PENDIENTE" {% if estado_filtro == "PENDIENTE" %}selected{% endif %}>Planificadas</option>
+                <option value="ACTIVAS" {% if estado_filtro == "ACTIVAS" %}selected{% endif %}>Imprimiendo + Planificadas</option>
+                <option value="IMPRIMIENDO" {% if estado_filtro == "IMPRIMIENDO" %}selected{% endif %}>Solo imprimiendo</option>
+                <option value="PENDIENTE" {% if estado_filtro == "PENDIENTE" %}selected{% endif %}>Solo planificadas</option>
                 <option value="LISTO" {% if estado_filtro == "LISTO" %}selected{% endif %}>Finalizadas</option>
                 <option value="TODAS" {% if estado_filtro == "TODAS" %}selected{% endif %}>Todas</option>
             </select>
