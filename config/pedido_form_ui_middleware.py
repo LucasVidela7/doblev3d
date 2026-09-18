@@ -25,10 +25,6 @@ body.dv-pedido-form-page{
     --dv-amber-bg:#fff8e8;
 }
 
-body.dv-pedido-form-page .contenedor{
-    width:min(1120px,100%)!important;
-}
-
 body.dv-pedido-form-page form > .tarjeta,
 body.dv-pedido-form-page form > .card{
     border-color:#e1e4e8!important;
