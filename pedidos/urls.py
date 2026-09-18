@@ -8,6 +8,7 @@ from . import (
     pedido_form_views,
     preparacion_views,
     precios_api,
+    presupuesto_views,
     views,
 )
 from .impresiones_corregidas import impresiones_por_producto
@@ -21,8 +22,38 @@ urlpatterns = [
 
     path(
         "nuevo/",
-        pedido_form_views.nuevo_pedido,
+        presupuesto_views.nuevo_presupuesto,
         name="nuevo",
+    ),
+
+    path(
+        "presupuestos/",
+        presupuesto_views.lista_presupuestos,
+        name="presupuestos",
+    ),
+
+    path(
+        "presupuestos/<int:presupuesto_id>/",
+        presupuesto_views.detalle_presupuesto,
+        name="presupuesto_detalle",
+    ),
+
+    path(
+        "presupuestos/<int:presupuesto_id>/editar/",
+        presupuesto_views.editar_presupuesto,
+        name="presupuesto_editar",
+    ),
+
+    path(
+        "presupuestos/<int:presupuesto_id>/aprobar/",
+        presupuesto_views.aprobar_presupuesto,
+        name="presupuesto_aprobar",
+    ),
+
+    path(
+        "presupuestos/<int:presupuesto_id>/rechazar/",
+        presupuesto_views.rechazar_presupuesto,
+        name="presupuesto_rechazar",
     ),
 
     path(
