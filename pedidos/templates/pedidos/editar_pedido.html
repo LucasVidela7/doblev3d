@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="{% static 'brand/brand.css' %}">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Editar {{ pedido.codigo }} | Doble V 3D</title>
+<title>{% if es_presupuesto %}Editar presupuesto{% else %}Editar{% endif %} {{ pedido.codigo }} | Doble V 3D</title>
 
 <style>
 *{box-sizing:border-box}
@@ -344,14 +344,21 @@ textarea{
 
     <div class="header">
         <div class="encabezado-marca">{% include 'shared/brand_bar.html' %}
-            <h1>Editar {{ pedido.codigo }}</h1>
+            <h1>{% if es_presupuesto %}Editar presupuesto{% else %}Editar{% endif %} {{ pedido.codigo }}</h1>
             <div class="sub">
                 {{ pedido.cliente.nombre }} · precios editables con recomendaciones de la calculadora
             </div>
         </div>
 
         <div class="acciones">
-            {% if volver_cliente and volver_cliente_id %}
+            {% if es_presupuesto %}
+                <a
+                    href="{% url 'pedidos:presupuesto_detalle' pedido.id %}"
+                    class="navbtn"
+                >
+                    ← VOLVER
+                </a>
+            {% elif volver_cliente and volver_cliente_id %}
                 <a
                     href="{% url 'clientes:detalle' volver_cliente_id %}"
                     class="navbtn"
@@ -453,7 +460,7 @@ textarea{
             type="submit"
             class="guardar"
         >
-            GUARDAR CAMBIOS
+            {% if es_presupuesto %}GUARDAR PRESUPUESTO{% else %}GUARDAR CAMBIOS{% endif %}
         </button>
     </form>
 
