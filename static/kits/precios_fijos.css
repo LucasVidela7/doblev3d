@@ -83,6 +83,100 @@
     color:#79500e;
 }
 
+.dv-kit-opciones-rentabilidad{
+    margin:0 0 12px;
+    padding:12px;
+    border:1px solid #d7e3da;
+    border-radius:12px;
+    background:#f8fbf9;
+}
+
+.dv-kit-opciones-rentabilidad.desactivada{
+    border-color:#e2e4e7;
+    background:#fafbfc;
+}
+
+.dv-kit-opciones-resumen{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:8px;
+}
+
+.dv-kit-opciones-resumen > div{
+    padding:9px;
+    border:1px solid #e3e8e5;
+    border-radius:10px;
+    background:#fff;
+}
+
+.dv-kit-opciones-titulo{
+    color:#6b716d;
+    font-size:7px;
+    font-weight:900;
+    letter-spacing:.25px;
+}
+
+.dv-kit-opciones-numero{
+    margin-top:4px;
+    color:#25362b;
+    font-size:16px;
+    font-weight:900;
+}
+
+.dv-kit-opciones-ayuda{
+    margin-top:5px;
+    color:#6a7077;
+    font-size:9px;
+    line-height:1.45;
+}
+
+.dv-kit-opciones-grupo{
+    margin-top:10px;
+}
+
+.dv-kit-opciones-subtitulo{
+    margin-bottom:6px;
+    color:#555d58;
+    font-size:8px;
+    font-weight:900;
+}
+
+.dv-kit-opciones-chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+}
+
+.dv-kit-opcion-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    padding:6px 8px;
+    border-radius:999px;
+    font-size:8px;
+    font-weight:800;
+}
+
+.dv-kit-opcion-chip.incluida{
+    background:#e8f6ec;
+    color:#285e3a;
+}
+
+.dv-kit-opcion-chip.premium{
+    background:#fff0db;
+    color:#79500f;
+}
+
+.dv-kit-opcion-chip.premium strong{
+    font-weight:900;
+}
+
+.dv-kit-opciones-vacio{
+    color:#7a8087;
+    font-size:8px;
+    font-weight:800;
+}
+
 .dv-kit-escenarios-grid{
     display:grid;
     grid-template-columns:repeat(3,minmax(0,1fr));
@@ -193,6 +287,10 @@
     .dv-kit-precio-actual{
         width:100%;
         text-align:left;
+    }
+
+    .dv-kit-opciones-resumen{
+        grid-template-columns:1fr;
     }
 
     .dv-kit-escenarios-grid{
