@@ -45,6 +45,29 @@ class DashboardProduccionTests(TestCase):
             activa=True,
         )
 
+    def test_dashboard_carga_tema_global_y_selector(self):
+        respuesta = self.client.get(
+            reverse("dashboard:inicio")
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(
+            respuesta,
+            "shared/theme.css",
+        )
+        self.assertContains(
+            respuesta,
+            "shared/theme.js",
+        )
+        self.assertContains(
+            respuesta,
+            'id="dvThemeToggle"',
+        )
+        self.assertContains(
+            respuesta,
+            "CLARO",
+        )
+
     def test_dashboard_muestra_impresoras_y_planificaciones(self):
         ahora = timezone.now()
 
