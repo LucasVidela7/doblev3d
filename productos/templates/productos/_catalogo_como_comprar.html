@@ -535,35 +535,24 @@
     const closers = [...dialog.querySelectorAll('[data-dv-how-buy-close]')];
 
     const markSeen = () => {
-        try {
-            window.localStorage.setItem(seenKey, '1');
-        } catch (_) {}
+        try { window.localStorage.setItem(seenKey, '1'); } catch (_) {}
     };
 
     const wasSeen = () => {
-        try {
-            return window.localStorage.getItem(seenKey) === '1';
-        } catch (_) {
-            return true;
-        }
+        try { return window.localStorage.getItem(seenKey) === '1'; }
+        catch (_) { return true; }
     };
 
     const openDialog = () => {
         if (dialog.open) return;
-        if (typeof dialog.showModal === 'function') {
-            dialog.showModal();
-        } else {
-            dialog.setAttribute('open', '');
-        }
+        if (typeof dialog.showModal === 'function') dialog.showModal();
+        else dialog.setAttribute('open', '');
         markSeen();
     };
 
     const closeDialog = () => {
-        if (typeof dialog.close === 'function' && dialog.open) {
-            dialog.close();
-        } else {
-            dialog.removeAttribute('open');
-        }
+        if (typeof dialog.close === 'function' && dialog.open) dialog.close();
+        else dialog.removeAttribute('open');
     };
 
     document.querySelectorAll('[data-dv-how-buy-open]').forEach((button) => {
@@ -583,76 +572,6 @@
             event.clientY <= rect.bottom;
         if (!inside) closeDialog();
     });
-
-    let floatingHelp = null;
-    let floatingSeparator = null;
-    let scrollFrame = 0;
-
-    const ensureFloatingHelp = () => {
-        const dock = document.getElementById('dv-catalog-contact-links');
-        if (!dock) return null;
-
-        floatingHelp = dock.querySelector('[data-dv-floating-help]');
-        if (!floatingHelp) {
-            floatingHelp = document.createElement('button');
-            floatingHelp.type = 'button';
-            floatingHelp.className =
-                'dv-catalog-contact__link dv-catalog-contact__help';
-            floatingHelp.setAttribute('data-dv-floating-help', '');
-            floatingHelp.setAttribute('aria-label', 'Cómo comprar');
-            floatingHelp.setAttribute('title', 'Cómo comprar');
-            floatingHelp.hidden = true;
-            floatingHelp.innerHTML =
-                '<span aria-hidden="true">?</span>'
-                + '<span class="dv-catalog-contact__label">Cómo comprar</span>';
-            floatingHelp.addEventListener('click', openDialog);
-
-            floatingSeparator = document.createElement('span');
-            floatingSeparator.className = 'dv-catalog-contact__separator';
-            floatingSeparator.setAttribute('data-dv-floating-help-separator', '');
-            floatingSeparator.setAttribute('aria-hidden', 'true');
-            floatingSeparator.hidden = true;
-
-            dock.prepend(floatingSeparator);
-            dock.prepend(floatingHelp);
-        } else {
-            floatingSeparator = dock.querySelector(
-                '[data-dv-floating-help-separator]',
-            );
-        }
-
-        return floatingHelp;
-    };
-
-    const syncFloatingHelp = () => {
-        const help = ensureFloatingHelp();
-        if (!help) return;
-
-        const show =
-            window.scrollY > 180
-            && !document.documentElement.classList.contains('dv-cart-open');
-
-        help.hidden = !show;
-        if (floatingSeparator) floatingSeparator.hidden = !show;
-    };
-
-    const requestFloatingSync = () => {
-        if (scrollFrame) return;
-        scrollFrame = window.requestAnimationFrame(() => {
-            scrollFrame = 0;
-            syncFloatingHelp();
-        });
-    };
-
-    window.addEventListener('scroll', requestFloatingSync, { passive: true });
-    window.addEventListener('resize', requestFloatingSync);
-    document.addEventListener('dv-cart-visibility', requestFloatingSync);
-
-    window.addEventListener('DOMContentLoaded', () => {
-        syncFloatingHelp();
-    }, { once: true });
-
-    window.setTimeout(syncFloatingHelp, 0);
 
     if (!wasSeen()) {
         window.setTimeout(openDialog, 350);
