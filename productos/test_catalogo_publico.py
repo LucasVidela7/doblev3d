@@ -339,3 +339,31 @@ class CatalogoPublicoTests(TestCase):
         self.assertContains(response, "COMPOSICIÓN DEL KIT")
         self.assertContains(response, self.producto.nombre)
         self.assertContains(response, "1 unidad")
+
+
+    def test_catalogo_informa_como_comprar_y_retiro(self):
+        response = self.client.get(reverse("catalogo"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "¿Cómo comprar?")
+        self.assertContains(response, "¿Cómo realizar un pedido?")
+        self.assertContains(response, "Correo")
+        self.assertContains(response, "Motomensajería")
+        self.assertContains(response, "Retiro coordinado en domicilio")
+        self.assertContains(
+            response,
+            "La dirección exacta y el horario se informan al confirmar",
+        )
+        self.assertContains(
+            response,
+            "Cualquier costo de entrega",
+        )
+
+    def test_detalle_de_kit_reutiliza_modal_como_comprar(self):
+        response = self.client.get(
+            reverse("catalogo_kit_detalle", args=[self.kit.id])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "¿Cómo comprar?")
+        self.assertContains(response, "Entregas y retiro")
