@@ -18,6 +18,7 @@ class LoginRequiredMiddleware:
         "catalogo_legacy",
         "catalogo_kit_detalle",
         "catalogo_carrito",
+        "catalogo_carrito_precios",
         "catalogo_carrito_gracias",
         "catalogo_contacto",
     }
