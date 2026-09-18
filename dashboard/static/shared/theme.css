@@ -903,3 +903,292 @@ html[data-dv-theme="dark"] .cargando{
     color:var(--dv-text)!important;
     border-color:var(--dv-border)!important;
 }
+
+
+/* =========================================================
+   DARK MODE AUDIT 2 — componentes inyectados y contrastes residuales
+   ========================================================= */
+html[data-dv-theme="dark"]{
+    /* Alias semánticos usados por templates y middlewares antiguos. */
+    --green:var(--dv-success-soft);
+    --green-t:var(--dv-success-text);
+    --green-text:var(--dv-success-text);
+    --verde:var(--dv-success-soft);
+    --verde-t:var(--dv-success-text);
+    --verde-texto:var(--dv-success-text);
+
+    --yellow:var(--dv-warning-soft);
+    --yellow-t:var(--dv-warning-text);
+    --amarillo:var(--dv-warning-soft);
+    --amarillo-t:var(--dv-warning-text);
+    --amarillo-texto:var(--dv-warning-text);
+
+    --blue:var(--dv-brand-blue-soft);
+    --blue-t:var(--dv-accent-blue-text);
+    --azul:var(--dv-brand-blue-soft);
+    --azul-t:var(--dv-accent-blue-text);
+    --azul-texto:var(--dv-accent-blue-text);
+
+    --red:var(--dv-danger-soft);
+    --red-t:var(--dv-danger-text);
+    --rojo:var(--dv-danger-soft);
+    --rojo-t:var(--dv-danger-text);
+    --rojo-texto:var(--dv-danger-text);
+
+    --orange:#39291d;
+    --orange-t:#f4bf88;
+    --naranja:#39291d;
+    --naranja-texto:#f4bf88;
+
+    --violeta:var(--dv-purple-soft);
+    --violeta-texto:var(--dv-purple-text);
+}
+
+/* Planificación: métricas y filas que usan .metric en vez de .metrica. */
+html[data-dv-theme="dark"] .metric{
+    background:var(--dv-surface)!important;
+    border-color:var(--dv-border)!important;
+    color:var(--dv-text)!important;
+    box-shadow:var(--dv-shadow-soft)!important;
+}
+html[data-dv-theme="dark"] .metric-label,
+html[data-dv-theme="dark"] .metric-note,
+html[data-dv-theme="dark"] .section-help{
+    color:var(--dv-muted)!important;
+}
+html[data-dv-theme="dark"] .tabla-contenedor tbody tr{
+    background:var(--dv-surface)!important;
+    border-color:var(--dv-border)!important;
+    color:var(--dv-text)!important;
+}
+html[data-dv-theme="dark"] .tabla-contenedor tbody td,
+html[data-dv-theme="dark"] .tabla-contenedor tbody td.producto,
+html[data-dv-theme="dark"] .dv-planificar-celda{
+    background:var(--dv-surface-soft)!important;
+    border-color:var(--dv-border)!important;
+    color:var(--dv-text)!important;
+}
+html[data-dv-theme="dark"] .tabla-contenedor tbody td::before{
+    color:var(--dv-muted)!important;
+}
+
+/* Dashboard: panel de Producción generado desde dashboard/views.py. */
+html[data-dv-theme="dark"] .dv-maquina{
+    background:var(--dv-surface-soft)!important;
+    border-color:var(--dv-border)!important;
+    color:var(--dv-text)!important;
+}
+html[data-dv-theme="dark"] .dv-produccion-link{
+    color:var(--dv-accent-blue-text)!important;
+}
+html[data-dv-theme="dark"] .dv-produccion-link:hover{
+    color:#c6ddff!important;
+}
+html[data-dv-theme="dark"] .dv-maquina-meta,
+html[data-dv-theme="dark"] .dv-planificaciones-titulo,
+html[data-dv-theme="dark"] .dv-plan-meta,
+html[data-dv-theme="dark"] .dv-sin-produccion{
+    color:var(--dv-muted)!important;
+}
+html[data-dv-theme="dark"] .dv-maquina-estado.libre{
+    background:var(--dv-success-soft)!important;
+    color:var(--dv-success-text)!important;
+}
+html[data-dv-theme="dark"] .dv-maquina-estado.imprimiendo{
+    background:var(--dv-brand-blue-soft)!important;
+    color:var(--dv-accent-blue-text)!important;
+}
+html[data-dv-theme="dark"] .dv-btn-cancelar{
+    background:var(--dv-danger-soft)!important;
+    color:var(--dv-danger-text)!important;
+    border-color:color-mix(in srgb,var(--dv-danger-text) 28%,var(--dv-border))!important;
+}
+html[data-dv-theme="dark"] .dv-planificaciones,
+html[data-dv-theme="dark"] .dv-plan + .dv-plan{
+    border-color:var(--dv-border)!important;
+}
+html[data-dv-theme="dark"] .dv-plan-select{
+    background:#111827!important;
+    color:var(--dv-text)!important;
+    border-color:var(--dv-border)!important;
+}
+
+/* Detalle/edición de producto: galería inyectada por ProductImagesUIMiddleware. */
+html[data-dv-theme="dark"] .dv-producto-fotos{
+    background:var(--dv-surface)!important;
+    border-color:var(--dv-border)!important;
+    color:var(--dv-text)!important;
+}
+html[data-dv-theme="dark"] .dv-producto-fotos-title,
+html[data-dv-theme="dark"] .dv-fotos-sub,
+html[data-dv-theme="dark"] .dv-dropzone span{
+    color:var(--dv-muted)!important;
+}
+html[data-dv-theme="dark"] .dv-producto-fotos-link{
+    background:var(--dv-surface-soft)!important;
+    color:var(--dv-text)!important;
+    border-color:var(--dv-border)!important;
+}
+html[data-dv-theme="dark"] .dv-producto-foto,
+html[data-dv-theme="dark"] .dv-foto-slot{
+    background:var(--dv-surface-soft)!important;
+    border-color:var(--dv-border)!important;
+}
+html[data-dv-theme="dark"] .dv-producto-foto-vacia,
+html[data-dv-theme="dark"] .dv-foto-empty{
+    color:var(--dv-muted)!important;
+}
+html[data-dv-theme="dark"] .dv-fotos-count{
+    background:var(--dv-surface-muted)!important;
+    color:var(--dv-text)!important;
+}
+html[data-dv-theme="dark"] .dv-dropzone{
+    background:var(--dv-surface-soft)!important;
+    color:var(--dv-text)!important;
+    border-color:var(--dv-border)!important;
+}
+html[data-dv-theme="dark"] .dv-dropzone:not(.is-disabled):hover,
+html[data-dv-theme="dark"] .dv-dropzone.is-over{
+    background:var(--dv-surface-muted)!important;
+    border-color:var(--dv-accent-blue-text)!important;
+}
+html[data-dv-theme="dark"] .dv-dropzone.is-disabled{
+    background:var(--dv-surface-muted)!important;
+    color:var(--dv-muted)!important;
+}
+html[data-dv-theme="dark"] .dv-fotos-status.is-ok{
+    background:var(--dv-success-soft)!important;
+    color:var(--dv-success-text)!important;
+    border-color:color-mix(in srgb,var(--dv-success-text) 25%,var(--dv-border))!important;
+}
+html[data-dv-theme="dark"] .dv-fotos-status.is-error{
+    background:var(--dv-danger-soft)!important;
+    color:var(--dv-danger-text)!important;
+    border-color:color-mix(in srgb,var(--dv-danger-text) 25%,var(--dv-border))!important;
+}
+html[data-dv-theme="dark"] .dv-fotos-status.is-info{
+    background:var(--dv-brand-blue-soft)!important;
+    color:var(--dv-accent-blue-text)!important;
+    border-color:var(--dv-border)!important;
+}
+html[data-dv-theme="dark"] .dv-fotos-config-warning{
+    background:var(--dv-warning-soft)!important;
+    color:var(--dv-warning-text)!important;
+    border-color:color-mix(in srgb,var(--dv-warning-text) 25%,var(--dv-border))!important;
+}
+
+/* Producción/impresiones: componentes añadidos por middleware. */
+html[data-dv-theme="dark"] .dv-produccion-seccion-titulo,
+html[data-dv-theme="dark"] .dv-finalizadas-titulo{
+    color:var(--dv-text)!important;
+}
+html[data-dv-theme="dark"] .dv-finalizadas-subtitulo{
+    color:var(--dv-muted)!important;
+}
+html[data-dv-theme="dark"] .dv-produccion-chip,
+html[data-dv-theme="dark"] .dv-finalizadas-flecha{
+    background:var(--dv-surface-muted)!important;
+    color:var(--dv-text)!important;
+}
+html[data-dv-theme="dark"] .dv-produccion-chip.imprimiendo{
+    background:var(--dv-brand-blue-soft)!important;
+    color:var(--dv-accent-blue-text)!important;
+}
+html[data-dv-theme="dark"] .dv-produccion-chip.planificada{
+    background:var(--dv-warning-soft)!important;
+    color:var(--dv-warning-text)!important;
+}
+html[data-dv-theme="dark"] .dv-impresora-no-disponible{
+    background:var(--dv-danger-soft)!important;
+    color:var(--dv-danger-text)!important;
+}
+html[data-dv-theme="dark"] .dv-finalizadas{
+    background:var(--dv-surface)!important;
+    border-color:var(--dv-border)!important;
+}
+html[data-dv-theme="dark"] .dv-finalizadas > summary,
+html[data-dv-theme="dark"] .dv-finalizadas-cuerpo{
+    background:var(--dv-surface-soft)!important;
+    border-color:var(--dv-border)!important;
+}
+html[data-dv-theme="dark"] .dv-finalizadas-contador{
+    background:var(--dv-success-soft)!important;
+    color:var(--dv-success-text)!important;
+}
+
+/* Controles y bloques operativos generados dinámicamente. */
+html[data-dv-theme="dark"] .dv-tipo-nuevo,
+html[data-dv-theme="dark"] .dv-plan-details,
+html[data-dv-theme="dark"] .dv-plan-form,
+html[data-dv-theme="dark"] .dv-personalizados,
+html[data-dv-theme="dark"] .dv-kit-volumen-resumen,
+html[data-dv-theme="dark"] .dv-kit-economia,
+html[data-dv-theme="dark"] .dv-kit-price-box{
+    background:var(--dv-surface-soft)!important;
+    border-color:var(--dv-border)!important;
+    color:var(--dv-text)!important;
+}
+html[data-dv-theme="dark"] .dv-tipo-nuevo-btn,
+html[data-dv-theme="dark"] .dv-kit-auto-btn{
+    background:var(--dv-surface-soft)!important;
+    border-color:var(--dv-border)!important;
+    color:var(--dv-text)!important;
+}
+html[data-dv-theme="dark"] .dv-plan-campo label,
+html[data-dv-theme="dark"] .dv-personalizados-titulo,
+html[data-dv-theme="dark"] .dv-personalizado-meta,
+html[data-dv-theme="dark"] .dv-plan-vacio,
+html[data-dv-theme="dark"] .dv-kit-price-help{
+    color:var(--dv-muted)!important;
+}
+html[data-dv-theme="dark"] .dv-plan-chip{
+    background:var(--dv-surface-muted)!important;
+    color:var(--dv-text)!important;
+}
+html[data-dv-theme="dark"] .dv-plan-chip.activo{
+    background:var(--dv-brand-blue-soft)!important;
+    color:var(--dv-accent-blue-text)!important;
+}
+html[data-dv-theme="dark"] .dv-sin-piezas-aviso,
+html[data-dv-theme="dark"] .dv-tipo-estado{
+    background:var(--dv-brand-blue-soft)!important;
+    color:var(--dv-accent-blue-text)!important;
+}
+html[data-dv-theme="dark"] .dv-tipo-estado.error,
+html[data-dv-theme="dark"] .dv-kit-economia.dv-kit-alerta{
+    background:var(--dv-danger-soft)!important;
+    color:var(--dv-danger-text)!important;
+}
+
+/* Mensajes inyectados en impresiones. */
+html[data-dv-theme="dark"] .dv-impresiones-mensaje{
+    background:var(--dv-surface-soft)!important;
+    color:var(--dv-text)!important;
+    border-color:var(--dv-border)!important;
+}
+html[data-dv-theme="dark"] .dv-impresiones-mensaje.success{
+    background:var(--dv-success-soft)!important;
+    color:var(--dv-success-text)!important;
+}
+html[data-dv-theme="dark"] .dv-impresiones-mensaje.warning{
+    background:var(--dv-warning-soft)!important;
+    color:var(--dv-warning-text)!important;
+}
+html[data-dv-theme="dark"] .dv-impresiones-mensaje.error{
+    background:var(--dv-danger-soft)!important;
+    color:var(--dv-danger-text)!important;
+}
+
+/* Enlaces auxiliares del dashboard y navegación inyectada. */
+html[data-dv-theme="dark"] .dv-panel-ver-todo{
+    color:var(--dv-accent-blue-text)!important;
+}
+html[data-dv-theme="dark"] .dv-panel-ver-todo:hover{
+    color:#c6ddff!important;
+}
+html[data-dv-theme="dark"] .dv-nav-back,
+html[data-dv-theme="dark"] .dv-dashboard-logout{
+    background:var(--dv-surface-soft)!important;
+    color:var(--dv-text)!important;
+    border-color:var(--dv-border)!important;
+}
