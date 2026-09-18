@@ -83,6 +83,40 @@
     color:#79500e;
 }
 
+.dv-kit-precio-actual.protegido{
+    border:1px solid #b9d9c3;
+    background:#eef8f1;
+    color:#26653c;
+}
+
+.dv-kit-base-protegida{
+    margin-top:10px;
+    padding:12px;
+    border:1px solid #cfe0d4;
+    border-radius:12px;
+    background:#f5faf6;
+    color:#365b42;
+    font-size:9px;
+    line-height:1.5;
+}
+
+.dv-kit-base-protegida strong{
+    display:block;
+    margin-bottom:4px;
+    color:#26653c;
+    font-size:9px;
+}
+
+.dv-kit-base-protegida.alerta{
+    border-color:#edb3b3;
+    background:#fff5f5;
+    color:#7f4141;
+}
+
+.dv-kit-base-protegida.alerta strong{
+    color:#913434;
+}
+
 .dv-kit-opciones-rentabilidad{
     margin:0 0 12px;
     padding:12px;
