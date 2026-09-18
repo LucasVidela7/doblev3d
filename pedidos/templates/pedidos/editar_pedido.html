@@ -1034,23 +1034,56 @@ async function cargarKit(
 
         s.required = true;
 
+        const incluidos = data.productos.filter(
+            producto => producto.incluido
+        );
+        const premium = data.productos.filter(
+            producto => !producto.incluido
+        );
+
+        const opcionesIncluidas = incluidos.map(
+            p => `
+                <option
+                    value="${p.id}"
+                    data-extra="${p.extra || 0}"
+                    ${
+                        String(p.id)
+                        === String(seleccionados[n])
+                        ? "selected"
+                        : ""
+                    }
+                >
+                    ${p.codigo} · ${p.nombre}
+                </option>
+            `
+        ).join("");
+
+        const opcionesPremium = premium.map(
+            p => `
+                <option
+                    value="${p.id}"
+                    data-extra="${p.extra || 0}"
+                    ${
+                        String(p.id)
+                        === String(seleccionados[n])
+                        ? "selected"
+                        : ""
+                    }
+                >
+                    ${p.codigo} · ${p.nombre}
+                    · +${moneda(p.extra, 0)}
+                </option>
+            `
+        ).join("");
+
         s.innerHTML =
             '<option value="">Seleccionar...</option>'
-            + data.productos.map(
-                p => `
-                    <option
-                        value="${p.id}"
-                        ${
-                            String(p.id)
-                            === String(seleccionados[n])
-                            ? "selected"
-                            : ""
-                        }
-                    >
-                        ${p.nombre}
-                    </option>
-                `
-            ).join("");
+            + (opcionesIncluidas
+                ? `<optgroup label="Incluidos en el kit">${opcionesIncluidas}</optgroup>`
+                : "")
+            + (opcionesPremium
+                ? `<optgroup label="Premium con adicional">${opcionesPremium}</optgroup>`
+                : "");
 
         caja.appendChild(s);
     }
