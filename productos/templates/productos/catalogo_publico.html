@@ -419,6 +419,29 @@
             letter-spacing: -.02em;
         }
 
+        .catalog-detail-link {
+            flex: 0 0 auto;
+            min-height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 12px;
+            border: 1px solid rgba(19, 74, 154, .18);
+            border-radius: 12px;
+            background: var(--brand-blue-soft);
+            color: var(--brand-blue-strong);
+            text-decoration: none;
+            font-size: .78rem;
+            font-weight: 850;
+            transition: .18s ease;
+        }
+
+        .catalog-detail-link:hover {
+            border-color: var(--brand-blue);
+            background: var(--brand-blue);
+            color: #fff;
+        }
+
         .mini-list {
             display: flex;
             flex-wrap: wrap;
@@ -701,6 +724,13 @@
                                             <span class="price">Consultar</span>
                                         {% endif %}
                                     </div>
+                                    <a
+                                        class="catalog-detail-link"
+                                        href="{% url 'catalogo_kit_detalle' kit.id %}"
+                                        aria-label="Ver detalle de {{ kit.nombre }}"
+                                    >
+                                        VER DETALLE
+                                    </a>
                                 </div>
                             </div>
                         </article>
