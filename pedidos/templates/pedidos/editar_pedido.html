@@ -467,35 +467,7 @@ textarea{
 </div>
 
 
-<nav class="nav">
-    <a href="{% url 'dashboard:inicio' %}">
-        <b>⌂</b>
-        INICIO
-    </a>
-
-    <a
-        href="{% url 'pedidos:impresiones' %}"
-        class="activo"
-    >
-        <b>📦</b>
-        PEDIDOS
-    </a>
-
-    <a href="{% url 'pedidos:nuevo' %}">
-        <b>＋</b>
-        NUEVO
-    </a>
-
-    <a href="{% url 'produccion:lista' %}">
-        <b>⚙</b>
-        PRODUCCIÓN
-    </a>
-
-    <a href="{% url 'productos:lista' %}">
-        <b>▦</b>
-        PRODUCTOS
-    </a>
-</nav>
+{% include "shared/navigation.html" %}
 
 
 {{ items_iniciales|json_script:"items-iniciales" }}
