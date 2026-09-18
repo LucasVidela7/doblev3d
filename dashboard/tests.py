@@ -6,6 +6,8 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from clientes.models import Cliente
+from pedidos.models import DetallePresupuesto, Presupuesto
 from produccion.models import Impresora, Produccion
 from productos.models import Producto, TipoProducto
 
@@ -87,6 +89,54 @@ class DashboardProduccionTests(TestCase):
         self.assertContains(
             respuesta,
             "376.5 g",
+        )
+
+    def test_barra_resume_presupuestos_y_operacion(self):
+        cliente = Cliente.objects.create(
+            nombre="Cliente dashboard presupuesto",
+            activo=True,
+        )
+        presupuesto = Presupuesto.objects.create(
+            cliente=cliente,
+            estado="PENDIENTE",
+        )
+        DetallePresupuesto.objects.create(
+            presupuesto=presupuesto,
+            tipo_item="PRODUCTO",
+            producto=self.producto,
+            cantidad=2,
+            precio_lista_unitario=Decimal("5000"),
+            precio_unitario=Decimal("4500"),
+        )
+
+        respuesta = self.client.get(
+            reverse("dashboard:inicio")
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(
+            respuesta.context["presupuestos_pendientes"],
+            1,
+        )
+        self.assertEqual(
+            respuesta.context["monto_presupuestado_pendiente"],
+            Decimal("9000"),
+        )
+        self.assertContains(
+            respuesta,
+            "PRESUPUESTOS PENDIENTES",
+        )
+        self.assertContains(
+            respuesta,
+            "PLANIFICACIÓN",
+        )
+        self.assertContains(
+            respuesta,
+            "LISTOS / ENTREGAS",
+        )
+        self.assertNotContains(
+            respuesta,
+            ">ATRASADOS<",
         )
 
     def test_dashboard_puede_iniciar_planificacion(self):
