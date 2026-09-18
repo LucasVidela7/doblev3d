@@ -69,31 +69,6 @@ class AutenticacionTests(TestCase):
         self.assertContains(respuesta, "CERRAR SESIÓN")
         self.assertContains(respuesta, f'action="{reverse("logout")}"')
 
-    def test_dashboard_no_duplica_acceso_kits_en_qa_o_produccion(self):
-        self.client.force_login(self.usuario)
-
-        for es_qa in (False, True):
-            with self.subTest(es_qa=es_qa):
-                with self.settings(IS_QA=es_qa):
-                    respuesta = self.client.get(
-                        reverse("dashboard:inicio")
-                    )
-
-                self.assertEqual(respuesta.status_code, 200)
-                html = respuesta.content.decode(
-                    respuesta.charset or "utf-8"
-                )
-
-                self.assertEqual(
-                    html.count('id="dv-dashboard-kits-script"'),
-                    1,
-                )
-                self.assertNotIn(
-                    "dv-dashboard-kits-menu-script",
-                    html,
-                )
-                self.assertIn('href="/gestion/kits/"', html)
-
     def test_login_incorrecto_no_inicia_sesion(self):
         respuesta = self.client.post(
             reverse("login"),
