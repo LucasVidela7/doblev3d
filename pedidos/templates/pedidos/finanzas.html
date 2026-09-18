@@ -587,6 +587,171 @@
             }
         }
 
+
+        .fin-toolbar{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+            margin-bottom:12px;
+            padding:10px;
+            border:1px solid var(--borde);
+            border-radius:15px;
+            background:rgba(255,255,255,.92);
+            box-shadow:var(--sombra);
+            position:sticky;
+            top:8px;
+            z-index:40;
+            backdrop-filter:blur(12px);
+        }
+        .fin-tabs,.fin-actions{
+            display:flex;
+            align-items:center;
+            gap:6px;
+            flex-wrap:wrap;
+        }
+        .fin-tab{
+            min-height:36px;
+            display:inline-flex;
+            align-items:center;
+            padding:0 10px;
+            border-radius:9px;
+            color:#5e6570;
+            text-decoration:none;
+            font-size:9px;
+            font-weight:900;
+        }
+        .fin-tab:hover{background:#f1f3f5;color:var(--texto)}
+        .fin-action{
+            min-height:38px;
+            padding:0 11px;
+            border:1px solid var(--borde);
+            border-radius:10px;
+            background:#fff;
+            color:var(--texto);
+            font-size:9px;
+            font-weight:900;
+            cursor:pointer;
+        }
+        .fin-action.primary{background:#24272c;border-color:#24272c;color:#fff}
+        .fin-action.negative{background:var(--rojo-bg);border-color:#f0cccc;color:var(--rojo)}
+        .caja-atajo{
+            padding:17px;
+            border:1px solid var(--borde);
+            border-radius:18px;
+            background:white;
+            box-shadow:var(--sombra);
+        }
+        .caja-atajo .boton{width:100%;margin-top:12px}
+        .cobros-layout{
+            display:grid;
+            grid-template-columns:minmax(0,1.45fr) minmax(270px,.55fr);
+            gap:12px;
+            align-items:start;
+        }
+        .cobro-resumen{
+            display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:8px;
+            margin-bottom:10px;
+        }
+        .cobro-mini{
+            padding:11px;
+            border:1px solid var(--borde);
+            border-radius:12px;
+            background:#f8f9fa;
+        }
+        .cobro-mini span{display:block;color:var(--muted);font-size:8px;font-weight:900}
+        .cobro-mini strong{display:block;margin-top:4px;font-size:16px}
+        .cobro-accion{
+            min-height:31px;
+            padding:0 9px;
+            border:0;
+            border-radius:8px;
+            background:#24272c;
+            color:#fff;
+            font-size:8px;
+            font-weight:900;
+            cursor:pointer;
+        }
+        .pagos-recientes{display:grid;gap:0}
+        .pago-reciente{padding:11px 0;border-bottom:1px solid #edf0f2}
+        .pago-reciente:last-child{border-bottom:0}
+        .pago-reciente-top{display:flex;justify-content:space-between;gap:8px;font-size:10px;font-weight:900}
+        .pago-reciente-meta{margin-top:4px;color:var(--muted);font-size:8px;line-height:1.4}
+        .modal-fin{
+            position:fixed;
+            inset:0;
+            z-index:200;
+            display:none;
+            align-items:center;
+            justify-content:center;
+            padding:18px;
+            background:rgba(20,24,30,.48);
+            backdrop-filter:blur(4px);
+        }
+        .modal-fin.abierto{display:flex}
+        .modal-fin-dialog{
+            width:min(620px,100%);
+            max-height:min(88vh,760px);
+            overflow:auto;
+            border:1px solid var(--borde);
+            border-radius:18px;
+            background:#fff;
+            box-shadow:0 25px 70px rgba(0,0,0,.24);
+        }
+        .modal-fin-head{
+            position:sticky;
+            top:0;
+            z-index:2;
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap:12px;
+            padding:15px 16px;
+            border-bottom:1px solid var(--borde);
+            background:#fff;
+        }
+        .modal-fin-title{font-size:16px;font-weight:900}
+        .modal-fin-sub{margin-top:3px;color:var(--muted);font-size:9px;line-height:1.4}
+        .modal-fin-close{
+            width:34px;height:34px;border:1px solid var(--borde);border-radius:10px;
+            background:#fff;font-size:18px;cursor:pointer
+        }
+        .modal-fin-body{padding:16px}
+        .modal-fin-actions{
+            display:flex;
+            justify-content:flex-end;
+            gap:7px;
+            margin-top:14px;
+        }
+        .modal-fin-actions .boton{min-width:120px}
+        .saldo-cobro{
+            display:flex;
+            justify-content:space-between;
+            gap:10px;
+            align-items:center;
+            margin:10px 0 14px;
+            padding:11px 12px;
+            border-radius:11px;
+            background:#f5f6f8;
+        }
+        .saldo-cobro span{color:var(--muted);font-size:9px;font-weight:900}
+        .saldo-cobro strong{font-size:19px}
+        .accion-vacia{opacity:.45;pointer-events:none}
+        @media(max-width:980px){
+            .fin-toolbar{position:static;align-items:flex-start;flex-direction:column}
+            .cobros-layout{grid-template-columns:1fr}
+        }
+        @media(max-width:650px){
+            .fin-tabs,.fin-actions{width:100%;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
+            .fin-tabs::-webkit-scrollbar,.fin-actions::-webkit-scrollbar{display:none}
+            .fin-tab,.fin-action{flex:0 0 auto}
+            .cobro-resumen{grid-template-columns:1fr}
+            .modal-fin{padding:8px;align-items:flex-end}
+            .modal-fin-dialog{max-height:92vh;border-radius:18px 18px 10px 10px}
+        }
+
 </style>
 </head>
 
@@ -598,7 +763,7 @@
         <div class="encabezado-marca">{% include 'shared/brand_bar.html' %}
             <h1>Finanzas</h1>
             <div class="subtitulo">
-                Rentabilidad, caja, gastos, cuotas e inversión
+                Cobros, caja, gastos, rentabilidad e inversión
             </div>
         </div>
 
@@ -629,6 +794,25 @@
         </div>
     {% endif %}
 
+    <div class="fin-toolbar">
+        <div class="fin-tabs" aria-label="Secciones de Finanzas">
+            <a class="fin-tab" href="#resumen">RESUMEN</a>
+            <a class="fin-tab" href="#cobros">COBROS</a>
+            <a class="fin-tab" href="#gastos">GASTOS</a>
+            <a class="fin-tab" href="#rentabilidad">RENTABILIDAD</a>
+        </div>
+        <div class="fin-actions">
+            <button
+                type="button"
+                class="fin-action primary {% if not cobros_pendientes %}accion-vacia{% endif %}"
+                onclick="abrirCobro()"
+                {% if not cobros_pendientes %}disabled{% endif %}
+            >+ REGISTRAR COBRO</button>
+            <button type="button" class="fin-action" onclick="abrirModalFin('modalGasto')">+ GASTO / INVERSIÓN</button>
+            <button type="button" class="fin-action" onclick="abrirModalFin('modalCaja')">CONCILIAR CAJA</button>
+        </div>
+    </div>
+
     <form
         method="get"
         class="filtro-periodo"
@@ -652,7 +836,7 @@
 
 
     <!-- CAJA MERCADO PAGO -->
-    <section class="seccion">
+    <section class="seccion" id="resumen">
         <div class="seccion-cabecera">
             <div>
                 <h2>Caja Mercado Pago</h2>
@@ -736,54 +920,109 @@
                 </div>
             </div>
 
-            <div class="caja-form">
-                <h3>Actualizar saldo real</h3>
+            <div class="caja-atajo">
+                <h3>Conciliación de caja</h3>
                 <div class="subtitulo">
-                    Ingresá exactamente el saldo que ves ahora en Mercado Pago.
-                    Este valor se convierte en el nuevo punto de conciliación.
+                    Actualizá el saldo real de Mercado Pago sólo cuando quieras fijar un nuevo punto de control.
                 </div>
-
-                <form
-                    method="post"
-                    action="{% url 'pedidos:actualizar_saldo_caja' %}"
-                >
-                    {% csrf_token %}
-
-                    <input
-                        type="hidden"
-                        name="periodo"
-                        value="{{ periodo }}"
-                    >
-
-                    <div class="campo" style="margin-top:12px">
-                        <label>SALDO ACTUAL MERCADO PAGO</label>
-                        <input
-                            type="number"
-                            name="saldo_real"
-                            min="0"
-                            step="0.01"
-                            placeholder="0"
-                            required
-                        >
-                    </div>
-
-                    <div class="campo" style="margin-top:10px">
-                        <label>NOTA</label>
-                        <input
-                            type="text"
-                            name="observaciones"
-                            placeholder="Ej: conciliación de hoy"
-                        >
-                    </div>
-
-                    <button
-                        type="submit"
-                        class="boton boton-principal"
-                    >
-                        ACTUALIZAR CAJA
-                    </button>
-                </form>
+                <button type="button" class="boton" onclick="abrirModalFin('modalCaja')">
+                    ACTUALIZAR SALDO REAL
+                </button>
             </div>
+        </div>
+    </section>
+
+
+    <!-- COBROS Y SALDOS -->
+    <section class="seccion" id="cobros">
+        <div class="seccion-cabecera">
+            <div>
+                <h2>Cobros y saldos</h2>
+                <div class="seccion-ayuda">
+                    Saldos vigentes de pedidos. Independiente del período seleccionado arriba.
+                </div>
+            </div>
+        </div>
+
+        <div class="cobro-resumen">
+            <div class="cobro-mini">
+                <span>COBRADO HOY</span>
+                <strong class="positivo">$ {{ cobrado_hoy|floatformat:"0g" }}</strong>
+            </div>
+            <div class="cobro-mini">
+                <span>SALDO A COBRAR</span>
+                <strong>$ {{ saldo_total_actual|floatformat:"0g" }}</strong>
+            </div>
+            <div class="cobro-mini">
+                <span>PEDIDOS CON SALDO</span>
+                <strong>{{ pedidos_con_saldo_actual }}</strong>
+            </div>
+        </div>
+
+        <div class="cobros-layout">
+            <div class="panel">
+                <div class="panel-cabecera">
+                    <h3>Cobros pendientes</h3>
+                    <div class="subtitulo">Registrá pagos sin salir de Finanzas.</div>
+                </div>
+                {% if cobros_pendientes %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>PEDIDO</th>
+                                <th>CLIENTE</th>
+                                <th class="numero">TOTAL</th>
+                                <th class="numero">PAGADO</th>
+                                <th class="numero">SALDO</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in cobros_pendientes %}
+                                <tr>
+                                    <td data-label="PEDIDO" class="codigo">{{ item.pedido.codigo }}</td>
+                                    <td data-label="CLIENTE">{{ item.pedido.cliente.nombre }}</td>
+                                    <td data-label="TOTAL" class="numero">$ {{ item.total|floatformat:"0g" }}</td>
+                                    <td data-label="PAGADO" class="numero positivo">$ {{ item.pagado|floatformat:"0g" }}</td>
+                                    <td data-label="SALDO" class="numero"><strong>$ {{ item.saldo|floatformat:"0g" }}</strong></td>
+                                    <td data-label="ACCIÓN">
+                                        <button
+                                            type="button"
+                                            class="cobro-accion"
+                                            data-pedido="{{ item.pedido.id }}"
+                                            onclick="abrirCobro(this)"
+                                        >REGISTRAR</button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="vacio">No hay saldos pendientes de cobro.</div>
+                {% endif %}
+            </div>
+
+            <aside class="panel">
+                <div class="panel-cabecera">
+                    <h3>Últimos cobros</h3>
+                </div>
+                <div class="panel-cuerpo pagos-recientes">
+                    {% for pago in ultimos_pagos %}
+                        <div class="pago-reciente">
+                            <div class="pago-reciente-top">
+                                <span>{{ pago.pedido.codigo }}</span>
+                                <span class="positivo">+$ {{ pago.monto|floatformat:"0g" }}</span>
+                            </div>
+                            <div class="pago-reciente-meta">
+                                {{ pago.pedido.cliente.nombre }} · {{ pago.get_medio_display }}<br>
+                                {{ pago.fecha|date:"d/m/Y H:i" }}
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="vacio">Todavía no hay cobros registrados.</div>
+                    {% endfor %}
+                </div>
+            </aside>
         </div>
     </section>
 
@@ -1075,148 +1314,8 @@
     </section>
 
 
-    <!-- REGISTRAR GASTO -->
-    <section class="seccion">
-        <div class="panel">
-            <div class="panel-cabecera">
-                <h2>Registrar gasto o inversión</h2>
-                <div class="subtitulo">
-                    Si pagás con tarjeta, se genera automáticamente el calendario de cuotas.
-                </div>
-            </div>
-
-            <div class="panel-cuerpo">
-                <form
-                    method="post"
-                    action="{% url 'pedidos:registrar_gasto' %}"
-                    id="form-gasto"
-                >
-                    {% csrf_token %}
-
-                    <div class="form-grid">
-                        <div class="campo">
-                            <label>FECHA DE COMPRA</label>
-                            <input
-                                type="date"
-                                name="fecha_compra"
-                                value="{{ hoy|date:'Y-m-d' }}"
-                                required
-                            >
-                        </div>
-
-                        <div class="campo">
-                            <label>TIPO</label>
-                            <select name="tipo" required>
-                                {% for valor, etiqueta in tipos_gasto %}
-                                    <option value="{{ valor }}">
-                                        {{ etiqueta }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="campo">
-                            <label>CATEGORÍA</label>
-                            <select name="categoria" required>
-                                {% for valor, etiqueta in categorias_gasto %}
-                                    <option value="{{ valor }}">
-                                        {{ etiqueta }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="campo">
-                            <label>MEDIO DE PAGO</label>
-                            <select
-                                name="medio_pago"
-                                id="medio_pago"
-                                required
-                            >
-                                {% for valor, etiqueta in medios_gasto %}
-                                    <option value="{{ valor }}">
-                                        {{ etiqueta }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="campo ancho">
-                            <label>DESCRIPCIÓN</label>
-                            <input
-                                type="text"
-                                name="descripcion"
-                                placeholder="Ej: 6 kg PLA / Bambu A1 / cajas para envíos"
-                                required
-                            >
-                        </div>
-
-                        <div class="campo">
-                            <label>MONTO TOTAL</label>
-                            <input
-                                type="number"
-                                name="monto_total"
-                                min="0.01"
-                                step="0.01"
-                                placeholder="0"
-                                required
-                            >
-                        </div>
-
-                        <div
-                            class="campo"
-                            id="campo-cuotas"
-                            style="display:none"
-                        >
-                            <label>CANTIDAD DE CUOTAS</label>
-                            <input
-                                type="number"
-                                name="cantidad_cuotas"
-                                id="cantidad_cuotas"
-                                min="1"
-                                max="36"
-                                value="1"
-                            >
-                        </div>
-
-                        <div
-                            class="campo"
-                            id="campo-primera-cuota"
-                            style="display:none"
-                        >
-                            <label>VENCIMIENTO PRIMERA CUOTA</label>
-                            <input
-                                type="date"
-                                name="fecha_primera_cuota"
-                                id="fecha_primera_cuota"
-                            >
-                        </div>
-
-                        <div class="campo ancho">
-                            <label>OBSERVACIONES</label>
-                            <textarea
-                                name="observaciones"
-                                placeholder="Opcional: tarjeta utilizada, proveedor, detalle de la compra..."
-                            ></textarea>
-                        </div>
-                    </div>
-
-                    <div style="margin-top:12px">
-                        <button
-                            type="submit"
-                            class="boton boton-principal"
-                        >
-                            + REGISTRAR GASTO
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </section>
-
-
     <!-- HISTORIAL DE GASTOS DEL PERÍODO -->
-    <section class="seccion">
+    <section class="seccion" id="gastos">
         <div class="panel">
             <div class="panel-cabecera">
                 <h2>Gastos e inversiones del período</h2>
@@ -1397,7 +1496,7 @@
 
 
     <!-- RENTABILIDAD POR PEDIDO -->
-    <section class="seccion">
+    <section class="seccion" id="rentabilidad">
         <div class="panel">
             <div class="panel-cabecera">
                 <h2>Rentabilidad por pedido</h2>
@@ -1483,6 +1582,166 @@
 </div>
 
 
+<!-- MODALES FINANCIEROS -->
+<div class="modal-fin" id="modalCobro" aria-hidden="true" onclick="cerrarModalDesdeFondo(event,'modalCobro')">
+    <div class="modal-fin-dialog" role="dialog" aria-modal="true" aria-labelledby="tituloCobro">
+        <div class="modal-fin-head">
+            <div>
+                <div class="modal-fin-title" id="tituloCobro">Registrar cobro</div>
+                <div class="modal-fin-sub">Seleccioná el pedido y registrá el ingreso recibido.</div>
+            </div>
+            <button class="modal-fin-close" type="button" onclick="cerrarModalFin('modalCobro')">×</button>
+        </div>
+        <div class="modal-fin-body">
+            <form id="formCobro" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="origen" value="finanzas">
+                <input type="hidden" name="periodo" value="{{ periodo }}">
+
+                <div class="campo">
+                    <label>PEDIDO / CLIENTE</label>
+                    <select id="pedidoCobro" required onchange="actualizarCobroSeleccionado()">
+                        {% for item in cobros_pendientes %}
+                            <option
+                                value="{{ item.pedido.id }}"
+                                data-url="{% url 'pedidos:registrar_pago' item.pedido.id %}"
+                                data-saldo="{{ item.saldo }}"
+                            >
+                                {{ item.pedido.codigo }} · {{ item.pedido.cliente.nombre }} · saldo $ {{ item.saldo|floatformat:"0g" }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="saldo-cobro">
+                    <span>SALDO PENDIENTE</span>
+                    <strong id="saldoCobro">$ 0</strong>
+                </div>
+
+                <div class="form-grid">
+                    <div class="campo">
+                        <label>MONTO</label>
+                        <input id="montoCobro" name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required>
+                    </div>
+                    <div class="campo">
+                        <label>MEDIO DE PAGO</label>
+                        <select name="medio" required>
+                            {% for valor, etiqueta in medios_pago %}
+                                <option value="{{ valor }}">{{ etiqueta }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="campo ancho">
+                        <label>OBSERVACIONES</label>
+                        <textarea name="observaciones" maxlength="250" placeholder="Opcional"></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-fin-actions">
+                    <button class="boton" type="button" onclick="cerrarModalFin('modalCobro')">CANCELAR</button>
+                    <button class="boton boton-principal" type="submit">GUARDAR COBRO</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal-fin" id="modalGasto" aria-hidden="true" onclick="cerrarModalDesdeFondo(event,'modalGasto')">
+    <div class="modal-fin-dialog" role="dialog" aria-modal="true" aria-labelledby="tituloGasto">
+        <div class="modal-fin-head">
+            <div>
+                <div class="modal-fin-title" id="tituloGasto">Registrar gasto o inversión</div>
+                <div class="modal-fin-sub">Si usás tarjeta se genera automáticamente el calendario de cuotas.</div>
+            </div>
+            <button class="modal-fin-close" type="button" onclick="cerrarModalFin('modalGasto')">×</button>
+        </div>
+        <div class="modal-fin-body">
+            <form method="post" action="{% url 'pedidos:registrar_gasto' %}" id="form-gasto">
+                {% csrf_token %}
+                <div class="form-grid">
+                    <div class="campo">
+                        <label>FECHA DE COMPRA</label>
+                        <input type="date" name="fecha_compra" value="{{ hoy|date:'Y-m-d' }}" required>
+                    </div>
+                    <div class="campo">
+                        <label>TIPO</label>
+                        <select name="tipo" required>
+                            {% for valor, etiqueta in tipos_gasto %}<option value="{{ valor }}">{{ etiqueta }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label>CATEGORÍA</label>
+                        <select name="categoria" required>
+                            {% for valor, etiqueta in categorias_gasto %}<option value="{{ valor }}">{{ etiqueta }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label>MEDIO DE PAGO</label>
+                        <select name="medio_pago" id="medio_pago" required>
+                            {% for valor, etiqueta in medios_gasto %}<option value="{{ valor }}">{{ etiqueta }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="campo ancho">
+                        <label>DESCRIPCIÓN</label>
+                        <input type="text" name="descripcion" placeholder="Ej: 6 kg PLA / Bambu A1 / cajas para envíos" required>
+                    </div>
+                    <div class="campo">
+                        <label>MONTO TOTAL</label>
+                        <input type="number" name="monto_total" min="0.01" step="0.01" placeholder="0" required>
+                    </div>
+                    <div class="campo" id="campo-cuotas" style="display:none">
+                        <label>CANTIDAD DE CUOTAS</label>
+                        <input type="number" name="cantidad_cuotas" id="cantidad_cuotas" min="1" max="36" value="1">
+                    </div>
+                    <div class="campo" id="campo-primera-cuota" style="display:none">
+                        <label>VENCIMIENTO PRIMERA CUOTA</label>
+                        <input type="date" name="fecha_primera_cuota" id="fecha_primera_cuota">
+                    </div>
+                    <div class="campo ancho">
+                        <label>OBSERVACIONES</label>
+                        <textarea name="observaciones" placeholder="Opcional: tarjeta utilizada, proveedor, detalle de la compra..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-fin-actions">
+                    <button class="boton" type="button" onclick="cerrarModalFin('modalGasto')">CANCELAR</button>
+                    <button class="boton boton-principal" type="submit">REGISTRAR GASTO</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal-fin" id="modalCaja" aria-hidden="true" onclick="cerrarModalDesdeFondo(event,'modalCaja')">
+    <div class="modal-fin-dialog" role="dialog" aria-modal="true" aria-labelledby="tituloCaja">
+        <div class="modal-fin-head">
+            <div>
+                <div class="modal-fin-title" id="tituloCaja">Conciliar caja</div>
+                <div class="modal-fin-sub">Ingresá el saldo real que ves en Mercado Pago. Ese valor pasa a ser el nuevo punto cero.</div>
+            </div>
+            <button class="modal-fin-close" type="button" onclick="cerrarModalFin('modalCaja')">×</button>
+        </div>
+        <div class="modal-fin-body">
+            <form method="post" action="{% url 'pedidos:actualizar_saldo_caja' %}">
+                {% csrf_token %}
+                <input type="hidden" name="periodo" value="{{ periodo }}">
+                <div class="campo">
+                    <label>SALDO ACTUAL MERCADO PAGO</label>
+                    <input type="number" name="saldo_real" min="0" step="0.01" placeholder="0" required>
+                </div>
+                <div class="campo" style="margin-top:10px">
+                    <label>NOTA</label>
+                    <input type="text" name="observaciones" placeholder="Ej: conciliación de hoy">
+                </div>
+                <div class="modal-fin-actions">
+                    <button class="boton" type="button" onclick="cerrarModalFin('modalCaja')">CANCELAR</button>
+                    <button class="boton boton-principal" type="submit">ACTUALIZAR CAJA</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
 <nav class="nav-inferior">
     <a href="{% url 'dashboard:inicio' %}" class="nav-item">
         <span>⌂</span>
@@ -1512,6 +1771,65 @@
 
 
 <script>
+    function abrirModalFin(id){
+        const modal=document.getElementById(id);
+        if(!modal) return;
+        modal.classList.add("abierto");
+        modal.setAttribute("aria-hidden","false");
+        document.body.style.overflow="hidden";
+    }
+
+    function cerrarModalFin(id){
+        const modal=document.getElementById(id);
+        if(!modal) return;
+        modal.classList.remove("abierto");
+        modal.setAttribute("aria-hidden","true");
+        if(!document.querySelector(".modal-fin.abierto")){
+            document.body.style.overflow="";
+        }
+    }
+
+    function cerrarModalDesdeFondo(event,id){
+        if(event.target.id===id) cerrarModalFin(id);
+    }
+
+    function actualizarCobroSeleccionado(){
+        const select=document.getElementById("pedidoCobro");
+        const form=document.getElementById("formCobro");
+        const monto=document.getElementById("montoCobro");
+        const saldoTexto=document.getElementById("saldoCobro");
+        if(!select || !select.options.length || !form) return;
+
+        const option=select.options[select.selectedIndex];
+        const saldo=Number(String(option.dataset.saldo||"0").replace(",","."));
+        form.action=option.dataset.url||"";
+        monto.value=saldo>0?saldo.toFixed(2):"";
+        monto.max=saldo>0?saldo.toFixed(2):"";
+        saldoTexto.textContent="$ "+saldo.toLocaleString("es-AR");
+    }
+
+    function abrirCobro(boton){
+        const select=document.getElementById("pedidoCobro");
+        if(!select || !select.options.length) return;
+
+        if(boton && boton.dataset.pedido){
+            select.value=boton.dataset.pedido;
+        }
+        actualizarCobroSeleccionado();
+        abrirModalFin("modalCobro");
+        setTimeout(function(){
+            const monto=document.getElementById("montoCobro");
+            if(monto){monto.focus();monto.select();}
+        },50);
+    }
+
+    document.addEventListener("keydown",function(event){
+        if(event.key!=="Escape") return;
+        document.querySelectorAll(".modal-fin.abierto").forEach(function(modal){
+            cerrarModalFin(modal.id);
+        });
+    });
+
     const medioPago =
         document.getElementById("medio_pago");
 
