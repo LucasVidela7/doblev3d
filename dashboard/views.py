@@ -10,7 +10,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
-from pedidos.models import Pedido, Pago
+from pedidos.models import Pedido, Pago, Presupuesto
 from produccion import views as produccion_views
 from produccion.models import Impresora, Produccion
 from productos.models import Producto
@@ -704,6 +704,33 @@ def inicio(request):
     )
 
     # ==========================================================
+    # PRESUPUESTOS
+    # ==========================================================
+
+    presupuestos_pendientes_qs = (
+        Presupuesto.objects
+        .filter(estado="PENDIENTE")
+        .prefetch_related("detalles")
+        .order_by("-id")
+    )
+
+    presupuestos_pendientes_lista = list(
+        presupuestos_pendientes_qs
+    )
+
+    presupuestos_pendientes = len(
+        presupuestos_pendientes_lista
+    )
+
+    monto_presupuestado_pendiente = sum(
+        (
+            presupuesto.total
+            for presupuesto in presupuestos_pendientes_lista
+        ),
+        Decimal("0"),
+    )
+
+    # ==========================================================
     # PAGOS
     # ==========================================================
 
@@ -760,6 +787,8 @@ def inicio(request):
             "saldo_a_cobrar": saldo_a_cobrar,
             "pedidos_con_saldo": pedidos_con_saldo,
             "cobrado_mes": cobrado_mes,
+            "presupuestos_pendientes": presupuestos_pendientes,
+            "monto_presupuestado_pendiente": monto_presupuestado_pendiente,
         },
     )
 
