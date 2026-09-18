@@ -1,3 +1,3 @@
-Deploy QA: modal como comprar y entregas informativas
-Base: 55bbcac96cacee8f1bb46c2a7fa286a75620b93c
-Incluye: flujo de pedido, correo, motomensajería y retiro coordinado
+Deploy QA: modal como comprar visual
+Base: 436999d13784bef27f76d44683729d50052181aa
+Incluye: iconos, lectura rapida, entregas visuales y menos texto
