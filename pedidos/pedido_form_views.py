@@ -700,15 +700,7 @@ def editar_pedido(request, pedido_id):
                 activo=True,
             )
 
-            try:
-                precio_unitario, precio_manual = _precio_kit_desde_post(
-                    request, indice, kit
-                )
-            except ValueError as error:
-                messages.error(request, str(error))
-                transaction.set_rollback(True)
-                return redirect("pedidos:editar", pedido_id=pedido.id)
-
+            productos_libres = None
             componentes = None
             anterior = detalles_por_id.get(detalle_id)
 
@@ -752,16 +744,31 @@ def editar_pedido(request, pedido_id):
                     transaction.set_rollback(True)
                     return redirect("pedidos:editar", pedido_id=pedido.id)
 
+                productos_libres = []
                 agrupados = defaultdict(int)
                 for producto_id in ids:
                     producto = get_object_or_404(
                         Producto,
                         id=producto_id,
                         activo=True,
+                        solo_produccion=False,
                         tipo=kit.tipo_producto,
                     )
+                    productos_libres.append(producto)
                     agrupados[producto.id] += cantidad
                 componentes = dict(agrupados)
+
+            try:
+                precio_unitario, precio_manual = _precio_kit_desde_post(
+                    request,
+                    indice,
+                    kit,
+                    productos_libres=productos_libres,
+                )
+            except ValueError as error:
+                messages.error(request, str(error))
+                transaction.set_rollback(True)
+                return redirect("pedidos:editar", pedido_id=pedido.id)
 
             nuevos_items.append(
                 {
