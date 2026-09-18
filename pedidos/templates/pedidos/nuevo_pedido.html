@@ -2004,12 +2004,35 @@ button{font-family:Arial,sans-serif}
                 campo.className =
                     "componente-kit";
 
-                const opciones =
-                    data.productos
+                const incluidos = data.productos.filter(
+                    producto => producto.incluido
+                );
+                const premium = data.productos.filter(
+                    producto => !producto.incluido
+                );
+
+                const opcionesIncluidas = incluidos
                     .map(
                         producto => `
-                            <option value="${producto.id}">
+                            <option
+                                value="${producto.id}"
+                                data-extra="${producto.extra || 0}"
+                            >
                                 ${producto.codigo} - ${producto.nombre}
+                            </option>
+                        `
+                    )
+                    .join("");
+
+                const opcionesPremium = premium
+                    .map(
+                        producto => `
+                            <option
+                                value="${producto.id}"
+                                data-extra="${producto.extra || 0}"
+                            >
+                                ${producto.codigo} - ${producto.nombre}
+                                · +${moneda(producto.extra, 0)}
                             </option>
                         `
                     )
@@ -2029,7 +2052,13 @@ button{font-family:Arial,sans-serif}
                                 Seleccionar producto...
                             </option>
 
-                            ${opciones}
+                            ${opcionesIncluidas
+                                ? `<optgroup label="Incluidos en el kit">${opcionesIncluidas}</optgroup>`
+                                : ""}
+
+                            ${opcionesPremium
+                                ? `<optgroup label="Premium con adicional">${opcionesPremium}</optgroup>`
+                                : ""}
                         </select>
                     </div>
                 `;
