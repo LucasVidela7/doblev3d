@@ -320,7 +320,7 @@ class CatalogoPublicoTests(TestCase):
         )
         self.assertIn("ADICIONAL +$", contenido)
         self.assertContains(response, "data-dv-kit-progress-fill")
-        self.assertContains(response, "AGREGAR AL CARRITO")
+        self.assertContains(response, "data-dv-kit-add")
         self.assertContains(response, "data-dv-kit-options-grid")
 
     def test_detalle_publico_no_expone_kit_inactivo(self):
