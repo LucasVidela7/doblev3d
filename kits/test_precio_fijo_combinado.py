@@ -1,6 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
@@ -14,6 +15,11 @@ from .precio_fijo_combinado import calcular_escenarios_kit_fijo
 
 class PrecioFijoCombinadoTests(TestCase):
     def setUp(self):
+        usuario = get_user_model().objects.create_user(
+            username="kits-combo-test",
+            password="test-pass",
+        )
+        self.client.force_login(usuario)
         ConfiguracionCostos.objects.create(
             nombre="Costo combo",
             coste_plastico_kg=Decimal("20000"),
