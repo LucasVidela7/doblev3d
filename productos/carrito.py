@@ -277,9 +277,17 @@ def _validar_carrito(payload):
 
 
 def _fingerprint(telefono, lineas):
+    lineas_canonicas = [linea["canonical"] for linea in lineas]
+    lineas_canonicas.sort(
+        key=lambda item: json.dumps(
+            item,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+    )
     canonical = {
         "telefono": telefono,
-        "lineas": [linea["canonical"] for linea in lineas],
+        "lineas": lineas_canonicas,
     }
     raw = json.dumps(
         canonical,
