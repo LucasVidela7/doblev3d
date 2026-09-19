@@ -28,6 +28,7 @@ from pedidos.models import (
     SolicitudWebItem,
     SolicitudWebKitProducto,
 )
+from pedidos.push import notificar_nueva_solicitud_web
 from productos.models import ConfiguracionCatalogo, Producto
 from productos.whatsapp import (
     renderizar_mensaje_solicitud,
@@ -753,6 +754,15 @@ def carrito_checkout(request):
 
     request.session["solicitud_web_ultima_id"] = solicitud.id
     request.session.pop("solicitud_web_spam", None)
+
+    # Se dispara sólo después de confirmar la transacción, para no avisar
+    # sobre solicitudes que luego pudieran revertirse.
+    transaction.on_commit(
+        lambda solicitud_id=solicitud.id: notificar_nueva_solicitud_web(
+            solicitud_id
+        )
+    )
+
     return redirect("catalogo_carrito_gracias")
 
 
