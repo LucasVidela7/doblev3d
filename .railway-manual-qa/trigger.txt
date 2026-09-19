@@ -1,2 +1,2 @@
-Deploy QA: calculadora integral y teléfonos únicos
-Incluye: precios de Gestión alineados al catálogo para productos, kits y personalizados; calculadora integral; precio manual explícito; validación de clientes duplicados por teléfono normalizado
+Deploy QA: mantenimiento por variable
+Incluye CATALOGO_MANTENIMIENTO para forzar la tienda pública en mantenimiento durante despliegues.
