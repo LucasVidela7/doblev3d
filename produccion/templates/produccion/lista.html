@@ -74,7 +74,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 .nbox span{color:var(--muted);font-size:6px;font-weight:900}.nbox b{margin-top:4px;font-size:16px}.nbox.hot{background:#fff4f2}.nbox.hot b{color:#963737}
 .need-action{display:grid;grid-template-columns:86px minmax(140px,1fr) auto auto;gap:6px;align-items:end;margin-top:9px;padding-top:9px;border-top:1px solid #edf0f2}
 .field label{display:block;margin-bottom:4px;color:var(--muted);font-size:7px;font-weight:900}.field input,.field select{width:100%;min-height:38px;border:1px solid #d7dce2;border-radius:9px;background:#fff;padding:5px 7px;font-size:9px}
-.action-info{padding:7px 9px;border-radius:9px;background:#f7f8fa;color:#5e646b;font-size:8px;line-height:1.4}
+.action-info{grid-column:1/-1;padding:7px 9px;border-radius:9px;background:#f7f8fa;color:#5e646b;font-size:8px;line-height:1.4}
 
 .personal-list{display:grid;gap:6px;margin-top:9px}.personal{padding:9px;border:1px solid #dbe7f5;border-radius:11px;background:#f7fbff}.personal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.personal strong{font-size:9px}.personal p{margin:4px 0 0;color:#58708c;font-size:8px;line-height:1.4}
 .personal .need-action{border-top-color:#dbe7f5}
@@ -286,7 +286,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                         <input type="hidden" name="producto" value="{{ item.producto.id }}">
                         <div class="field">
                             <label>CANTIDAD</label>
-                            <input type="number" name="cantidad" min="1" max="{{ item.falta_normal_planificar }}" value="{{ item.cantidad_sugerida }}" required>
+                            <input type="number" name="cantidad" min="1" value="{{ item.cantidad_sugerida }}" required>
                         </div>
                         <div class="field">
                             <label>IMPRESORA PARA INICIAR</label>
@@ -301,7 +301,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                         <button class="btn dark" type="submit" name="accion" value="PLANIFICAR">＋ A LA COLA</button>
                         <button class="btn green" type="submit" name="accion" value="INICIAR" {% if not impresoras_libres_lista %}disabled{% endif %}>▶ AHORA</button>
                         <div class="action-info">
-                            {{ item.tiempo_sugerido_texto }} aprox. · faltan {{ item.falta_normal_planificar }} estándar por cubrir.
+                            {{ item.tiempo_sugerido_texto }} aprox. para la cantidad sugerida · faltan {{ item.falta_normal_planificar }} estándar por cubrir. Podés imprimir más: el excedente queda en stock.
                         </div>
                     </form>
                     {% endif %}
