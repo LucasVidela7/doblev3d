@@ -1,2 +1,2 @@
-Deploy QA: loaders de tienda y aviso de mantenimiento abajo
-Incluye: cartel admin de mantenimiento en la parte inferior, loader al navegar y feedback AGREGANDO/AGREGADO antes de mostrar - 1 + en productos.
+Deploy QA: corregir inicio y textos de Productos/Kits
+Incluye: quitar el \\n visible debajo del header de Inicio y hacer que la descripción bajo Productos/Kits ocupe todo el ancho disponible.
