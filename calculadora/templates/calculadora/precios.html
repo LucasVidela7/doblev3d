@@ -1,1109 +1,379 @@
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
-<link rel="apple-touch-icon" href="{% static 'brand/apple-touch-icon.png' %}">
-<link rel="stylesheet" href="{% static 'brand/brand.css' %}">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de precios | Doble V 3D</title>
-
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <title>Calculadora | Doble V 3D</title>
+    <link rel="icon" href="{% static 'brand/favicon.ico' %}">
+    <link rel="stylesheet" href="{% static 'brand/brand.css' %}">
     <style>
         *{box-sizing:border-box}
-        :root{
-            --oscuro:#23262b;
-            --texto:#202327;
-            --muted:#68707b;
-            --borde:#d9dde3;
-            --fondo:#f4f5f7;
-            --card:#ffffff;
-            --suave:#f7f8fa;
-            --ok:#eaf8ef;
-            --ok-borde:#b8e0c2;
-            --aviso:#fff6dc;
-            --aviso-borde:#ead28a;
-        }
-
         body{
             margin:0;
-            padding:0 0 96px;
-            font-family:Arial,Helvetica,sans-serif;
-            background:var(--fondo);
-            color:var(--texto);
+            padding-bottom:110px;
+            background:var(--dv-bg,#f4f6fa);
+            color:var(--dv-text,#17233a);
+            font-family:Arial,sans-serif;
         }
-
-        .contenedor{
-            width:min(1120px,calc(100% - 24px));
-            margin:0 auto;
-            padding:18px 0 32px;
+        .shell{width:min(1180px,calc(100% - 28px));margin:0 auto;padding:24px 0 42px}
+        .head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:16px}
+        .eyebrow{margin:0 0 5px;color:var(--dv-brand-blue,#134a9a);font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+        h1{margin:0;font-size:clamp(27px,5vw,40px);letter-spacing:-.045em}
+        .subtitle{margin:7px 0 0;color:var(--dv-muted,#667085);font-size:12px;line-height:1.5}
+        .back{min-height:40px;display:inline-flex;align-items:center;justify-content:center;padding:0 13px;border:1px solid var(--dv-border,#dfe5ef);border-radius:12px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);text-decoration:none;font-size:10px;font-weight:900}
+        .rule{
+            margin-bottom:16px;padding:13px 15px;border:1px solid rgba(19,74,154,.16);
+            border-radius:15px;background:var(--dv-brand-blue-soft,#eef4ff);color:var(--dv-accent-blue-text,#0d376f);
+            font-size:11px;line-height:1.5
         }
-
-        .topbar{
-            display:flex;
-            align-items:flex-start;
-            justify-content:space-between;
-            gap:14px;
-            flex-wrap:wrap;
-            margin-bottom:14px;
-        }
-
-        h1{margin:0;font-size:clamp(25px,4vw,36px)}
-        .subtitulo{margin:6px 0 0;color:var(--muted);font-size:14px}
-
-        .nav-superior,.acciones-inline{
-            display:flex;
-            gap:8px;
-            flex-wrap:wrap;
-        }
-
-        .btn,.btn-secundario{
-            min-height:44px;
-            border:0;
-            border-radius:12px;
-            padding:0 15px;
-            font-weight:900;
-            font-size:13px;
-            cursor:pointer;
-            display:inline-flex;
-            align-items:center;
-            justify-content:center;
-            text-decoration:none;
-        }
-
-        .btn{background:var(--oscuro);color:#fff}
-        .btn-secundario{background:#fff;color:var(--oscuro);border:1px solid #cfd4dc}
-
-        .config{
-            padding:10px 13px;
-            border-radius:12px;
-            background:#fff;
-            border:1px solid var(--borde);
-            color:#58606b;
-            font-size:12px;
-            margin-bottom:14px;
-        }
-
-        .tabs{
-            display:grid;
-            grid-template-columns:1fr 1fr;
-            gap:8px;
-            margin-bottom:14px;
-        }
-
-        .tab{
-            min-height:54px;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            padding:8px 12px;
-            background:#fff;
-            color:#333;
-            border:1px solid #ccd1d8;
-            border-radius:14px;
-            text-decoration:none;
-            text-align:center;
-            font-weight:900;
-        }
-
-        .tab.activa{background:var(--oscuro);color:#fff;border-color:var(--oscuro)}
-
-        .panel{
-            background:var(--card);
-            border:1px solid var(--borde);
-            border-radius:18px;
-            padding:18px;
-            margin-bottom:14px;
-        }
-
-        .panel h2{margin:0 0 4px;font-size:20px}
-        .ayuda{margin:0 0 16px;color:var(--muted);font-size:13px;line-height:1.45}
-
-        .form-grid{
-            display:grid;
-            grid-template-columns:repeat(4,1fr);
-            gap:11px;
-        }
-
-        .campo{min-width:0}
-        .campo.ancho{grid-column:span 2}
-        .campo.todo{grid-column:1/-1}
-
-        label{
-            display:block;
-            margin-bottom:6px;
-            color:#555d68;
-            font-size:11px;
-            font-weight:900;
-            text-transform:uppercase;
-            letter-spacing:.04em;
-        }
-
+        .tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:16px;padding:5px;border:1px solid var(--dv-border,#dfe5ef);border-radius:15px;background:var(--dv-surface,#fff)}
+        .tab{min-height:42px;display:flex;align-items:center;justify-content:center;border-radius:11px;color:var(--dv-muted,#667085);text-decoration:none;font-size:10px;font-weight:900}
+        .tab.active{background:var(--dv-brand-blue,#134a9a);color:#fff}
+        .panel{margin-bottom:15px;padding:19px;border:1px solid var(--dv-border,#dfe5ef);border-radius:20px;background:var(--dv-surface,#fff);box-shadow:var(--dv-shadow,0 8px 25px rgba(20,25,35,.055))}
+        .panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:16px}
+        .panel h2,.panel h3{margin:0}
+        .panel h2{font-size:18px}.panel h3{font-size:15px}
+        .help{margin:5px 0 0;color:var(--dv-muted,#667085);font-size:10px;line-height:1.45}
+        .form-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+        .field.wide{grid-column:span 2}.field.full{grid-column:1/-1}
+        label{display:block;margin-bottom:5px;color:var(--dv-muted,#667085);font-size:8px;font-weight:900;letter-spacing:.03em;text-transform:uppercase}
         input,select,textarea{
-            width:100%;
-            border:1px solid #cfd4dc;
-            border-radius:12px;
-            background:#fff;
-            color:var(--texto);
-            font-family:inherit;
-            font-size:16px;
+            width:100%;min-height:46px;padding:10px 11px;border:1px solid var(--dv-border,#dfe5ef);
+            border-radius:11px;background:var(--dv-surface-soft,#f8faff);color:var(--dv-text,#17233a);
+            font:inherit;font-size:12px;outline:none
         }
-
-        input,select{min-height:48px;padding:0 12px}
-        textarea{min-height:190px;padding:12px;resize:vertical;line-height:1.5}
-        input:focus,select:focus,textarea:focus{outline:3px solid rgba(35,38,43,.10);border-color:var(--oscuro)}
-
-        .acciones-form{margin-top:14px;display:flex;justify-content:flex-end}
-
-        .errores{
-            margin-bottom:14px;
-            padding:13px;
-            border-radius:13px;
-            background:#fff1f1;
-            border:1px solid #efb7b7;
-            color:#8c2727;
-            font-size:13px;
-            font-weight:800;
-        }
-
-        .resultado-header{
-            display:flex;
-            align-items:flex-start;
-            justify-content:space-between;
-            gap:12px;
-            flex-wrap:wrap;
-            margin-bottom:14px;
-        }
-
-        .resultado-header h2{font-size:22px;margin:0}
-        .resultado-meta{margin-top:4px;color:var(--muted);font-size:13px}
-
-        .resumen-principal{
-            display:grid;
-            grid-template-columns:1.25fr 1fr 1fr;
-            gap:10px;
-            margin-bottom:12px;
-        }
-
-        .valor-principal{
-            border-radius:16px;
-            border:1px solid var(--borde);
-            padding:15px;
-            background:#fff;
-            min-width:0;
-        }
-
-        .valor-principal.destacado{
-            background:linear-gradient(135deg,#e8f7ee,#f3fbf6);
-            color:#0f5132;
-            border:1px solid #9fd8b5;
-            box-shadow:0 6px 18px rgba(24,114,67,.08);
-        }
-
-        .resumen-principal .valor-principal:nth-child(2){
-            background:linear-gradient(135deg,#edf5ff,#f7fbff);
-            color:#173a67;
-            border-color:#b8d3f3;
-        }
-
-        .resumen-principal .valor-principal:nth-child(3){
-            background:linear-gradient(135deg,#fff4e7,#fffaf3);
-            color:#7a3d00;
-            border-color:#f0c78f;
-        }
-
-        .valor-principal .valor-label{opacity:1}
-        .valor-principal .valor-sub{opacity:.82}
-
-        .valor-label{
-            font-size:11px;
-            font-weight:900;
-            text-transform:uppercase;
-            letter-spacing:.04em;
-            opacity:.72;
-            margin-bottom:7px;
-        }
-
-        .valor-numero{
-            font-size:clamp(25px,4vw,38px);
-            font-weight:900;
-            line-height:1.05;
-            overflow-wrap:anywhere;
-        }
-
-        .valor-sub{margin-top:6px;font-size:12px;opacity:.74;line-height:1.35}
-
-        .mini-resumen{
-            display:grid;
-            grid-template-columns:repeat(4,1fr);
-            gap:8px;
-            margin-top:10px;
-        }
-
-        .mini{
-            background:var(--suave);
-            border-radius:11px;
-            padding:10px;
-        }
-
-        .mini b{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;margin-bottom:4px}
-        .mini span{font-size:15px;font-weight:900}
-
-        details{
-            margin-top:12px;
-            border:1px solid #e1e4e9;
-            border-radius:12px;
-            background:#fff;
-            overflow:hidden;
-        }
-
-        summary{
-            cursor:pointer;
-            padding:12px 14px;
-            font-weight:900;
-            font-size:13px;
-        }
-
-        .details-body{padding:0 14px 14px}
-
-        .tabla-wrap{overflow-x:auto}
-        table{width:100%;border-collapse:collapse;font-size:13px}
-        th,td{padding:10px 9px;border-bottom:1px solid #e6e8ec;text-align:left;white-space:nowrap}
-        th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
-        td.numero{text-align:right;font-weight:800}
-
-        .escenarios{
-            display:grid;
-            grid-template-columns:repeat(3,1fr);
-            gap:9px;
-            margin-top:12px;
-        }
-
-        .escenario{
-            border:1px solid var(--borde);
-            border-radius:13px;
-            padding:12px;
-        }
-
-        .escenario.recomendado{border:2px solid var(--oscuro)}
-        .escenario h3{margin:0 0 7px;font-size:14px}
-        .escenario .precio{font-size:22px;font-weight:900}
-        .escenario p{font-size:11px;color:var(--muted);margin:4px 0}
-
-        .advertencia{
-            margin-top:12px;
-            padding:11px 13px;
-            border-radius:12px;
-            background:var(--aviso);
-            border:1px solid var(--aviso-borde);
-            color:#705600;
-            font-size:12px;
-            font-weight:800;
-        }
-
-        .cliente-card{
-            background:#fff;
-            border:2px solid var(--oscuro);
-            border-radius:18px;
-            overflow:hidden;
-            margin-bottom:14px;
-        }
-
-        .cliente-cabecera{
-            background:#20252b;
-            color:#fff;
-            padding:16px 18px;
-            display:flex;
-            justify-content:space-between;
-            align-items:flex-start;
-            gap:12px;
-            flex-wrap:wrap;
-        }
-
-        .cliente-cabecera h2{margin:0;font-size:21px}
-        .cliente-cabecera p{margin:4px 0 0;font-size:12px;opacity:.76}
-        .cliente-marca{font-weight:900;font-size:13px;letter-spacing:.05em}
-
-        .precio-publico-lista{padding:8px 18px 15px}
-
-        .precio-publico{
-            display:grid;
-            grid-template-columns:80px 1fr 1fr;
-            gap:12px;
-            align-items:center;
-            padding:13px 0;
-            border-bottom:1px solid #e6e8ec;
-        }
-
-        .precio-publico:last-child{border-bottom:0}
-        .cantidad-publica{font-size:18px;font-weight:900}
-        .unitario-publico{font-size:22px;font-weight:900}
-        .total-publico{text-align:right;color:#4e5660;font-size:13px;font-weight:800}
-
-        .cliente-pie{
-            padding:10px 18px 14px;
-            font-size:11px;
-            color:var(--muted);
-            border-top:1px solid #eceef1;
-        }
-
-        .herramientas-cliente{
-            display:flex;
-            gap:8px;
-            flex-wrap:wrap;
-            margin:10px 0 14px;
-        }
-
-        .copiado{
-            display:none;
-            align-items:center;
-            padding:0 10px;
-            min-height:44px;
-            font-size:12px;
-            font-weight:900;
-            color:#17652f;
-            background:var(--ok);
-            border:1px solid var(--ok-borde);
-            border-radius:10px;
-        }
-
-        .copiado.visible{display:flex}
-
-        .mensaje-panel{margin-top:10px}
-
-        .nav-inferior{
-            position:fixed;
-            z-index:100;
-            left:50%;
-            bottom:max(10px,env(safe-area-inset-bottom));
-            transform:translateX(-50%);
-            width:min(720px,calc(100% - 20px));
-            display:grid;
-            grid-template-columns:repeat(5,1fr);
-            gap:4px;
-            padding:7px;
-            border-radius:20px;
-            background:rgba(35,38,43,.96);
-            box-shadow:0 12px 35px rgba(0,0,0,.22);
-            backdrop-filter:blur(14px);
-        }
-
-        .nav-item{
-            min-height:58px;
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            justify-content:center;
-            gap:4px;
-            border-radius:14px;
-            color:#d9dbe0;
-            text-decoration:none;
-            font-size:9px;
-            font-weight:bold;
-            text-align:center;
-        }
-
-        .nav-item span:first-child{font-size:19px;line-height:1}
-        .nav-item.nuevo-nav{background:white;color:#23262b}
-
-        body.modo-captura{background:#fff;padding-bottom:20px}
-        body.modo-captura .solo-interno,
-        body.modo-captura .nav-inferior,
-        body.modo-captura .topbar,
-        body.modo-captura .config,
-        body.modo-captura .tabs,
-        body.modo-captura .herramientas-cliente,
-        body.modo-captura .mensaje-panel{
-            display:none !important;
-        }
-        body.modo-captura .contenedor{width:min(760px,calc(100% - 20px));padding-top:10px}
-        body.modo-captura .cliente-card{margin:0}
-        body.modo-captura .btn-salir-captura{display:flex}
-
-        .btn-salir-captura{
-            display:none;
-            margin:0 auto 10px;
-            width:min(760px,calc(100% - 20px));
-        }
-
+        input:focus,select:focus,textarea:focus{border-color:rgba(19,74,154,.5);box-shadow:0 0 0 3px rgba(19,74,154,.09)}
+        textarea{min-height:130px;resize:vertical;line-height:1.45}
+        .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:13px}
+        .btn{min-height:44px;padding:0 17px;border:0;border-radius:12px;background:var(--dv-brand-blue,#134a9a);color:#fff;font-weight:900;cursor:pointer}
+        .btn.secondary{border:1px solid var(--dv-border,#dfe5ef);background:var(--dv-surface,#fff);color:var(--dv-text,#17233a)}
+        .errors{margin-bottom:15px;padding:12px 14px;border:1px solid #edc1c1;border-radius:13px;background:#fff1f1;color:#943232;font-size:11px;line-height:1.5}
+        .summary{display:grid;grid-template-columns:1.35fr repeat(3,1fr);gap:10px}
+        .metric{min-width:0;padding:14px;border:1px solid var(--dv-border,#dfe5ef);border-radius:15px;background:var(--dv-surface-soft,#f8faff)}
+        .metric.main{background:var(--dv-brand-blue,#134a9a);border-color:var(--dv-brand-blue,#134a9a);color:#fff}
+        .metric-label{font-size:8px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;opacity:.72}
+        .metric-value{margin-top:7px;font-size:clamp(19px,3vw,27px);font-weight:900;letter-spacing:-.03em}
+        .metric-sub{margin-top:5px;font-size:9px;line-height:1.35;opacity:.75}
+        .badge{display:inline-flex;align-items:center;min-height:25px;padding:0 8px;border-radius:999px;background:#e7f5eb;color:#24633a;font-size:8px;font-weight:900}
+        .badge.neutral{background:var(--dv-surface-muted,#f1f4f9);color:var(--dv-muted,#667085)}
+        .table-wrap{overflow:auto;border:1px solid var(--dv-border,#dfe5ef);border-radius:15px}
+        table{width:100%;border-collapse:collapse;min-width:760px;background:var(--dv-surface,#fff)}
+        th{padding:10px;text-align:left;background:var(--dv-surface-muted,#f1f4f9);color:var(--dv-muted,#667085);font-size:8px;text-transform:uppercase}
+        td{padding:11px 10px;border-top:1px solid var(--dv-border,#dfe5ef);font-size:11px}
+        td strong{font-size:12px}
+        .discount{color:#24633a;font-weight:900}
+        .no-discount{color:var(--dv-muted,#667085)}
+        details{margin-top:13px;border:1px solid var(--dv-border,#dfe5ef);border-radius:13px;background:var(--dv-surface-soft,#f8faff)}
+        summary{padding:12px 13px;cursor:pointer;font-size:9px;font-weight:900}
+        .details{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:0 13px 13px}
+        .mini{padding:10px;border-radius:10px;background:var(--dv-surface,#fff)}
+        .mini span{display:block;color:var(--dv-muted,#667085);font-size:8px}.mini strong{display:block;margin-top:4px;font-size:11px}
+        .share-grid{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}
+        .copy-status{min-height:18px;margin-top:6px;color:#24633a;font-size:9px;font-weight:900}
         @media(max-width:820px){
-            .form-grid{grid-template-columns:repeat(2,1fr)}
-            .resumen-principal{grid-template-columns:1fr 1fr}
-            .resumen-principal .destacado{grid-column:1/-1}
-            .mini-resumen{grid-template-columns:repeat(2,1fr)}
+            .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+            .summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+            .metric.main{grid-column:1/-1}
+            .details{grid-template-columns:repeat(2,minmax(0,1fr))}
         }
-
-        @media(max-width:600px){
-            .contenedor{width:min(100% - 16px,1120px);padding-top:10px}
-            .tabs{grid-template-columns:1fr}
-            .campo.ancho{grid-column:1/-1}
-            .resumen-principal{grid-template-columns:1fr}
-            .resumen-principal .destacado{grid-column:auto}
-            .escenarios{grid-template-columns:1fr}
-            .precio-publico{grid-template-columns:65px 1fr}
-            .total-publico{grid-column:2;text-align:left;margin-top:-7px}
-            .nav-item{min-height:54px;font-size:8px}
+        @media(max-width:560px){
+            .shell{width:calc(100% - 18px);padding-top:16px}
+            .head{display:block}.back{margin-top:12px}
+            .panel{padding:15px;border-radius:16px}
+            .form-grid{grid-template-columns:1fr}.field.wide,.field.full{grid-column:auto}
+            .summary{grid-template-columns:1fr 1fr}
+            .metric.main{grid-column:1/-1}
+            .share-grid{grid-template-columns:1fr}
+            .actions{display:grid}.btn{width:100%}
         }
-    
-        /* V3: color y comparación mayorista */
-        .comparador-titulo{display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:18px 0 10px}
-        .comparador-titulo h3{margin:0;font-size:17px}
-        .comparador-titulo p{margin:3px 0 0;color:var(--muted);font-size:12px}
-        .comparador-wrap{overflow-x:auto;border:1px solid #dde2e8;border-radius:16px;background:#fff}
-        .comparador{width:100%;border-collapse:separate;border-spacing:0;min-width:650px}
-        .comparador th,.comparador td{padding:12px 10px;text-align:center;border-bottom:1px solid #e7eaee}
-        .comparador th:first-child,.comparador td:first-child{text-align:left;font-weight:900;position:sticky;left:0;background:#fff;z-index:1}
-        .comparador th{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:#59616c}
-        .comparador tr:last-child td{border-bottom:0}
-        .col-conservador{background:#eef6ff!important}
-        .col-recomendado{background:#eefaf2!important}
-        .col-agresivo{background:#fff5e8!important}
-        .tag-estrategia{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;font-size:10px;font-weight:900}
-        .tag-conservador{background:#dbeeff;color:#145b96}
-        .tag-recomendado{background:#d9f4e2;color:#176b39}
-        .tag-agresivo{background:#ffe8c7;color:#9a5400}
-        .precio-tabla{font-size:18px;font-weight:900;color:#1f2937}
-        .margen-tabla{display:block;margin-top:2px;font-size:10px;color:#6b7280}
-        .selector-estrategia{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 12px}
-        .estrategia-btn{min-height:46px;border:2px solid transparent;border-radius:13px;font-weight:900;cursor:pointer;padding:7px 10px}
-        .estrategia-btn[data-estrategia="conservador"]{background:#eef6ff;color:#145b96}
-        .estrategia-btn[data-estrategia="recomendado"]{background:#eefaf2;color:#176b39}
-        .estrategia-btn[data-estrategia="agresivo"]{background:#fff5e8;color:#9a5400}
-        .estrategia-btn.activa{border-color:currentColor;box-shadow:inset 0 0 0 1px currentColor}
-        .cliente-card[data-estrategia-activa="conservador"]{border-top:7px solid #4d9fe8}
-        .cliente-card[data-estrategia-activa="recomendado"]{border-top:7px solid #48a868}
-        .cliente-card[data-estrategia-activa="agresivo"]{border-top:7px solid #e59a3b}
-        .fila-publica-estrategia{display:none}
-        .cliente-card[data-estrategia-activa="conservador"] .fila-publica-estrategia[data-estrategia="conservador"],
-        .cliente-card[data-estrategia-activa="recomendado"] .fila-publica-estrategia[data-estrategia="recomendado"],
-        .cliente-card[data-estrategia-activa="agresivo"] .fila-publica-estrategia[data-estrategia="agresivo"]{display:grid}
-        .estrategia-publica{font-size:11px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;margin-top:3px}
-        .cliente-card[data-estrategia-activa="conservador"] .estrategia-publica{color:#6bb7ff}
-        .cliente-card[data-estrategia-activa="recomendado"] .estrategia-publica{color:#52d17f}
-        .cliente-card[data-estrategia-activa="agresivo"] .estrategia-publica{color:#ffb65c}
-        .panel{box-shadow:0 4px 18px rgba(31,41,55,.05)}
-        .btn{background:linear-gradient(135deg,#2f6fed,#6b54d7)}
-        .btn-secundario{border-color:#b9c7e8;color:#3556a8;background:#f6f8ff}
-        details summary{background:#f7f8fb}
-        @media(max-width:600px){.selector-estrategia{grid-template-columns:1fr}.comparador{min-width:610px}}
-    
-        .nota-margen-dinamico{
-            margin:8px 0 14px;
-            padding:10px 12px;
-            border-radius:10px;
-            background:#eef7ff;
-            color:#24415f;
-            font-size:13px;
-            font-weight:700;
-        }
-        </style>
-
+    </style>
 </head>
 <body>
-
-
-<button type="button" class="btn btn-salir-captura" id="salirCaptura">
-    SALIR DE VISTA PARA CAPTURA
-</button>
-
-<div class="contenedor">
-    <div class="topbar">
-        <div class="encabezado-marca">{% include 'shared/brand_bar.html' %}
-            <h1>Calculadora de precios</h1>
-            <p class="subtitulo">Cotización rápida + listas de precios para enviar.</p>
+<main class="shell">
+    <header class="head">
+        <div>
+            <p class="eyebrow">Productos · Más opciones</p>
+            <h1>Calculadora de catálogo</h1>
+            <p class="subtitle">Los resultados usan exactamente la misma lógica de precios que hoy ve el cliente en el catálogo.</p>
         </div>
+        <a class="back" href="{% url 'productos:lista' %}">← PRODUCTOS</a>
+    </header>
 
-        <div class="nav-superior">
-            <a href="javascript:history.back()" class="btn">← VOLVER</a>
-            <a href="{% url 'dashboard:inicio' %}" class="btn">INICIO</a>
-        </div>
+    <div class="rule">
+        Precio de lista hasta 4 unidades. Desde {{ cantidad_minima_descuento }} unidades se aplica la curva dinámica del catálogo según costos y margen, con un tope de {{ descuento_maximo|floatformat:"-1" }}% de descuento. Máximo {{ max_cantidad_catalogo }} unidades por línea.
     </div>
 
     {% if config %}
-        <div class="config solo-interno">
-            Configuración activa: <strong>{{ config.nombre }}</strong> ·
-            Plástico ${{ config.coste_plastico_kg|floatformat:"0g" }}/kg ·
-            Fallos {{ config.tasa_fallos|floatformat:1 }}% ·
-            Luz ${{ config.coste_luz_hora|floatformat:"2g" }}/h ·
-            Amortización ${{ config.coste_amortizacion_hora|floatformat:"2g" }}/h
-        </div>
+    <div class="rule">
+        Costos activos: <strong>{{ config.nombre }}</strong> · Filamento estándar &#36;{{ config.coste_plastico_kg|floatformat:"0g" }}/kg{% if config.coste_plastico_kg_cantidad %} · Filamento por cantidad &#36;{{ config.coste_plastico_kg_cantidad|floatformat:"0g" }}/kg{% endif %}.
+    </div>
     {% else %}
-        <div class="errores">No existe una ConfiguracionCostos activa.</div>
+    <div class="errors">No existe una configuración de costos activa.</div>
     {% endif %}
 
-    <div class="tabs solo-interno">
-        <a href="?modo=nuevo" class="tab {% if modo == 'nuevo' %}activa{% endif %}">
-            PRODUCTO NUEVO
-        </a>
-        <a href="?modo=existente" class="tab {% if modo == 'existente' %}activa{% endif %}">
-            PRODUCTO EXISTENTE / MAYORISTA
-        </a>
-    </div>
+    <nav class="tabs" aria-label="Modo de cálculo">
+        <a href="?modo=existente" class="tab {% if modo == 'existente' %}active{% endif %}">PRODUCTO DEL CATÁLOGO</a>
+        <a href="?modo=nuevo" class="tab {% if modo == 'nuevo' %}active{% endif %}">SIMULAR PRODUCTO NUEVO</a>
+    </nav>
 
     {% if errores %}
-        <div class="errores solo-interno">
-            {% for error in errores %}<div>{{ error }}</div>{% endfor %}
-        </div>
+    <div class="errors">
+        {% for error in errores %}<div>{{ error }}</div>{% endfor %}
+    </div>
     {% endif %}
 
-    {% if modo == "nuevo" %}
-        <section class="panel solo-interno">
-            <h2>Producto que todavía no existe</h2>
-            <p class="ayuda">
-                Calcula el precio minorista y, según la cantidad, también el precio por volumen.
-                No crea ni guarda el producto.
-            </p>
-
-            <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="modo" value="nuevo">
-
-                <div class="form-grid">
-                    <div class="campo ancho">
-                        <label for="nombre_cotizacion">Nombre para la cotización</label>
-                        <input id="nombre_cotizacion" name="nombre_cotizacion" type="text"
-                               value="{{ request.POST.nombre_cotizacion|default:'' }}"
-                               placeholder="Ej: Llavero personalizado">
-                    </div>
-
-                    <div class="campo">
-                        <label for="horas">Horas</label>
-                        <input id="horas" type="number" name="horas" min="0"
-                               value="{{ request.POST.horas|default:'0' }}">
-                    </div>
-
-                    <div class="campo">
-                        <label for="minutos">Minutos</label>
-                        <input id="minutos" type="number" name="minutos" min="0"
-                               value="{{ request.POST.minutos|default:'0' }}">
-                    </div>
-
-                    <div class="campo">
-                        <label for="peso_gramos">Peso (g)</label>
-                        <input id="peso_gramos" type="number" name="peso_gramos" min="0" step="0.01"
-                               value="{{ request.POST.peso_gramos|default:'' }}" required>
-                    </div>
-
-                    <div class="campo">
-                        <label for="margen">Margen minorista (%)</label>
-                        <input id="margen" type="number" name="margen" min="0" max="99.99" step="0.1"
-                               value="{{ request.POST.margen|default:'60' }}" required>
-                    </div>
-
-                    <div class="campo">
-                        <label for="cantidad_nueva">Cantidad a cotizar</label>
-                        <input id="cantidad_nueva" type="number" name="cantidad" min="1"
-                               value="{{ request.POST.cantidad|default:'10' }}" required>
-                    </div>
-
-                    <div class="campo ancho">
-                        <label for="cantidades_lista_nueva">Lista rápida de cantidades</label>
-                        <input id="cantidades_lista_nueva" type="text" name="cantidades_lista"
-                               value="{{ cantidades_texto }}"
-                               placeholder="10,20,50,100">
-                    </div>
+    {% if modo == "existente" %}
+    <section class="panel">
+        <div class="panel-head">
+            <div>
+                <h2>Producto del catálogo</h2>
+                <p class="help">Elegí un producto y la cantidad. El precio resultante debe coincidir con el carrito público.</p>
+            </div>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="modo" value="existente">
+            <div class="form-grid">
+                <div class="field wide">
+                    <label for="producto_id">Producto</label>
+                    <select id="producto_id" name="producto_id" required>
+                        <option value="">Seleccionar…</option>
+                        {% for producto in productos %}
+                        <option value="{{ producto.id }}"
+                            {% if request.POST.producto_id == producto.id|stringformat:"s" %}selected
+                            {% elif not request.POST.producto_id and producto_inicial_id == producto.id|stringformat:"s" %}selected{% endif %}>
+                            {{ producto.codigo }} · {{ producto.nombre }} · &#36;{{ producto.subtotal|floatformat:"0g" }}
+                        </option>
+                        {% endfor %}
+                    </select>
                 </div>
-
-                <div class="acciones-form">
-                    <button type="submit" class="btn">CALCULAR</button>
+                <div class="field">
+                    <label for="cantidad_existente">Cantidad</label>
+                    <input id="cantidad_existente" type="number" name="cantidad" min="1" max="{{ max_cantidad_catalogo }}" value="{{ request.POST.cantidad|default:'5' }}" required>
                 </div>
-            </form>
+                <div class="field">
+                    <label for="cantidades_lista_existente">Comparar cantidades</label>
+                    <input id="cantidades_lista_existente" type="text" name="cantidades_lista" value="{{ cantidades_texto }}" placeholder="1,2,4,5,6,10,15,20">
+                </div>
+            </div>
+            <div class="actions"><button class="btn" type="submit">CALCULAR PRECIO CATÁLOGO</button></div>
+        </form>
+    </section>
+
+    {% if resultado_existente %}
+        {% with r=resultado_existente c=resultado_existente.catalogo %}
+        <section class="panel">
+            <div class="panel-head">
+                <div>
+                    <h2>{{ r.producto.nombre }}</h2>
+                    <p class="help">{{ r.producto.codigo }} · cálculo para x{{ r.cantidad }}</p>
+                </div>
+                {% if c.descuento_porcentaje > 0 %}
+                <span class="badge">{{ c.descuento_porcentaje|floatformat:"-1" }}% DESCUENTO</span>
+                {% else %}
+                <span class="badge neutral">PRECIO DE LISTA</span>
+                {% endif %}
+            </div>
+
+            <div class="summary">
+                <div class="metric main">
+                    <div class="metric-label">Precio que ve el cliente</div>
+                    <div class="metric-value">&#36;{{ c.precio_unitario|floatformat:"-2g" }} c/u</div>
+                    <div class="metric-sub">Total &#36;{{ c.precio_final_total|floatformat:"0g" }}</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Precio de lista</div>
+                    <div class="metric-value">&#36;{{ c.precio_lista_unitario|floatformat:"0g" }}</div>
+                    <div class="metric-sub">Total lista &#36;{{ c.precio_lista_total|floatformat:"0g" }}</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Ahorro</div>
+                    <div class="metric-value">&#36;{{ c.ahorro|floatformat:"0g" }}</div>
+                    <div class="metric-sub">{{ c.descuento_porcentaje|floatformat:"-1" }}% aplicado</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Margen real</div>
+                    <div class="metric-value">{{ c.margen_real|floatformat:"1" }}%</div>
+                    <div class="metric-sub">Ganancia &#36;{{ c.ganancia|floatformat:"0g" }}</div>
+                </div>
+            </div>
+
+            <details>
+                <summary>VER COSTOS INTERNOS</summary>
+                <div class="details">
+                    <div class="mini"><span>Costo productivo/u</span><strong>&#36;{{ c.costo_productivo_unitario|floatformat:"2g" }}</strong></div>
+                    <div class="mini"><span>Material/u</span><strong>&#36;{{ c.desglose.costo_material|floatformat:"2g" }}</strong></div>
+                    <div class="mini"><span>Amortización/u</span><strong>&#36;{{ c.desglose.amortizacion|floatformat:"2g" }}</strong></div>
+                    <div class="mini"><span>Filamento</span><strong>{% if c.filamento_economico %}Por cantidad{% else %}Estándar{% endif %}</strong></div>
+                </div>
+            </details>
         </section>
 
-        {% if resultado_nuevo %}
-            <section class="panel solo-interno">
-                <div class="resultado-header">
-                    <div>
-                        <h2>{{ resultado_nuevo.nombre }}</h2>
-                        <div class="resultado-meta">
-                            {{ resultado_nuevo.peso|floatformat:2 }} g ·
-                            {{ resultado_nuevo.horas }} h {{ resultado_nuevo.minutos }} min
-                        </div>
-                    </div>
-                </div>
-
-                <div class="resumen-principal">
-                    <div class="valor-principal destacado">
-                        <div class="valor-label">Precio para x{{ resultado_nuevo.cantidad }}</div>
-                        <div class="valor-numero">
-                            ${{ resultado_nuevo.fila_cantidad.precio_unitario|floatformat:"-2g" }} c/u
-                        </div>
-                        <div class="valor-sub">
-                            Total: ${{ resultado_nuevo.fila_cantidad.total|floatformat:"0g" }} ·
-                            Margen real {{ resultado_nuevo.fila_cantidad.margen_real|floatformat:1 }}%
-                        </div>
-                    </div>
-
-                    <div class="valor-principal">
-                        <div class="valor-label">Precio minorista</div>
-                        <div class="valor-numero">
-                            ${{ resultado_nuevo.precio_lista|floatformat:"0g" }}
-                        </div>
-                        <div class="valor-sub">Referencia por unidad.</div>
-                    </div>
-
-                    <div class="valor-principal">
-                        <div class="valor-label">Ganancia cotización</div>
-                        <div class="valor-numero">
-                            ${{ resultado_nuevo.fila_cantidad.ganancia|floatformat:"0g" }}
-                        </div>
-                        <div class="valor-sub">
-                            Costo total ${{ resultado_nuevo.fila_cantidad.costo_total|floatformat:"0g" }}
-                        </div>
-                    </div>
-                </div>
-
-                <details>
-                    <summary>VER COSTOS Y DESGLOSE INTERNO</summary>
-                    <div class="details-body">
-                        <div class="mini-resumen">
-                            <div class="mini"><b>Costo productivo/u</b><span>${{ resultado_nuevo.desglose.costo_productivo|floatformat:"2g" }}</span></div>
-                            <div class="mini"><b>Luz/u</b><span>${{ resultado_nuevo.desglose.costo_luz|floatformat:"2g" }}</span></div>
-                            <div class="mini"><b>Material/u</b><span>${{ resultado_nuevo.desglose.costo_material|floatformat:"2g" }}</span></div>
-                            <div class="mini"><b>Amortización/u</b><span>${{ resultado_nuevo.desglose.amortizacion|floatformat:"2g" }}</span></div>
-                        </div>
-                    </div>
-                </details>
-            </section>
-
-            <section class="panel solo-interno">
-                <div class="comparador-titulo">
-                    <div>
-                        <h3>Comparador por cantidad</h3>
-                        <p>Azul = conservador · Verde = recomendado · Naranja = agresivo.</p>
-                    </div>
-                </div>
-
-                <div class="comparador-wrap">
-                    <table class="comparador">
-                        <thead>
-                            <tr>
-                                <th>Cantidad</th>
-                                <th class="col-conservador"><span class="tag-estrategia tag-conservador">Conservador</span></th>
-                                <th class="col-recomendado"><span class="tag-estrategia tag-recomendado">Recomendado</span></th>
-                                <th class="col-agresivo"><span class="tag-estrategia tag-agresivo">Agresivo</span></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for fila in resultado_nuevo.lista_escenarios %}
-                                <tr>
-                                    <td>x{{ fila.cantidad }}</td>
-                                    <td class="col-conservador">
-                                        <span class="precio-tabla">${{ fila.conservador.precio_unitario|floatformat:"-2g" }}</span>
-                                        <span class="margen-tabla">{{ fila.conservador.margen_objetivo|floatformat:1 }}% margen</span>
-                                    </td>
-                                    <td class="col-recomendado">
-                                        <span class="precio-tabla">${{ fila.recomendado.precio_unitario|floatformat:"-2g" }}</span>
-                                        <span class="margen-tabla">{{ fila.recomendado.margen_objetivo|floatformat:1 }}% margen</span>
-                                    </td>
-                                    <td class="col-agresivo">
-                                        <span class="precio-tabla">${{ fila.agresivo.precio_unitario|floatformat:"-2g" }}</span>
-                                        <span class="margen-tabla">{{ fila.agresivo.margen_objetivo|floatformat:1 }}% margen</span>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <div class="selector-estrategia solo-interno" aria-label="Estrategia a compartir">
-                <button type="button" class="estrategia-btn" data-estrategia="conservador">CONSERVADOR</button>
-                <button type="button" class="estrategia-btn activa" data-estrategia="recomendado">RECOMENDADO</button>
-                <button type="button" class="estrategia-btn" data-estrategia="agresivo">AGRESIVO</button>
+        <section class="panel">
+            <div class="panel-head">
+                <div><h3>Precios por cantidad</h3><p class="help">Esta tabla replica la curva actual del catálogo.</p></div>
             </div>
-
-            <section class="cliente-card" id="tarjetaCliente" data-estrategia-activa="recomendado">
-                <div class="cliente-cabecera">
-                    <div>
-                        <h2>{{ resultado_nuevo.nombre }}</h2>
-                        <p>Precios por cantidad</p>
-                        <div class="estrategia-publica" id="etiquetaEstrategia">Opción recomendada</div>
-                    </div>
-                    <div class="cliente-marca">DOBLE V 3D</div>
-                </div>
-
-                <div class="precio-publico-lista">
-                    {% for fila in resultado_nuevo.lista_escenarios %}
-                        <div class="precio-publico fila-publica-estrategia" data-estrategia="conservador">
-                            <div class="cantidad-publica">x{{ fila.cantidad }}</div>
-                            <div class="unitario-publico">${{ fila.conservador.precio_unitario|floatformat:"-2g" }} c/u</div>
-                            <div class="total-publico">Total ${{ fila.conservador.total|floatformat:"0g" }}</div>
-                        </div>
-                        <div class="precio-publico fila-publica-estrategia" data-estrategia="recomendado">
-                            <div class="cantidad-publica">x{{ fila.cantidad }}</div>
-                            <div class="unitario-publico">${{ fila.recomendado.precio_unitario|floatformat:"-2g" }} c/u</div>
-                            <div class="total-publico">Total ${{ fila.recomendado.total|floatformat:"0g" }}</div>
-                        </div>
-                        <div class="precio-publico fila-publica-estrategia" data-estrategia="agresivo">
-                            <div class="cantidad-publica">x{{ fila.cantidad }}</div>
-                            <div class="unitario-publico">${{ fila.agresivo.precio_unitario|floatformat:"-2g" }} c/u</div>
-                            <div class="total-publico">Total ${{ fila.agresivo.total|floatformat:"0g" }}</div>
-                        </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Cantidad</th><th>Lista c/u</th><th>Catálogo c/u</th><th>Descuento</th><th>Total</th><th>Margen real</th></tr></thead>
+                    <tbody>
+                    {% for fila in r.lista_precios %}
+                    <tr>
+                        <td><strong>x{{ fila.cantidad }}</strong></td>
+                        <td>&#36;{{ fila.precio_lista_unitario|floatformat:"0g" }}</td>
+                        <td><strong>&#36;{{ fila.precio_unitario|floatformat:"-2g" }}</strong></td>
+                        <td>{% if fila.descuento_porcentaje > 0 %}<span class="discount">{{ fila.descuento_porcentaje|floatformat:"-1" }}%</span>{% else %}<span class="no-discount">—</span>{% endif %}</td>
+                        <td>&#36;{{ fila.precio_final_total|floatformat:"0g" }}</td>
+                        <td>{{ fila.margen_real|floatformat:"1" }}%</td>
+                    </tr>
                     {% endfor %}
-                </div>
-
-                <div class="cliente-pie">
-                    Precios sujetos a confirmación al momento de realizar el pedido.
-                </div>
-            </section>
-
-            <textarea id="mensajeConservador" hidden>{{ resultado_nuevo.mensajes.conservador }}</textarea>
-            <textarea id="mensajeRecomendado" hidden>{{ resultado_nuevo.mensajes.recomendado }}</textarea>
-            <textarea id="mensajeAgresivo" hidden>{{ resultado_nuevo.mensajes.agresivo }}</textarea>
-
-            <div class="herramientas-cliente solo-interno">
-                <button type="button" class="btn" id="modoCaptura">VISTA PARA CAPTURA</button>
-                <button type="button" class="btn-secundario" data-copy-target="mensajeCliente">COPIAR MENSAJE</button>
-                <span class="copiado" id="estadoCopiado">MENSAJE COPIADO</span>
+                    </tbody>
+                </table>
             </div>
+        </section>
 
-            <section class="panel mensaje-panel solo-interno">
-                <h2>Mensaje listo para enviar</h2>
-                <p class="ayuda">Cambia automáticamente con Conservador / Recomendado / Agresivo y podés editarlo antes de copiar.</p>
-                <textarea id="mensajeCliente">{{ resultado_nuevo.mensajes.recomendado }}</textarea>
-            </section>
-        {% endif %}
+        <section class="panel">
+            <div class="share-grid">
+                <div>
+                    <label for="mensajeCliente">Mensaje para enviar</label>
+                    <textarea id="mensajeCliente">{{ r.mensaje_cliente }}</textarea>
+                    <div class="copy-status" id="copyStatus"></div>
+                </div>
+                <button class="btn secondary" type="button" id="copyButton">COPIAR MENSAJE</button>
+            </div>
+        </section>
+        {% endwith %}
+    {% endif %}
 
     {% else %}
-        <section class="panel solo-interno">
-            <h2>Producto existente / Mayorista</h2>
-            <p class="ayuda">
-                Elegí el producto, una cantidad puntual y las cantidades que querés mostrar al cliente.
-            </p>
-
-            <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="modo" value="existente">
-
-                <div class="form-grid">
-                    <div class="campo ancho">
-                        <label for="producto_id">Producto</label>
-                        <select id="producto_id" name="producto_id" required>
-                            <option value="">Seleccionar...</option>
-                            {% for producto in productos %}
-                                <option
-                                    value="{{ producto.id }}"
-                                    {% if request.POST.producto_id == producto.id|stringformat:"s" %}
-                                        selected
-                                    {% elif not request.POST.producto_id and producto_inicial_id == producto.id|stringformat:"s" %}
-                                        selected
-                                    {% endif %}
-                                >
-                                    {{ producto.codigo }} · {{ producto.nombre }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="campo">
-                        <label for="cantidad_existente">Cantidad a cotizar</label>
-                        <input id="cantidad_existente" type="number" name="cantidad" min="1"
-                               value="{{ request.POST.cantidad|default:'100' }}" required>
-                    </div>
-
-                    <div class="campo">
-                        <label for="margen_mayorista">Margen manual (%)</label>
-                        <input id="margen_mayorista" type="number" name="margen_mayorista"
-                               min="0" max="99.99" step="0.1"
-                               value="{{ request.POST.margen_mayorista|default:'' }}"
-                               placeholder="Automático">
-                    </div>
-
-                    <div class="campo todo">
-                        <label for="cantidades_lista_existente">Lista rápida de cantidades</label>
-                        <input id="cantidades_lista_existente" type="text" name="cantidades_lista"
-                               value="{{ cantidades_texto }}"
-                               placeholder="10,20,50,100">
-                    </div>
+    <section class="panel">
+        <div class="panel-head">
+            <div>
+                <h2>Simular producto nuevo</h2>
+                <p class="help">No guarda nada. Calcula qué mostraría el catálogo si el producto tuviera estos costos y margen.</p>
+            </div>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="modo" value="nuevo">
+            <div class="form-grid">
+                <div class="field wide">
+                    <label for="nombre_cotizacion">Nombre</label>
+                    <input id="nombre_cotizacion" name="nombre_cotizacion" value="{{ request.POST.nombre_cotizacion|default:'' }}" placeholder="Ej: Llavero personalizado">
                 </div>
-
-                <div class="acciones-form">
-                    <button type="submit" class="btn">CALCULAR</button>
+                <div class="field">
+                    <label for="horas">Horas</label>
+                    <input id="horas" type="number" name="horas" min="0" value="{{ request.POST.horas|default:'0' }}">
                 </div>
-            </form>
+                <div class="field">
+                    <label for="minutos">Minutos</label>
+                    <input id="minutos" type="number" name="minutos" min="0" value="{{ request.POST.minutos|default:'0' }}">
+                </div>
+                <div class="field">
+                    <label for="peso_gramos">Peso (g)</label>
+                    <input id="peso_gramos" type="number" name="peso_gramos" min="0" step="0.01" value="{{ request.POST.peso_gramos|default:'' }}" required>
+                </div>
+                <div class="field">
+                    <label for="margen">Margen de lista (%)</label>
+                    <input id="margen" type="number" name="margen" min="0" max="99.99" step="0.1" value="{{ request.POST.margen|default:'60' }}" required>
+                </div>
+                <div class="field">
+                    <label for="cantidad_nueva">Cantidad</label>
+                    <input id="cantidad_nueva" type="number" name="cantidad" min="1" max="{{ max_cantidad_catalogo }}" value="{{ request.POST.cantidad|default:'5' }}" required>
+                </div>
+                <div class="field wide">
+                    <label for="cantidades_lista_nueva">Comparar cantidades</label>
+                    <input id="cantidades_lista_nueva" type="text" name="cantidades_lista" value="{{ cantidades_texto }}" placeholder="1,2,4,5,6,10,15,20">
+                </div>
+            </div>
+            <div class="actions"><button class="btn" type="submit">SIMULAR CATÁLOGO</button></div>
+        </form>
+    </section>
+
+    {% if resultado_nuevo %}
+        {% with r=resultado_nuevo c=resultado_nuevo.catalogo %}
+        <section class="panel">
+            <div class="panel-head">
+                <div><h2>{{ r.nombre }}</h2><p class="help">{{ r.peso|floatformat:"2" }} g · {{ r.horas }} h {{ r.minutos }} min · margen lista {{ r.margen_minorista|floatformat:"1" }}%</p></div>
+                {% if c.descuento_porcentaje > 0 %}<span class="badge">{{ c.descuento_porcentaje|floatformat:"-1" }}% DESCUENTO</span>{% else %}<span class="badge neutral">PRECIO DE LISTA</span>{% endif %}
+            </div>
+            <div class="summary">
+                <div class="metric main">
+                    <div class="metric-label">Precio simulado de catálogo</div>
+                    <div class="metric-value">&#36;{{ c.precio_unitario|floatformat:"-2g" }} c/u</div>
+                    <div class="metric-sub">Total &#36;{{ c.precio_final_total|floatformat:"0g" }}</div>
+                </div>
+                <div class="metric"><div class="metric-label">Precio de lista</div><div class="metric-value">&#36;{{ c.precio_lista_unitario|floatformat:"0g" }}</div><div class="metric-sub">Antes del descuento por cantidad</div></div>
+                <div class="metric"><div class="metric-label">Ahorro</div><div class="metric-value">&#36;{{ c.ahorro|floatformat:"0g" }}</div><div class="metric-sub">{{ c.descuento_porcentaje|floatformat:"-1" }}% aplicado</div></div>
+                <div class="metric"><div class="metric-label">Margen real</div><div class="metric-value">{{ c.margen_real|floatformat:"1" }}%</div><div class="metric-sub">Ganancia &#36;{{ c.ganancia|floatformat:"0g" }}</div></div>
+            </div>
+            <details>
+                <summary>VER COSTOS INTERNOS</summary>
+                <div class="details">
+                    <div class="mini"><span>Costo productivo/u</span><strong>&#36;{{ c.costo_productivo_unitario|floatformat:"2g" }}</strong></div>
+                    <div class="mini"><span>Material/u</span><strong>&#36;{{ c.desglose.costo_material|floatformat:"2g" }}</strong></div>
+                    <div class="mini"><span>Amortización/u</span><strong>&#36;{{ c.desglose.amortizacion|floatformat:"2g" }}</strong></div>
+                    <div class="mini"><span>Filamento</span><strong>{% if c.filamento_economico %}Por cantidad{% else %}Estándar{% endif %}</strong></div>
+                </div>
+            </details>
         </section>
 
-        {% if resultado_existente %}
-            <section class="panel solo-interno">
-                <div class="resultado-header">
-                    <div>
-                        <h2>{{ resultado_existente.producto.nombre }}</h2>
-                        <div class="resultado-meta">
-                            {{ resultado_existente.producto.codigo }} · {{ resultado_existente.cantidad }} unidades
-                        </div>
-                    </div>
-                </div>
-
-                <div class="resumen-principal">
-                    <div class="valor-principal destacado">
-                        <div class="valor-label">Precio para x{{ resultado_existente.cantidad }}</div>
-                        <div class="valor-numero">
-                            ${{ resultado_existente.fila_cantidad.precio_unitario|floatformat:"-2g" }} c/u
-                        </div>
-                        <div class="valor-sub">
-                            Total ${{ resultado_existente.fila_cantidad.total|floatformat:"0g" }} ·
-                            Margen real {{ resultado_existente.fila_cantidad.margen_real|floatformat:1 }}%
-                        </div>
-                    </div>
-
-                    <div class="valor-principal">
-                        <div class="valor-label">Precio minorista</div>
-                        <div class="valor-numero">
-                            ${{ resultado_existente.precio_lista|floatformat:"0g" }}
-                        </div>
-                        <div class="valor-sub">Precio de lista actual.</div>
-                    </div>
-
-                    <div class="valor-principal">
-                        <div class="valor-label">Ganancia cotización</div>
-                        <div class="valor-numero">
-                            ${{ resultado_existente.fila_cantidad.ganancia|floatformat:"0g" }}
-                        </div>
-                        <div class="valor-sub">
-                            Costo total ${{ resultado_existente.fila_cantidad.costo_total|floatformat:"0g" }}
-                        </div>
-                    </div>
-                </div>
-
-                {% if resultado_existente.advertencia_margen %}
-                    <div class="advertencia">
-                        Atención: el margen elegido está debajo del piso mayorista de
-                        {{ margen_minimo|floatformat:1 }}%.
-                    </div>
-                {% endif %}
-
-                <details>
-                    <summary>COMPARAR ESCENARIOS Y VER COSTOS INTERNOS</summary>
-                    <div class="details-body">
-                        <div class="escenarios">
-                            {% for escenario in resultado_existente.escenarios %}
-                                <div class="escenario {% if escenario.nombre == 'Recomendado' %}recomendado{% endif %}">
-                                    <h3>{{ escenario.nombre }}</h3>
-                                    <div class="precio">${{ escenario.precio_unitario|floatformat:"-2g" }}/u</div>
-                                    <p>Margen objetivo {{ escenario.margen_objetivo|floatformat:1 }}%</p>
-                                    <p>Total ${{ escenario.total|floatformat:"0g" }}</p>
-                                    <p>Ganancia ${{ escenario.ganancia|floatformat:"0g" }}</p>
-                                </div>
-                            {% endfor %}
-                        </div>
-
-                        <div class="mini-resumen">
-                            <div class="mini"><b>Costo productivo/u</b><span>${{ resultado_existente.desglose.costo_productivo|floatformat:"2g" }}</span></div>
-                            <div class="mini"><b>Luz/u</b><span>${{ resultado_existente.desglose.costo_luz|floatformat:"2g" }}</span></div>
-                            <div class="mini"><b>Material/u</b><span>${{ resultado_existente.desglose.costo_material|floatformat:"2g" }}</span></div>
-                            <div class="mini"><b>Amortización/u</b><span>${{ resultado_existente.desglose.amortizacion|floatformat:"2g" }}</span></div>
-                        </div>
-                    </div>
-                </details>
-            </section>
-
-            <section class="panel solo-interno">
-                <div class="comparador-titulo">
-                    <div>
-                        <h3>Comparador por cantidad</h3>
-                        <p>Azul = conservador · Verde = recomendado · Naranja = agresivo.</p>
-                    </div>
-                </div>
-
-                <div class="comparador-wrap">
-                    <table class="comparador">
-                        <thead>
-                            <tr>
-                                <th>Cantidad</th>
-                                <th class="col-conservador"><span class="tag-estrategia tag-conservador">Conservador</span></th>
-                                <th class="col-recomendado"><span class="tag-estrategia tag-recomendado">Recomendado</span></th>
-                                <th class="col-agresivo"><span class="tag-estrategia tag-agresivo">Agresivo</span></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for fila in resultado_existente.lista_escenarios %}
-                                <tr>
-                                    <td>x{{ fila.cantidad }}</td>
-                                    <td class="col-conservador">
-                                        <span class="precio-tabla">${{ fila.conservador.precio_unitario|floatformat:"-2g" }}</span>
-                                        <span class="margen-tabla">{{ fila.conservador.margen_objetivo|floatformat:1 }}% margen</span>
-                                    </td>
-                                    <td class="col-recomendado">
-                                        <span class="precio-tabla">${{ fila.recomendado.precio_unitario|floatformat:"-2g" }}</span>
-                                        <span class="margen-tabla">{{ fila.recomendado.margen_objetivo|floatformat:1 }}% margen</span>
-                                    </td>
-                                    <td class="col-agresivo">
-                                        <span class="precio-tabla">${{ fila.agresivo.precio_unitario|floatformat:"-2g" }}</span>
-                                        <span class="margen-tabla">{{ fila.agresivo.margen_objetivo|floatformat:1 }}% margen</span>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <div class="selector-estrategia solo-interno" aria-label="Estrategia a compartir">
-                <button type="button" class="estrategia-btn" data-estrategia="conservador">CONSERVADOR</button>
-                <button type="button" class="estrategia-btn activa" data-estrategia="recomendado">RECOMENDADO</button>
-                <button type="button" class="estrategia-btn" data-estrategia="agresivo">AGRESIVO</button>
-            </div>
-
-            <section class="cliente-card" id="tarjetaCliente" data-estrategia-activa="recomendado">
-                <div class="cliente-cabecera">
-                    <div>
-                        <h2>{{ resultado_existente.producto.nombre }}</h2>
-                        <p>Precios por cantidad</p>
-                        <div class="estrategia-publica" id="etiquetaEstrategia">Opción recomendada</div>
-                    </div>
-                    <div class="cliente-marca">DOBLE V 3D</div>
-                </div>
-
-                <div class="precio-publico-lista">
-                    {% for fila in resultado_existente.lista_escenarios %}
-                        <div class="precio-publico fila-publica-estrategia" data-estrategia="conservador">
-                            <div class="cantidad-publica">x{{ fila.cantidad }}</div>
-                            <div class="unitario-publico">${{ fila.conservador.precio_unitario|floatformat:"-2g" }} c/u</div>
-                            <div class="total-publico">Total ${{ fila.conservador.total|floatformat:"0g" }}</div>
-                        </div>
-                        <div class="precio-publico fila-publica-estrategia" data-estrategia="recomendado">
-                            <div class="cantidad-publica">x{{ fila.cantidad }}</div>
-                            <div class="unitario-publico">${{ fila.recomendado.precio_unitario|floatformat:"-2g" }} c/u</div>
-                            <div class="total-publico">Total ${{ fila.recomendado.total|floatformat:"0g" }}</div>
-                        </div>
-                        <div class="precio-publico fila-publica-estrategia" data-estrategia="agresivo">
-                            <div class="cantidad-publica">x{{ fila.cantidad }}</div>
-                            <div class="unitario-publico">${{ fila.agresivo.precio_unitario|floatformat:"-2g" }} c/u</div>
-                            <div class="total-publico">Total ${{ fila.agresivo.total|floatformat:"0g" }}</div>
-                        </div>
+        <section class="panel">
+            <div class="panel-head"><div><h3>Precios por cantidad</h3><p class="help">Simulación con la misma curva que usa la tienda pública.</p></div></div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Cantidad</th><th>Lista c/u</th><th>Catálogo c/u</th><th>Descuento</th><th>Total</th><th>Margen real</th></tr></thead>
+                    <tbody>
+                    {% for fila in r.lista_precios %}
+                    <tr>
+                        <td><strong>x{{ fila.cantidad }}</strong></td>
+                        <td>&#36;{{ fila.precio_lista_unitario|floatformat:"0g" }}</td>
+                        <td><strong>&#36;{{ fila.precio_unitario|floatformat:"-2g" }}</strong></td>
+                        <td>{% if fila.descuento_porcentaje > 0 %}<span class="discount">{{ fila.descuento_porcentaje|floatformat:"-1" }}%</span>{% else %}<span class="no-discount">—</span>{% endif %}</td>
+                        <td>&#36;{{ fila.precio_final_total|floatformat:"0g" }}</td>
+                        <td>{{ fila.margen_real|floatformat:"1" }}%</td>
+                    </tr>
                     {% endfor %}
-                </div>
-
-                <div class="cliente-pie">
-                    Precios sujetos a confirmación al momento de realizar el pedido.
-                </div>
-            </section>
-
-            <textarea id="mensajeConservador" hidden>{{ resultado_existente.mensajes.conservador }}</textarea>
-            <textarea id="mensajeRecomendado" hidden>{{ resultado_existente.mensajes.recomendado }}</textarea>
-            <textarea id="mensajeAgresivo" hidden>{{ resultado_existente.mensajes.agresivo }}</textarea>
-
-            <div class="herramientas-cliente solo-interno">
-                <button type="button" class="btn" id="modoCaptura">VISTA PARA CAPTURA</button>
-                <button type="button" class="btn-secundario" data-copy-target="mensajeCliente">COPIAR MENSAJE</button>
-                <span class="copiado" id="estadoCopiado">MENSAJE COPIADO</span>
+                    </tbody>
+                </table>
             </div>
+        </section>
 
-            <section class="panel mensaje-panel solo-interno">
-                <h2>Mensaje listo para enviar</h2>
-                <p class="ayuda">Cambia automáticamente con Conservador / Recomendado / Agresivo y podés editarlo antes de copiar.</p>
-                <textarea id="mensajeCliente">{{ resultado_existente.mensajes.recomendado }}</textarea>
-            </section>
-        {% endif %}
+        <section class="panel">
+            <div class="share-grid">
+                <div>
+                    <label for="mensajeCliente">Mensaje para enviar</label>
+                    <textarea id="mensajeCliente">{{ r.mensaje_cliente }}</textarea>
+                    <div class="copy-status" id="copyStatus"></div>
+                </div>
+                <button class="btn secondary" type="button" id="copyButton">COPIAR MENSAJE</button>
+            </div>
+        </section>
+        {% endwith %}
     {% endif %}
-</div>
+    {% endif %}
+</main>
 
 {% include "shared/navigation.html" %}
 
 <script>
-(function(){
-    const botonCaptura = document.getElementById("modoCaptura");
-    const botonSalir = document.getElementById("salirCaptura");
-    const botonCopiar = document.querySelector("[data-copy-target]");
-    const estadoCopiado = document.getElementById("estadoCopiado");
-    const tarjetaCliente = document.getElementById("tarjetaCliente");
-    const mensajeCliente = document.getElementById("mensajeCliente");
-    const etiquetaEstrategia = document.getElementById("etiquetaEstrategia");
-    const botonesEstrategia = document.querySelectorAll(".estrategia-btn");
+(() => {
+    const button = document.getElementById("copyButton");
+    const textarea = document.getElementById("mensajeCliente");
+    const status = document.getElementById("copyStatus");
+    if (!button || !textarea) return;
 
-    const nombresEstrategia = {
-        conservador: "Opción conservadora",
-        recomendado: "Opción recomendada",
-        agresivo: "Opción agresiva"
-    };
-
-    const mensajesEstrategia = {
-        conservador: document.getElementById("mensajeConservador"),
-        recomendado: document.getElementById("mensajeRecomendado"),
-        agresivo: document.getElementById("mensajeAgresivo")
-    };
-
-    function seleccionarEstrategia(estrategia) {
-        if (tarjetaCliente) {
-            tarjetaCliente.setAttribute("data-estrategia-activa", estrategia);
+    button.addEventListener("click", async () => {
+        try {
+            await navigator.clipboard.writeText(textarea.value);
+            status.textContent = "MENSAJE COPIADO";
+        } catch (error) {
+            textarea.select();
+            document.execCommand("copy");
+            status.textContent = "MENSAJE COPIADO";
         }
-
-        botonesEstrategia.forEach(function(boton){
-            boton.classList.toggle(
-                "activa",
-                boton.getAttribute("data-estrategia") === estrategia
-            );
-        });
-
-        if (etiquetaEstrategia) {
-            etiquetaEstrategia.textContent = nombresEstrategia[estrategia] || "";
-        }
-
-        const fuente = mensajesEstrategia[estrategia];
-        if (mensajeCliente && fuente) {
-            mensajeCliente.value = fuente.value;
-        }
-    }
-
-    botonesEstrategia.forEach(function(boton){
-        boton.addEventListener("click", function(){
-            seleccionarEstrategia(
-                boton.getAttribute("data-estrategia")
-            );
-        });
     });
-
-    if (botonCaptura) {
-        botonCaptura.addEventListener("click", function(){
-            document.body.classList.add("modo-captura");
-            window.scrollTo({top:0,left:0,behavior:"auto"});
-        });
-    }
-
-    if (botonSalir) {
-        botonSalir.addEventListener("click", function(){
-            document.body.classList.remove("modo-captura");
-        });
-    }
-
-    async function copiarTexto(texto) {
-        if (navigator.clipboard && window.isSecureContext) {
-            await navigator.clipboard.writeText(texto);
-            return;
-        }
-
-        const temporal = document.createElement("textarea");
-        temporal.value = texto;
-        temporal.style.position = "fixed";
-        temporal.style.opacity = "0";
-        document.body.appendChild(temporal);
-        temporal.focus();
-        temporal.select();
-        document.execCommand("copy");
-        temporal.remove();
-    }
-
-    if (botonCopiar) {
-        botonCopiar.addEventListener("click", async function(){
-            const id = botonCopiar.getAttribute("data-copy-target");
-            const campo = document.getElementById(id);
-            if (!campo) return;
-
-            try {
-                await copiarTexto(campo.value);
-                if (estadoCopiado) {
-                    estadoCopiado.classList.add("visible");
-                    window.setTimeout(function(){
-                        estadoCopiado.classList.remove("visible");
-                    }, 2200);
-                }
-            } catch (error) {
-                campo.focus();
-                campo.select();
-            }
-        });
-    }
 })();
 </script>
 </body>
