@@ -1,3 +1,2 @@
-Deploy QA: nueva estructura de tienda
-Base: 881b0d13c52e5f19de82987ee1b533f57d2492c1
-Incluye: página principal, página de Productos, página de Kits, navegación común y carrito compartido
+Deploy QA: corregir acceso público y home de tienda
+Incluye: Productos/Kits públicos, recuperar texto anterior del hero y centrar banner azul en web
