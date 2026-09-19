@@ -217,14 +217,25 @@ class AccionesPedidoEstadoTests(TestCase):
                 date(2026, 10, 10),
             )
 
-    def test_cancelar_no_se_permite_fuera_de_pendiente(self):
-        self._estado("LISTO")
-        respuesta = self.client.post(
-            reverse("pedidos:cancelar", args=[self.pedido.id])
-        )
-        self.assertEqual(respuesta.status_code, 302)
-        self.pedido.refresh_from_db()
-        self.assertEqual(self.pedido.estado, "LISTO")
+    def test_cancelar_se_permite_mientras_pedido_esta_activo(self):
+        for estado in ("PENDIENTE", "PREPARANDO", "LISTO"):
+            self._estado(estado)
+            respuesta = self.client.post(
+                reverse("pedidos:cancelar", args=[self.pedido.id])
+            )
+            self.assertEqual(respuesta.status_code, 302)
+            self.pedido.refresh_from_db()
+            self.assertEqual(self.pedido.estado, "CANCELADO")
+
+    def test_cancelar_no_se_permite_en_estados_finales(self):
+        for estado in ("ENTREGADO", "CANCELADO"):
+            self._estado(estado)
+            respuesta = self.client.post(
+                reverse("pedidos:cancelar", args=[self.pedido.id])
+            )
+            self.assertEqual(respuesta.status_code, 302)
+            self.pedido.refresh_from_db()
+            self.assertEqual(self.pedido.estado, estado)
 
     def test_eliminar_no_se_permite_fuera_de_pendiente(self):
         self._estado("PREPARANDO")
