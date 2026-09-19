@@ -1,2 +1,2 @@
-Deploy QA: ajustes generales de Gestión
-Incluye: pagos desde detalle de pedido, fecha de entrega editable para pedidos activos, correcciones de modo oscuro en Finanzas/Dashboard/Producción, estados visuales en próximas entregas y normalización de tipografía.
+Deploy QA: contraste de solicitudes web en dashboard
+Incluye: card adaptada al modo oscuro, textos legibles y layout más compacto en desktop.
