@@ -1,2 +1,2 @@
-Deploy QA: corregir inicio y textos de Productos/Kits
-Incluye: quitar el \\n visible debajo del header de Inicio y hacer que la descripción bajo Productos/Kits ocupe todo el ancho disponible.
+Deploy QA: mantenimiento centrado y sesión en menú
+Incluye: pantalla de mantenimiento sin scroll, usuario dentro del menú hamburguesa y cerrar sesión al pie del menú.
