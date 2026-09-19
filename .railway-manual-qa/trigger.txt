@@ -1,2 +1,2 @@
-Deploy QA: curva progresiva de descuentos en kits
-Incluye: 2 kits hasta 5%, +1 punto por cada kit adicional y tope de 15%; costos y margen pueden limitar el descuento a uno menor
+Deploy QA: curva dinámica unificada de descuentos
+Incluye: productos y kits dejan de usar escalones fijos; el descuento nace del margen/costo técnico y se libera gradualmente según cantidad, con tope comercial de 15%
