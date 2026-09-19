@@ -5,8 +5,10 @@ from django.contrib import messages
 from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from clientes.models import Cliente
+from clientes.telefonos import buscar_cliente_por_telefono
 from kits.economia import (
     analizar_opciones_kit,
     precio_automatico_kit_libre,
@@ -296,9 +298,25 @@ def nuevo_pedido(request):
             transaction.set_rollback(True)
             return redirect("pedidos:nuevo")
 
+        telefono = request.POST.get("nuevo_cliente_telefono", "").strip()
+        existente = buscar_cliente_por_telefono(telefono)
+        if existente:
+            estado = "" if existente.activo else " (inactivo)"
+            messages.error(
+                request,
+                (
+                    f"Ese teléfono ya pertenece a {existente.nombre} "
+                    f"({existente.codigo}){estado}. Seleccioná el cliente existente."
+                ),
+            )
+            transaction.set_rollback(True)
+            return redirect(
+                f"{reverse('pedidos:nuevo')}?cliente={existente.id}"
+            )
+
         cliente = Cliente.objects.create(
             nombre=nombre,
-            telefono=request.POST.get("nuevo_cliente_telefono", "").strip(),
+            telefono=telefono,
             email=request.POST.get("nuevo_cliente_email", "").strip(),
             activo=True,
         )
