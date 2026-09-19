@@ -94,6 +94,22 @@ class DashboardProduccionTests(TestCase):
             respuesta,
             'id="dv-dashboard-menu-script"',
         )
+        self.assertContains(
+            respuesta,
+            "dashboard-test",
+        )
+        self.assertContains(
+            respuesta,
+            "CERRAR SESIÓN",
+        )
+        self.assertContains(
+            respuesta,
+            'class="dv-management-menu__account"',
+        )
+        self.assertNotContains(
+            respuesta,
+            'id="dv-dashboard-session"',
+        )
 
     def test_dashboard_muestra_impresoras_y_planificaciones(self):
         ahora = timezone.now()
