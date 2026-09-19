@@ -484,7 +484,7 @@ def _panel_produccion_dashboard(
                 <div>
                     <div class="dv-plan-producto">{producto} × {produccion.cantidad}</div>
                     <div class="dv-plan-meta">
-                        {inicio_texto} · {escape(produccion.tiempo_impresion_formateado)}
+                        {inicio_texto} · {escape(produccion.tiempo_impresion_formateado)} · ⚖ {peso}
                     </div>
                 </div>
                 {accion}
@@ -503,9 +503,9 @@ def _panel_produccion_dashboard(
     <div class="panel dv-produccion-panel">
         <div class="dv-produccion-cabecera">
             <div>
-                <h3 class="panel-titulo">Producción</h3>
+                <h3 class="panel-titulo">Ahora y cola</h3>
                 <div class="panel-subtitulo" style="margin-bottom:0">
-                    Ahora, impresoras y próximos trabajos
+                    Impresoras y próximos trabajos
                 </div>
             </div>
             <a class="dv-produccion-link" href="{produccion_url}">VER TODO →</a>
