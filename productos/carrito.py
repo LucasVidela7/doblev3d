@@ -35,6 +35,9 @@ from productos.whatsapp import (
 MAX_LINEAS = 20
 MAX_CANTIDAD_LINEA = 20
 CANTIDAD_MINIMA_DESCUENTO_PRODUCTOS = 5
+DESCUENTO_INICIAL_PRODUCTOS = Decimal("5")
+INCREMENTO_DESCUENTO_PRODUCTOS = Decimal("1")
+DESCUENTO_MAXIMO_PRODUCTOS = Decimal("15")
 MAX_UNIDADES_TOTALES = 100
 MAX_PAYLOAD_BYTES = 30000
 
@@ -288,12 +291,38 @@ def _validar_carrito(payload):
     return lineas
 
 
+def _descuento_maximo_producto(cantidad):
+    """
+    Curva comercial de descuento para productos individuales.
+
+    - 1 a 4 unidades: 0%
+    - 5 unidades: hasta 5%
+    - cada unidad adicional suma 1 punto
+    - tope: 15%
+
+    La calculadora de costos sigue definiendo si corresponde aplicar menos.
+    """
+    cantidad = max(int(cantidad or 0), 0)
+    if cantidad < CANTIDAD_MINIMA_DESCUENTO_PRODUCTOS:
+        return Decimal("0")
+
+    escalones = Decimal(
+        cantidad - CANTIDAD_MINIMA_DESCUENTO_PRODUCTOS
+    )
+    return min(
+        DESCUENTO_INICIAL_PRODUCTOS
+        + escalones * INCREMENTO_DESCUENTO_PRODUCTOS,
+        DESCUENTO_MAXIMO_PRODUCTOS,
+    )
+
+
 def _aplicar_descuentos_carrito(lineas):
     """
     Reutiliza las reglas comerciales existentes.
 
-    - Productos: mantiene precio de lista hasta 4 unidades. Desde 5 usa el
-      escenario recomendado de la calculadora, sin subir nunca el precio publicado.
+    - Productos: mantiene precio de lista hasta 4 unidades. Desde 5 aplica
+      una curva comercial progresiva (5% inicial, +1 punto por unidad, tope 15%),
+      limitada además por el escenario recomendado de la calculadora.
     - Kits: usa la lógica de volumen actual, que se activa desde 5 kits
       totales y puede combinar kits distintos.
     """
@@ -327,9 +356,28 @@ def _aplicar_descuentos_carrito(lineas):
         recomendado = _decimal(
             calculo["escenarios"]["recomendado"]["total_recomendado"]
         )
+
+        descuento_maximo = _descuento_maximo_producto(cantidad)
+        factor_minimo = (
+            Decimal("1")
+            - descuento_maximo / Decimal("100")
+        )
+        precio_minimo_comercial = (
+            precio_lista_total * factor_minimo
+        ).quantize(Decimal("0.01"))
+
+        precio_tecnico = (
+            recomendado
+            if recomendado > 0
+            else precio_lista_total
+        )
+
+        # El precio recomendado puede implicar una baja mucho mayor que la
+        # que queremos comunicar comercialmente en la tienda. Tomamos el
+        # mayor entre el piso comercial progresivo y el precio técnico.
         precio_final_total = min(
             precio_lista_total,
-            recomendado if recomendado > 0 else precio_lista_total,
+            max(precio_minimo_comercial, precio_tecnico),
         )
 
         precio_unitario = (
