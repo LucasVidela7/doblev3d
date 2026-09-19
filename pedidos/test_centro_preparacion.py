@@ -215,3 +215,47 @@ class CentroPreparacionTests(TestCase):
 
         self.assertEqual(self.producto.stock, 10)
         self.assertEqual(self.pedido.estado, "CANCELADO")
+
+    def test_filtro_cancelados_muestra_solo_historial_cancelado(self):
+        cancelado = Pedido.objects.create(
+            cliente=self.cliente,
+            estado="CANCELADO",
+        )
+        DetallePedido.objects.create(
+            pedido=cancelado,
+            tipo_item="PRODUCTO",
+            producto=self.producto,
+            cantidad=2,
+            precio_unitario=Decimal("1000"),
+            estado="CANCELADO",
+        )
+
+        respuesta = self.client.get(
+            reverse("pedidos:impresiones"),
+            {"estado": "CANCELADOS"},
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(
+            respuesta.context["filtro_pedidos"],
+            "CANCELADOS",
+        )
+        self.assertEqual(
+            respuesta.context["total_cancelados"],
+            1,
+        )
+        self.assertContains(respuesta, cancelado.codigo)
+        self.assertNotContains(respuesta, self.pedido.codigo)
+        self.assertContains(respuesta, "Historial de solo lectura")
+
+    def test_url_historica_cancelados_redirige_al_filtro(self):
+        respuesta = self.client.get(
+            reverse("pedidos:cancelados")
+        )
+
+        self.assertEqual(respuesta.status_code, 302)
+        self.assertEqual(
+            respuesta.url,
+            reverse("pedidos:impresiones") + "?estado=CANCELADOS",
+        )
+
