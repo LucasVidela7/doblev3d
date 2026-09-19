@@ -258,6 +258,39 @@ class PlanificacionProduccionTests(TestCase):
     @patch(
         "pedidos.impresiones_stock.obtener_impresiones_por_producto"
     )
+    def test_accion_rapida_permite_excedente_para_stock(
+        self,
+        necesidades_mock,
+    ):
+        necesidades_mock.return_value = [
+            {
+                "producto": self.producto,
+                "falta_normal_planificar": 3,
+            }
+        ]
+
+        respuesta = self.client.post(
+            reverse("produccion:accion_rapida"),
+            {
+                "producto": self.producto.id,
+                "cantidad": "80",
+                "accion": "PLANIFICAR",
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 302)
+        produccion = Produccion.objects.get()
+        self.assertEqual(produccion.destino, "STOCK")
+        self.assertEqual(produccion.cantidad, 80)
+        self.assertEqual(produccion.estado, "PENDIENTE")
+        self.assertEqual(
+            produccion.tiempo_impresion_minutos,
+            12000,
+        )
+
+    @patch(
+        "pedidos.impresiones_stock.obtener_impresiones_por_producto"
+    )
     def test_accion_rapida_puede_iniciar_en_impresora_libre(
         self,
         necesidades_mock,
