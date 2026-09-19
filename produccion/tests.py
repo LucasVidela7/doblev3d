@@ -148,7 +148,7 @@ class PlanificacionProduccionTests(TestCase):
             ahora + timedelta(minutes=210),
         )
 
-    def test_modulo_unificado_muestra_necesidad_y_planificacion_manual(self):
+    def test_centro_produccion_prioriza_ahora_necesidad_y_cola(self):
         respuesta = self.client.get(
             reverse("produccion:lista")
         )
@@ -156,15 +156,23 @@ class PlanificacionProduccionTests(TestCase):
         self.assertEqual(respuesta.status_code, 200)
         self.assertContains(
             respuesta,
-            "Necesidad de impresión",
+            "Centro de producción",
         )
         self.assertContains(
             respuesta,
-            "PLANIFICACIÓN MANUAL / PRODUCIR PARA STOCK",
+            "Qué imprimir",
         )
         self.assertContains(
             respuesta,
-            "Cola y producción",
+            "MÁS OPCIONES · PRODUCIR PARA STOCK",
+        )
+        self.assertContains(
+            respuesta,
+            "Cola",
+        )
+        self.assertContains(
+            respuesta,
+            "Historial",
         )
 
     def test_filtro_predeterminado_muestra_imprimiendo_y_planificadas(self):
@@ -205,9 +213,79 @@ class PlanificacionProduccionTests(TestCase):
             estados,
             {"PENDIENTE", "IMPRIMIENDO"},
         )
+        self.assertEqual(
+            len(respuesta.context["cola_pendiente"]),
+            1,
+        )
         self.assertContains(
             respuesta,
-            "Imprimiendo + Planificadas",
+            "SIGUIENTE EN COLA",
+        )
+
+    @patch(
+        "pedidos.impresiones_stock.obtener_impresiones_por_producto"
+    )
+    def test_accion_rapida_agrega_trabajo_a_cola(
+        self,
+        necesidades_mock,
+    ):
+        necesidades_mock.return_value = [
+            {
+                "producto": self.producto,
+                "falta_normal_planificar": 3,
+            }
+        ]
+
+        respuesta = self.client.post(
+            reverse("produccion:accion_rapida"),
+            {
+                "producto": self.producto.id,
+                "cantidad": "2",
+                "accion": "PLANIFICAR",
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 302)
+        produccion = Produccion.objects.get()
+        self.assertEqual(produccion.estado, "PENDIENTE")
+        self.assertIsNone(produccion.impresora)
+        self.assertEqual(produccion.cantidad, 2)
+        self.assertEqual(
+            produccion.tiempo_impresion_minutos,
+            300,
+        )
+
+    @patch(
+        "pedidos.impresiones_stock.obtener_impresiones_por_producto"
+    )
+    def test_accion_rapida_puede_iniciar_en_impresora_libre(
+        self,
+        necesidades_mock,
+    ):
+        necesidades_mock.return_value = [
+            {
+                "producto": self.producto,
+                "falta_normal_planificar": 2,
+            }
+        ]
+
+        respuesta = self.client.post(
+            reverse("produccion:accion_rapida"),
+            {
+                "producto": self.producto.id,
+                "cantidad": "1",
+                "accion": "INICIAR",
+                "impresora": self.impresora.id,
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 302)
+        produccion = Produccion.objects.get()
+        self.assertEqual(produccion.estado, "IMPRIMIENDO")
+        self.assertEqual(produccion.impresora, self.impresora)
+        self.assertEqual(
+            produccion.tiempo_impresion_minutos,
+            150,
         )
 
     @patch("produccion.views.timezone.now")
@@ -238,9 +316,9 @@ class PlanificacionProduccionTests(TestCase):
 
         self.assertContains(
             respuesta,
-            "Si inicia ahora · termina 13:11",
+            "SI EMPIEZA AHORA",
         )
         self.assertContains(
             respuesta,
-            "Programada originalmente · 15/09 08:41",
+            "Termina aprox. 13:11",
         )
