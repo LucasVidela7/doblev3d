@@ -1,2 +1,2 @@
-Deploy QA: optimizar detalle de pedido
-Incluye: quitar Editar y estado repetidos, volver a Preparación en lugar de Dashboard, toolbar mobile compacta, métricas más ajustadas y menú contextual como único lugar para editar/cancelar/eliminar.
+Deploy QA: centro operativo de productos
+Incluye listado responsive con métricas y filtros, detalle con demanda/producción/stock/costos/kits/movimientos, edición guiada y pruebas específicas del módulo.
