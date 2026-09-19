@@ -1,2 +1,2 @@
-Deploy QA: composición de Kits sin borde blanco y sin cortes
-Incluye: wrapper transparente en todos los tipos de kit, filas completas y responsive corregido para componentes y referencias de precio.
+Deploy QA: nuevo Centro de Preparación
+Incluye: Para preparar / En preparación / Falta stock / Listos, reserva real de stock al iniciar, checklist de armado, liberación de reservas, integración con Producción y navegación actualizada.
