@@ -3,6 +3,8 @@ from datetime import date
 from django.contrib import messages
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
 
 from productos.models import Producto
 
@@ -111,7 +113,7 @@ def _armar_fila(pedido):
         estado_operativo = "DISPONIBLE"
         estado_texto = "Todo disponible"
 
-    hoy = date.today()
+    hoy = timezone.localdate()
     if pedido.fecha_entrega is None:
         entrega_clase = "sin-fecha"
         entrega_texto = "Sin fecha"
@@ -302,7 +304,9 @@ def iniciar_preparacion(request, pedido_id):
             f"{pedido.codigo} en preparación.",
         )
 
-    return redirect("/pedidos/impresiones/#en-preparacion")
+    return redirect(
+        reverse("pedidos:impresiones") + "#en-preparacion"
+    )
 
 
 @transaction.atomic
