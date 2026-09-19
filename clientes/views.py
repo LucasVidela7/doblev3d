@@ -247,6 +247,14 @@ def lista_clientes(request):
             1 for fila in filas_base
             if fila["sin_actividad_reciente"]
         ),
+        "total_comprado": sum(
+            (fila["total_comprado"] for fila in filas_base),
+            Decimal("0"),
+        ),
+        "saldo_total": sum(
+            (fila["saldo_pendiente"] for fila in filas_base),
+            Decimal("0"),
+        ),
     }
 
     filtros = {
