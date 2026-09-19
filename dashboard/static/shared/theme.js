@@ -111,8 +111,8 @@
         return (
             elemento.hasAttribute("data-dv-primary")
             || accion.hasAttribute("data-dv-primary")
-            || /(?:^|\s)(?:primary|principal|dark|boton-principal|btn-principal|accion-principal|boton-guardar|guardar)(?:\s|$)/.test(clases)
-            || /^(?:\+|＋)?\s*(?:NUEVO|NUEVA|CREAR|GUARDAR|APROBAR|CONVERTIR|PLANIFICAR|SUBIR|CALCULAR|AGREGAR)/.test(texto)
+            || /(?:^|\s)(?:primary|principal|dark|boton-principal|btn-principal|accion-principal|boton-guardar|guardar|approve|convert|btn-entregar)(?:\s|$)/.test(clases)
+            || /^(?:\+|＋|✓)?\s*(?:NUEVO|NUEVA|CREAR|GUARDAR|APROBAR|CONVERTIR|PLANIFICAR|SUBIR|CALCULAR|AGREGAR|ENTREGAR|REGISTRAR)/.test(texto)
             || /^EDITAR(?:\s|$)/.test(texto)
         );
     }
@@ -120,9 +120,21 @@
     function ancestroCabecera(contenedor){
         let nodo=contenedor.parentElement;
         let pasos=0;
+        const selectorCabecera=[
+            "header",
+            ".header",
+            ".head",
+            ".h",
+            ".encabezado",
+            ".cabecera",
+            ".cfg-head"
+        ].join(",");
 
         while(nodo && pasos<4){
-            if(nodo.querySelector(":scope h1") || nodo.querySelector("h1")){
+            if(
+                nodo.matches(selectorCabecera)
+                && nodo.querySelector("h1")
+            ){
                 return nodo;
             }
             nodo=nodo.parentElement;
@@ -162,6 +174,7 @@
             ".actions",
             ".header-actions",
             ".acciones-encabezado",
+            ".acciones-head",
             ".cabecera-acciones",
             ".toolbar-actions",
             ".h > .a",
@@ -207,9 +220,6 @@
             });
 
             let principal=normales.find(esAccionPrincipal)||null;
-            if(!principal && normales.length){
-                principal=normales[normales.length-1];
-            }
 
             normales.forEach(function(item){
                 item.classList.remove(
@@ -254,6 +264,48 @@
             if(overflowExistente){
                 overflowExistente.classList.add("dv-page-overflow");
                 acciones.appendChild(overflowExistente);
+            }
+        });
+
+        document.querySelectorAll(
+            "header,.header,.head,.h,.encabezado,.cabecera,.cfg-head"
+        ).forEach(function(cabecera){
+            if(
+                !cabecera.querySelector("h1")
+                || cabecera.querySelector(":scope > .dv-page-actions")
+                || cabecera.querySelector(":scope > .acciones")
+                || cabecera.querySelector(":scope > .actions")
+                || cabecera.querySelector(":scope > .header-actions")
+                || cabecera.querySelector(":scope > .acciones-encabezado")
+                || cabecera.querySelector(":scope > .acciones-head")
+            ){
+                return;
+            }
+
+            const directas=Array.from(cabecera.children).filter(function(item){
+                return item.matches("a,button,form,details");
+            });
+
+            if(!directas.length) return;
+
+            const barra=document.createElement("div");
+            barra.className="dv-page-actions";
+            directas.forEach(function(item){
+                barra.appendChild(item);
+            });
+            cabecera.appendChild(barra);
+            cabecera.classList.add("dv-page-head");
+
+            const principal=directas.find(esAccionPrincipal)||null;
+            directas.forEach(function(item){
+                item.classList.add(
+                    item===principal
+                        ?"dv-page-action-primary"
+                        :"dv-page-action-secondary"
+                );
+            });
+            if(principal){
+                barra.appendChild(principal);
             }
         });
 
