@@ -203,8 +203,8 @@
 <nav class="dv-global-nav" aria-label="Navegación principal">
     <a
         href="{% url 'dashboard:inicio' %}"
-        class="dv-global-nav-item {% if request.resolver_match.namespace == 'dashboard' %}is-active{% endif %}"
-        {% if request.resolver_match.namespace == 'dashboard' %}aria-current="page"{% endif %}
+        class="dv-global-nav-item {% if request.resolver_match.namespace == 'dashboard' and request.resolver_match.url_name == 'inicio' %}is-active{% endif %}"
+        {% if request.resolver_match.namespace == 'dashboard' and request.resolver_match.url_name == 'inicio' %}aria-current="page"{% endif %}
     >
         <span class="dv-global-nav-icon">⌂</span>
         <span class="dv-global-nav-label">INICIO</span>
