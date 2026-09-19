@@ -27,7 +27,7 @@
             border-radius:15px;background:var(--dv-brand-blue-soft,#eef4ff);color:var(--dv-accent-blue-text,#0d376f);
             font-size:11px;line-height:1.5
         }
-        .tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:16px;padding:5px;border:1px solid var(--dv-border,#dfe5ef);border-radius:15px;background:var(--dv-surface,#fff)}
+        .tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:16px;padding:5px;border:1px solid var(--dv-border,#dfe5ef);border-radius:15px;background:var(--dv-surface,#fff)}
         .tab{min-height:42px;display:flex;align-items:center;justify-content:center;border-radius:11px;color:var(--dv-muted,#667085);text-decoration:none;font-size:10px;font-weight:900}
         .tab.active{background:var(--dv-brand-blue,#134a9a);color:#fff}
         .panel{margin-bottom:15px;padding:19px;border:1px solid var(--dv-border,#dfe5ef);border-radius:20px;background:var(--dv-surface,#fff);box-shadow:var(--dv-shadow,0 8px 25px rgba(20,25,35,.055))}
@@ -71,7 +71,11 @@
         .mini span{display:block;color:var(--dv-muted,#667085);font-size:8px}.mini strong{display:block;margin-top:4px;font-size:11px}
         .share-grid{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}
         .copy-status{min-height:18px;margin-top:6px;color:#24633a;font-size:9px;font-weight:900}
+        .kit-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:10px}
+        .kit-option-note{grid-column:1/-1;padding:10px 12px;border-radius:11px;background:var(--dv-surface-muted,#f1f4f9);color:var(--dv-muted,#667085);font-size:10px;line-height:1.4}
+        .warning{margin-top:10px;padding:11px 12px;border:1px solid #e8cf9b;border-radius:11px;background:#fff8e8;color:#6f501d;font-size:10px;font-weight:800}
         @media(max-width:820px){
+            .tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
             .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
             .summary{grid-template-columns:repeat(2,minmax(0,1fr))}
             .metric.main{grid-column:1/-1}
@@ -85,6 +89,7 @@
             .summary{grid-template-columns:1fr 1fr}
             .metric.main{grid-column:1/-1}
             .share-grid{grid-template-columns:1fr}
+            .kit-options{grid-template-columns:1fr}
             .actions{display:grid}.btn{width:100%}
         }
     </style>
@@ -101,7 +106,9 @@
     </header>
 
     <div class="rule">
-        Precio de lista hasta 4 unidades. Desde {{ cantidad_minima_descuento }} unidades se aplica la curva dinámica del catálogo según costos y margen, con un tope de {{ descuento_maximo|floatformat:"-1" }}% de descuento. Máximo {{ max_cantidad_catalogo }} unidades por línea.
+        <strong>Productos:</strong> precio de lista hasta 4 unidades y curva dinámica desde {{ cantidad_minima_descuento }}, con tope de {{ descuento_maximo|floatformat:"-1" }}%.
+        <strong>Kits:</strong> volumen desde {{ cantidad_minima_kits }} kits totales, con tope de {{ descuento_maximo_kits|floatformat:"-1" }}% y selección premium cuando corresponda.
+        <strong>Personalizados:</strong> la base usa el mismo precio del catálogo y el trabajo adicional se acuerda manualmente.
     </div>
 
     {% if config %}
@@ -113,8 +120,10 @@
     {% endif %}
 
     <nav class="tabs" aria-label="Modo de cálculo">
-        <a href="?modo=existente" class="tab {% if modo == 'existente' %}active{% endif %}">PRODUCTO DEL CATÁLOGO</a>
-        <a href="?modo=nuevo" class="tab {% if modo == 'nuevo' %}active{% endif %}">SIMULAR PRODUCTO NUEVO</a>
+        <a href="?modo=existente" class="tab {% if modo == 'existente' %}active{% endif %}">PRODUCTO</a>
+        <a href="?modo=kit" class="tab {% if modo == 'kit' %}active{% endif %}">KIT</a>
+        <a href="?modo=personalizado" class="tab {% if modo == 'personalizado' %}active{% endif %}">PERSONALIZADO</a>
+        <a href="?modo=nuevo" class="tab {% if modo == 'nuevo' %}active{% endif %}">SIMULAR NUEVO</a>
     </nav>
 
     {% if errores %}
@@ -246,7 +255,7 @@
         {% endwith %}
     {% endif %}
 
-    {% else %}
+    {% elif modo == "nuevo" %}
     <section class="panel">
         <div class="panel-head">
             <div>
@@ -352,6 +361,176 @@
         </section>
         {% endwith %}
     {% endif %}
+
+    {% elif modo == "kit" %}
+    <section class="panel">
+        <div class="panel-head">
+            <div>
+                <h2>Kit</h2>
+                <p class="help">Calcula el mismo precio que usaría el catálogo para este kit y esta selección. Si en el carrito hay otros kits, el volumen se evalúa sobre el total combinado.</p>
+            </div>
+        </div>
+        <form method="post" id="kitCalculatorForm">
+            {% csrf_token %}
+            <input type="hidden" name="modo" value="kit">
+            <div class="form-grid">
+                <div class="field wide">
+                    <label for="kit_id">Kit</label>
+                    <select id="kit_id" name="kit_id" required>
+                        <option value="">Seleccionar…</option>
+                        {% for kit in kits %}
+                        <option value="{{ kit.id }}" {% if request.POST.kit_id == kit.id|stringformat:"s" %}selected{% endif %}>
+                            {{ kit.codigo }} · {{ kit.nombre }} · &#36;{{ kit.precio|floatformat:"0g" }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="cantidad_kit">Cantidad de kits</label>
+                    <input id="cantidad_kit" type="number" name="cantidad" min="1" max="{{ max_cantidad_catalogo }}" value="{{ request.POST.cantidad|default:'2' }}" required>
+                </div>
+                <div class="field full">
+                    <div id="kitOptions" class="kit-options">
+                        <div class="kit-option-note">Seleccioná un kit para ver su composición.</div>
+                    </div>
+                </div>
+            </div>
+            {{ kit_seleccion_ids|json_script:"kitSeleccionInicial" }}
+            <div class="actions"><button class="btn" type="submit">CALCULAR KIT</button></div>
+        </form>
+    </section>
+
+    {% if resultado_kit %}
+    {% with k=resultado_kit %}
+    <section class="panel">
+        <div class="panel-head">
+            <div>
+                <h2>{{ k.kit.nombre }}</h2>
+                <p class="help">{{ k.cantidad }} kit{{ k.cantidad|pluralize }} · {{ k.total_piezas }} piezas reales agrupadas</p>
+            </div>
+            {% if k.descuento_porcentaje > 0 %}
+            <span class="badge">{{ k.descuento_porcentaje|floatformat:"-1" }}% DESCUENTO</span>
+            {% else %}
+            <span class="badge neutral">PRECIO ACTUAL</span>
+            {% endif %}
+        </div>
+        <div class="summary">
+            <div class="metric main">
+                <div class="metric-label">Precio catálogo del kit</div>
+                <div class="metric-value">&#36;{{ k.precio_final_unitario|floatformat:"-2g" }} c/u</div>
+                <div class="metric-sub">Total &#36;{{ k.precio_final_total|floatformat:"0g" }}</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Lista / selección</div>
+                <div class="metric-value">&#36;{{ k.precio_lista_unitario|floatformat:"-2g" }}</div>
+                <div class="metric-sub">Total lista &#36;{{ k.precio_lista_total|floatformat:"0g" }}</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Ahorro</div>
+                <div class="metric-value">&#36;{{ k.ahorro|floatformat:"0g" }}</div>
+                <div class="metric-sub">{{ k.descuento_porcentaje|floatformat:"-1" }}% aplicado</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Margen real</div>
+                <div class="metric-value">{{ k.margen_real|floatformat:"1" }}%</div>
+                <div class="metric-sub">Piso {{ k.margen_minimo|floatformat:"1" }}%</div>
+            </div>
+        </div>
+        {% if k.limitado_por_margen %}
+        <div class="warning">El descuento quedó limitado para proteger la rentabilidad.</div>
+        {% endif %}
+        {% if k.seleccion_productos %}
+        <details>
+            <summary>VER SELECCIÓN DEL KIT</summary>
+            <div class="details">
+                {% for producto in k.seleccion_productos %}
+                <div class="mini"><span>Producto</span><strong>{{ producto.nombre }}</strong></div>
+                {% endfor %}
+            </div>
+        </details>
+        {% endif %}
+    </section>
+    {% endwith %}
+    {% endif %}
+
+    {% else %}
+    <section class="panel">
+        <div class="panel-head">
+            <div>
+                <h2>Trabajo personalizado</h2>
+                <p class="help">La base respeta el catálogo por cantidad. El valor del diseño, pintura u otro trabajo adicional queda manual porque hoy no tiene un costo productivo propio cargado en el sistema.</p>
+            </div>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="modo" value="personalizado">
+            <div class="form-grid">
+                <div class="field wide">
+                    <label for="producto_personalizado_id">Producto base</label>
+                    <select id="producto_personalizado_id" name="producto_personalizado_id" required>
+                        <option value="">Seleccionar…</option>
+                        {% for producto in productos %}
+                        <option value="{{ producto.id }}" {% if request.POST.producto_personalizado_id == producto.id|stringformat:"s" %}selected{% endif %}>
+                            {{ producto.codigo }} · {{ producto.nombre }} · &#36;{{ producto.subtotal|floatformat:"0g" }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="cantidad_personalizado">Cantidad</label>
+                    <input id="cantidad_personalizado" type="number" name="cantidad" min="1" max="{{ max_cantidad_catalogo }}" value="{{ request.POST.cantidad|default:'1' }}" required>
+                </div>
+                <div class="field">
+                    <label for="precio_total_personalizado">Total acordado</label>
+                    <input id="precio_total_personalizado" type="number" name="precio_total_personalizado" min="0" step="0.01" value="{{ request.POST.precio_total_personalizado|default:'' }}" placeholder="Opcional">
+                </div>
+            </div>
+            <div class="actions"><button class="btn" type="submit">CALCULAR BASE</button></div>
+        </form>
+    </section>
+
+    {% if resultado_personalizado %}
+    {% with p=resultado_personalizado b=resultado_personalizado.base %}
+    <section class="panel">
+        <div class="panel-head">
+            <div>
+                <h2>{{ p.producto.nombre }} personalizado</h2>
+                <p class="help">Base exacta del catálogo para x{{ p.cantidad }}.</p>
+            </div>
+            {% if b.descuento_porcentaje > 0 %}
+            <span class="badge">{{ b.descuento_porcentaje|floatformat:"-1" }}% EN LA BASE</span>
+            {% else %}
+            <span class="badge neutral">BASE DE LISTA</span>
+            {% endif %}
+        </div>
+        <div class="summary">
+            <div class="metric main">
+                <div class="metric-label">Base catálogo</div>
+                <div class="metric-value">&#36;{{ b.precio_unitario|floatformat:"-2g" }} c/u</div>
+                <div class="metric-sub">Total base &#36;{{ b.precio_final_total|floatformat:"0g" }}</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Lista original</div>
+                <div class="metric-value">&#36;{{ b.precio_lista_unitario|floatformat:"0g" }}</div>
+                <div class="metric-sub">Antes de descuento por cantidad</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Total acordado</div>
+                <div class="metric-value">{% if p.total_acordado > 0 %}&#36;{{ p.total_acordado|floatformat:"0g" }}{% else %}—{% endif %}</div>
+                <div class="metric-sub">{% if p.total_acordado > 0 %}&#36;{{ p.precio_unitario_acordado|floatformat:"-2g" }} c/u{% else %}Ingresalo para comparar{% endif %}</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Diferencia vs base</div>
+                <div class="metric-value">{% if p.total_acordado > 0 %}&#36;{{ p.diferencia_total|floatformat:"0g" }}{% else %}—{% endif %}</div>
+                <div class="metric-sub">Trabajo personalizado sobre la base</div>
+            </div>
+        </div>
+        {% if p.por_debajo_base %}
+        <div class="warning">El total acordado quedó por debajo del precio base que hoy cobraría el catálogo para esas unidades.</div>
+        {% endif %}
+    </section>
+    {% endwith %}
+    {% endif %}
     {% endif %}
 </main>
 
@@ -362,18 +541,112 @@
     const button = document.getElementById("copyButton");
     const textarea = document.getElementById("mensajeCliente");
     const status = document.getElementById("copyStatus");
-    if (!button || !textarea) return;
+    if (button && textarea) {
+        button.addEventListener("click", async () => {
+            try {
+                await navigator.clipboard.writeText(textarea.value);
+                status.textContent = "MENSAJE COPIADO";
+            } catch (error) {
+                textarea.select();
+                document.execCommand("copy");
+                status.textContent = "MENSAJE COPIADO";
+            }
+        });
+    }
 
-    button.addEventListener("click", async () => {
+    const kitSelect = document.getElementById("kit_id");
+    const kitOptions = document.getElementById("kitOptions");
+    const seleccionInicialNode = document.getElementById("kitSeleccionInicial");
+    let seleccionInicial = [];
+    if (seleccionInicialNode) {
         try {
-            await navigator.clipboard.writeText(textarea.value);
-            status.textContent = "MENSAJE COPIADO";
+            seleccionInicial = JSON.parse(seleccionInicialNode.textContent || "[]");
         } catch (error) {
-            textarea.select();
-            document.execCommand("copy");
-            status.textContent = "MENSAJE COPIADO";
+            seleccionInicial = [];
         }
-    });
+    }
+
+    const moneda = (valor) => new Intl.NumberFormat("es-AR", {
+        maximumFractionDigits: 0
+    }).format(Number(valor || 0));
+
+    async function cargarKitCalculadora() {
+        if (!kitSelect || !kitOptions) return;
+        if (!kitSelect.value) {
+            kitOptions.innerHTML =
+                '<div class="kit-option-note">Seleccioná un kit para ver su composición.</div>';
+            return;
+        }
+
+        kitOptions.innerHTML =
+            '<div class="kit-option-note">Cargando composición…</div>';
+
+        const endpoint =
+            "{% url 'pedidos:productos_kit' 999999 %}"
+            .replace("999999", encodeURIComponent(kitSelect.value));
+
+        try {
+            const response = await fetch(endpoint, {
+                headers: {"X-Requested-With": "XMLHttpRequest"}
+            });
+            if (!response.ok) throw new Error("No se pudo cargar el kit.");
+            const data = await response.json();
+
+            if (data.kit.modalidad === "FIJO") {
+                kitOptions.innerHTML =
+                    '<div class="kit-option-note"><strong>Composición fija:</strong> '
+                    + data.componentes.map((item) =>
+                        `${item.nombre} x${item.cantidad}`
+                    ).join(" · ")
+                    + '</div>';
+                return;
+            }
+
+            const incluidos = (data.productos || []).filter((p) => p.incluido);
+            const premium = (data.productos || []).filter((p) => !p.incluido);
+            const cantidad = Number(data.kit.cantidad_productos || 0);
+            kitOptions.innerHTML = "";
+
+            for (let pos = 0; pos < cantidad; pos++) {
+                const wrap = document.createElement("div");
+                wrap.className = "field";
+
+                const optionsIncluded = incluidos.map((p) =>
+                    `<option value="${p.id}">${p.codigo} · ${p.nombre}</option>`
+                ).join("");
+                const optionsPremium = premium.map((p) =>
+                    `<option value="${p.id}">${p.codigo} · ${p.nombre} · +${moneda(p.extra)}</option>`
+                ).join("");
+
+                wrap.innerHTML = `
+                    <label>Producto ${pos + 1}</label>
+                    <select name="kit_producto" required>
+                        <option value="">Seleccionar…</option>
+                        ${optionsIncluded ? `<optgroup label="Incluidos">${optionsIncluded}</optgroup>` : ""}
+                        ${optionsPremium ? `<optgroup label="Con adicional">${optionsPremium}</optgroup>` : ""}
+                    </select>
+                `;
+
+                const select = wrap.querySelector("select");
+                if (seleccionInicial[pos]) {
+                    select.value = String(seleccionInicial[pos]);
+                }
+                kitOptions.appendChild(wrap);
+            }
+            seleccionInicial = [];
+        } catch (error) {
+            kitOptions.innerHTML =
+                '<div class="kit-option-note">No se pudo cargar la composición del kit.</div>';
+        }
+    }
+
+    if (kitSelect) {
+        kitSelect.addEventListener("change", () => {
+            seleccionInicial = [];
+            cargarKitCalculadora();
+        });
+        cargarKitCalculadora();
+    }
 })();
 </script>
 </body>
