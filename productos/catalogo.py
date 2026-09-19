@@ -121,6 +121,20 @@ def _catalogo_publico(request, vista_catalogo):
             "",
         )
 
+    # La portada funciona como vidriera: sólo mostramos destacados que
+    # tengan una imagen disponible. Las páginas completas de Productos y
+    # Kits mantienen todos los ítems activos, tengan foto o no.
+    productos_inicio = [
+        producto
+        for producto in productos
+        if producto.catalogo_imagen
+    ]
+    kits_inicio = [
+        kit
+        for kit in kits
+        if kit.catalogo_imagen_url
+    ]
+
     categorias = sorted(
         {
             producto.tipo.nombre
@@ -141,6 +155,8 @@ def _catalogo_publico(request, vista_catalogo):
         {
             "productos": productos,
             "kits": kits,
+            "productos_inicio": productos_inicio,
+            "kits_inicio": kits_inicio,
             "categorias": categorias,
             "vista_catalogo": vista_catalogo,
             "ambiente_catalogo": ambiente,
