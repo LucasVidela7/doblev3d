@@ -62,17 +62,6 @@ a,button{touch-action:manipulation}
 .titulo{margin:0;font-size:clamp(25px,4vw,34px);line-height:1}
 .subtitulo{margin-top:7px;color:var(--muted);font-size:14px}
 .fecha{color:var(--muted);font-size:13px;font-weight:bold;white-space:nowrap}
-.encabezado-herramientas{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap}
-.push-toggle{
-    min-height:38px;display:inline-flex;align-items:center;justify-content:center;gap:7px;
-    padding:0 12px;border:1px solid var(--borde);border-radius:12px;background:#fff;
-    color:var(--texto);font:inherit;font-size:10px;font-weight:900;cursor:pointer;
-    box-shadow:0 2px 8px rgba(20,25,35,.04)
-}
-.push-toggle.is-active{border-color:#b9dec5;background:#e8f6ec;color:#24633a}
-.push-toggle.is-blocked{border-color:#efc3c3;background:#fff5f5;color:#9a3030}
-.push-toggle:disabled{opacity:.58;cursor:not-allowed}
-.push-feedback{max-width:220px;color:var(--muted);font-size:9px;line-height:1.25;text-align:right}
 
 /* MÉTRICAS */
 .metricas{
@@ -400,10 +389,6 @@ a,button{touch-action:manipulation}
     .contenedor{padding:17px 12px 25px}
     .encabezado{align-items:center}
     .fecha{display:none}
-    .encabezado-herramientas{margin-left:auto}
-    .push-toggle{width:42px;min-width:42px;padding:0;font-size:0}
-    .push-toggle .push-icon{font-size:17px}
-    .push-feedback{display:none}
     .logo-texto{width:46px;height:46px;border-radius:14px}
     .subtitulo{font-size:12px}
     .metricas{grid-auto-columns:78%}
@@ -452,26 +437,7 @@ a,button{touch-action:manipulation}
             <div class="subtitulo">Taller · pedidos · producción</div>
         </div>
     </div>
-    <div class="encabezado-herramientas">
-        <div class="fecha">{{ hoy|date:"d M Y"|upper }}</div>
-        {% if webpush_habilitado %}
-        <button
-            id="dv-push-toggle"
-            class="push-toggle"
-            type="button"
-            data-public-key="{{ webpush_public_key }}"
-            data-worker="{% url 'dashboard:push_service_worker' %}"
-            data-subscribe="{% url 'dashboard:push_suscribir' %}"
-            data-unsubscribe="{% url 'dashboard:push_desuscribir' %}"
-            aria-pressed="false"
-        >
-            <span class="push-icon" aria-hidden="true">🔔</span>
-            <span data-push-label>Activar avisos</span>
-        </button>
-        <div class="push-feedback" id="dv-push-feedback" aria-live="polite"></div>
-        <form id="dv-push-csrf" hidden>{% csrf_token %}</form>
-        {% endif %}
-    </div>
+    <div class="fecha">{{ hoy|date:"d M Y"|upper }}</div>
 </header>
 
 <!-- MÉTRICAS DESLIZABLES -->
@@ -701,137 +667,6 @@ a,button{touch-action:manipulation}
 
 <!-- NAVEGACIÓN TÁCTIL FIJA -->
 {% include "shared/navigation.html" %}
-
-{% if webpush_habilitado %}
-<script>
-(() => {
-    const button = document.getElementById("dv-push-toggle");
-    if (!button) return;
-
-    const label = button.querySelector("[data-push-label]");
-    const feedback = document.getElementById("dv-push-feedback");
-    const csrf = document.querySelector(
-        "#dv-push-csrf input[name=csrfmiddlewaretoken]"
-    )?.value || "";
-
-    const base64ToUint8 = (value) => {
-        const padding = "=".repeat((4 - value.length % 4) % 4);
-        const base64 = (value + padding)
-            .replace(/-/g, "+")
-            .replace(/_/g, "/");
-        const raw = window.atob(base64);
-        return Uint8Array.from([...raw].map((char) => char.charCodeAt(0)));
-    };
-
-    const setState = (state, message = "") => {
-        button.classList.toggle("is-active", state === "active");
-        button.classList.toggle("is-blocked", state === "blocked");
-        button.setAttribute("aria-pressed", state === "active" ? "true" : "false");
-
-        if (state === "active") {
-            label.textContent = "Avisos activos";
-        } else if (state === "blocked") {
-            label.textContent = "Avisos bloqueados";
-        } else {
-            label.textContent = "Activar avisos";
-        }
-
-        if (feedback) feedback.textContent = message;
-    };
-
-    const post = async (url, payload) => {
-        const response = await fetch(url, {
-            method: "POST",
-            credentials: "same-origin",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": csrf,
-            },
-            body: JSON.stringify(payload || {}),
-        });
-        if (!response.ok) {
-            let message = "No pudimos guardar la configuración.";
-            try {
-                const data = await response.json();
-                message = data.mensaje || message;
-            } catch (error) {}
-            throw new Error(message);
-        }
-        return response.json();
-    };
-
-    const getRegistration = () =>
-        navigator.serviceWorker.register(button.dataset.worker, {
-            scope: "/gestion/",
-        });
-
-    const syncState = async () => {
-        if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-            button.disabled = true;
-            setState("inactive", "Este navegador no admite notificaciones push.");
-            return;
-        }
-
-        if (Notification.permission === "denied") {
-            setState("blocked", "Habilitalas desde los permisos del navegador.");
-            return;
-        }
-
-        try {
-            const registration = await getRegistration();
-            const subscription = await registration.pushManager.getSubscription();
-            setState(subscription ? "active" : "inactive");
-        } catch (error) {
-            button.disabled = true;
-            setState("inactive", "No pudimos iniciar las notificaciones.");
-        }
-    };
-
-    button.addEventListener("click", async () => {
-        button.disabled = true;
-        if (feedback) feedback.textContent = "Actualizando…";
-
-        try {
-            const registration = await getRegistration();
-            let subscription = await registration.pushManager.getSubscription();
-
-            if (subscription) {
-                const endpoint = subscription.endpoint;
-                await subscription.unsubscribe();
-                await post(button.dataset.unsubscribe, { endpoint });
-                setState("inactive", "Notificaciones desactivadas en este dispositivo.");
-                return;
-            }
-
-            const permission = await Notification.requestPermission();
-            if (permission !== "granted") {
-                setState(
-                    permission === "denied" ? "blocked" : "inactive",
-                    permission === "denied"
-                        ? "Habilitalas desde los permisos del navegador."
-                        : "No se activaron las notificaciones."
-                );
-                return;
-            }
-
-            subscription = await registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: base64ToUint8(button.dataset.publicKey),
-            });
-
-            await post(button.dataset.subscribe, subscription.toJSON());
-            setState("active", "Te avisaremos cuando entre un pedido web.");
-        } catch (error) {
-            setState("inactive", error.message || "No pudimos activar los avisos.");
-        } finally {
-            button.disabled = false;
-        }
-    });
-
-    syncState();
-})();
-</script>
-{% endif %}
 
 </body>
 </html>
