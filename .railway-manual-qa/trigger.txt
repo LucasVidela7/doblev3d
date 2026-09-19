@@ -1,2 +1,2 @@
-Deploy QA: normalizar botones de la cola
-Incluye: INICIAR y QUITAR con mismo ancho, alto, radio y tipografía; selector alineado y responsive consistente.
+Deploy QA: mantenimiento visible para administradores
+Incluye: público y usuarios no admin bloqueados; administradores pueden navegar la tienda con borde y cartel visible de mantenimiento.
