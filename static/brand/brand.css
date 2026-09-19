@@ -68,6 +68,11 @@ body.modo-captura > .contenedor {
 .encabezado-marca {
     position: relative;
     min-width: 0;
+    min-height: 0;
+    padding-left: 0;
+}
+
+.encabezado-marca:has(> .brand-bar) {
     min-height: 48px;
     padding-left: 64px;
 }
