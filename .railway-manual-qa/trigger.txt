@@ -1,2 +1,2 @@
-Deploy QA: notificaciones push para pedidos web
-Incluye: suscripción por dispositivo desde dashboard, service worker, VAPID, persistencia y aviso al confirmar una SolicitudWeb
+Deploy QA: mover campanita al centro del menú
+Incluye: Web Push disponible desde el item central del menú global en todas las pantallas de gestión; se retira del encabezado del dashboard
