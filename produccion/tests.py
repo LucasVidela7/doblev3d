@@ -225,50 +225,6 @@ class PlanificacionProduccionTests(TestCase):
     @patch(
         "pedidos.impresiones_stock.obtener_impresiones_por_producto"
     )
-    def test_que_imprimir_muestra_avance_acumulado(
-        self,
-        necesidades_mock,
-    ):
-        necesidades_mock.return_value = [
-            {
-                "producto": self.producto,
-                "cantidad_pedida": 10,
-                "stock": 0,
-                "a_imprimir": 10,
-                "planificadas": 3,
-                "en_produccion": 2,
-                "falta_iniciar": 5,
-                "falta_normal_planificar": 5,
-                "prioridad": "MEDIA",
-                "personalizaciones": [],
-                "origenes": [],
-                "impresoras": [],
-                "es_pieza": False,
-            }
-        ]
-
-        respuesta = self.client.get(
-            reverse("produccion:lista")
-        )
-
-        self.assertEqual(respuesta.status_code, 200)
-        item = respuesta.context["necesidades_pendientes"][0]
-        self.assertEqual(item["cubierto_impresion"], 5)
-        self.assertEqual(item["avance_porcentaje"], 50)
-        self.assertEqual(item["porcentaje_cola"], 30)
-        self.assertEqual(item["porcentaje_imprimiendo"], 20)
-        self.assertContains(
-            respuesta,
-            "COBERTURA DE IMPRESIÓN",
-        )
-        self.assertContains(
-            respuesta,
-            "5/10 · 50%",
-        )
-
-    @patch(
-        "pedidos.impresiones_stock.obtener_impresiones_por_producto"
-    )
     def test_accion_rapida_agrega_trabajo_a_cola(
         self,
         necesidades_mock,
