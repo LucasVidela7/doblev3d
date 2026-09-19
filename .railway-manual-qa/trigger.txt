@@ -1,2 +1,2 @@
-Deploy QA: alertas de toda Gestión como toast
-Incluye: captura global de mensajes success/error/warning/info, incluyendo alertas directas del Centro de producción y mensajes dinámicos.
+Deploy QA: corregir acciones de la cola de producción
+Incluye: selector e iniciar compactos, quitar de cola más chico y consistente, mejor responsive y modo oscuro.
