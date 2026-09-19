@@ -3755,8 +3755,11 @@ def finanzas(request):
         or Decimal("0")
     )
 
+    # El selector de cobro es un atajo, no un historial.
+    # Limitamos su tamaño para que el modal siga siendo ágil
+    # cuando la cartera de clientes crezca.
     cobros_modal = list(
-        cobros_qs[:100]
+        cobros_qs[:50]
     )
     cobros_pendientes_modal = [
         {
