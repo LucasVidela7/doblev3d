@@ -28,10 +28,10 @@
 
         if (label) {
             label.textContent = active
-                ? "ACTIVOS"
+                ? "Avisos activos"
                 : blocked
-                    ? "BLOQUEADOS"
-                    : "AVISOS";
+                    ? "Avisos bloqueados"
+                    : "Activar avisos";
         }
 
         button.setAttribute(
