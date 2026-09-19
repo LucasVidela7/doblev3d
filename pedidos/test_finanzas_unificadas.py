@@ -115,6 +115,45 @@ class FinanzasUnificadasTests(TestCase):
             Decimal("3000"),
         )
 
+    def test_detalle_permite_registrar_pago_y_vuelve_al_pedido(self):
+        detalle = self.client.get(
+            reverse("pedidos:detalle", args=[self.pedido.id])
+        )
+
+        self.assertEqual(detalle.status_code, 200)
+        self.assertContains(detalle, "REGISTRAR PAGO")
+        self.assertContains(
+            detalle,
+            reverse(
+                "pedidos:registrar_pago",
+                args=[self.pedido.id],
+            ),
+        )
+
+        respuesta = self.client.post(
+            reverse(
+                "pedidos:registrar_pago",
+                args=[self.pedido.id],
+            ),
+            data={
+                "origen": "detalle",
+                "monto": "1500",
+                "medio": "TRANSFERENCIA",
+                "observaciones": "Cobro desde detalle",
+            },
+        )
+
+        self.assertRedirects(
+            respuesta,
+            reverse("pedidos:detalle", args=[self.pedido.id]),
+            fetch_redirect_response=False,
+        )
+        self.assertEqual(Pago.objects.count(), 1)
+        self.assertEqual(
+            Pago.objects.get().monto,
+            Decimal("1500"),
+        )
+
     def test_ruta_legacy_pagos_redirige_a_finanzas(self):
         respuesta = self.client.get(
             reverse("pedidos:pagos")
