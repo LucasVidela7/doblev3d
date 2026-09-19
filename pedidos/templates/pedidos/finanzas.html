@@ -140,8 +140,7 @@ table{width:100%;border-collapse:collapse}th{padding:10px 11px;border-bottom:1px
   {% elif vista == "cobros" %}
     <form class="filtros" method="get">
       <input type="hidden" name="vista" value="cobros">
-      <input type="hidden" name="rango" value="{{ rango.rango }}">
-      {% if rango.rango == "personalizado" %}<input type="hidden" name="desde" value="{{ inicio_periodo|date:'Y-m-d' }}"><input type="hidden" name="hasta" value="{{ fin_periodo|date:'Y-m-d' }}">{% endif %}
+      <input type="hidden" name="periodo" value="{{ periodo }}">
       <div class="campo flex"><label>BUSCAR</label><input name="q" value="{{ busqueda_cobros }}" placeholder="Cliente, teléfono o número de pedido"></div>
       <button class="btn primary" type="submit">FILTRAR</button>
       <a class="btn" href="?{% if query_base %}{{ query_base }}&{% endif %}vista=cobros">LIMPIAR</a>
@@ -168,7 +167,7 @@ table{width:100%;border-collapse:collapse}th{padding:10px 11px;border-bottom:1px
       <div class="panel-head"><div><div class="panel-title">GASTOS E INVERSIONES</div><div class="panel-sub">20 movimientos por página · período {{ rango.label }}.</div></div><button class="btn primary" type="button" onclick="abrirModalFin('modalGasto')">NUEVO GASTO</button></div>
       <div class="table-wrap"><table><thead><tr><th>FECHA</th><th>DESCRIPCIÓN</th><th>TIPO</th><th>CATEGORÍA</th><th>MEDIO</th><th class="num">TOTAL</th><th></th></tr></thead><tbody>
       {% for gasto in gastos_pagina %}
-        <tr><td data-label="FECHA">{{ gasto.fecha_compra|date:"d/m/Y" }}</td><td data-label="DESCRIPCIÓN"><strong>{{ gasto.descripcion }}</strong></td><td data-label="TIPO"><span class="badge {% if gasto.tipo == 'INVERSION' %}TARJETA{% endif %}">{{ gasto.get_tipo_display|upper }}</span></td><td data-label="CATEGORÍA">{{ gasto.get_categoria_display }}</td><td data-label="MEDIO">{{ gasto.get_medio_pago_display }}</td><td data-label="TOTAL" class="num">$ {{ gasto.monto_total|floatformat:"0g" }}</td><td data-label="ACCIÓN"><div class="row-actions"><form method="post" action="{% url 'pedidos:eliminar_gasto' gasto.id %}" onsubmit="return confirm('¿Eliminar este gasto?');">{% csrf_token %}<button class="btn danger" type="submit">ELIMINAR</button></form></div></td></tr>
+        <tr><td data-label="FECHA">{{ gasto.fecha_compra|date:"d/m/Y" }}</td><td data-label="DESCRIPCIÓN"><strong>{{ gasto.descripcion }}</strong></td><td data-label="TIPO"><span class="badge {% if gasto.tipo == 'INVERSION' %}TARJETA{% endif %}">{{ gasto.get_tipo_display|upper }}</span></td><td data-label="CATEGORÍA">{{ gasto.get_categoria_display }}</td><td data-label="MEDIO">{{ gasto.get_medio_pago_display }}</td><td data-label="TOTAL" class="num">$ {{ gasto.monto_total|floatformat:"0g" }}</td><td data-label="ACCIÓN"><div class="row-actions"><form method="post" action="{% url 'pedidos:eliminar_gasto' gasto.id %}" onsubmit="return confirm('¿Eliminar este gasto?');">{% csrf_token %}<input type="hidden" name="periodo" value="{{ periodo }}"><button class="btn danger" type="submit">ELIMINAR</button></form></div></td></tr>
       {% empty %}<tr><td colspan="7" class="empty">No hay gastos en este período.</td></tr>{% endfor %}
       </tbody></table></div>
       {% if gastos_pagina.paginator.num_pages > 1 %}<div class="pager">{% if gastos_pagina.has_previous %}<a href="?{{ query_pagina }}&page={{ gastos_pagina.previous_page_number }}">←</a>{% endif %}<span class="current">{{ gastos_pagina.number }} / {{ gastos_pagina.paginator.num_pages }}</span>{% if gastos_pagina.has_next %}<a href="?{{ query_pagina }}&page={{ gastos_pagina.next_page_number }}">→</a>{% endif %}</div>{% endif %}
