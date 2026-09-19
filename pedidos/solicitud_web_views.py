@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from clientes.models import Cliente
+from clientes.telefonos import buscar_cliente_por_telefono
 from productos.models import ConfiguracionCatalogo
 from productos.whatsapp import (
     renderizar_mensaje_solicitud,
@@ -146,18 +147,25 @@ def rechazar_solicitud_web(request, solicitud_id):
 
 
 def _buscar_cliente(solicitud):
-    filtros = Q()
-
+    # Primero resolvemos por teléfono normalizado para evitar duplicados por
+    # formato (+54 9..., 11..., espacios o guiones).
     if solicitud.telefono:
-        filtros |= Q(telefono=solicitud.telefono)
+        cliente = buscar_cliente_por_telefono(
+            solicitud.telefono
+        )
+        if cliente:
+            if not cliente.activo:
+                cliente.activo = True
+                cliente.save(update_fields=["activo"])
+            return cliente
 
     if solicitud.email:
-        filtros |= Q(email__iexact=solicitud.email)
-
-    if filtros:
         cliente = (
             Cliente.objects
-            .filter(filtros, activo=True)
+            .filter(
+                email__iexact=solicitud.email,
+                activo=True,
+            )
             .order_by("id")
             .first()
         )
