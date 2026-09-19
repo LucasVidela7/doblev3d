@@ -72,6 +72,16 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 .need-product{min-width:0;padding:3px}.code{color:var(--muted);font-size:7px;font-weight:900}.product-name{margin-top:3px;font-size:13px;font-weight:900}.origin{margin-top:4px;color:var(--muted);font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nbox{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 4px;border-radius:10px;background:#f7f8fa;text-align:center}
 .nbox span{color:var(--muted);font-size:6px;font-weight:900}.nbox b{margin-top:4px;font-size:16px}.nbox.hot{background:#fff4f2}.nbox.hot b{color:#963737}
+.need-progress{margin-top:9px;padding:9px 10px;border-radius:11px;background:#f7f8fa}
+.need-progress-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.need-progress-head span{color:var(--muted);font-size:7px;font-weight:900}
+.need-progress-head b{font-size:9px}
+.need-progress-track{display:flex;width:100%;height:8px;margin-top:7px;overflow:hidden;border-radius:999px;background:#e7eaee}
+.need-progress-segment{display:block;height:100%}
+.need-progress-segment.queue{background:#d2a82d}
+.need-progress-segment.printing{background:#4e7fb9}
+.need-progress-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;color:var(--muted);font-size:7px;font-weight:800}
+.need-progress-legend strong{color:var(--text)}
 .need-action{display:grid;grid-template-columns:86px minmax(140px,1fr) auto auto;gap:6px;align-items:end;margin-top:9px;padding-top:9px;border-top:1px solid #edf0f2}
 .field label{display:block;margin-bottom:4px;color:var(--muted);font-size:7px;font-weight:900}.field input,.field select{width:100%;min-height:38px;border:1px solid #d7dce2;border-radius:9px;background:#fff;padding:5px 7px;font-size:9px}
 .action-info{padding:7px 9px;border-radius:9px;background:#f7f8fa;color:#5e646b;font-size:8px;line-height:1.4}
@@ -274,6 +284,22 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                         <div class="nbox optional"><span>STOCK</span><b>{{ item.stock }}</b></div>
                         <div class="nbox optional"><span>COLA + AHORA</span><b>{{ item.planificadas|add:item.en_produccion }}</b></div>
                         <div class="nbox hot"><span>FALTA</span><b>{{ item.falta_iniciar }}</b></div>
+                    </div>
+
+                    <div class="need-progress" aria-label="Avance de cobertura de impresión">
+                        <div class="need-progress-head">
+                            <span>COBERTURA DE IMPRESIÓN</span>
+                            <b>{{ item.cubierto_impresion }}/{{ item.a_imprimir }} · {{ item.avance_porcentaje }}%</b>
+                        </div>
+                        <div class="need-progress-track" aria-hidden="true">
+                            <span class="need-progress-segment queue" style="width:{{ item.porcentaje_cola }}%"></span>
+                            <span class="need-progress-segment printing" style="width:{{ item.porcentaje_imprimiendo }}%"></span>
+                        </div>
+                        <div class="need-progress-legend">
+                            <span>En cola <strong>{{ item.planificadas }}</strong></span>
+                            <span>Imprimiendo <strong>{{ item.en_produccion }}</strong></span>
+                            <span>Falta <strong>{{ item.falta_iniciar }}</strong></span>
+                        </div>
                     </div>
 
                     {% if item.puede_planificar_rapido %}
