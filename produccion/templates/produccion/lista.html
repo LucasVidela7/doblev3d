@@ -79,10 +79,14 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 .personal-list{display:grid;gap:6px;margin-top:9px}.personal{padding:9px;border:1px solid #dbe7f5;border-radius:11px;background:#f7fbff}.personal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.personal strong{font-size:9px}.personal p{margin:4px 0 0;color:#58708c;font-size:8px;line-height:1.4}
 .personal .need-action{border-top-color:#dbe7f5}
 
-.queue-list{display:grid;gap:8px}.queue-item{display:grid;grid-template-columns:minmax(0,1.3fr) 90px minmax(160px,.65fr) 210px;gap:8px;align-items:center;padding:11px;border:1px solid var(--border);border-radius:14px;background:#fff}
+.queue-list{display:grid;gap:8px}.queue-item{display:grid;grid-template-columns:minmax(0,1.3fr) 80px minmax(150px,.65fr) minmax(260px,320px);gap:10px;align-items:center;padding:11px;border:1px solid var(--border);border-radius:14px;background:#fff}
 .queue-title{font-size:11px;font-weight:900}.queue-meta{margin-top:4px;color:var(--muted);font-size:8px;line-height:1.4}.queue-qty{text-align:center}.queue-qty b{font-size:20px}
-.queue-actions{display:grid;grid-template-columns:1fr auto;gap:5px}.queue-actions select{min-height:36px;border:1px solid #d7dce2;border-radius:9px;padding:4px 6px;background:#fff;font-size:8px}.queue-actions form{display:contents}
-.queue-actions .cancel-form{display:block;grid-column:1/-1}
+.queue-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center;min-width:0}
+.queue-actions .start-form{display:contents}
+.queue-actions select{min-width:0;min-height:36px;border:1px solid #d7dce2;border-radius:9px;padding:4px 8px;background:#fff;font-size:8px}
+.queue-actions .btn{min-height:36px;white-space:nowrap}
+.queue-actions .cancel-form{grid-column:1/-1;display:flex;justify-content:flex-end;margin:0}
+.queue-actions .cancel-form .btn{width:auto!important;min-width:108px;padding:0 10px}
 
 .history{overflow:hidden}.history-row{display:grid;grid-template-columns:minmax(0,1fr) 90px 140px auto;gap:8px;align-items:center;padding:10px 12px;border-top:1px solid #edf0f2}.history-row:first-child{border-top:0}.history-title{font-size:10px;font-weight:900}
 .history details{border:0}.history summary{list-style:none;cursor:pointer;padding:13px 14px;font-size:9px;font-weight:900}.history summary::-webkit-details-marker{display:none}
@@ -93,7 +97,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
     .metrics{grid-template-columns:repeat(2,1fr)}
     .need-top{grid-template-columns:minmax(0,1fr) repeat(2,minmax(72px,.45fr))}.need-top .optional{display:none}
     .need-action{grid-template-columns:80px minmax(130px,1fr) auto auto}
-    .queue-item{grid-template-columns:minmax(0,1fr) 75px 180px}.queue-item .queue-schedule{display:none}
+    .queue-item{grid-template-columns:minmax(0,1fr) 75px minmax(240px,300px)}.queue-item .queue-schedule{display:none}
     .manual-grid{grid-template-columns:repeat(3,1fr)}.manual-grid .wide{grid-column:1/-1}
 }
 @media(max-width:650px){
@@ -106,7 +110,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
     .need-top{grid-template-columns:1fr 1fr}.need-product{grid-column:1/-1}.need-top .optional-mobile{display:none}
     .need-action{grid-template-columns:1fr 1fr}.action-info{grid-column:1/-1}.need-action .btn{width:100%}
     .personal-head{display:block}
-    .queue-item{grid-template-columns:1fr 70px}.queue-actions{grid-column:1/-1;grid-template-columns:1fr auto}.queue-item .queue-schedule{display:none}
+    .queue-item{grid-template-columns:1fr 70px}.queue-actions{grid-column:1/-1;grid-template-columns:minmax(0,1fr) auto}.queue-item .queue-schedule{display:none}.queue-actions .cancel-form{justify-content:stretch}.queue-actions .cancel-form .btn{width:100%!important}
     .history-row{grid-template-columns:1fr auto}.history-row .history-hide{display:none}
     .manual-grid{grid-template-columns:1fr}.manual-grid .wide{grid-column:auto}
 }
@@ -421,7 +425,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                         <div class="queue-meta">{% if produccion.fin_si_inicia_ahora %}Termina aprox. {{ produccion.fin_si_inicia_ahora|date:"H:i" }}{% else %}{{ produccion.tiempo_impresion_formateado }}{% endif %}</div>
                     </div>
                     <div class="queue-actions">
-                        <form method="post" action="{% url 'produccion:iniciar' produccion.id %}">
+                        <form method="post" action="{% url 'produccion:iniciar' produccion.id %}" class="start-form">
                             {% csrf_token %}
                             <select name="impresora" required>
                                 {% for impresora in impresoras_libres_lista %}
@@ -435,7 +439,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                         <form class="cancel-form" method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
                             {% csrf_token %}
                             <input type="hidden" name="estado" value="CANCELADO">
-                            <button class="btn red" type="submit" style="width:100%">QUITAR DE COLA</button>
+                            <button class="btn red" type="submit">✕ QUITAR</button>
                         </form>
                     </div>
                 </article>
