@@ -61,6 +61,23 @@ class CentroPreparacionTests(TestCase):
             1,
         )
 
+    def test_preparacion_muestra_cancelar_y_eliminar_en_pendiente(self):
+        respuesta = self.client.get(
+            reverse("pedidos:impresiones")
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "Cancelar pedido")
+        self.assertContains(respuesta, "Eliminar pedido")
+        self.assertContains(
+            respuesta,
+            reverse("pedidos:cancelar", args=[self.pedido.id]),
+        )
+        self.assertContains(
+            respuesta,
+            reverse("pedidos:eliminar", args=[self.pedido.id]),
+        )
+
     def test_iniciar_preparacion_reserva_stock(self):
         respuesta = self.client.post(
             reverse(
