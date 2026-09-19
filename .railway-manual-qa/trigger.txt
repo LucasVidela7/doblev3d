@@ -1,2 +1,2 @@
-Deploy QA: corregir filtros y navegación de tienda
-Incluye: productos/kits vuelven a mostrar resultados y la pestaña activa corresponde a la página actual
+Deploy QA: corregir estado visual del menú superior
+Incluye: la navegación interna deja de forzar INICIO en negro dentro del header público; solo queda activa la sección actual
