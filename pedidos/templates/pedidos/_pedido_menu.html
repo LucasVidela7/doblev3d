@@ -14,12 +14,14 @@
 
         {% if pedido.estado == 'PENDIENTE' %}
         <a href="{% url 'pedidos:editar' pedido.id %}">Editar pedido</a>
-        <div class="dv-order-menu__divider"></div>
+        {% endif %}
 
+        {% if pedido.estado != 'ENTREGADO' and pedido.estado != 'CANCELADO' %}
+        <div class="dv-order-menu__divider"></div>
         <form
             method="post"
             action="{% url 'pedidos:cancelar' pedido.id %}"
-            onsubmit="return confirm('¿Seguro que querés cancelar {{ pedido.codigo }}? El stock preparado se devolverá cuando corresponda.');"
+            onsubmit="return confirm('¿Seguro que querés cancelar {{ pedido.codigo }}? Todo stock reservado o preparado se devolverá automáticamente.');"
         >
             {% csrf_token %}
             {% if origen %}
@@ -28,7 +30,9 @@
             {% endif %}
             <button type="submit" class="is-danger">Cancelar pedido</button>
         </form>
+        {% endif %}
 
+        {% if pedido.estado == 'PENDIENTE' %}
         <form
             method="post"
             action="{% url 'pedidos:eliminar' pedido.id %}"
