@@ -155,17 +155,17 @@ class FilamentoEconomicoCantidadTests(TestCase):
         resultado = contexto["resultado_existente"]
 
         self.assertTrue(
-            resultado["desglose"]["filamento_economico"]
+            resultado["catalogo"]["filamento_economico"]
         )
         self.assertEqual(
-            resultado["desglose"]["precio_filamento_kg"],
+            resultado["catalogo"]["precio_filamento_kg"],
             Decimal("14000"),
         )
 
-        fila_x4, fila_x5 = resultado["lista_escenarios"]
+        fila_x4, fila_x5 = resultado["lista_precios"]
         self.assertFalse(
-            fila_x4["desglose"]["filamento_economico"]
+            fila_x4["filamento_economico"]
         )
         self.assertTrue(
-            fila_x5["desglose"]["filamento_economico"]
+            fila_x5["filamento_economico"]
         )
