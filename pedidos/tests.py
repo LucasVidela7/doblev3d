@@ -165,6 +165,17 @@ class AccionesPedidoEstadoTests(TestCase):
             'name="origen" value="detalle"',
         )
 
+    def test_detalle_optimizado_no_duplica_editar(self):
+        respuesta = self.client.get(
+            reverse("pedidos:detalle", args=[self.pedido.id])
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        contenido = respuesta.content.decode()
+        self.assertIn("← Preparación", contenido)
+        self.assertEqual(contenido.count("Editar pedido"), 1)
+        self.assertNotIn("← Dashboard", contenido)
+
     def test_editar_solo_se_permite_en_pendiente(self):
         for estado in ("PREPARANDO", "LISTO", "ENTREGADO", "CANCELADO"):
             self._estado(estado)
