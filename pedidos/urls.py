@@ -100,6 +100,19 @@ urlpatterns = [
     ),
 
     path(
+        "impresiones/<int:pedido_id>/iniciar-preparacion/",
+        preparacion_views.iniciar_preparacion,
+        name="iniciar_preparacion",
+    ),
+
+    path(
+        "impresiones/<int:pedido_id>/liberar-preparacion/",
+        preparacion_views.liberar_preparacion,
+        name="liberar_preparacion",
+    ),
+
+
+    path(
         "impresiones/productos/",
         impresiones_por_producto,
         name="impresiones_productos",
