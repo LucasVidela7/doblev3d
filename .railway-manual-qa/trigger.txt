@@ -1,2 +1,2 @@
-Deploy QA: corregir errores visuales en modo oscuro
-Incluye: fila de composición de Kits, métricas de Clientes, saldo activo y avatar adaptados correctamente al tema oscuro.
+Deploy QA: completar correcciones visuales de Kits en modo oscuro
+Incluye: calculadora de precios, escenarios Agresivo/Recomendado/Conservador, chips y composición sin fondos blancos residuales.
