@@ -1,2 +1,2 @@
-Deploy QA: mantenimiento centrado y sesión en menú
-Incluye: pantalla de mantenimiento sin scroll, usuario dentro del menú hamburguesa y cerrar sesión al pie del menú.
+Deploy QA: corregir errores visuales en modo oscuro
+Incluye: fila de composición de Kits, métricas de Clientes, saldo activo y avatar adaptados correctamente al tema oscuro.
