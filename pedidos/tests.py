@@ -152,6 +152,19 @@ class AccionesPedidoEstadoTests(TestCase):
             contenido,
         )
 
+    def test_detalle_pendiente_muestra_cancelar_y_eliminar(self):
+        respuesta = self.client.get(
+            reverse("pedidos:detalle", args=[self.pedido.id])
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "Cancelar pedido")
+        self.assertContains(respuesta, "Eliminar pedido")
+        self.assertContains(
+            respuesta,
+            'name="origen" value="detalle"',
+        )
+
     def test_editar_solo_se_permite_en_pendiente(self):
         for estado in ("PREPARANDO", "LISTO", "ENTREGADO", "CANCELADO"):
             self._estado(estado)
