@@ -198,6 +198,13 @@ CSRF_COOKIE_SAMESITE = "Lax"
 TURNSTILE_SITE_KEY = os.getenv("TURNSTILE_SITE_KEY", "").strip()
 TURNSTILE_SECRET_KEY = os.getenv("TURNSTILE_SECRET_KEY", "").strip()
 
+# Interruptor de emergencia del catálogo público. En producción puede dejarse
+# activo durante un despliegue grande y apagarse luego sin tocar la base.
+CATALOGO_MANTENIMIENTO = _env_bool(
+    "CATALOGO_MANTENIMIENTO",
+    False,
+)
+
 # Web Push para avisos internos (por ejemplo, un nuevo pedido web).
 WEBPUSH_VAPID_PUBLIC_KEY = os.getenv(
     "WEBPUSH_VAPID_PUBLIC_KEY",
