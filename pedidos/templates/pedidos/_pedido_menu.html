@@ -1,0 +1,46 @@
+<div class="dv-order-menu">
+    <button
+        type="button"
+        class="dv-order-menu__toggle"
+        aria-label="Más acciones de {{ pedido.codigo }}"
+        aria-expanded="false"
+        onclick="dvToggleOrderMenu(event,this)"
+    >⋮</button>
+    <div class="dv-order-menu__panel">
+        {% if mostrar_detalle %}
+        <a href="{% url 'pedidos:detalle' pedido.id %}">Ver pedido</a>
+        {% endif %}
+        <a href="{% url 'clientes:detalle' pedido.cliente.id %}">Ver cliente</a>
+
+        {% if pedido.estado == 'PENDIENTE' %}
+        <a href="{% url 'pedidos:editar' pedido.id %}">Editar pedido</a>
+        <div class="dv-order-menu__divider"></div>
+
+        <form
+            method="post"
+            action="{% url 'pedidos:cancelar' pedido.id %}"
+            onsubmit="return confirm('¿Seguro que querés cancelar {{ pedido.codigo }}? El stock preparado se devolverá cuando corresponda.');"
+        >
+            {% csrf_token %}
+            {% if origen %}
+            <input type="hidden" name="origen" value="{{ origen }}">
+            <input type="hidden" name="pedido_id" value="{{ pedido.id }}">
+            {% endif %}
+            <button type="submit" class="is-danger">Cancelar pedido</button>
+        </form>
+
+        <form
+            method="post"
+            action="{% url 'pedidos:eliminar' pedido.id %}"
+            onsubmit="return confirm('¿Eliminar definitivamente {{ pedido.codigo }}? Usá esta opción solo si fue cargado por error.');"
+        >
+            {% csrf_token %}
+            {% if origen %}
+            <input type="hidden" name="origen" value="{{ origen }}">
+            <input type="hidden" name="pedido_id" value="{{ pedido.id }}">
+            {% endif %}
+            <button type="submit" class="is-danger">Eliminar pedido</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
