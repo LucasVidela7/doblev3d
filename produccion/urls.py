@@ -18,6 +18,11 @@ urlpatterns = [
         name="nueva",
     ),
     path(
+        "accion-rapida/",
+        views.accion_rapida_necesidad,
+        name="accion_rapida",
+    ),
+    path(
         "api/tiempo-recomendado/",
         views.tiempo_recomendado,
         name="tiempo_recomendado",
