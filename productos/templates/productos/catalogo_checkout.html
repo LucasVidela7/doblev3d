@@ -29,7 +29,7 @@
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 {% endif %}
 </head>
-<body>
+<body>\n{% include "productos/_catalogo_mantenimiento_admin.html" %}
 <header class="shell top">
     <a class="brand" href="{% url 'catalogo' %}">
         <img src="{% static 'brand/logo.png' %}" alt="Doble V 3D">
