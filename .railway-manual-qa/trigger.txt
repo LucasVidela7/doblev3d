@@ -1,2 +1,2 @@
-Deploy QA: descuentos de productos desde 5 unidades
-Incluye: productos individuales mantienen precio de lista entre 1 y 4 unidades; descuento automático recién desde la quinta
+Deploy QA: descuentos de kits desde 2 unidades
+Incluye: descuento por volumen de kits desde la segunda unidad total, incluso combinando kits distintos
