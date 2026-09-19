@@ -1,2 +1,2 @@
-Deploy QA: corregir modo oscuro de Productos
-Incluye superficies oscuras en listado, detalle y edición, barra fija coherente y ocultar el placeholder de foto junto al logo cuando no hay imagen.
+Deploy QA: centro operativo de clientes y repetir pedido
+Incluye centro de clientes con métricas/filtros, detalle 360, presupuestos y actividad, WhatsApp, cuenta corriente y repetir cualquier pedido como presupuesto conservando precios y composición histórica.
