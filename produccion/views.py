@@ -834,22 +834,23 @@ def accion_rapida_necesidad(request):
             reverse("produccion:lista") + "#que-imprimir"
         )
 
-    if restante <= 0:
+    # Los trabajos personalizados están ligados a un pedido y no
+    # deben exceder su faltante. La producción estándar, en cambio,
+    # siempre puede superar la necesidad actual porque el excedente
+    # queda destinado a STOCK.
+    if personalizado_id and restante <= 0:
         messages.error(
             request,
-            "Ese trabajo ya no tiene unidades por planificar.",
+            "Ese trabajo personalizado ya no tiene unidades por planificar.",
         )
         return redirect(
             reverse("produccion:lista") + "#que-imprimir"
         )
 
-    if cantidad > restante:
+    if personalizado_id and cantidad > restante:
         messages.error(
             request,
-            (
-                f"Quedan {restante} unidad(es) por cubrir. "
-                "Para fabricar stock extra usá Más opciones."
-            ),
+            f"Quedan {restante} unidad(es) personalizadas por cubrir.",
         )
         return redirect(
             reverse("produccion:lista") + "#que-imprimir"
