@@ -79,6 +79,13 @@ class CatalogoPublicoTests(TestCase):
         self.assertContains(response, "Kit sensorial")
         self.assertNotContains(response, "Pieza interna")
 
+    def test_catalogo_incluye_loader_de_navegacion(self):
+        response = self.client.get(reverse("catalogo"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "data-dv-site-loader")
+        self.assertContains(response, "Preparando la tienda")
+
     def test_alias_catalogo_sigue_publico_para_links_compartidos(self):
         response = self.client.get(
             reverse("catalogo_legacy"),
