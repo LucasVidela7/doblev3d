@@ -1556,3 +1556,14 @@ html[data-dv-theme="dark"] .dv-toast{
         transition:none;
     }
 }
+
+
+/* Cola de producción: acción destructiva compacta en oscuro. */
+html[data-dv-theme="dark"] .queue-actions .btn.red{
+    background:var(--dv-danger-soft)!important;
+    color:var(--dv-danger-text)!important;
+    border-color:color-mix(in srgb,var(--dv-danger-text) 32%,var(--dv-border))!important;
+}
+html[data-dv-theme="dark"] .queue-actions .btn.red:hover{
+    background:color-mix(in srgb,var(--dv-danger-soft) 82%,#000)!important;
+}
