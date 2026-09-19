@@ -1,2 +1,2 @@
-Deploy QA: mantenimiento visible para administradores
-Incluye: público y usuarios no admin bloqueados; administradores pueden navegar la tienda con borde y cartel visible de mantenimiento.
+Deploy QA: loaders de tienda y aviso de mantenimiento abajo
+Incluye: cartel admin de mantenimiento en la parte inferior, loader al navegar y feedback AGREGANDO/AGREGADO antes de mostrar - 1 + en productos.
