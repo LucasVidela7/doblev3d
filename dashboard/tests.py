@@ -117,7 +117,7 @@ class DashboardProduccionTests(TestCase):
         self.assertEqual(respuesta.status_code, 200)
         self.assertContains(
             respuesta,
-            "Ahora, impresoras y próximos trabajos",
+            "Impresoras y próximos trabajos",
         )
         self.assertContains(
             respuesta,
