@@ -1,2 +1,2 @@
-Deploy QA: corregir barra de acciones en Kit y Preparación
-Incluye Nuevo/Editar kit con secundario + principal azul bajo título, Preparación con filtro Activos/Cancelados funcional dentro del mismo módulo, compatibilidad de URL histórica y borde azul para acciones secundarias.
+Deploy QA: corregir barra de Kits
+El listado de Kits elimina botones legacy, deja NUEVO KIT como única acción principal azul bajo el título y fuerza ancho completo en mobile cuando existe una sola acción principal.
