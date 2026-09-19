@@ -1,2 +1,2 @@
-Deploy QA: métricas del dashboard en una fila
-Incluye: 7 métricas compactas en una sola línea en desktop, con menor alto, tipografía e iconos ajustados.
+Deploy QA: métricas del dashboard en una sola fila
+Incluye: cards más compactas en desktop y eliminación del override que las mandaba a varias filas entre 1180 y 1320 px.
