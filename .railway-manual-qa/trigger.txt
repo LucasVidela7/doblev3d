@@ -1,2 +1,2 @@
-Deploy QA: unificar barras de acciones de gestión
-Todas las vistas de gestión usan acciones debajo del título: principal azul, secundarios a la izquierda, overflow en tres puntos y layout responsive para mobile, tablet y web. Incluye Solicitudes web textuales y acciones de Finanzas en cabecera.
+Deploy QA: corregir barra de acciones en Kit y Preparación
+Incluye Nuevo/Editar kit con secundario + principal azul bajo título, Preparación con filtro Activos/Cancelados funcional dentro del mismo módulo, compatibilidad de URL histórica y borde azul para acciones secundarias.
