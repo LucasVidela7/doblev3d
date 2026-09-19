@@ -147,10 +147,16 @@ def actualizar_estado_general_pedido(pedido):
 
     cantidad_total = len(productos_normales) + personalizados_total
     cantidad_lista = len(estados_listos) + personalizados_listos
+    hay_reservas = EstadoImpresionPedido.objects.filter(
+        pedido=pedido,
+        producto_id__in=productos_normales,
+        reservado_stock=True,
+        listo=False,
+    ).exists()
 
     if cantidad_total > 0 and cantidad_lista == cantidad_total:
         nuevo_estado = "LISTO"
-    elif cantidad_lista > 0:
+    elif cantidad_lista > 0 or hay_reservas:
         nuevo_estado = "PREPARANDO"
     else:
         nuevo_estado = "PENDIENTE"
