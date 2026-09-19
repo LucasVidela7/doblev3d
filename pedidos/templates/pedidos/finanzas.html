@@ -111,7 +111,7 @@ table{width:100%;border-collapse:collapse}th{padding:10px 11px;border-bottom:1px
       </section>
 
       <section class="panel">
-        <div class="panel-head"><div><div class="panel-title">CAJA MERCADO PAGO</div><div class="panel-sub">Situación actual y reserva de compromisos.</div></div><span class="badge {{ estado_caja }}">{{ estado_caja|replace:"_"," " }}</span></div>
+        <div class="panel-head"><div><div class="panel-title">CAJA MERCADO PAGO</div><div class="panel-sub">Situación actual y reserva de compromisos.</div></div><span class="badge {{ estado_caja }}">{% if estado_caja == "SIN_CORTE" %}SIN CORTE{% elif estado_caja == "AJUSTADA" %}AJUSTADA{% elif estado_caja == "URGENTE" %}URGENTE{% else %}OK{% endif %}</span></div>
         <div class="panel-body">
           <div class="caja-card">
             <div class="caja-top"><div><small style="color:var(--muted);font-weight:900">SALDO ESTIMADO</small><div class="caja-saldo">{% if caja.requiere_corte %}—{% else %}$ {{ saldo_caja|floatformat:"0g" }}{% endif %}</div></div>{% if caja.corte %}<div style="text-align:right;color:var(--muted);font-size:8px">Último corte<br><strong>{{ caja.corte.fecha|date:"d/m H:i" }}</strong></div>{% endif %}</div>
