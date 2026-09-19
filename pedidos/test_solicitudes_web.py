@@ -156,3 +156,27 @@ class SolicitudesWebGestionTests(TestCase):
         self.solicitud.refresh_from_db()
         self.assertEqual(self.solicitud.estado, "CONTACTADA")
         self.assertIsNone(self.solicitud.presupuesto_generado_id)
+
+    def test_bandeja_filtra_por_estado(self):
+        self.solicitud.estado = "CONTACTADA"
+        self.solicitud.save(update_fields=["estado"])
+
+        otra = SolicitudWeb.objects.create(
+            nombre="Otra solicitud",
+            telefono="1144445555",
+            estado="NUEVA",
+        )
+
+        respuesta = self.client.get(
+            reverse("pedidos:solicitudes_web"),
+            {"estado": "CONTACTADA"},
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, self.solicitud.codigo)
+        self.assertNotContains(respuesta, otra.codigo)
+        self.assertEqual(
+            respuesta.context["estado_seleccionado"],
+            "CONTACTADA",
+        )
+
