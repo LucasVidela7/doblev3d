@@ -69,10 +69,13 @@ def cancelar_pedido(request, pedido_id):
         id=pedido_id,
     )
 
-    if pedido.estado != "PENDIENTE":
+    if pedido.estado in {"ENTREGADO", "CANCELADO"}:
         messages.error(
             request,
-            _mensaje_estado(pedido, "cancelar"),
+            (
+                f"{pedido.codigo} está {pedido.get_estado_display().upper()} y "
+                "ya no se puede cancelar."
+            ),
         )
         return _volver(request)
 
