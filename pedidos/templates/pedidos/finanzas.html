@@ -5,2155 +5,245 @@
 <link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
 <link rel="apple-touch-icon" href="{% static 'brand/apple-touch-icon.png' %}">
 <link rel="stylesheet" href="{% static 'brand/brand.css' %}">
-    <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1"
-    >
-    <title>Finanzas · Doble V 3D</title>
-
-    <style>
-        :root{
-            --fondo:#f5f6f8;
-            --panel:#ffffff;
-            --texto:#24272c;
-            --muted:#747b84;
-            --borde:#e4e7eb;
-            --verde:#24714a;
-            --verde-bg:#e8f5ed;
-            --rojo:#a63d3d;
-            --rojo-bg:#fff0f0;
-            --azul:#285ea8;
-            --azul-bg:#edf4ff;
-            --amarillo:#8a6417;
-            --amarillo-bg:#fff7db;
-            --violeta:#6948a8;
-            --violeta-bg:#f4efff;
-            --sombra:0 4px 18px rgba(31,41,55,.05);
-        }
-
-        *{box-sizing:border-box}
-
-        body{
-            margin:0;
-            padding:20px 16px 105px;
-            background:var(--fondo);
-            color:var(--texto);
-            font-family:Arial,Helvetica,sans-serif;
-        }
-
-        .contenedor{
-            width:min(1280px,100%);
-            margin:0 auto;
-        }
-
-        .encabezado{
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            gap:16px;
-            margin-bottom:18px;
-        }
-
-        h1{margin:0;font-size:26px}
-        h2{margin:0;font-size:18px}
-        h3{margin:0;font-size:14px}
-
-        .subtitulo{
-            margin-top:4px;
-            color:var(--muted);
-            font-size:12px;
-        }
-
-        .acciones-encabezado{
-            display:flex;
-            gap:8px;
-        }
-
-        .boton{
-            min-height:44px;
-            display:inline-flex;
-            align-items:center;
-            justify-content:center;
-            padding:0 14px;
-            border:1px solid var(--borde);
-            border-radius:12px;
-            background:white;
-            color:var(--texto);
-            font-size:10px;
-            font-weight:900;
-            text-decoration:none;
-            cursor:pointer;
-        }
-
-        .boton-principal{
-            border-color:#23262b;
-            background:#23262b;
-            color:white;
-        }
-
-        .boton-peligro{
-            color:var(--rojo);
-            background:var(--rojo-bg);
-            border-color:#f2cccc;
-        }
-
-        .mensajes{margin-bottom:14px}
-        .mensaje{
-            margin-bottom:7px;
-            padding:12px 14px;
-            border:1px solid var(--borde);
-            border-radius:12px;
-            background:white;
-            font-size:11px;
-            font-weight:800;
-        }
-        .mensaje.success{background:var(--verde-bg);color:var(--verde)}
-        .mensaje.error{background:var(--rojo-bg);color:var(--rojo)}
-
-        .filtro-periodo{
-            display:flex;
-            align-items:end;
-            gap:10px;
-            margin-bottom:14px;
-            padding:14px;
-            border:1px solid var(--borde);
-            border-radius:16px;
-            background:var(--panel);
-        }
-
-        .campo label{
-            display:block;
-            margin-bottom:5px;
-            color:var(--muted);
-            font-size:9px;
-            font-weight:900;
-            letter-spacing:.04em;
-        }
-
-        input,select,textarea{
-            width:100%;
-            min-height:44px;
-            padding:9px 11px;
-            border:1px solid #d7dbe0;
-            border-radius:10px;
-            background:white;
-            font-size:13px;
-        }
-
-        textarea{
-            min-height:70px;
-            resize:vertical;
-        }
-
-        .seccion{
-            margin-bottom:16px;
-        }
-
-        .seccion-cabecera{
-            display:flex;
-            justify-content:space-between;
-            align-items:end;
-            gap:12px;
-            margin-bottom:9px;
-        }
-
-        .seccion-ayuda{
-            color:var(--muted);
-            font-size:10px;
-        }
-
-        .metricas{
-            display:grid;
-            grid-template-columns:repeat(4,1fr);
-            gap:10px;
-        }
-
-        .metrica{
-            min-height:108px;
-            padding:15px;
-            border:1px solid var(--borde);
-            border-radius:16px;
-            background:var(--panel);
-            box-shadow:var(--sombra);
-        }
-
-        .metrica-etiqueta{
-            color:var(--muted);
-            font-size:9px;
-            font-weight:900;
-            letter-spacing:.04em;
-        }
-
-        .metrica-valor{
-            margin-top:9px;
-            font-size:22px;
-            font-weight:900;
-            line-height:1.05;
-        }
-
-        .metrica-nota{
-            margin-top:6px;
-            color:var(--muted);
-            font-size:9px;
-            line-height:1.35;
-        }
-
-        .positivo{color:var(--verde)}
-        .negativo{color:var(--rojo)}
-        .azul{color:var(--azul)}
-        .violeta{color:var(--violeta)}
-
-        .grid-dos{
-            display:grid;
-            grid-template-columns:1.05fr .95fr;
-            gap:12px;
-            align-items:start;
-        }
-
-        .panel{
-            overflow:hidden;
-            border:1px solid var(--borde);
-            border-radius:16px;
-            background:var(--panel);
-            box-shadow:var(--sombra);
-        }
-
-        .panel-cabecera{
-            padding:14px 15px;
-            border-bottom:1px solid var(--borde);
-        }
-
-        .panel-cuerpo{padding:15px}
-
-        .form-grid{
-            display:grid;
-            grid-template-columns:repeat(2,1fr);
-            gap:10px;
-        }
-
-        .ancho{grid-column:1/-1}
-
-        .tarjeta-plan{
-            padding:16px;
-            border:1px solid var(--borde);
-            border-radius:16px;
-            background:white;
-            box-shadow:var(--sombra);
-        }
-
-        .progreso{
-            height:12px;
-            overflow:hidden;
-            margin:12px 0 7px;
-            border-radius:999px;
-            background:#eceff2;
-        }
-
-        .progreso > span{
-            display:block;
-            height:100%;
-            border-radius:inherit;
-            background:#4b8d67;
-        }
-
-        .plan-datos{
-            display:grid;
-            grid-template-columns:repeat(2,1fr);
-            gap:8px;
-            margin-top:13px;
-        }
-
-        .plan-dato{
-            padding:11px;
-            border-radius:12px;
-            background:#f7f8fa;
-        }
-
-        .plan-dato span{
-            display:block;
-            color:var(--muted);
-            font-size:8px;
-            font-weight:900;
-        }
-
-        .plan-dato strong{
-            display:block;
-            margin-top:4px;
-            font-size:14px;
-        }
-
-        .accion-plan{
-            margin-top:12px;
-            padding:12px;
-            border-radius:12px;
-            background:var(--azul-bg);
-            color:#274d7e;
-            font-size:10px;
-            font-weight:800;
-            line-height:1.45;
-        }
-
-        .alerta-cuotas{
-            display:grid;
-            grid-template-columns:repeat(3,1fr);
-            gap:8px;
-            margin-bottom:12px;
-        }
-
-        .alerta{
-            padding:11px;
-            border-radius:12px;
-            background:#f7f8fa;
-        }
-
-        .alerta span{
-            display:block;
-            color:var(--muted);
-            font-size:8px;
-            font-weight:900;
-        }
-
-        .alerta strong{
-            display:block;
-            margin-top:4px;
-            font-size:14px;
-        }
-
-        table{
-            width:100%;
-            border-collapse:collapse;
-        }
-
-        th{
-            padding:10px 12px;
-            border-bottom:1px solid var(--borde);
-            background:#fafbfc;
-            color:var(--muted);
-            font-size:8px;
-            font-weight:900;
-            text-align:left;
-        }
-
-        td{
-            padding:11px 12px;
-            border-bottom:1px solid #eef0f2;
-            font-size:10px;
-            vertical-align:middle;
-        }
-
-        tr:last-child td{border-bottom:0}
-
-        .numero{text-align:right}
-        .codigo{font-weight:900}
-        .descripcion{font-weight:800}
-
-        .badge{
-            display:inline-flex;
-            align-items:center;
-            min-height:24px;
-            padding:0 8px;
-            border-radius:999px;
-            font-size:8px;
-            font-weight:900;
-        }
-
-        .badge-operativo{background:var(--amarillo-bg);color:var(--amarillo)}
-        .badge-inversion{background:var(--violeta-bg);color:var(--violeta)}
-        .badge-tarjeta{background:var(--azul-bg);color:var(--azul)}
-        .badge-pagada{background:var(--verde-bg);color:var(--verde)}
-        .badge-pendiente{background:var(--rojo-bg);color:var(--rojo)}
-
-        .cuota-accion form{margin:0}
-
-        .boton-mini{
-            min-height:32px;
-            padding:0 9px;
-            border:1px solid var(--borde);
-            border-radius:9px;
-            background:white;
-            font-size:8px;
-            font-weight:900;
-            cursor:pointer;
-        }
-
-        .detalle-cuotas{
-            margin-top:5px;
-            color:var(--muted);
-            font-size:8px;
-            line-height:1.35;
-        }
-
-        .vacio{
-            padding:26px 15px;
-            color:var(--muted);
-            font-size:10px;
-            text-align:center;
-        }
-
-        .nota-contable{
-            margin-top:10px;
-            padding:11px 13px;
-            border-radius:12px;
-            background:#f8f9fb;
-            color:#606773;
-            font-size:9px;
-            line-height:1.45;
-        }
-
-        .nav-inferior{
-            position:fixed;
-            z-index:100;
-            left:50%;
-            bottom:max(8px,env(safe-area-inset-bottom));
-            transform:translateX(-50%);
-            width:min(720px,calc(100% - 16px));
-            display:grid;
-            grid-template-columns:repeat(5,1fr);
-            gap:4px;
-            padding:7px;
-            border-radius:20px;
-            background:rgba(35,38,43,.96);
-            box-shadow:0 12px 35px rgba(0,0,0,.22);
-        }
-
-        .nav-item{
-            min-height:56px;
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            justify-content:center;
-            gap:4px;
-            border-radius:14px;
-            color:#d9dbe0;
-            text-decoration:none;
-            font-size:8px;
-            font-weight:900;
-        }
-
-        .nav-item span:first-child{
-            font-size:18px;
-        }
-
-        @media(max-width:980px){
-            .metricas{grid-template-columns:repeat(2,1fr)}
-            .grid-dos{grid-template-columns:1fr}
-        }
-
-        @media(max-width:650px){
-            body{padding:12px 10px 100px}
-            .encabezado{align-items:flex-start;flex-direction:column}
-            .acciones-encabezado{width:100%}
-            .acciones-encabezado .boton{flex:1}
-            .filtro-periodo{align-items:stretch;flex-direction:column}
-            .metricas{grid-template-columns:1fr 1fr}
-            .metrica{min-height:96px;padding:12px}
-            .metrica-valor{font-size:18px}
-            .form-grid{grid-template-columns:1fr}
-            .ancho{grid-column:auto}
-            .alerta-cuotas{grid-template-columns:1fr}
-
-            table,thead,tbody,tr,td{display:block}
-            thead{display:none}
-            tr{
-                margin:9px;
-                padding:11px;
-                border:1px solid var(--borde);
-                border-radius:13px;
-            }
-            td{
-                display:flex;
-                justify-content:space-between;
-                gap:14px;
-                padding:6px 0;
-                border:0;
-                text-align:right!important;
-            }
-            td::before{
-                content:attr(data-label);
-                color:var(--muted);
-                font-size:8px;
-                font-weight:900;
-                text-align:left;
-            }
-        }
-    
-        .caja-panel{
-            display:grid;
-            grid-template-columns:1.25fr .75fr;
-            gap:12px;
-            margin-bottom:16px;
-        }
-
-        .caja-principal{
-            padding:17px;
-            border:1px solid var(--borde);
-            border-radius:18px;
-            background:linear-gradient(135deg,#ffffff,#f5fbff);
-            box-shadow:var(--sombra);
-        }
-
-        .caja-saldo{
-            margin-top:7px;
-            font-size:32px;
-            font-weight:900;
-            line-height:1;
-        }
-
-        .caja-desglose{
-            display:grid;
-            grid-template-columns:repeat(3,1fr);
-            gap:8px;
-            margin-top:14px;
-        }
-
-        .caja-mini{
-            padding:10px;
-            border-radius:12px;
-            background:#f6f8fa;
-        }
-
-        .caja-mini span{
-            display:block;
-            color:var(--muted);
-            font-size:8px;
-            font-weight:900;
-        }
-
-        .caja-mini strong{
-            display:block;
-            margin-top:4px;
-            font-size:13px;
-        }
-
-        .estado-caja{
-            display:inline-flex;
-            margin-top:10px;
-            padding:6px 9px;
-            border-radius:999px;
-            font-size:8px;
-            font-weight:900;
-        }
-
-        .estado-caja.OK{
-            background:var(--verde-bg);
-            color:var(--verde);
-        }
-
-        .estado-caja.AJUSTADA{
-            background:var(--amarillo-bg);
-            color:var(--amarillo);
-        }
-
-        .estado-caja.URGENTE{
-            background:var(--rojo-bg);
-            color:var(--rojo);
-        }
-
-        .estado-caja.SIN_CORTE{
-            background:var(--azul-bg);
-            color:var(--azul);
-        }
-
-        .caja-form{
-            padding:17px;
-            border:1px solid var(--borde);
-            border-radius:18px;
-            background:white;
-            box-shadow:var(--sombra);
-        }
-
-        .caja-form .boton{
-            width:100%;
-            margin-top:10px;
-        }
-
-        .caja-accion{
-            margin-top:12px;
-            padding:11px 12px;
-            border-radius:12px;
-            background:#f7f8fa;
-            color:#565d66;
-            font-size:10px;
-            line-height:1.45;
-        }
-
-        @media(max-width:800px){
-            .caja-panel{
-                grid-template-columns:1fr;
-            }
-            .caja-desglose{
-                grid-template-columns:1fr;
-            }
-        }
-
-
-        .fin-toolbar{
-            display:flex;
-            align-items:center;
-            justify-content:space-between;
-            gap:10px;
-            margin-bottom:12px;
-            padding:10px;
-            border:1px solid var(--borde);
-            border-radius:15px;
-            background:rgba(255,255,255,.92);
-            box-shadow:var(--sombra);
-            position:sticky;
-            top:8px;
-            z-index:40;
-            backdrop-filter:blur(12px);
-        }
-        .fin-tabs,.fin-actions{
-            display:flex;
-            align-items:center;
-            gap:6px;
-            flex-wrap:wrap;
-        }
-        .fin-tab{
-            min-height:36px;
-            display:inline-flex;
-            align-items:center;
-            padding:0 10px;
-            border-radius:9px;
-            color:#5e6570;
-            text-decoration:none;
-            font-size:9px;
-            font-weight:900;
-        }
-        .fin-tab:hover{background:#f1f3f5;color:var(--texto)}
-        .fin-action{
-            min-height:38px;
-            padding:0 11px;
-            border:1px solid var(--borde);
-            border-radius:10px;
-            background:#fff;
-            color:var(--texto);
-            font-size:9px;
-            font-weight:900;
-            cursor:pointer;
-        }
-        .fin-action.primary{background:#24272c;border-color:#24272c;color:#fff}
-        .fin-action.negative{background:var(--rojo-bg);border-color:#f0cccc;color:var(--rojo)}
-        .caja-atajo{
-            padding:17px;
-            border:1px solid var(--borde);
-            border-radius:18px;
-            background:white;
-            box-shadow:var(--sombra);
-        }
-        .caja-atajo .boton{width:100%;margin-top:12px}
-        .cobros-layout{
-            display:grid;
-            grid-template-columns:minmax(0,1.45fr) minmax(270px,.55fr);
-            gap:12px;
-            align-items:start;
-        }
-        .cobro-resumen{
-            display:grid;
-            grid-template-columns:repeat(3,1fr);
-            gap:8px;
-            margin-bottom:10px;
-        }
-        .cobro-mini{
-            padding:11px;
-            border:1px solid var(--borde);
-            border-radius:12px;
-            background:#f8f9fa;
-        }
-        .cobro-mini span{display:block;color:var(--muted);font-size:8px;font-weight:900}
-        .cobro-mini strong{display:block;margin-top:4px;font-size:16px}
-        .cobro-accion{
-            min-height:31px;
-            padding:0 9px;
-            border:0;
-            border-radius:8px;
-            background:#24272c;
-            color:#fff;
-            font-size:8px;
-            font-weight:900;
-            cursor:pointer;
-        }
-        .pagos-recientes{display:grid;gap:0}
-        .pago-reciente{padding:11px 0;border-bottom:1px solid #edf0f2}
-        .pago-reciente:last-child{border-bottom:0}
-        .pago-reciente-top{display:flex;justify-content:space-between;gap:8px;font-size:10px;font-weight:900}
-        .pago-reciente-meta{margin-top:4px;color:var(--muted);font-size:8px;line-height:1.4}
-        .modal-fin{
-            position:fixed;
-            inset:0;
-            z-index:200;
-            display:none;
-            align-items:center;
-            justify-content:center;
-            padding:18px;
-            background:rgba(20,24,30,.48);
-            backdrop-filter:blur(4px);
-        }
-        .modal-fin.abierto{display:flex}
-        .modal-fin-dialog{
-            width:min(620px,100%);
-            max-height:min(88vh,760px);
-            overflow:auto;
-            border:1px solid var(--borde);
-            border-radius:18px;
-            background:#fff;
-            box-shadow:0 25px 70px rgba(0,0,0,.24);
-        }
-        .modal-fin-head{
-            position:sticky;
-            top:0;
-            z-index:2;
-            display:flex;
-            align-items:flex-start;
-            justify-content:space-between;
-            gap:12px;
-            padding:15px 16px;
-            border-bottom:1px solid var(--borde);
-            background:#fff;
-        }
-        .modal-fin-title{font-size:16px;font-weight:900}
-        .modal-fin-sub{margin-top:3px;color:var(--muted);font-size:9px;line-height:1.4}
-        .modal-fin-close{
-            width:34px;height:34px;border:1px solid var(--borde);border-radius:10px;
-            background:#fff;font-size:18px;cursor:pointer
-        }
-        .modal-fin-body{padding:16px}
-        .modal-fin-actions{
-            display:flex;
-            justify-content:flex-end;
-            gap:7px;
-            margin-top:14px;
-        }
-        .modal-fin-actions .boton{min-width:120px}
-        .saldo-cobro{
-            display:flex;
-            justify-content:space-between;
-            gap:10px;
-            align-items:center;
-            margin:10px 0 14px;
-            padding:11px 12px;
-            border-radius:11px;
-            background:#f5f6f8;
-        }
-        .saldo-cobro span{color:var(--muted);font-size:9px;font-weight:900}
-        .saldo-cobro strong{font-size:19px}
-        .accion-vacia{opacity:.45;pointer-events:none}
-        @media(max-width:980px){
-            .fin-toolbar{position:static;align-items:flex-start;flex-direction:column}
-            .cobros-layout{grid-template-columns:1fr}
-        }
-        @media(max-width:650px){
-            .fin-tabs,.fin-actions{width:100%;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
-            .fin-tabs::-webkit-scrollbar,.fin-actions::-webkit-scrollbar{display:none}
-            .fin-tab,.fin-action{flex:0 0 auto}
-            .cobro-resumen{grid-template-columns:1fr}
-            .modal-fin{padding:8px;align-items:flex-end}
-            .modal-fin-dialog{max-height:92vh;border-radius:18px 18px 10px 10px}
-        }
-
-        /* Legibilidad y jerarquía visual */
-        body{
-            font-size:14px;
-            line-height:1.42;
-        }
-
-        .contenedor{
-            width:min(1340px,100%);
-        }
-
-        h1{
-            font-size:30px;
-            letter-spacing:-.4px;
-        }
-
-        h2{
-            font-size:20px;
-            letter-spacing:-.2px;
-        }
-
-        h3{
-            font-size:16px;
-        }
-
-        .subtitulo{
-            font-size:13px;
-            line-height:1.45;
-        }
-
-        .seccion{
-            margin-bottom:20px;
-        }
-
-        .seccion-ayuda{
-            font-size:11px;
-            line-height:1.45;
-        }
-
-        .boton{
-            min-height:46px;
-            padding:0 16px;
-            font-size:11px;
-        }
-
-        .campo label{
-            margin-bottom:6px;
-            font-size:10px;
-        }
-
-        input,
-        select,
-        textarea{
-            min-height:46px;
-            padding:10px 12px;
-            font-size:14px;
-        }
-
-        textarea{
-            min-height:82px;
-        }
-
-        .filtro-periodo{
-            padding:15px 16px;
-        }
-
-        .metrica{
-            min-height:116px;
-            padding:16px;
-        }
-
-        .metrica-etiqueta{
-            font-size:10px;
-            line-height:1.3;
-        }
-
-        .metrica-valor{
-            margin-top:10px;
-            font-size:25px;
-        }
-
-        .metrica-nota{
-            margin-top:7px;
-            font-size:10px;
-            line-height:1.45;
-        }
-
-        .panel{
-            border-radius:18px;
-        }
-
-        .panel-cabecera{
-            padding:16px 17px;
-        }
-
-        .panel-cuerpo{
-            padding:17px;
-        }
-
-        .tarjeta-plan{
-            padding:18px;
-            border-radius:18px;
-        }
-
-        .plan-dato{
-            padding:12px;
-        }
-
-        .plan-dato span,
-        .alerta span{
-            font-size:9px;
-        }
-
-        .plan-dato strong,
-        .alerta strong{
-            font-size:15px;
-        }
-
-        .accion-plan,
-        .caja-accion{
-            font-size:11px;
-            line-height:1.55;
-        }
-
-        th{
-            padding:11px 13px;
-            font-size:9px;
-            letter-spacing:.03em;
-        }
-
-        td{
-            padding:13px;
-            font-size:11px;
-            line-height:1.4;
-        }
-
-        .badge{
-            min-height:27px;
-            padding:0 9px;
-            font-size:9px;
-        }
-
-        .boton-mini{
-            min-height:35px;
-            padding:0 10px;
-            font-size:9px;
-        }
-
-        .detalle-cuotas{
-            font-size:9px;
-            line-height:1.45;
-        }
-
-        .vacio{
-            font-size:11px;
-        }
-
-        .nota-contable{
-            padding:13px 15px;
-            font-size:10px;
-            line-height:1.55;
-        }
-
-        .nav-item{
-            font-size:9px;
-        }
-
-        .caja-principal,
-        .caja-atajo{
-            padding:19px;
-        }
-
-        .caja-saldo{
-            font-size:36px;
-        }
-
-        .caja-mini{
-            padding:11px;
-        }
-
-        .caja-mini span{
-            font-size:9px;
-        }
-
-        .caja-mini strong{
-            font-size:14px;
-        }
-
-        .estado-caja{
-            padding:7px 10px;
-            font-size:9px;
-        }
-
-        .fin-toolbar{
-            padding:11px;
-            gap:12px;
-            border-radius:16px;
-        }
-
-        .fin-tab{
-            min-height:39px;
-            padding:0 12px;
-            font-size:10px;
-        }
-
-        .fin-action{
-            min-height:41px;
-            padding:0 12px;
-            font-size:10px;
-        }
-
-        .cobro-mini{
-            padding:13px;
-        }
-
-        .cobro-mini span{
-            font-size:9px;
-        }
-
-        .cobro-mini strong{
-            margin-top:5px;
-            font-size:18px;
-        }
-
-        .cobro-accion{
-            min-height:35px;
-            padding:0 10px;
-            font-size:9px;
-        }
-
-        .pago-reciente{
-            padding:13px 0;
-        }
-
-        .pago-reciente-top{
-            font-size:11px;
-        }
-
-        .pago-reciente-meta{
-            margin-top:5px;
-            font-size:9px;
-            line-height:1.5;
-        }
-
-        .modal-fin-dialog{
-            width:min(660px,100%);
-        }
-
-        .modal-fin-head{
-            padding:17px 18px;
-        }
-
-        .modal-fin-title{
-            font-size:18px;
-        }
-
-        .modal-fin-sub{
-            margin-top:4px;
-            font-size:10px;
-            line-height:1.5;
-        }
-
-        .modal-fin-body{
-            padding:18px;
-        }
-
-        .saldo-cobro span{
-            font-size:10px;
-        }
-
-        .saldo-cobro strong{
-            font-size:21px;
-        }
-
-        @media(max-width:650px){
-            h1{font-size:27px}
-            h2{font-size:19px}
-            h3{font-size:15px}
-
-            .subtitulo{font-size:12px}
-
-            .metricas{
-                grid-template-columns:1fr 1fr;
-            }
-
-            .metrica{
-                min-height:104px;
-                padding:13px;
-            }
-
-            .metrica-etiqueta{
-                font-size:9px;
-            }
-
-            .metrica-valor{
-                font-size:21px;
-            }
-
-            .metrica-nota{
-                font-size:9px;
-            }
-
-            td{
-                padding:8px 0;
-                font-size:11px;
-            }
-
-            td::before{
-                font-size:9px;
-            }
-
-            .fin-toolbar{
-                padding:9px;
-            }
-
-            .fin-tab,
-            .fin-action{
-                font-size:10px;
-            }
-        }
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Finanzas | Doble V 3D</title>
+<style>
+:root{
+ --bg:var(--dv-bg,#f4f5f7);--surface:var(--dv-surface,#fff);--soft:var(--dv-surface-soft,#f7f8fa);
+ --text:var(--dv-text,#24272c);--muted:var(--dv-muted,#747b84);--line:var(--dv-border,#e4e7eb);
+ --blue:var(--dv-brand-blue,#134a9a);--blue-soft:var(--dv-brand-blue-soft,#edf4ff);
+ --green:var(--dv-success-text,#24714a);--green-bg:var(--dv-success-soft,#e8f5ed);
+ --red:var(--dv-danger-text,#a63d3d);--red-bg:var(--dv-danger-soft,#fff0f0);
+ --yellow:var(--dv-warning-text,#8a6417);--yellow-bg:var(--dv-warning-soft,#fff7db);
+ --purple:var(--dv-purple-text,#6948a8);--purple-bg:var(--dv-purple-soft,#f4efff);
+ --shadow:var(--dv-shadow-soft,0 4px 18px rgba(31,41,55,.06))
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;padding:0 0 calc(105px + env(safe-area-inset-bottom));background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}.shell{width:min(1340px,100%);margin:auto;padding:22px 18px 45px}
+.encabezado{display:grid;grid-template-columns:minmax(0,1fr);gap:11px;margin-bottom:14px}.encabezado-marca{min-width:0}h1{margin:0;font-size:34px;letter-spacing:-.5px}.subtitulo{margin-top:5px;color:var(--muted);font-size:12px;line-height:1.45}
+.acciones-encabezado{width:100%;display:flex;align-items:stretch;gap:8px;flex-wrap:nowrap}.fin-action{min-height:46px;padding:0 14px;border:1px solid var(--blue);border-radius:12px;background:var(--surface);color:var(--text);font-size:9px;font-weight:900;cursor:pointer;white-space:nowrap}.fin-action.primary{margin-left:auto;min-width:210px;background:var(--blue);border-color:var(--blue);color:#fff}.fin-action:disabled{opacity:.45;cursor:not-allowed}
+.mensajes{display:grid;gap:7px;margin-bottom:12px}.mensaje{padding:11px 13px;border:1px solid var(--line);border-radius:11px;background:var(--surface);font-size:10px;font-weight:800}.mensaje.success{background:var(--green-bg);color:var(--green)}.mensaje.error{background:var(--red-bg);color:var(--red)}.mensaje.warning{background:var(--yellow-bg);color:var(--yellow)}
+.tabs{display:flex;gap:6px;margin-bottom:12px;padding:7px;border:1px solid var(--line);border-radius:15px;background:var(--surface);overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}.tab{flex:0 0 auto;min-height:38px;display:inline-flex;align-items:center;padding:0 11px;border-radius:9px;color:var(--muted);text-decoration:none;font-size:9px;font-weight:900}.tab.active{background:var(--blue);color:#fff}
+.periodo{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;margin-bottom:14px;padding:12px;border:1px solid var(--line);border-radius:16px;background:var(--surface)}.rapidos{display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none}.rapidos::-webkit-scrollbar{display:none}.period-btn{flex:0 0 auto;min-height:40px;display:inline-flex;align-items:center;padding:0 11px;border:1px solid var(--line);border-radius:10px;background:var(--soft);color:var(--text);text-decoration:none;font-size:8px;font-weight:900}.period-btn.active{border-color:var(--blue);background:var(--blue-soft);color:var(--blue)}.custom-period{display:flex;gap:6px;align-items:center}.custom-period input{width:138px;min-height:40px;padding:7px 9px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}.custom-period button{min-height:40px;padding:0 11px;border:1px solid var(--blue);border-radius:10px;background:var(--blue);color:#fff;font-size:8px;font-weight:900}.period-label{margin:-4px 2px 11px;color:var(--muted);font-size:9px}
+.metricas{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;margin-bottom:14px}.metrica{min-width:0;padding:13px;border:1px solid var(--line);border-radius:15px;background:var(--surface);box-shadow:var(--shadow)}.metrica small{display:block;color:var(--muted);font-size:7px;font-weight:900;letter-spacing:.03em}.metrica strong{display:block;margin-top:7px;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.metrica span{display:block;margin-top:4px;color:var(--muted);font-size:8px;line-height:1.35}.positive{color:var(--green)!important}.negative{color:var(--red)!important}
+.panel{border:1px solid var(--line);border-radius:17px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden}.panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:14px 15px;border-bottom:1px solid var(--line);background:var(--soft)}.panel-title{font-size:11px;font-weight:900}.panel-sub{margin-top:4px;color:var(--muted);font-size:8px;line-height:1.4}.panel-body{padding:14px}.section-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:12px;margin-bottom:14px}
+.alertas{display:grid;gap:8px}.alerta{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px;border:1px solid var(--line);border-radius:12px;background:var(--soft);text-decoration:none;color:var(--text)}.alerta.warning{background:var(--yellow-bg);color:var(--yellow)}.alerta.danger{background:var(--red-bg);color:var(--red)}.alerta-icon{font-size:17px}.alerta strong{display:block;font-size:9px}.alerta span{display:block;margin-top:3px;font-size:8px;line-height:1.4}.alerta-go{font-size:15px;font-weight:900}
+.caja-card{padding:15px;border-radius:14px;background:var(--soft)}.caja-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.caja-saldo{margin-top:5px;font-size:28px;font-weight:900}.badge{display:inline-flex;align-items:center;min-height:23px;padding:0 7px;border-radius:999px;background:var(--soft);font-size:7px;font-weight:900;white-space:nowrap}.badge.OK,.badge.PAGADO{background:var(--green-bg);color:var(--green)}.badge.URGENTE,.badge.VENCIDA{background:var(--red-bg);color:var(--red)}.badge.AJUSTADA,.badge.PENDIENTE{background:var(--yellow-bg);color:var(--yellow)}.badge.SIN_CORTE,.badge.TARJETA{background:var(--blue-soft);color:var(--blue)}.caja-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.mini{padding:9px;border-radius:10px;background:var(--surface)}.mini small{display:block;color:var(--muted);font-size:7px;font-weight:900}.mini strong{display:block;margin-top:4px;font-size:11px}.caja-nota{margin-top:10px;color:var(--muted);font-size:9px;line-height:1.45}
+.recentes{display:grid;grid-template-columns:1fr 1fr;gap:12px}.lista-mini{display:grid}.mov{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}.mov:last-child{border-bottom:0}.mov strong{display:block;font-size:9px}.mov span{display:block;margin-top:3px;color:var(--muted);font-size:8px}.mov-monto{font-size:10px;font-weight:900;white-space:nowrap}
+.filtros{display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin-bottom:12px;padding:11px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}.campo{min-width:160px}.campo.flex{flex:1 1 240px}.campo label{display:block;margin-bottom:5px;color:var(--muted);font-size:8px;font-weight:900}.campo input,.campo select,.campo textarea{width:100%;min-height:43px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text)}.campo textarea{min-height:80px;resize:vertical}.btn{min-height:43px;display:inline-flex;align-items:center;justify-content:center;padding:0 11px;border:1px solid var(--blue);border-radius:10px;background:var(--surface);color:var(--text);text-decoration:none;font-size:8px;font-weight:900;cursor:pointer}.btn.primary{background:var(--blue);color:#fff}.btn.danger{border-color:var(--red);background:var(--red-bg);color:var(--red)}
+table{width:100%;border-collapse:collapse}th{padding:10px 11px;border-bottom:1px solid var(--line);background:var(--soft);color:var(--muted);font-size:7px;text-align:left}td{padding:11px;border-bottom:1px solid var(--line);font-size:9px;vertical-align:middle}tr:last-child td{border-bottom:0}.num{text-align:right}.code{font-weight:900}.table-wrap{overflow:auto}.empty{padding:30px 15px;text-align:center;color:var(--muted);font-size:9px}.row-actions{display:flex;gap:5px;justify-content:flex-end}.row-actions form{margin:0}
+.pager{display:flex;justify-content:center;align-items:center;gap:7px;padding:13px;border-top:1px solid var(--line)}.pager a,.pager span{min-height:34px;display:inline-flex;align-items:center;padding:0 10px;border:1px solid var(--line);border-radius:9px;color:var(--text);text-decoration:none;font-size:8px;font-weight:900}.pager .current{background:var(--soft)}
+.rent-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}.rent-card{padding:12px;border-radius:12px;background:var(--soft)}.rent-card small{display:block;color:var(--muted);font-size:7px;font-weight:900}.rent-card strong{display:block;margin-top:5px;font-size:15px}
+.note{margin-top:12px;padding:11px 12px;border-radius:11px;background:var(--soft);color:var(--muted);font-size:8px;line-height:1.5}
+.modal-fin{position:fixed;z-index:2200;inset:0;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(10,14,22,.55);backdrop-filter:blur(4px)}.modal-fin.abierto{display:flex}.modal-fin-dialog{width:min(640px,100%);max-height:90vh;overflow:auto;border:1px solid var(--line);border-radius:18px;background:var(--surface);box-shadow:0 24px 70px rgba(0,0,0,.3)}.modal-fin-head{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:15px 16px;border-bottom:1px solid var(--line);background:var(--surface)}.modal-fin-title{font-size:15px;font-weight:900}.modal-fin-sub{margin-top:4px;color:var(--muted);font-size:8px;line-height:1.45}.modal-fin-close{width:36px;height:36px;border:1px solid var(--line);border-radius:10px;background:var(--soft);color:var(--text);font-size:18px;cursor:pointer}.modal-fin-body{padding:16px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.ancho{grid-column:1/-1}.saldo-cobro{display:flex;justify-content:space-between;gap:10px;margin:10px 0;padding:10px 11px;border-radius:10px;background:var(--soft)}.saldo-cobro span{color:var(--muted);font-size:8px;font-weight:900}.saldo-cobro strong{font-size:16px}.modal-fin-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:12px}
+@media(max-width:1000px){.metricas{grid-template-columns:repeat(3,1fr)}.section-grid{grid-template-columns:1fr}.rent-cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){
+ .shell{padding:15px 10px 35px}.acciones-encabezado{gap:7px}.fin-action{flex:1 1 0;min-width:0;padding:0 9px;font-size:8px}.fin-action.primary{margin-left:0;min-width:0;flex:1.35 1 0}
+ .periodo{grid-template-columns:1fr}.custom-period{display:grid;grid-template-columns:1fr 1fr auto}.custom-period input{width:100%;min-width:0}.metricas{grid-template-columns:repeat(2,1fr);gap:7px}.metrica{padding:11px}.metrica strong{font-size:18px}
+ .recientes{grid-template-columns:1fr}.caja-grid{grid-template-columns:1fr}.filtros{display:grid;grid-template-columns:1fr 1fr}.filtros .campo,.filtros .campo.flex{min-width:0}.filtros .campo.flex{grid-column:1/-1}.filtros .btn{width:100%}
+ table,thead,tbody,tr,td{display:block}thead{display:none}tr{margin:9px;padding:11px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}td{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border:0;text-align:right!important}td::before{content:attr(data-label);color:var(--muted);font-size:7px;font-weight:900;text-align:left}.row-actions{justify-content:flex-end}.rent-cards{grid-template-columns:1fr 1fr}
+ .modal-fin{padding:8px;align-items:flex-end}.modal-fin-dialog{max-height:92vh;border-radius:18px 18px 10px 10px}.form-grid{grid-template-columns:1fr}.ancho{grid-column:auto}
+}
 </style>
 </head>
-
 <body>
-
-<div class="contenedor">
-
-    <div class="encabezado">
-        <div class="encabezado-marca">{% include 'shared/brand_bar.html' %}
-            <h1>Finanzas</h1>
-            <div class="subtitulo">
-                Cobros, caja, gastos, rentabilidad e inversión
-            </div>
-        </div>
-
-        <div class="acciones-encabezado">
-            <button type="button" class="fin-action" onclick="abrirModalFin('modalGasto')">GASTO / INVERSIÓN</button>
-            <button type="button" class="fin-action" onclick="abrirModalFin('modalCaja')">CONCILIAR CAJA</button>
-            <button
-                type="button"
-                class="fin-action primary {% if not cobros_pendientes %}accion-vacia{% endif %}"
-                onclick="abrirCobro()"
-                {% if not cobros_pendientes %}disabled{% endif %}
-            >REGISTRAR COBRO</button>
-        </div>
+<div class="shell">
+  <header class="encabezado">
+    <div class="encabezado-marca">
+      {% include "shared/brand_bar.html" %}
+      <h1>Finanzas</h1>
+      <div class="subtitulo">Centro financiero · cobros, caja, gastos, cuotas y rentabilidad.</div>
     </div>
-
-    {% if messages %}
-        <div class="mensajes">
-            {% for message in messages %}
-                <div class="mensaje {{ message.tags }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    <div class="fin-toolbar">
-        <div class="fin-tabs" aria-label="Secciones de Finanzas">
-            <a class="fin-tab" href="#resumen">RESUMEN</a>
-            <a class="fin-tab" href="#cobros">COBROS</a>
-            <a class="fin-tab" href="#gastos">GASTOS</a>
-            <a class="fin-tab" href="#rentabilidad">RENTABILIDAD</a>
-        </div>
+    <div class="acciones-encabezado">
+      <button type="button" class="fin-action" onclick="abrirModalFin('modalGasto')">GASTO / INVERSIÓN</button>
+      <button type="button" class="fin-action" onclick="abrirModalFin('modalCaja')">CONCILIAR CAJA</button>
+      <button type="button" class="fin-action primary" onclick="abrirCobro()" {% if not cobros_pendientes %}disabled{% endif %}>REGISTRAR COBRO</button>
     </div>
+  </header>
 
-    <form
-        method="get"
-        class="filtro-periodo"
-    >
-        <div class="campo">
-            <label>PERÍODO A ANALIZAR</label>
-            <input
-                type="month"
-                name="periodo"
-                value="{{ periodo }}"
-            >
-        </div>
+  {% if messages %}<div class="mensajes">{% for message in messages %}<div class="mensaje {{ message.tags }}">{{ message }}</div>{% endfor %}</div>{% endif %}
 
-        <button
-            type="submit"
-            class="boton boton-principal"
-        >
-            VER PERÍODO
-        </button>
+  <nav class="tabs" aria-label="Secciones de Finanzas">
+    <a class="tab {% if vista == 'resumen' %}active{% endif %}" href="?{% if query_base %}{{ query_base }}&{% endif %}vista=resumen">RESUMEN</a>
+    <a class="tab {% if vista == 'cobros' %}active{% endif %}" href="?{% if query_base %}{{ query_base }}&{% endif %}vista=cobros">COBROS Y SALDOS</a>
+    <a class="tab {% if vista == 'gastos' %}active{% endif %}" href="?{% if query_base %}{{ query_base }}&{% endif %}vista=gastos">GASTOS</a>
+    <a class="tab {% if vista == 'cuotas' %}active{% endif %}" href="?{% if query_base %}{{ query_base }}&{% endif %}vista=cuotas">CUOTAS</a>
+    <a class="tab {% if vista == 'caja' %}active{% endif %}" href="?{% if query_base %}{{ query_base }}&{% endif %}vista=caja">CAJA</a>
+    <a class="tab {% if vista == 'rentabilidad' %}active{% endif %}" href="?{% if query_base %}{{ query_base }}&{% endif %}vista=rentabilidad">RENTABILIDAD</a>
+  </nav>
+
+  <section class="periodo">
+    <div class="rapidos">
+      <a class="period-btn {% if rango.rango == 'mes_actual' %}active{% endif %}" href="?rango=mes_actual&vista={{ vista }}">ESTE MES</a>
+      <a class="period-btn {% if rango.rango == 'mes_anterior' %}active{% endif %}" href="?rango=mes_anterior&vista={{ vista }}">MES ANTERIOR</a>
+      <a class="period-btn {% if rango.rango == 'anio' %}active{% endif %}" href="?rango=anio&vista={{ vista }}">ESTE AÑO</a>
+    </div>
+    <form class="custom-period" method="get">
+      <input type="hidden" name="rango" value="personalizado">
+      <input type="hidden" name="vista" value="{{ vista }}">
+      <input type="date" name="desde" value="{{ inicio_periodo|date:'Y-m-d' }}" aria-label="Desde">
+      <input type="date" name="hasta" value="{{ fin_periodo|date:'Y-m-d' }}" aria-label="Hasta">
+      <button type="submit">APLICAR</button>
     </form>
+  </section>
+  <div class="period-label">Período: <strong>{{ rango.label }}</strong> · {{ inicio_periodo|date:"d/m/Y" }} al {{ fin_periodo|date:"d/m/Y" }}</div>
 
+  <section class="metricas">
+    <div class="metrica"><small>CAJA ESTIMADA</small><strong>{% if caja.requiere_corte %}—{% else %}$ {{ saldo_caja|floatformat:"0g" }}{% endif %}</strong><span>{{ accion_caja }}</span></div>
+    <div class="metrica"><small>COBRADO</small><strong class="positive">$ {{ cobrado_periodo|floatformat:"0g" }}</strong><span>en el período</span></div>
+    <div class="metrica"><small>GASTOS OPERATIVOS</small><strong class="negative">$ {{ gastos_operativos|floatformat:"0g" }}</strong><span>reconocidos en el período</span></div>
+    <div class="metrica"><small>RESULTADO OPERATIVO</small><strong class="{% if resultado_operativo < 0 %}negative{% else %}positive{% endif %}">$ {{ resultado_operativo|floatformat:"0g" }}</strong><span>ganancia bruta menos gastos</span></div>
+    <div class="metrica"><small>POR COBRAR</small><strong>$ {{ saldo_total_actual|floatformat:"0g" }}</strong><span>{{ pedidos_con_saldo_actual }} pedido{{ pedidos_con_saldo_actual|pluralize }}</span></div>
+    <div class="metrica"><small>COMPROMISOS 30 DÍAS</small><strong>$ {{ compromiso_30|floatformat:"0g" }}</strong><span>cuotas pendientes próximas</span></div>
+  </section>
 
-    <!-- CAJA MERCADO PAGO -->
-    <section class="seccion" id="resumen">
-        <div class="seccion-cabecera">
-            <div>
-                <h2>Caja Mercado Pago</h2>
-                <div class="seccion-ayuda">
-                    Tomamos el saldo real como punto cero y desde ahí seguimos los movimientos del sistema.
-                </div>
-            </div>
+  {% if vista == "resumen" %}
+    <div class="section-grid">
+      <section class="panel">
+        <div class="panel-head"><div><div class="panel-title">NECESITAN ATENCIÓN</div><div class="panel-sub">Sólo mostramos pendientes que requieren una decisión.</div></div><span class="badge">{{ alertas_finanzas|length }}</span></div>
+        <div class="panel-body alertas">
+          {% for alerta in alertas_finanzas %}
+            <a class="alerta {{ alerta.nivel }}" href="?{% if query_base %}{{ query_base }}&{% endif %}vista={{ alerta.vista }}"><div class="alerta-icon">⚠</div><div><strong>{{ alerta.titulo }}</strong><span>{{ alerta.detalle }}</span></div><div class="alerta-go">›</div></a>
+          {% empty %}<div class="empty">No hay alertas financieras importantes.</div>{% endfor %}
         </div>
+      </section>
 
-        <div class="caja-panel">
-            <div class="caja-principal">
-                <div class="metrica-etiqueta">
-                    SALDO ESTIMADO ACTUAL
-                </div>
-
-                {% if caja.requiere_corte %}
-                    <div class="caja-saldo azul">
-                        —
-                    </div>
-                {% else %}
-                    <div class="caja-saldo {% if saldo_caja >= 0 %}positivo{% else %}negativo{% endif %}">
-                        $ {{ saldo_caja|floatformat:"0g" }}
-                    </div>
-                {% endif %}
-
-                <span class="estado-caja {{ estado_caja }}">
-                    {% if estado_caja == "OK" %}
-                        CAJA CUBIERTA
-                    {% elif estado_caja == "AJUSTADA" %}
-                        CAJA AJUSTADA
-                    {% elif estado_caja == "URGENTE" %}
-                        ATENCIÓN DE CAJA
-                    {% else %}
-                        FALTA SALDO INICIAL
-                    {% endif %}
-                </span>
-
-                {% if caja.corte %}
-                    <div class="subtitulo">
-                        Última conciliación:
-                        {{ caja.corte.fecha|date:"d/m/Y H:i" }}
-                        · saldo real $ {{ caja.saldo_base|floatformat:"0g" }}
-                    </div>
-                {% endif %}
-
-                <div class="caja-desglose">
-                    <div class="caja-mini">
-                        <span>INGRESOS DESDE EL CORTE</span>
-                        <strong class="positivo">
-                            + $ {{ caja.ingresos_desde_corte|floatformat:"0g" }}
-                        </strong>
-                    </div>
-
-                    <div class="caja-mini">
-                        <span>EGRESOS DESDE EL CORTE</span>
-                        <strong class="negativo">
-                            - $ {{ caja.egresos_desde_corte|floatformat:"0g" }}
-                        </strong>
-                    </div>
-
-                    <div class="caja-mini">
-                        <span>DISPONIBLE LUEGO DE RESERVAR 30 DÍAS</span>
-                        <strong>
-                            $ {{ disponible_operativo|floatformat:"0g" }}
-                        </strong>
-                    </div>
-                </div>
-
-                <div class="caja-accion">
-                    <strong>Gestión sugerida:</strong>
-                    {{ accion_caja }}
-                    <br><br>
-                    Compromisos próximos:
-                    <strong>
-                        7 días $ {{ compromiso_7|floatformat:"0g" }}
-                    </strong>
-                    ·
-                    <strong>
-                        30 días $ {{ reserva_30|floatformat:"0g" }}
-                    </strong>
-                </div>
-            </div>
-
-            <div class="caja-atajo">
-                <h3>Conciliación de caja</h3>
-                <div class="subtitulo">
-                    Actualizá el saldo real de Mercado Pago sólo cuando quieras fijar un nuevo punto de control.
-                </div>
-                <button type="button" class="boton" onclick="abrirModalFin('modalCaja')">
-                    ACTUALIZAR SALDO REAL
-                </button>
-            </div>
+      <section class="panel">
+        <div class="panel-head"><div><div class="panel-title">CAJA MERCADO PAGO</div><div class="panel-sub">Situación actual y reserva de compromisos.</div></div><span class="badge {{ estado_caja }}">{{ estado_caja|replace:"_"," " }}</span></div>
+        <div class="panel-body">
+          <div class="caja-card">
+            <div class="caja-top"><div><small style="color:var(--muted);font-weight:900">SALDO ESTIMADO</small><div class="caja-saldo">{% if caja.requiere_corte %}—{% else %}$ {{ saldo_caja|floatformat:"0g" }}{% endif %}</div></div>{% if caja.corte %}<div style="text-align:right;color:var(--muted);font-size:8px">Último corte<br><strong>{{ caja.corte.fecha|date:"d/m H:i" }}</strong></div>{% endif %}</div>
+            <div class="caja-grid"><div class="mini"><small>7 DÍAS</small><strong>$ {{ compromiso_7|floatformat:"0g" }}</strong></div><div class="mini"><small>30 DÍAS</small><strong>$ {{ reserva_30|floatformat:"0g" }}</strong></div><div class="mini"><small>DISPONIBLE</small><strong>$ {{ disponible_operativo|floatformat:"0g" }}</strong></div></div>
+            <div class="caja-nota">{{ accion_caja }}</div>
+          </div>
         </div>
+      </section>
+    </div>
+
+    <div class="recientes">
+      <section class="panel">
+        <div class="panel-head"><div><div class="panel-title">COBROS RECIENTES</div><div class="panel-sub">Últimos movimientos registrados.</div></div><a class="btn" href="?{% if query_base %}{{ query_base }}&{% endif %}vista=cobros">VER TODOS</a></div>
+        <div class="panel-body lista-mini">
+          {% for pago in ultimos_pagos %}<div class="mov"><div><strong>{{ pago.pedido.codigo }} · {{ pago.pedido.cliente.nombre }}</strong><span>{{ pago.fecha|date:"d/m/Y H:i" }} · {{ pago.get_medio_display }}</span></div><div class="mov-monto positive">+$ {{ pago.monto|floatformat:"0g" }}</div></div>{% empty %}<div class="empty">No hay cobros registrados.</div>{% endfor %}
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><div><div class="panel-title">GASTOS RECIENTES</div><div class="panel-sub">Últimas compras e inversiones.</div></div><a class="btn" href="?{% if query_base %}{{ query_base }}&{% endif %}vista=gastos">VER TODOS</a></div>
+        <div class="panel-body lista-mini">
+          {% for gasto in ultimos_gastos %}<div class="mov"><div><strong>{{ gasto.descripcion }}</strong><span>{{ gasto.fecha_compra|date:"d/m/Y" }} · {{ gasto.get_categoria_display }}</span></div><div class="mov-monto negative">-$ {{ gasto.monto_total|floatformat:"0g" }}</div></div>{% empty %}<div class="empty">No hay gastos registrados.</div>{% endfor %}
+        </div>
+      </section>
+    </div>
+
+  {% elif vista == "cobros" %}
+    <form class="filtros" method="get">
+      <input type="hidden" name="vista" value="cobros">
+      <input type="hidden" name="rango" value="{{ rango.rango }}">
+      {% if rango.rango == "personalizado" %}<input type="hidden" name="desde" value="{{ inicio_periodo|date:'Y-m-d' }}"><input type="hidden" name="hasta" value="{{ fin_periodo|date:'Y-m-d' }}">{% endif %}
+      <div class="campo flex"><label>BUSCAR</label><input name="q" value="{{ busqueda_cobros }}" placeholder="Cliente, teléfono o número de pedido"></div>
+      <button class="btn primary" type="submit">FILTRAR</button>
+      <a class="btn" href="?{% if query_base %}{{ query_base }}&{% endif %}vista=cobros">LIMPIAR</a>
+    </form>
+    <section class="panel">
+      <div class="panel-head"><div><div class="panel-title">COBROS Y SALDOS</div><div class="panel-sub">$ {{ saldo_total_actual|floatformat:"0g" }} pendientes en {{ pedidos_con_saldo_actual }} pedidos.</div></div></div>
+      <div class="table-wrap"><table><thead><tr><th>PEDIDO</th><th>CLIENTE</th><th class="num">TOTAL</th><th class="num">PAGADO</th><th class="num">SALDO</th><th></th></tr></thead><tbody>
+      {% for pedido in cobros_pagina %}
+        <tr><td data-label="PEDIDO" class="code">{{ pedido.codigo }}</td><td data-label="CLIENTE">{{ pedido.cliente.nombre }}</td><td data-label="TOTAL" class="num">$ {{ pedido.total_fin|floatformat:"0g" }}</td><td data-label="PAGADO" class="num positive">$ {{ pedido.pagado_fin|floatformat:"0g" }}</td><td data-label="SALDO" class="num"><strong>$ {{ pedido.saldo_fin|floatformat:"0g" }}</strong></td><td data-label="ACCIÓN"><div class="row-actions"><button class="btn primary" type="button" data-pedido="{{ pedido.id }}" data-label="{{ pedido.codigo }} · {{ pedido.cliente.nombre }}" data-url="{% url 'pedidos:registrar_pago' pedido.id %}" data-saldo="{{ pedido.saldo_fin }}" onclick="abrirCobro(this)">REGISTRAR</button></div></td></tr>
+      {% empty %}<tr><td colspan="6" class="empty">No hay pedidos con saldo para este filtro.</td></tr>{% endfor %}
+      </tbody></table></div>
+      {% if cobros_pagina.paginator.num_pages > 1 %}<div class="pager">{% if cobros_pagina.has_previous %}<a href="?{{ query_pagina }}&page={{ cobros_pagina.previous_page_number }}">←</a>{% endif %}<span class="current">{{ cobros_pagina.number }} / {{ cobros_pagina.paginator.num_pages }}</span>{% if cobros_pagina.has_next %}<a href="?{{ query_pagina }}&page={{ cobros_pagina.next_page_number }}">→</a>{% endif %}</div>{% endif %}
     </section>
 
-
-    <!-- COBROS Y SALDOS -->
-    <section class="seccion" id="cobros">
-        <div class="seccion-cabecera">
-            <div>
-                <h2>Cobros y saldos</h2>
-                <div class="seccion-ayuda">
-                    Saldos vigentes de pedidos. Independiente del período seleccionado arriba.
-                </div>
-            </div>
-        </div>
-
-        <div class="cobro-resumen">
-            <div class="cobro-mini">
-                <span>COBRADO HOY</span>
-                <strong class="positivo">$ {{ cobrado_hoy|floatformat:"0g" }}</strong>
-            </div>
-            <div class="cobro-mini">
-                <span>SALDO A COBRAR</span>
-                <strong>$ {{ saldo_total_actual|floatformat:"0g" }}</strong>
-            </div>
-            <div class="cobro-mini">
-                <span>PEDIDOS CON SALDO</span>
-                <strong>{{ pedidos_con_saldo_actual }}</strong>
-            </div>
-        </div>
-
-        <div class="cobros-layout">
-            <div class="panel">
-                <div class="panel-cabecera">
-                    <h3>Cobros pendientes</h3>
-                    <div class="subtitulo">Registrá pagos sin salir de Finanzas.</div>
-                </div>
-                {% if cobros_pendientes %}
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>PEDIDO</th>
-                                <th>CLIENTE</th>
-                                <th class="numero">TOTAL</th>
-                                <th class="numero">PAGADO</th>
-                                <th class="numero">SALDO</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in cobros_pendientes %}
-                                <tr>
-                                    <td data-label="PEDIDO" class="codigo">{{ item.pedido.codigo }}</td>
-                                    <td data-label="CLIENTE">{{ item.pedido.cliente.nombre }}</td>
-                                    <td data-label="TOTAL" class="numero">$ {{ item.total|floatformat:"0g" }}</td>
-                                    <td data-label="PAGADO" class="numero positivo">$ {{ item.pagado|floatformat:"0g" }}</td>
-                                    <td data-label="SALDO" class="numero"><strong>$ {{ item.saldo|floatformat:"0g" }}</strong></td>
-                                    <td data-label="ACCIÓN">
-                                        <button
-                                            type="button"
-                                            class="cobro-accion"
-                                            data-pedido="{{ item.pedido.id }}"
-                                            onclick="abrirCobro(this)"
-                                        >REGISTRAR</button>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                {% else %}
-                    <div class="vacio">No hay saldos pendientes de cobro.</div>
-                {% endif %}
-            </div>
-
-            <aside class="panel">
-                <div class="panel-cabecera">
-                    <h3>Últimos cobros</h3>
-                </div>
-                <div class="panel-cuerpo pagos-recientes">
-                    {% for pago in ultimos_pagos %}
-                        <div class="pago-reciente">
-                            <div class="pago-reciente-top">
-                                <span>{{ pago.pedido.codigo }}</span>
-                                <span class="positivo">+$ {{ pago.monto|floatformat:"0g" }}</span>
-                            </div>
-                            <div class="pago-reciente-meta">
-                                {{ pago.pedido.cliente.nombre }} · {{ pago.get_medio_display }}<br>
-                                {{ pago.fecha|date:"d/m/Y H:i" }}
-                            </div>
-                        </div>
-                    {% empty %}
-                        <div class="vacio">Todavía no hay cobros registrados.</div>
-                    {% endfor %}
-                </div>
-            </aside>
-        </div>
+  {% elif vista == "gastos" %}
+    <form class="filtros" method="get">
+      <input type="hidden" name="vista" value="gastos"><input type="hidden" name="periodo" value="{{ periodo }}">
+      <div class="campo"><label>TIPO</label><select name="tipo_gasto"><option value="">Todos</option>{% for valor,etiqueta in tipos_gasto %}<option value="{{ valor }}" {% if filtro_tipo_gasto == valor %}selected{% endif %}>{{ etiqueta }}</option>{% endfor %}</select></div>
+      <div class="campo"><label>CATEGORÍA</label><select name="categoria_gasto"><option value="">Todas</option>{% for valor,etiqueta in categorias_gasto %}<option value="{{ valor }}" {% if filtro_categoria_gasto == valor %}selected{% endif %}>{{ etiqueta }}</option>{% endfor %}</select></div>
+      <button class="btn primary" type="submit">FILTRAR</button>
+      <a class="btn" href="?periodo={{ periodo }}&vista=gastos">LIMPIAR</a>
+    </form>
+    <section class="panel">
+      <div class="panel-head"><div><div class="panel-title">GASTOS E INVERSIONES</div><div class="panel-sub">20 movimientos por página · período {{ rango.label }}.</div></div><button class="btn primary" type="button" onclick="abrirModalFin('modalGasto')">NUEVO GASTO</button></div>
+      <div class="table-wrap"><table><thead><tr><th>FECHA</th><th>DESCRIPCIÓN</th><th>TIPO</th><th>CATEGORÍA</th><th>MEDIO</th><th class="num">TOTAL</th><th></th></tr></thead><tbody>
+      {% for gasto in gastos_pagina %}
+        <tr><td data-label="FECHA">{{ gasto.fecha_compra|date:"d/m/Y" }}</td><td data-label="DESCRIPCIÓN"><strong>{{ gasto.descripcion }}</strong></td><td data-label="TIPO"><span class="badge {% if gasto.tipo == 'INVERSION' %}TARJETA{% endif %}">{{ gasto.get_tipo_display|upper }}</span></td><td data-label="CATEGORÍA">{{ gasto.get_categoria_display }}</td><td data-label="MEDIO">{{ gasto.get_medio_pago_display }}</td><td data-label="TOTAL" class="num">$ {{ gasto.monto_total|floatformat:"0g" }}</td><td data-label="ACCIÓN"><div class="row-actions"><form method="post" action="{% url 'pedidos:eliminar_gasto' gasto.id %}" onsubmit="return confirm('¿Eliminar este gasto?');">{% csrf_token %}<button class="btn danger" type="submit">ELIMINAR</button></form></div></td></tr>
+      {% empty %}<tr><td colspan="7" class="empty">No hay gastos en este período.</td></tr>{% endfor %}
+      </tbody></table></div>
+      {% if gastos_pagina.paginator.num_pages > 1 %}<div class="pager">{% if gastos_pagina.has_previous %}<a href="?{{ query_pagina }}&page={{ gastos_pagina.previous_page_number }}">←</a>{% endif %}<span class="current">{{ gastos_pagina.number }} / {{ gastos_pagina.paginator.num_pages }}</span>{% if gastos_pagina.has_next %}<a href="?{{ query_pagina }}&page={{ gastos_pagina.next_page_number }}">→</a>{% endif %}</div>{% endif %}
     </section>
 
-
-    <!-- RESULTADO DEL NEGOCIO -->
-    <section class="seccion">
-        <div class="seccion-cabecera">
-            <div>
-                <h2>Resultado del negocio</h2>
-                <div class="seccion-ayuda">
-                    Mide rentabilidad del período, independientemente de cómo se pagaron las compras.
-                </div>
-            </div>
-        </div>
-
-        <div class="metricas">
-            <div class="metrica">
-                <div class="metrica-etiqueta">VENTAS</div>
-                <div class="metrica-valor azul">
-                    $ {{ ventas|floatformat:"0g" }}
-                </div>
-                <div class="metrica-nota">
-                    {{ cantidad_pedidos }} pedidos del período.
-                </div>
-            </div>
-
-            <div class="metrica">
-                <div class="metrica-etiqueta">GANANCIA BRUTA</div>
-                <div class="metrica-valor">
-                    $ {{ ganancia|floatformat:"0g" }}
-                </div>
-                <div class="metrica-nota">
-                    Ventas menos costo productivo.
-                </div>
-            </div>
-
-            <div class="metrica">
-                <div class="metrica-etiqueta">GASTOS OPERATIVOS</div>
-                <div class="metrica-valor negativo">
-                    $ {{ gastos_operativos|floatformat:"0g" }}
-                </div>
-                <div class="metrica-nota">
-                    Filamentos, insumos, servicios, publicidad, etc.
-                </div>
-            </div>
-
-            <div class="metrica">
-                <div class="metrica-etiqueta">RESULTADO OPERATIVO</div>
-                <div class="metrica-valor {% if resultado_operativo >= 0 %}positivo{% else %}negativo{% endif %}">
-                    $ {{ resultado_operativo|floatformat:"0g" }}
-                </div>
-                <div class="metrica-nota">
-                    Ganancia bruta menos gastos operativos.
-                </div>
-            </div>
-        </div>
+  {% elif vista == "cuotas" %}
+    <form class="filtros" method="get"><input type="hidden" name="vista" value="cuotas"><input type="hidden" name="periodo" value="{{ periodo }}"><div class="campo"><label>ESTADO</label><select name="estado_cuota"><option value="PENDIENTES" {% if filtro_cuota == 'PENDIENTES' %}selected{% endif %}>Pendientes</option><option value="PAGADAS" {% if filtro_cuota == 'PAGADAS' %}selected{% endif %}>Pagadas</option><option value="TODAS" {% if filtro_cuota == 'TODAS' %}selected{% endif %}>Todas</option></select></div><button class="btn primary" type="submit">FILTRAR</button></form>
+    <section class="panel">
+      <div class="panel-head"><div><div class="panel-title">CUOTAS Y COMPROMISOS</div><div class="panel-sub">{{ cuotas_vencidas_count }} vencidas · deuda pendiente $ {{ deuda_pendiente|floatformat:"0g" }}.</div></div></div>
+      <div class="table-wrap"><table><thead><tr><th>VENCIMIENTO</th><th>GASTO</th><th>CUOTA</th><th class="num">MONTO</th><th>ESTADO</th><th></th></tr></thead><tbody>
+      {% for cuota in cuotas_pagina %}
+        <tr><td data-label="VENCIMIENTO">{{ cuota.fecha_vencimiento|date:"d/m/Y" }}</td><td data-label="GASTO">{{ cuota.gasto.descripcion }}</td><td data-label="CUOTA">{{ cuota.numero }}/{{ cuota.gasto.cantidad_cuotas }}</td><td data-label="MONTO" class="num">$ {{ cuota.monto|floatformat:"0g" }}</td><td data-label="ESTADO"><span class="badge {% if cuota.pagada %}PAGADO{% elif cuota.fecha_vencimiento < hoy %}VENCIDA{% else %}PENDIENTE{% endif %}">{% if cuota.pagada %}PAGADA{% elif cuota.fecha_vencimiento < hoy %}VENCIDA{% else %}PENDIENTE{% endif %}</span></td><td data-label="ACCIÓN"><div class="row-actions"><form method="post" action="{% url 'pedidos:cambiar_estado_cuota' cuota.id %}">{% csrf_token %}<input type="hidden" name="periodo" value="{{ periodo }}"><input type="hidden" name="pagada" value="{% if cuota.pagada %}0{% else %}1{% endif %}"><button class="btn {% if not cuota.pagada %}primary{% endif %}" type="submit">{% if cuota.pagada %}REABRIR{% else %}MARCAR PAGADA{% endif %}</button></form></div></td></tr>
+      {% empty %}<tr><td colspan="6" class="empty">No hay cuotas para este filtro.</td></tr>{% endfor %}
+      </tbody></table></div>
+      {% if cuotas_pagina.paginator.num_pages > 1 %}<div class="pager">{% if cuotas_pagina.has_previous %}<a href="?{{ query_pagina }}&page={{ cuotas_pagina.previous_page_number }}">←</a>{% endif %}<span class="current">{{ cuotas_pagina.number }} / {{ cuotas_pagina.paginator.num_pages }}</span>{% if cuotas_pagina.has_next %}<a href="?{{ query_pagina }}&page={{ cuotas_pagina.next_page_number }}">→</a>{% endif %}</div>{% endif %}
     </section>
 
+  {% elif vista == "caja" %}
+    <div class="section-grid">
+      <section class="panel"><div class="panel-head"><div><div class="panel-title">CAJA ACTUAL</div><div class="panel-sub">Proyección desde la última conciliación.</div></div><button class="btn primary" type="button" onclick="abrirModalFin('modalCaja')">CONCILIAR</button></div><div class="panel-body"><div class="caja-card"><div class="caja-top"><div><small>SALDO ESTIMADO</small><div class="caja-saldo">{% if caja.requiere_corte %}—{% else %}$ {{ saldo_caja|floatformat:"0g" }}{% endif %}</div></div><span class="badge {{ estado_caja }}">{{ estado_caja }}</span></div><div class="caja-grid"><div class="mini"><small>INGRESOS DESDE CORTE</small><strong>+$ {{ caja.ingresos_desde_corte|floatformat:"0g" }}</strong></div><div class="mini"><small>EGRESOS DESDE CORTE</small><strong>-$ {{ caja.egresos_desde_corte|floatformat:"0g" }}</strong></div><div class="mini"><small>DISPONIBLE 30 DÍAS</small><strong>$ {{ disponible_operativo|floatformat:"0g" }}</strong></div></div><div class="caja-nota">{{ accion_caja }}</div></div></div></section>
+      <section class="panel"><div class="panel-head"><div><div class="panel-title">COMPROMISOS</div><div class="panel-sub">Cuotas pendientes próximas.</div></div></div><div class="panel-body"><div class="rent-cards" style="grid-template-columns:1fr 1fr"><div class="rent-card"><small>7 DÍAS</small><strong>$ {{ compromiso_7|floatformat:"0g" }}</strong></div><div class="rent-card"><small>30 DÍAS</small><strong>$ {{ compromiso_30|floatformat:"0g" }}</strong></div><div class="rent-card"><small>90 DÍAS</small><strong>$ {{ compromiso_90|floatformat:"0g" }}</strong></div><div class="rent-card"><small>DEUDA TOTAL</small><strong>$ {{ deuda_pendiente|floatformat:"0g" }}</strong></div></div></div></section>
+    </div>
+    <section class="panel"><div class="panel-head"><div><div class="panel-title">HISTORIAL DE CONCILIACIONES</div><div class="panel-sub">20 cortes por página.</div></div></div><div class="table-wrap"><table><thead><tr><th>FECHA</th><th class="num">SALDO REAL</th><th>NOTA</th></tr></thead><tbody>{% for corte in cortes_pagina %}<tr><td data-label="FECHA">{{ corte.fecha|date:"d/m/Y H:i" }}</td><td data-label="SALDO" class="num">$ {{ corte.saldo_real|floatformat:"0g" }}</td><td data-label="NOTA">{{ corte.observaciones|default:"—" }}</td></tr>{% empty %}<tr><td colspan="3" class="empty">Todavía no hay conciliaciones.</td></tr>{% endfor %}</tbody></table></div>{% if cortes_pagina.paginator.num_pages > 1 %}<div class="pager">{% if cortes_pagina.has_previous %}<a href="?{{ query_pagina }}&page={{ cortes_pagina.previous_page_number }}">←</a>{% endif %}<span class="current">{{ cortes_pagina.number }} / {{ cortes_pagina.paginator.num_pages }}</span>{% if cortes_pagina.has_next %}<a href="?{{ query_pagina }}&page={{ cortes_pagina.next_page_number }}">→</a>{% endif %}</div>{% endif %}</section>
 
-    <!-- CAJA -->
-    <section class="seccion">
-        <div class="seccion-cabecera">
-            <div>
-                <h2>Movimiento de caja</h2>
-                <div class="seccion-ayuda">
-                    Acá importan los cobros y las cuotas que efectivamente pagaste.
-                </div>
-            </div>
-        </div>
-
-        <div class="metricas">
-            <div class="metrica">
-                <div class="metrica-etiqueta">COBRADO</div>
-                <div class="metrica-valor positivo">
-                    $ {{ cobrado_periodo|floatformat:"0g" }}
-                </div>
-            </div>
-
-            <div class="metrica">
-                <div class="metrica-etiqueta">CUOTAS / GASTOS PAGADOS</div>
-                <div class="metrica-valor negativo">
-                    $ {{ cuotas_pagadas_periodo|floatformat:"0g" }}
-                </div>
-            </div>
-
-            <div class="metrica">
-                <div class="metrica-etiqueta">FLUJO NETO</div>
-                <div class="metrica-valor {% if flujo_neto_caja >= 0 %}positivo{% else %}negativo{% endif %}">
-                    $ {{ flujo_neto_caja|floatformat:"0g" }}
-                </div>
-            </div>
-
-            <div class="metrica">
-                <div class="metrica-etiqueta">DEUDA EN CUOTAS</div>
-                <div class="metrica-valor violeta">
-                    $ {{ deuda_pendiente|floatformat:"0g" }}
-                </div>
-                <div class="metrica-nota">
-                    Total de cuotas todavía no marcadas como pagadas.
-                </div>
-            </div>
-        </div>
-    </section>
-
-
-    <!-- INVERSIÓN + PLAN -->
-    <section class="seccion">
-        <div class="seccion-cabecera">
-            <div>
-                <h2>Recuperación de inversión</h2>
-                <div class="seccion-ayuda">
-                    Lectura gerencial para saber cuánto capital de equipamiento falta recuperar.
-                </div>
-            </div>
-        </div>
-
-        <div class="grid-dos">
-            <div class="tarjeta-plan">
-                <div class="metrica-etiqueta">
-                    INVERSIÓN TOTAL REGISTRADA
-                </div>
-                <div class="metrica-valor violeta">
-                    $ {{ inversion_total|floatformat:"0g" }}
-                </div>
-
-                <div class="progreso">
-                    <span style="width:{% if porcentaje_recuperado > 100 %}100{% else %}{{ porcentaje_recuperado|floatformat:'0' }}{% endif %}%"></span>
-                </div>
-
-                <div class="subtitulo">
-                    {{ porcentaje_recuperado|floatformat:"1" }}% recuperado
-                </div>
-
-                <div class="plan-datos">
-                    <div class="plan-dato">
-                        <span>RECUPERADA</span>
-                        <strong class="positivo">
-                            $ {{ inversion_recuperada|floatformat:"0g" }}
-                        </strong>
-                    </div>
-
-                    <div class="plan-dato">
-                        <span>PENDIENTE</span>
-                        <strong class="violeta">
-                            $ {{ inversion_pendiente|floatformat:"0g" }}
-                        </strong>
-                    </div>
-
-                    <div class="plan-dato">
-                        <span>RESULTADO OPERATIVO ACUMULADO</span>
-                        <strong>
-                            $ {{ resultado_operativo_acumulado|floatformat:"0g" }}
-                        </strong>
-                    </div>
-
-                    <div class="plan-dato">
-                        <span>INVERSIÓN DEL PERÍODO</span>
-                        <strong>
-                            $ {{ inversiones_periodo|floatformat:"0g" }}
-                        </strong>
-                    </div>
-                </div>
-
-                <div class="accion-plan">
-                    <strong>Plan:</strong>
-                    {{ accion_principal }}
-
-                    {% if meses_estimados %}
-                        <br><br>
-                        Al ritmo del período seleccionado:
-                        <strong>
-                            ~{{ meses_estimados }} mes{% if meses_estimados != 1 %}es{% endif %}
-                        </strong>
-                        para cubrir la inversión pendiente.
-                    {% endif %}
-
-                    {% if ventas_objetivo_recuperacion %}
-                        <br>
-                        Ventas aproximadas necesarias, manteniendo el margen operativo actual:
-                        <strong>
-                            $ {{ ventas_objetivo_recuperacion|floatformat:"0g" }}
-                        </strong>.
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-cabecera">
-                    <h3>Compromisos próximos</h3>
-                    <div class="subtitulo">
-                        Para anticipar tarjeta y necesidades de caja.
-                    </div>
-                </div>
-
-                <div class="panel-cuerpo">
-                    <div class="alerta-cuotas">
-                        <div class="alerta">
-                            <span>PRÓXIMOS 30 DÍAS</span>
-                            <strong class="negativo">
-                                $ {{ compromiso_30|floatformat:"0g" }}
-                            </strong>
-                        </div>
-
-                        <div class="alerta">
-                            <span>PRÓXIMOS 90 DÍAS</span>
-                            <strong>
-                                $ {{ compromiso_90|floatformat:"0g" }}
-                            </strong>
-                        </div>
-
-                        <div class="alerta">
-                            <span>DEUDA TOTAL</span>
-                            <strong class="violeta">
-                                $ {{ deuda_pendiente|floatformat:"0g" }}
-                            </strong>
-                        </div>
-                    </div>
-
-                    {% if cuotas_proximas %}
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>VENCE</th>
-                                    <th>COMPRA</th>
-                                    <th>CUOTA</th>
-                                    <th class="numero">MONTO</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {% for cuota in cuotas_proximas %}
-                                    <tr>
-                                        <td data-label="VENCE">
-                                            {{ cuota.fecha_vencimiento|date:"d/m/Y" }}
-                                        </td>
-
-                                        <td data-label="COMPRA">
-                                            <span class="descripcion">
-                                                {{ cuota.gasto.descripcion }}
-                                            </span>
-                                        </td>
-
-                                        <td data-label="CUOTA">
-                                            {{ cuota.numero }}/{{ cuota.gasto.cantidad_cuotas }}
-                                        </td>
-
-                                        <td data-label="MONTO" class="numero">
-                                            $ {{ cuota.monto|floatformat:"0g" }}
-                                        </td>
-
-                                        <td data-label="ACCIÓN" class="cuota-accion">
-                                            <form
-                                                method="post"
-                                                action="{% url 'pedidos:cambiar_estado_cuota' cuota.id %}"
-                                            >
-                                                {% csrf_token %}
-                                                <input
-                                                    type="hidden"
-                                                    name="pagada"
-                                                    value="1"
-                                                >
-                                                <input
-                                                    type="hidden"
-                                                    name="periodo"
-                                                    value="{{ periodo }}"
-                                                >
-
-                                                <button
-                                                    type="submit"
-                                                    class="boton-mini"
-                                                >
-                                                    MARCAR PAGADA
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    {% else %}
-                        <div class="vacio">
-                            No hay cuotas pendientes dentro de los próximos 90 días.
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </section>
-
-
-    <!-- HISTORIAL DE GASTOS DEL PERÍODO -->
-    <section class="seccion" id="gastos">
-        <div class="panel">
-            <div class="panel-cabecera">
-                <h2>Gastos e inversiones del período</h2>
-            </div>
-
-            {% if gastos_periodo %}
-                <table>
-                    <thead>
-                        <tr>
-                            <th>FECHA</th>
-                            <th>TIPO</th>
-                            <th>DESCRIPCIÓN</th>
-                            <th>PAGO</th>
-                            <th class="numero">TOTAL</th>
-                            <th class="numero">PAGADO</th>
-                            <th class="numero">PENDIENTE</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {% for gasto in gastos_periodo %}
-                            <tr>
-                                <td data-label="FECHA">
-                                    {{ gasto.fecha_compra|date:"d/m/Y" }}
-                                </td>
-
-                                <td data-label="TIPO">
-                                    <span class="badge {% if gasto.tipo == 'INVERSION' %}badge-inversion{% else %}badge-operativo{% endif %}">
-                                        {{ gasto.get_tipo_display|upper }}
-                                    </span>
-                                </td>
-
-                                <td data-label="DESCRIPCIÓN">
-                                    <span class="descripcion">
-                                        {{ gasto.descripcion }}
-                                    </span>
-
-                                    <div class="detalle-cuotas">
-                                        {{ gasto.get_categoria_display }}
-                                        {% if gasto.medio_pago == "TARJETA_CREDITO" %}
-                                            · {{ gasto.cantidad_cuotas }} cuotas
-                                        {% endif %}
-                                    </div>
-                                </td>
-
-                                <td data-label="PAGO">
-                                    {% if gasto.medio_pago == "TARJETA_CREDITO" %}
-                                        <span class="badge badge-tarjeta">
-                                            TARJETA
-                                        </span>
-                                    {% else %}
-                                        {{ gasto.get_medio_pago_display }}
-                                    {% endif %}
-                                </td>
-
-                                <td data-label="TOTAL" class="numero">
-                                    $ {{ gasto.monto_total|floatformat:"0g" }}
-                                </td>
-
-                                <td data-label="PAGADO" class="numero positivo">
-                                    $ {{ gasto.monto_pagado|floatformat:"0g" }}
-                                </td>
-
-                                <td data-label="PENDIENTE" class="numero">
-                                    $ {{ gasto.saldo_pendiente|floatformat:"0g" }}
-                                </td>
-
-                                <td data-label="ACCIÓN">
-                                    <form
-                                        method="post"
-                                        action="{% url 'pedidos:eliminar_gasto' gasto.id %}"
-                                        onsubmit="return confirm('¿Eliminar este gasto y todas sus cuotas?');"
-                                    >
-                                        {% csrf_token %}
-                                        <input
-                                            type="hidden"
-                                            name="periodo"
-                                            value="{{ periodo }}"
-                                        >
-                                        <button
-                                            type="submit"
-                                            class="boton-mini"
-                                        >
-                                            ELIMINAR
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-
-                            {% if gasto.medio_pago == "TARJETA_CREDITO" %}
-                                {% for cuota in gasto.cuotas.all %}
-                                    <tr>
-                                        <td data-label="CUOTA" colspan="2">
-                                            Cuota {{ cuota.numero }}/{{ gasto.cantidad_cuotas }}
-                                        </td>
-
-                                        <td data-label="VENCE">
-                                            Vence {{ cuota.fecha_vencimiento|date:"d/m/Y" }}
-                                        </td>
-
-                                        <td data-label="ESTADO">
-                                            {% if cuota.pagada %}
-                                                <span class="badge badge-pagada">
-                                                    PAGADA
-                                                </span>
-                                            {% else %}
-                                                <span class="badge badge-pendiente">
-                                                    PENDIENTE
-                                                </span>
-                                            {% endif %}
-                                        </td>
-
-                                        <td data-label="MONTO" class="numero">
-                                            $ {{ cuota.monto|floatformat:"0g" }}
-                                        </td>
-
-                                        <td data-label="FECHA PAGO" class="numero">
-                                            {% if cuota.fecha_pago %}
-                                                {{ cuota.fecha_pago|date:"d/m/Y" }}
-                                            {% else %}
-                                                —
-                                            {% endif %}
-                                        </td>
-
-                                        <td data-label="ACCIÓN" colspan="2">
-                                            <form
-                                                method="post"
-                                                action="{% url 'pedidos:cambiar_estado_cuota' cuota.id %}"
-                                            >
-                                                {% csrf_token %}
-                                                <input
-                                                    type="hidden"
-                                                    name="periodo"
-                                                    value="{{ periodo }}"
-                                                >
-
-                                                {% if cuota.pagada %}
-                                                    <input
-                                                        type="hidden"
-                                                        name="pagada"
-                                                        value="0"
-                                                    >
-                                                    <button
-                                                        type="submit"
-                                                        class="boton-mini"
-                                                    >
-                                                        VOLVER A PENDIENTE
-                                                    </button>
-                                                {% else %}
-                                                    <input
-                                                        type="hidden"
-                                                        name="pagada"
-                                                        value="1"
-                                                    >
-                                                    <button
-                                                        type="submit"
-                                                        class="boton-mini"
-                                                    >
-                                                        MARCAR PAGADA
-                                                    </button>
-                                                {% endif %}
-                                            </form>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            {% endif %}
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <div class="vacio">
-                    No hay gastos registrados en este período.
-                </div>
-            {% endif %}
-        </div>
-    </section>
-
-
-    <!-- RENTABILIDAD POR PEDIDO -->
-    <section class="seccion" id="rentabilidad">
-        <div class="panel">
-            <div class="panel-cabecera">
-                <h2>Rentabilidad por pedido</h2>
-                <div class="subtitulo">
-                    Venta y costo productivo histórico del período.
-                </div>
-            </div>
-
-            {% if pedidos_finanzas %}
-                <table>
-                    <thead>
-                        <tr>
-                            <th>PEDIDO</th>
-                            <th>CLIENTE</th>
-                            <th class="numero">VENTA</th>
-                            <th class="numero">COSTO</th>
-                            <th class="numero">GANANCIA</th>
-                            <th class="numero">MARGEN</th>
-                            <th class="numero">SALDO</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {% for item in pedidos_finanzas %}
-                            <tr>
-                                <td data-label="PEDIDO" class="codigo">
-                                    {{ item.pedido.codigo }}
-                                </td>
-
-                                <td data-label="CLIENTE">
-                                    {{ item.pedido.cliente.nombre }}
-                                    {% if item.usa_estimacion_actual %}
-                                        <div class="detalle-cuotas">
-                                            costo estimado actual
-                                        </div>
-                                    {% endif %}
-                                </td>
-
-                                <td data-label="VENTA" class="numero">
-                                    $ {{ item.venta|floatformat:"0g" }}
-                                </td>
-
-                                <td data-label="COSTO" class="numero">
-                                    $ {{ item.costo|floatformat:"0g" }}
-                                </td>
-
-                                <td data-label="GANANCIA" class="numero {% if item.ganancia >= 0 %}positivo{% else %}negativo{% endif %}">
-                                    $ {{ item.ganancia|floatformat:"0g" }}
-                                </td>
-
-                                <td data-label="MARGEN" class="numero">
-                                    {{ item.margen|floatformat:"1" }}%
-                                </td>
-
-                                <td data-label="SALDO" class="numero">
-                                    $ {{ item.saldo|floatformat:"0g" }}
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <div class="vacio">
-                    No hay pedidos para este período.
-                </div>
-            {% endif %}
-        </div>
-
-        <div class="nota-contable">
-            <strong>Cómo leer esta pantalla:</strong>
-            el resultado operativo reconoce el gasto completo en el mes de la compra,
-            aunque haya sido financiado. El movimiento de caja, en cambio, descuenta
-            solamente las cuotas que marcaste como pagadas. La Caja Mercado Pago toma
-            como punto cero la última conciliación manual y luego proyecta ingresos y
-            egresos registrados en el sistema. Podés volver a conciliarla cuando quieras.
-            Una impresora se registra
-            como inversión, no como gasto operativo. La “recuperación de inversión”
-            es una herramienta gerencial basada en el resultado operativo acumulado;
-            no reemplaza contabilidad fiscal ni depreciación contable.
-        </div>
-    </section>
-
+  {% elif vista == "rentabilidad" %}
+    <div class="rent-cards"><div class="rent-card"><small>VENTAS</small><strong>$ {{ ventas|floatformat:"0g" }}</strong></div><div class="rent-card"><small>COSTOS PRODUCTIVOS</small><strong>$ {{ costos|floatformat:"0g" }}</strong></div><div class="rent-card"><small>GANANCIA BRUTA</small><strong>$ {{ ganancia|floatformat:"0g" }}</strong></div><div class="rent-card"><small>MARGEN BRUTO</small><strong>{{ margen|floatformat:"1" }}%</strong></div></div>
+    <section class="panel" style="margin-bottom:12px"><div class="panel-head"><div><div class="panel-title">RECUPERACIÓN DE INVERSIÓN</div><div class="panel-sub">Cálculo histórico bajo demanda; no se carga en el resumen diario.</div></div></div><div class="panel-body"><div class="rent-cards"><div class="rent-card"><small>INVERSIÓN TOTAL</small><strong>$ {{ inversion_total|floatformat:"0g" }}</strong></div><div class="rent-card"><small>RECUPERADA</small><strong>$ {{ inversion_recuperada|floatformat:"0g" }}</strong></div><div class="rent-card"><small>PENDIENTE</small><strong>$ {{ inversion_pendiente|floatformat:"0g" }}</strong></div><div class="rent-card"><small>RECUPERACIÓN</small><strong>{{ porcentaje_recuperado|floatformat:"1" }}%</strong></div></div>{% if meses_estimados %}<div class="note">Al ritmo operativo de este período, la recuperación pendiente equivale aproximadamente a {{ meses_estimados }} mes{{ meses_estimados|pluralize:"es" }}.</div>{% endif %}</div></section>
+    <section class="panel"><div class="panel-head"><div><div class="panel-title">RENTABILIDAD POR PEDIDO</div><div class="panel-sub">20 pedidos por página · {{ rango.label }}.</div></div></div><div class="table-wrap"><table><thead><tr><th>PEDIDO</th><th>CLIENTE</th><th class="num">VENTA</th><th class="num">COSTO</th><th class="num">GANANCIA</th><th class="num">MARGEN</th></tr></thead><tbody>{% for item in rentabilidad_pagina %}<tr><td data-label="PEDIDO" class="code">{{ item.pedido.codigo }}</td><td data-label="CLIENTE">{{ item.pedido.cliente.nombre }}</td><td data-label="VENTA" class="num">$ {{ item.venta|floatformat:"0g" }}</td><td data-label="COSTO" class="num">$ {{ item.costo|floatformat:"0g" }}</td><td data-label="GANANCIA" class="num {% if item.ganancia < 0 %}negative{% else %}positive{% endif %}">$ {{ item.ganancia|floatformat:"0g" }}</td><td data-label="MARGEN" class="num">{{ item.margen|floatformat:"1" }}%{% if item.usa_estimacion_actual %}<br><small style="color:var(--yellow)">costo estimado</small>{% endif %}</td></tr>{% empty %}<tr><td colspan="6" class="empty">No hay pedidos en este período.</td></tr>{% endfor %}</tbody></table></div>{% if rentabilidad_pagina.paginator.num_pages > 1 %}<div class="pager">{% if rentabilidad_pagina.has_previous %}<a href="?{{ query_pagina }}&page={{ rentabilidad_pagina.previous_page_number }}">←</a>{% endif %}<span class="current">{{ rentabilidad_pagina.number }} / {{ rentabilidad_pagina.paginator.num_pages }}</span>{% if rentabilidad_pagina.has_next %}<a href="?{{ query_pagina }}&page={{ rentabilidad_pagina.next_page_number }}">→</a>{% endif %}</div>{% endif %}<div class="note">El resultado operativo reconoce el gasto completo en el período de compra. La caja descuenta sólo cuotas efectivamente pagadas. La recuperación de inversión es una lectura gerencial, no contabilidad fiscal.</div></section>
+  {% endif %}
 </div>
 
-
-<!-- MODALES FINANCIEROS -->
 <div class="modal-fin" id="modalCobro" aria-hidden="true" onclick="cerrarModalDesdeFondo(event,'modalCobro')">
-    <div class="modal-fin-dialog" role="dialog" aria-modal="true" aria-labelledby="tituloCobro">
-        <div class="modal-fin-head">
-            <div>
-                <div class="modal-fin-title" id="tituloCobro">Registrar cobro</div>
-                <div class="modal-fin-sub">Seleccioná el pedido y registrá el ingreso recibido.</div>
-            </div>
-            <button class="modal-fin-close" type="button" onclick="cerrarModalFin('modalCobro')">×</button>
-        </div>
-        <div class="modal-fin-body">
-            <form id="formCobro" method="post">
-                {% csrf_token %}
-                <input type="hidden" name="origen" value="finanzas">
-                <input type="hidden" name="periodo" value="{{ periodo }}">
-
-                <div class="campo">
-                    <label>PEDIDO / CLIENTE</label>
-                    <select id="pedidoCobro" required onchange="actualizarCobroSeleccionado()">
-                        {% for item in cobros_pendientes %}
-                            <option
-                                value="{{ item.pedido.id }}"
-                                data-url="{% url 'pedidos:registrar_pago' item.pedido.id %}"
-                                data-saldo="{{ item.saldo }}"
-                            >
-                                {{ item.pedido.codigo }} · {{ item.pedido.cliente.nombre }} · saldo $ {{ item.saldo|floatformat:"0g" }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="saldo-cobro">
-                    <span>SALDO PENDIENTE</span>
-                    <strong id="saldoCobro">$ 0</strong>
-                </div>
-
-                <div class="form-grid">
-                    <div class="campo">
-                        <label>MONTO</label>
-                        <input id="montoCobro" name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required>
-                    </div>
-                    <div class="campo">
-                        <label>MEDIO DE PAGO</label>
-                        <select name="medio" required>
-                            {% for valor, etiqueta in medios_pago %}
-                                <option value="{{ valor }}">{{ etiqueta }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="campo ancho">
-                        <label>OBSERVACIONES</label>
-                        <textarea name="observaciones" maxlength="250" placeholder="Opcional"></textarea>
-                    </div>
-                </div>
-
-                <div class="modal-fin-actions">
-                    <button class="boton" type="button" onclick="cerrarModalFin('modalCobro')">CANCELAR</button>
-                    <button class="boton boton-principal" type="submit">GUARDAR COBRO</button>
-                </div>
-            </form>
-        </div>
+  <div class="modal-fin-dialog" role="dialog" aria-modal="true">
+    <div class="modal-fin-head"><div><div class="modal-fin-title">Registrar cobro</div><div class="modal-fin-sub">Seleccioná un pedido con saldo pendiente.</div></div><button class="modal-fin-close" type="button" onclick="cerrarModalFin('modalCobro')">×</button></div>
+    <div class="modal-fin-body">
+      <form id="formCobro" method="post">{% csrf_token %}<input type="hidden" name="origen" value="finanzas"><input type="hidden" name="periodo" value="{{ periodo }}">
+        <div class="campo" style="min-width:0"><label>PEDIDO / CLIENTE</label><select id="pedidoCobro" required onchange="actualizarCobroSeleccionado()">{% for item in cobros_pendientes %}<option value="{{ item.pedido.id }}" data-url="{% url 'pedidos:registrar_pago' item.pedido.id %}" data-saldo="{{ item.saldo }}">{{ item.pedido.codigo }} · {{ item.pedido.cliente.nombre }} · saldo $ {{ item.saldo|floatformat:"0g" }}</option>{% endfor %}</select></div>
+        <div class="saldo-cobro"><span>SALDO PENDIENTE</span><strong id="saldoCobro">$ 0</strong></div>
+        <div class="form-grid"><div class="campo"><label>MONTO</label><input id="montoCobro" name="monto" type="number" min="0.01" step="0.01" required></div><div class="campo"><label>MEDIO</label><select name="medio">{% for valor,etiqueta in medios_pago %}<option value="{{ valor }}">{{ etiqueta }}</option>{% endfor %}</select></div><div class="campo ancho"><label>OBSERVACIONES</label><textarea name="observaciones" maxlength="250"></textarea></div></div>
+        <div class="modal-fin-actions"><button class="btn" type="button" onclick="cerrarModalFin('modalCobro')">CANCELAR</button><button class="btn primary" type="submit">GUARDAR COBRO</button></div>
+      </form>
     </div>
+  </div>
 </div>
 
 <div class="modal-fin" id="modalGasto" aria-hidden="true" onclick="cerrarModalDesdeFondo(event,'modalGasto')">
-    <div class="modal-fin-dialog" role="dialog" aria-modal="true" aria-labelledby="tituloGasto">
-        <div class="modal-fin-head">
-            <div>
-                <div class="modal-fin-title" id="tituloGasto">Registrar gasto o inversión</div>
-                <div class="modal-fin-sub">Si usás tarjeta se genera automáticamente el calendario de cuotas.</div>
-            </div>
-            <button class="modal-fin-close" type="button" onclick="cerrarModalFin('modalGasto')">×</button>
-        </div>
-        <div class="modal-fin-body">
-            <form method="post" action="{% url 'pedidos:registrar_gasto' %}" id="form-gasto">
-                {% csrf_token %}
-                <div class="form-grid">
-                    <div class="campo">
-                        <label>FECHA DE COMPRA</label>
-                        <input type="date" name="fecha_compra" value="{{ hoy|date:'Y-m-d' }}" required>
-                    </div>
-                    <div class="campo">
-                        <label>TIPO</label>
-                        <select name="tipo" required>
-                            {% for valor, etiqueta in tipos_gasto %}<option value="{{ valor }}">{{ etiqueta }}</option>{% endfor %}
-                        </select>
-                    </div>
-                    <div class="campo">
-                        <label>CATEGORÍA</label>
-                        <select name="categoria" required>
-                            {% for valor, etiqueta in categorias_gasto %}<option value="{{ valor }}">{{ etiqueta }}</option>{% endfor %}
-                        </select>
-                    </div>
-                    <div class="campo">
-                        <label>MEDIO DE PAGO</label>
-                        <select name="medio_pago" id="medio_pago" required>
-                            {% for valor, etiqueta in medios_gasto %}<option value="{{ valor }}">{{ etiqueta }}</option>{% endfor %}
-                        </select>
-                    </div>
-                    <div class="campo ancho">
-                        <label>DESCRIPCIÓN</label>
-                        <input type="text" name="descripcion" placeholder="Ej: 6 kg PLA / Bambu A1 / cajas para envíos" required>
-                    </div>
-                    <div class="campo">
-                        <label>MONTO TOTAL</label>
-                        <input type="number" name="monto_total" min="0.01" step="0.01" placeholder="0" required>
-                    </div>
-                    <div class="campo" id="campo-cuotas" style="display:none">
-                        <label>CANTIDAD DE CUOTAS</label>
-                        <input type="number" name="cantidad_cuotas" id="cantidad_cuotas" min="1" max="36" value="1">
-                    </div>
-                    <div class="campo" id="campo-primera-cuota" style="display:none">
-                        <label>VENCIMIENTO PRIMERA CUOTA</label>
-                        <input type="date" name="fecha_primera_cuota" id="fecha_primera_cuota">
-                    </div>
-                    <div class="campo ancho">
-                        <label>OBSERVACIONES</label>
-                        <textarea name="observaciones" placeholder="Opcional: tarjeta utilizada, proveedor, detalle de la compra..."></textarea>
-                    </div>
-                </div>
-                <div class="modal-fin-actions">
-                    <button class="boton" type="button" onclick="cerrarModalFin('modalGasto')">CANCELAR</button>
-                    <button class="boton boton-principal" type="submit">REGISTRAR GASTO</button>
-                </div>
-            </form>
-        </div>
+  <div class="modal-fin-dialog" role="dialog" aria-modal="true">
+    <div class="modal-fin-head"><div><div class="modal-fin-title">Registrar gasto o inversión</div><div class="modal-fin-sub">Si usás tarjeta se genera el calendario de cuotas.</div></div><button class="modal-fin-close" type="button" onclick="cerrarModalFin('modalGasto')">×</button></div>
+    <div class="modal-fin-body">
+      <form method="post" action="{% url 'pedidos:registrar_gasto' %}">{% csrf_token %}
+        <div class="form-grid"><div class="campo"><label>FECHA</label><input type="date" name="fecha_compra" value="{{ hoy|date:'Y-m-d' }}" required></div><div class="campo"><label>TIPO</label><select name="tipo">{% for valor,etiqueta in tipos_gasto %}<option value="{{ valor }}">{{ etiqueta }}</option>{% endfor %}</select></div><div class="campo"><label>CATEGORÍA</label><select name="categoria">{% for valor,etiqueta in categorias_gasto %}<option value="{{ valor }}">{{ etiqueta }}</option>{% endfor %}</select></div><div class="campo"><label>MEDIO</label><select name="medio_pago" id="medio_pago">{% for valor,etiqueta in medios_gasto %}<option value="{{ valor }}">{{ etiqueta }}</option>{% endfor %}</select></div><div class="campo ancho"><label>DESCRIPCIÓN</label><input name="descripcion" required></div><div class="campo"><label>MONTO TOTAL</label><input type="number" name="monto_total" min="0.01" step="0.01" required></div><div class="campo" id="campo-cuotas" style="display:none"><label>CUOTAS</label><input type="number" name="cantidad_cuotas" id="cantidad_cuotas" min="1" max="36" value="1"></div><div class="campo" id="campo-primera-cuota" style="display:none"><label>PRIMER VENCIMIENTO</label><input type="date" name="fecha_primera_cuota" id="fecha_primera_cuota"></div><div class="campo ancho"><label>OBSERVACIONES</label><textarea name="observaciones"></textarea></div></div>
+        <div class="modal-fin-actions"><button class="btn" type="button" onclick="cerrarModalFin('modalGasto')">CANCELAR</button><button class="btn primary" type="submit">REGISTRAR GASTO</button></div>
+      </form>
     </div>
+  </div>
 </div>
 
 <div class="modal-fin" id="modalCaja" aria-hidden="true" onclick="cerrarModalDesdeFondo(event,'modalCaja')">
-    <div class="modal-fin-dialog" role="dialog" aria-modal="true" aria-labelledby="tituloCaja">
-        <div class="modal-fin-head">
-            <div>
-                <div class="modal-fin-title" id="tituloCaja">Conciliar caja</div>
-                <div class="modal-fin-sub">Ingresá el saldo real que ves en Mercado Pago. Ese valor pasa a ser el nuevo punto cero.</div>
-            </div>
-            <button class="modal-fin-close" type="button" onclick="cerrarModalFin('modalCaja')">×</button>
-        </div>
-        <div class="modal-fin-body">
-            <form method="post" action="{% url 'pedidos:actualizar_saldo_caja' %}">
-                {% csrf_token %}
-                <input type="hidden" name="periodo" value="{{ periodo }}">
-                <div class="campo">
-                    <label>SALDO ACTUAL MERCADO PAGO</label>
-                    <input type="number" name="saldo_real" min="0" step="0.01" placeholder="0" required>
-                </div>
-                <div class="campo" style="margin-top:10px">
-                    <label>NOTA</label>
-                    <input type="text" name="observaciones" placeholder="Ej: conciliación de hoy">
-                </div>
-                <div class="modal-fin-actions">
-                    <button class="boton" type="button" onclick="cerrarModalFin('modalCaja')">CANCELAR</button>
-                    <button class="boton boton-principal" type="submit">ACTUALIZAR CAJA</button>
-                </div>
-            </form>
-        </div>
-    </div>
+  <div class="modal-fin-dialog" role="dialog" aria-modal="true">
+    <div class="modal-fin-head"><div><div class="modal-fin-title">Conciliar caja</div><div class="modal-fin-sub">Ingresá el saldo real de Mercado Pago como nuevo punto cero.</div></div><button class="modal-fin-close" type="button" onclick="cerrarModalFin('modalCaja')">×</button></div>
+    <div class="modal-fin-body"><form method="post" action="{% url 'pedidos:actualizar_saldo_caja' %}">{% csrf_token %}<input type="hidden" name="periodo" value="{{ periodo }}"><div class="campo" style="min-width:0"><label>SALDO REAL</label><input type="number" name="saldo_real" min="0" step="0.01" required></div><div class="campo" style="min-width:0;margin-top:9px"><label>NOTA</label><input name="observaciones"></div><div class="modal-fin-actions"><button class="btn" type="button" onclick="cerrarModalFin('modalCaja')">CANCELAR</button><button class="btn primary" type="submit">ACTUALIZAR CAJA</button></div></form></div>
+  </div>
 </div>
 
-
 {% include "shared/navigation.html" %}
-
-
 <script>
-    function abrirModalFin(id){
-        const modal=document.getElementById(id);
-        if(!modal) return;
-        modal.classList.add("abierto");
-        modal.setAttribute("aria-hidden","false");
-        document.body.style.overflow="hidden";
-    }
-
-    function cerrarModalFin(id){
-        const modal=document.getElementById(id);
-        if(!modal) return;
-        modal.classList.remove("abierto");
-        modal.setAttribute("aria-hidden","true");
-        if(!document.querySelector(".modal-fin.abierto")){
-            document.body.style.overflow="";
-        }
-    }
-
-    function cerrarModalDesdeFondo(event,id){
-        if(event.target.id===id) cerrarModalFin(id);
-    }
-
-    function actualizarCobroSeleccionado(){
-        const select=document.getElementById("pedidoCobro");
-        const form=document.getElementById("formCobro");
-        const monto=document.getElementById("montoCobro");
-        const saldoTexto=document.getElementById("saldoCobro");
-        if(!select || !select.options.length || !form) return;
-
-        const option=select.options[select.selectedIndex];
-        const saldo=Number(String(option.dataset.saldo||"0").replace(",","."));
-        form.action=option.dataset.url||"";
-        monto.value=saldo>0?saldo.toFixed(2):"";
-        monto.max=saldo>0?saldo.toFixed(2):"";
-        saldoTexto.textContent="$ "+saldo.toLocaleString("es-AR");
-    }
-
-    function abrirCobro(boton){
-        const select=document.getElementById("pedidoCobro");
-        if(!select || !select.options.length) return;
-
-        if(boton && boton.dataset.pedido){
-            select.value=boton.dataset.pedido;
-        }
-        actualizarCobroSeleccionado();
-        abrirModalFin("modalCobro");
-        setTimeout(function(){
-            const monto=document.getElementById("montoCobro");
-            if(monto){monto.focus();monto.select();}
-        },50);
-    }
-
-    document.addEventListener("keydown",function(event){
-        if(event.key!=="Escape") return;
-        document.querySelectorAll(".modal-fin.abierto").forEach(function(modal){
-            cerrarModalFin(modal.id);
-        });
-    });
-
-    const medioPago =
-        document.getElementById("medio_pago");
-
-    const campoCuotas =
-        document.getElementById("campo-cuotas");
-
-    const campoPrimeraCuota =
-        document.getElementById("campo-primera-cuota");
-
-    const cantidadCuotas =
-        document.getElementById("cantidad_cuotas");
-
-    const fechaPrimeraCuota =
-        document.getElementById("fecha_primera_cuota");
-
-    function actualizarFormaPago() {
-        const tarjeta =
-            medioPago.value === "TARJETA_CREDITO";
-
-        campoCuotas.style.display =
-            tarjeta ? "block" : "none";
-
-        campoPrimeraCuota.style.display =
-            tarjeta ? "block" : "none";
-
-        cantidadCuotas.required =
-            tarjeta;
-
-        fechaPrimeraCuota.required =
-            tarjeta;
-
-        if (!tarjeta) {
-            cantidadCuotas.value = "1";
-            fechaPrimeraCuota.value = "";
-        }
-    }
-
-    medioPago.addEventListener(
-        "change",
-        actualizarFormaPago
-    );
-
-    actualizarFormaPago();
+function abrirModalFin(id){const m=document.getElementById(id);if(!m)return;m.classList.add("abierto");m.setAttribute("aria-hidden","false");document.body.style.overflow="hidden"}
+function cerrarModalFin(id){const m=document.getElementById(id);if(!m)return;m.classList.remove("abierto");m.setAttribute("aria-hidden","true");if(!document.querySelector(".modal-fin.abierto"))document.body.style.overflow=""}
+function cerrarModalDesdeFondo(e,id){if(e.target.id===id)cerrarModalFin(id)}
+function actualizarCobroSeleccionado(){const s=document.getElementById("pedidoCobro"),f=document.getElementById("formCobro"),m=document.getElementById("montoCobro"),t=document.getElementById("saldoCobro");if(!s||!s.options.length||!f)return;const o=s.options[s.selectedIndex],saldo=Number(String(o.dataset.saldo||"0").replace(",","."));f.action=o.dataset.url||"";m.value=saldo>0?saldo.toFixed(2):"";m.max=saldo>0?saldo.toFixed(2):"";t.textContent="$ "+saldo.toLocaleString("es-AR")}
+function abrirCobro(b){const s=document.getElementById("pedidoCobro");if(!s)return;if(b&&b.dataset.pedido){let o=Array.from(s.options).find(x=>x.value===String(b.dataset.pedido));if(!o){o=document.createElement("option");o.value=b.dataset.pedido;o.dataset.url=b.dataset.url;o.dataset.saldo=b.dataset.saldo;o.textContent=(b.dataset.label||("Pedido "+b.dataset.pedido))+" · saldo $ "+Number(b.dataset.saldo||0).toLocaleString("es-AR");s.appendChild(o)}s.value=String(b.dataset.pedido)}if(!s.options.length)return;actualizarCobroSeleccionado();abrirModalFin("modalCobro");setTimeout(()=>{const m=document.getElementById("montoCobro");if(m){m.focus();m.select()}},40)}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")document.querySelectorAll(".modal-fin.abierto").forEach(m=>cerrarModalFin(m.id))});
+const medio=document.getElementById("medio_pago"),cuotas=document.getElementById("campo-cuotas"),primera=document.getElementById("campo-primera-cuota"),cant=document.getElementById("cantidad_cuotas"),fecha=document.getElementById("fecha_primera_cuota");
+function actualizarFormaPago(){if(!medio)return;const tarjeta=medio.value==="TARJETA_CREDITO";cuotas.style.display=tarjeta?"block":"none";primera.style.display=tarjeta?"block":"none";cant.required=tarjeta;fecha.required=tarjeta;if(!tarjeta){cant.value="1";fecha.value=""}}
+if(medio){medio.addEventListener("change",actualizarFormaPago);actualizarFormaPago()}
 </script>
-
 </body>
 </html>
