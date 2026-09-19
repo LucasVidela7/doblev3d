@@ -1088,19 +1088,14 @@
         </div>
 
         <div class="acciones-encabezado">
-            <a
-                href="javascript:history.back()"
-                class="boton"
-            >
-                ← VOLVER
-            </a>
-
-            <a
-                href="{% url 'dashboard:inicio' %}"
-                class="boton"
-            >
-                INICIO
-            </a>
+            <button type="button" class="fin-action" onclick="abrirModalFin('modalGasto')">GASTO / INVERSIÓN</button>
+            <button type="button" class="fin-action" onclick="abrirModalFin('modalCaja')">CONCILIAR CAJA</button>
+            <button
+                type="button"
+                class="fin-action primary {% if not cobros_pendientes %}accion-vacia{% endif %}"
+                onclick="abrirCobro()"
+                {% if not cobros_pendientes %}disabled{% endif %}
+            >REGISTRAR COBRO</button>
         </div>
     </div>
 
@@ -1120,16 +1115,6 @@
             <a class="fin-tab" href="#cobros">COBROS</a>
             <a class="fin-tab" href="#gastos">GASTOS</a>
             <a class="fin-tab" href="#rentabilidad">RENTABILIDAD</a>
-        </div>
-        <div class="fin-actions">
-            <button
-                type="button"
-                class="fin-action primary {% if not cobros_pendientes %}accion-vacia{% endif %}"
-                onclick="abrirCobro()"
-                {% if not cobros_pendientes %}disabled{% endif %}
-            >+ REGISTRAR COBRO</button>
-            <button type="button" class="fin-action" onclick="abrirModalFin('modalGasto')">+ GASTO / INVERSIÓN</button>
-            <button type="button" class="fin-action" onclick="abrirModalFin('modalCaja')">CONCILIAR CAJA</button>
         </div>
     </div>
 
