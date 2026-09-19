@@ -56,6 +56,10 @@ NAV_SCRIPT = r"""
 
     function aplicar(){
         document.querySelectorAll('a, button').forEach(function(el){
+            // La navegación pública de la tienda administra su propio estado
+            // activo. No debe heredar los estilos de navegación interna.
+            if (el.closest('#dv-catalog-header')) return;
+
             var texto = normalizar(el.textContent);
 
             if (texto === '← VOLVER' || texto === 'VOLVER') {
