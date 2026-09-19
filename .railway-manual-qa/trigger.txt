@@ -1,2 +1,2 @@
-Deploy QA: producción sin límite para stock
-Incluye: cantidad estándar sin tope superior, excedente destinado a stock y texto inferior ocupando todo el ancho de la card.
+Deploy QA: normalizar botones de la cola
+Incluye: INICIAR y QUITAR con mismo ancho, alto, radio y tipografía; selector alineado y responsive consistente.
