@@ -1,2 +1,2 @@
-Deploy QA: colapsar productos dentro de cada pedido
-Revierte el colapsado de Para preparar/En preparación. Ahora los pedidos permanecen visibles y Pepino, Estrellas y demás productos quedan dentro de una sección colapsada por pedido, con contador y estado persistente al marcar checks.
+Deploy QA: optimizar detalle de pedido
+Incluye: quitar Editar y estado repetidos, volver a Preparación en lugar de Dashboard, toolbar mobile compacta, métricas más ajustadas y menú contextual como único lugar para editar/cancelar/eliminar.
