@@ -1,2 +1,2 @@
 Deploy QA: centro financiero escalable
-Incluye resumen financiero liviano, periodos rápidos, alertas, vistas separadas de Cobros/Gastos/Cuotas/Caja/Rentabilidad, paginación de 20 y cálculo SQL de saldos para evitar historiales infinitos.
+Incluye resumen mensual, navegación por secciones, métricas clickeables, alertas, actividad reciente, historiales paginados de a 20, selector operativo de cobros limitado y pruebas del módulo.
