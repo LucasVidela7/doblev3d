@@ -1,2 +1,2 @@
-Deploy QA: Centro de producción austero
-Incluye: flujo Ahora → Qué imprimir → Cola → Historial, acciones rápidas para planificar o iniciar, ejecución por impresora y soporte de personalizados sin nuevas tablas ni servicios.
+Deploy QA: progreso visual en Qué imprimir
+Incluye: barra acumulada por producto con unidades cubiertas, en cola, imprimiendo, faltantes y porcentaje de avance.
