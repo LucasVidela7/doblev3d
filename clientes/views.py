@@ -1,20 +1,24 @@
+from datetime import timedelta
 from decimal import Decimal
+from urllib.parse import quote
 
 from django.contrib import messages
 from django.db.models import Prefetch, Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from pedidos.detalle_views import _armar_preparacion
-from pedidos.models import Pedido
+from pedidos.models import Pedido, Presupuesto
 
 from .models import Cliente
-from .telefonos import buscar_cliente_por_telefono
+from .telefonos import buscar_cliente_por_telefono, normalizar_telefono
 
 
 def _pedidos_cliente_queryset():
-    """Todos los pedidos existentes forman parte del historial del cliente."""
+    """Historial completo del cliente, con la información necesaria para operar."""
     return (
         Pedido.objects
+        .select_related("cliente")
         .prefetch_related(
             "detalles__producto",
             "detalles__kit",
@@ -25,12 +29,167 @@ def _pedidos_cliente_queryset():
     )
 
 
+def _presupuestos_cliente_queryset():
+    return (
+        Presupuesto.objects
+        .select_related("cliente", "pedido_generado")
+        .prefetch_related(
+            "detalles__producto",
+            "detalles__kit",
+            "detalles__productos_kit__producto",
+        )
+        .order_by("-id")
+    )
+
+
 def _pedido_vigente(pedido):
     return pedido.estado != "CANCELADO"
 
 
+def _url_con_filtros(request, **cambios):
+    parametros = request.GET.copy()
+    for clave, valor in cambios.items():
+        if valor in (None, ""):
+            parametros.pop(clave, None)
+        else:
+            parametros[clave] = valor
+
+    query = parametros.urlencode()
+    return request.path + (f"?{query}" if query else "")
+
+
+def _whatsapp_url(cliente):
+    clave = normalizar_telefono(cliente.telefono)
+    if not clave:
+        return ""
+
+    numero = f"549{clave}" if len(clave) == 10 else clave
+    mensaje = quote(
+        f"Hola {cliente.nombre}! Te escribo de Doble V 3D."
+    )
+    return f"https://wa.me/{numero}?text={mensaje}"
+
+
+def _resumen_cliente(cliente, pedidos=None, presupuestos=None):
+    pedidos = (
+        list(pedidos)
+        if pedidos is not None
+        else list(_pedidos_cliente_queryset().filter(cliente=cliente))
+    )
+    presupuestos = (
+        list(presupuestos)
+        if presupuestos is not None
+        else list(_presupuestos_cliente_queryset().filter(cliente=cliente))
+    )
+
+    pedidos_vigentes = [
+        pedido for pedido in pedidos
+        if _pedido_vigente(pedido)
+    ]
+    pedidos_activos = [
+        pedido for pedido in pedidos_vigentes
+        if pedido.estado not in ["ENTREGADO", "CANCELADO"]
+    ]
+    pedidos_listos = [
+        pedido for pedido in pedidos_activos
+        if pedido.estado == "LISTO"
+    ]
+    presupuestos_pendientes = [
+        presupuesto for presupuesto in presupuestos
+        if presupuesto.estado == "PENDIENTE"
+    ]
+
+    total_comprado = sum(
+        (pedido.total for pedido in pedidos_vigentes),
+        Decimal("0"),
+    )
+    total_pagado = sum(
+        (pedido.total_pagado for pedido in pedidos_vigentes),
+        Decimal("0"),
+    )
+    saldo_pendiente = sum(
+        (pedido.saldo_pendiente for pedido in pedidos_vigentes),
+        Decimal("0"),
+    )
+
+    hoy = timezone.localdate()
+    limite_entrega = hoy + timedelta(days=2)
+    entregas_proximas = [
+        pedido for pedido in pedidos_activos
+        if pedido.fecha_entrega
+        and pedido.fecha_entrega <= limite_entrega
+    ]
+
+    fechas_actividad = [
+        pedido.fecha for pedido in pedidos
+        if pedido.fecha
+    ] + [
+        presupuesto.fecha for presupuesto in presupuestos
+        if presupuesto.fecha
+    ]
+    ultima_actividad = (
+        max(fechas_actividad)
+        if fechas_actividad
+        else None
+    )
+    dias_sin_actividad = (
+        (hoy - ultima_actividad).days
+        if ultima_actividad
+        else None
+    )
+
+    atenciones = []
+    if pedidos_listos:
+        atenciones.append(
+            f"{len(pedidos_listos)} pedido(s) listo(s) para entregar"
+        )
+    if saldo_pendiente > 0:
+        atenciones.append(
+            f"Saldo pendiente de $ {saldo_pendiente:,.0f}"
+        )
+    if presupuestos_pendientes:
+        atenciones.append(
+            f"{len(presupuestos_pendientes)} presupuesto(s) pendiente(s)"
+        )
+    if entregas_proximas:
+        atenciones.append(
+            f"{len(entregas_proximas)} entrega(s) próxima(s)"
+        )
+
+    return {
+        "cliente": cliente,
+        "pedidos": pedidos,
+        "presupuestos": presupuestos,
+        "cantidad_pedidos": len(pedidos),
+        "cantidad_cancelados": sum(
+            1 for pedido in pedidos
+            if pedido.estado == "CANCELADO"
+        ),
+        "pedidos_activos": pedidos_activos,
+        "pedidos_activos_count": len(pedidos_activos),
+        "pedidos_listos_count": len(pedidos_listos),
+        "presupuestos_pendientes": presupuestos_pendientes,
+        "presupuestos_pendientes_count": len(presupuestos_pendientes),
+        "total_comprado": total_comprado,
+        "total_pagado": total_pagado,
+        "saldo_pendiente": saldo_pendiente,
+        "ultimo_pedido": pedidos[0] if pedidos else None,
+        "ultimo_presupuesto": presupuestos[0] if presupuestos else None,
+        "ultima_actividad": ultima_actividad,
+        "dias_sin_actividad": dias_sin_actividad,
+        "sin_actividad_reciente": (
+            dias_sin_actividad is None
+            or dias_sin_actividad >= 60
+        ),
+        "atenciones": atenciones,
+        "necesita_atencion": bool(atenciones),
+        "whatsapp_url": _whatsapp_url(cliente),
+    }
+
+
 def lista_clientes(request):
     busqueda = request.GET.get("q", "").strip()
+    estado = request.GET.get("estado", "").strip()
 
     clientes = (
         Cliente.objects
@@ -40,7 +199,12 @@ def lista_clientes(request):
                 "pedidos",
                 queryset=_pedidos_cliente_queryset(),
                 to_attr="pedidos_historial_cache",
-            )
+            ),
+            Prefetch(
+                "presupuestos",
+                queryset=_presupuestos_cliente_queryset(),
+                to_attr="presupuestos_historial_cache",
+            ),
         )
         .order_by("nombre")
     )
@@ -52,47 +216,79 @@ def lista_clientes(request):
             | Q(email__icontains=busqueda)
         )
 
-    filas = []
-    total_comprado_general = Decimal("0")
-    saldo_pendiente_general = Decimal("0")
-    clientes_con_saldo = 0
-
-    for cliente in clientes:
-        pedidos = cliente.pedidos_historial_cache
-        pedidos_vigentes = [
-            pedido for pedido in pedidos
-            if _pedido_vigente(pedido)
-        ]
-
-        total_comprado = Decimal("0")
-        total_pagado = Decimal("0")
-        saldo_pendiente = Decimal("0")
-
-        for pedido in pedidos_vigentes:
-            total_comprado += pedido.total
-            total_pagado += pedido.total_pagado
-            saldo_pendiente += pedido.saldo_pendiente
-
-        total_comprado_general += total_comprado
-        saldo_pendiente_general += saldo_pendiente
-
-        if saldo_pendiente > 0:
-            clientes_con_saldo += 1
-
-        filas.append(
-            {
-                "cliente": cliente,
-                "cantidad_pedidos": len(pedidos),
-                "cantidad_cancelados": sum(
-                    1 for pedido in pedidos
-                    if pedido.estado == "CANCELADO"
-                ),
-                "total_comprado": total_comprado,
-                "total_pagado": total_pagado,
-                "saldo_pendiente": saldo_pendiente,
-                "ultimo_pedido": pedidos[0] if pedidos else None,
-            }
+    filas_base = [
+        _resumen_cliente(
+            cliente,
+            cliente.pedidos_historial_cache,
+            cliente.presupuestos_historial_cache,
         )
+        for cliente in clientes
+    ]
+
+    metricas = {
+        "total": len(filas_base),
+        "con_pedidos": sum(
+            1 for fila in filas_base
+            if fila["pedidos_activos_count"] > 0
+        ),
+        "con_saldo": sum(
+            1 for fila in filas_base
+            if fila["saldo_pendiente"] > 0
+        ),
+        "con_presupuestos": sum(
+            1 for fila in filas_base
+            if fila["presupuestos_pendientes_count"] > 0
+        ),
+        "atencion": sum(
+            1 for fila in filas_base
+            if fila["necesita_atencion"]
+        ),
+        "sin_actividad": sum(
+            1 for fila in filas_base
+            if fila["sin_actividad_reciente"]
+        ),
+        "total_comprado": sum(
+            (fila["total_comprado"] for fila in filas_base),
+            Decimal("0"),
+        ),
+        "saldo_total": sum(
+            (fila["saldo_pendiente"] for fila in filas_base),
+            Decimal("0"),
+        ),
+    }
+
+    filtros = {
+        "pedidos": lambda fila: fila["pedidos_activos_count"] > 0,
+        "saldo": lambda fila: fila["saldo_pendiente"] > 0,
+        "presupuestos": lambda fila: (
+            fila["presupuestos_pendientes_count"] > 0
+        ),
+        "atencion": lambda fila: fila["necesita_atencion"],
+        "sin_actividad": lambda fila: fila["sin_actividad_reciente"],
+    }
+
+    if estado in filtros:
+        filas = [
+            fila for fila in filas_base
+            if filtros[estado](fila)
+        ]
+    else:
+        filas = filas_base
+
+    filtro_urls = {
+        "todos": _url_con_filtros(request, estado=None),
+        "pedidos": _url_con_filtros(request, estado="pedidos"),
+        "saldo": _url_con_filtros(request, estado="saldo"),
+        "presupuestos": _url_con_filtros(
+            request,
+            estado="presupuestos",
+        ),
+        "atencion": _url_con_filtros(request, estado="atencion"),
+        "sin_actividad": _url_con_filtros(
+            request,
+            estado="sin_actividad",
+        ),
+    }
 
     return render(
         request,
@@ -100,10 +296,9 @@ def lista_clientes(request):
         {
             "filas": filas,
             "busqueda": busqueda,
-            "cantidad_clientes": len(filas),
-            "total_comprado_general": total_comprado_general,
-            "saldo_pendiente_general": saldo_pendiente_general,
-            "clientes_con_saldo": clientes_con_saldo,
+            "estado_seleccionado": estado,
+            "metricas": metricas,
+            "filtro_urls": filtro_urls,
         },
     )
 
@@ -118,16 +313,17 @@ def detalle_cliente(request, cliente_id):
         nombre = request.POST.get("nombre", "").strip()
         telefono = request.POST.get("telefono", "").strip()
         email = request.POST.get("email", "").strip()
-        observaciones = request.POST.get("observaciones", "").strip()
+        observaciones = request.POST.get(
+            "observaciones",
+            "",
+        ).strip()
 
         if not nombre:
             messages.error(
                 request,
-                "El nombre del cliente no puede quedar vacío."
+                "El nombre del cliente no puede quedar vacío.",
             )
-            return redirect(
-                f"{request.path}?editar=1"
-            )
+            return redirect(f"{request.path}?editar=1")
 
         existente = buscar_cliente_por_telefono(
             telefono,
@@ -141,9 +337,7 @@ def detalle_cliente(request, cliente_id):
                     f"({existente.codigo})."
                 ),
             )
-            return redirect(
-                f"{request.path}?editar=1"
-            )
+            return redirect(f"{request.path}?editar=1")
 
         cliente.nombre = nombre
         cliente.telefono = telefono
@@ -160,9 +354,8 @@ def detalle_cliente(request, cliente_id):
 
         messages.success(
             request,
-            "Datos del cliente actualizados."
+            "Datos del cliente actualizados.",
         )
-
         return redirect(
             "clientes:detalle",
             cliente_id=cliente.id,
@@ -172,54 +365,61 @@ def detalle_cliente(request, cliente_id):
         _pedidos_cliente_queryset()
         .filter(cliente=cliente)
     )
+    presupuestos = list(
+        _presupuestos_cliente_queryset()
+        .filter(cliente=cliente)
+    )
+    resumen = _resumen_cliente(
+        cliente,
+        pedidos,
+        presupuestos,
+    )
 
     filas_pedidos = []
-
-    total_comprado = Decimal("0")
-    total_pagado = Decimal("0")
-    saldo_pendiente = Decimal("0")
-
     for pedido in pedidos:
-        total = pedido.total
-        pagado = pedido.total_pagado
         cancelado = pedido.estado == "CANCELADO"
         entregado = pedido.estado == "ENTREGADO"
         activo = not cancelado and not entregado
         saldo_modelo = pedido.saldo_pendiente
 
-        if not cancelado:
-            total_comprado += total
-            total_pagado += pagado
-            saldo_pendiente += saldo_modelo
-
-        preparacion = _armar_preparacion(pedido) if activo else []
+        preparacion = (
+            _armar_preparacion(pedido)
+            if activo
+            else []
+        )
         preparacion_total = len(preparacion)
         preparacion_listos = sum(
-            1 for item_preparacion in preparacion
-            if item_preparacion["listo"]
+            1 for item in preparacion
+            if item["listo"]
         )
         preparacion_porcentaje = (
-            int(round((preparacion_listos * 100) / preparacion_total))
+            int(round(
+                (preparacion_listos * 100)
+                / preparacion_total
+            ))
             if preparacion_total
             else 0
-        )
-        faltantes_stock = sum(
-            1 for item_preparacion in preparacion
-            if item_preparacion.get("estado_operativo") == "FALTANTE"
         )
 
         filas_pedidos.append(
             {
                 "pedido": pedido,
-                "total": total,
-                "pagado": pagado,
-                # Los cancelados quedan visibles, pero ya no integran
-                # la cuenta corriente ni habilitan nuevos pagos.
-                "saldo": Decimal("0") if cancelado else saldo_modelo,
-                "saldo_historico": saldo_modelo,
-                "estado_pago": "CANCELADO" if cancelado else pedido.estado_pago,
+                "total": pedido.total,
+                "pagado": pedido.total_pagado,
+                "saldo": (
+                    Decimal("0")
+                    if cancelado
+                    else saldo_modelo
+                ),
+                "estado_pago": (
+                    "CANCELADO"
+                    if cancelado
+                    else pedido.estado_pago
+                ),
                 "estado_pago_display": (
-                    "Cancelado" if cancelado else pedido.estado_pago_display
+                    "Cancelado"
+                    if cancelado
+                    else pedido.estado_pago_display
                 ),
                 "cancelado": cancelado,
                 "entregado": entregado,
@@ -228,9 +428,53 @@ def detalle_cliente(request, cliente_id):
                 "preparacion_total": preparacion_total,
                 "preparacion_listos": preparacion_listos,
                 "preparacion_porcentaje": preparacion_porcentaje,
-                "faltantes_stock": faltantes_stock,
+                "faltantes_stock": sum(
+                    1 for item in preparacion
+                    if item.get("estado_operativo") == "FALTANTE"
+                ),
             }
         )
+
+    eventos = []
+    for pedido in pedidos:
+        eventos.append(
+            {
+                "fecha": pedido.fecha,
+                "tipo": "PEDIDO",
+                "titulo": f"{pedido.codigo} · {pedido.get_estado_display()}",
+                "detalle": f"Total $ {pedido.total:,.0f}",
+            }
+        )
+        for pago in pedido.pagos.all():
+            eventos.append(
+                {
+                    "fecha": pago.fecha.date(),
+                    "tipo": "PAGO",
+                    "titulo": f"Pago en {pedido.codigo}",
+                    "detalle": (
+                        f"$ {pago.monto:,.0f} · "
+                        f"{pago.get_medio_display()}"
+                    ),
+                }
+            )
+
+    for presupuesto in presupuestos:
+        eventos.append(
+            {
+                "fecha": presupuesto.fecha,
+                "tipo": "PRESUPUESTO",
+                "titulo": (
+                    f"{presupuesto.codigo} · "
+                    f"{presupuesto.get_estado_display()}"
+                ),
+                "detalle": f"Total $ {presupuesto.total:,.0f}",
+            }
+        )
+
+    eventos.sort(
+        key=lambda evento: evento["fecha"],
+        reverse=True,
+    )
 
     return render(
         request,
@@ -238,14 +482,9 @@ def detalle_cliente(request, cliente_id):
         {
             "cliente": cliente,
             "filas_pedidos": filas_pedidos,
-            "cantidad_pedidos": len(filas_pedidos),
-            "cantidad_cancelados": sum(
-                1 for fila in filas_pedidos
-                if fila["cancelado"]
-            ),
-            "total_comprado": total_comprado,
-            "total_pagado": total_pagado,
-            "saldo_pendiente": saldo_pendiente,
+            "presupuestos": presupuestos,
+            "eventos": eventos[:12],
             "modo_edicion": request.GET.get("editar") == "1",
+            **resumen,
         },
     )

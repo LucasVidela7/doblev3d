@@ -264,7 +264,8 @@ html[data-dv-theme="dark"] .dv-management-menu__push{
 
 .dv-management-menu__account{
     flex:0 0 auto;
-    display:grid;
+    display:flex;
+    align-items:center;
     gap:8px;
     padding:10px 12px 12px;
     border-top:1px solid var(--dv-border,#dfe5ef);
@@ -276,6 +277,7 @@ html[data-dv-theme="dark"] .dv-management-menu__push{
     align-items:center;
     gap:9px;
     min-width:0;
+    flex:1 1 auto;
     padding:9px 10px;
     border:1px solid var(--dv-border,#dfe5ef);
     border-radius:13px;
@@ -316,16 +318,19 @@ html[data-dv-theme="dark"] .dv-management-menu__push{
 }
 
 .dv-management-menu__logout-form{
-    margin:0;
+    margin:0 0 0 auto;
+    flex:0 0 auto;
 }
 
 .dv-management-menu__logout{
-    width:100%;
+    width:auto;
+    min-width:92px;
     min-height:40px;
-    border:1px solid rgba(240,57,59,.24);
+    padding:0 11px;
+    border:1px solid var(--dv-brand-red,#f0393b);
     border-radius:11px;
-    background:var(--dv-danger-soft,#fff0f0);
-    color:var(--dv-danger-text,#9a3030);
+    background:var(--dv-brand-red,#f0393b);
+    color:#fff;
     font-family:Arial,sans-serif;
     font-size:10px;
     font-weight:900;
@@ -333,8 +338,8 @@ html[data-dv-theme="dark"] .dv-management-menu__push{
 }
 
 .dv-management-menu__logout:hover{
-    border-color:rgba(240,57,59,.38);
-    background:#ffe8e8;
+    border-color:var(--dv-brand-red-strong,#cf2730);
+    background:var(--dv-brand-red-strong,#cf2730);
 }
 
 .dv-management-menu__settings-copy{

@@ -56,8 +56,10 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
             <div class="sub">Conservá los kits libres actuales o armá una receta fija.</div>
         </div>
         <div class="acciones">
-            <a class="btn" href="{% url 'kits:lista' %}">← VOLVER</a>
-            <a class="btn" href="{% url 'dashboard:inicio' %}">INICIO</a>
+            <a class="btn" href="{% url 'kits:lista' %}">KITS</a>
+            <button class="btn principal" type="submit" form="kitForm">
+                {% if kit and kit.id %}GUARDAR CAMBIOS{% else %}CREAR KIT{% endif %}
+            </button>
         </div>
     </div>
 
@@ -67,7 +69,7 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
         {% endfor %}
     {% endif %}
 
-    <form method="post">
+    <form method="post" id="kitForm">
         {% csrf_token %}
 
         <div class="card grid">
@@ -207,7 +209,7 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
             <div class="ayuda" id="total_piezas">Total piezas: 0</div>
         </div>
 
-        <button type="submit" class="guardar">GUARDAR KIT</button>
+
     </form>
 </div>
 

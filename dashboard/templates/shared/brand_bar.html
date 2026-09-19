@@ -88,11 +88,13 @@
         }
     }
 </style>
+{% if request.resolver_match.view_name == 'dashboard:inicio' %}
 <div class="brand-bar">
     <a class="brand-bar__link" href="{% url 'dashboard:inicio' %}" aria-label="Ir al inicio de Doble V 3D">
         <img class="brand-bar__logo" src="{% static 'brand/logo.png' %}" alt="Logo de Doble V 3D" width="50" height="38">
     </a>
 </div>
+{% endif %}
 {% if request.resolver_match.view_name == 'calculadora:precios' and config %}
 <style>
     .dv-calculadora-filamento-info{
@@ -145,41 +147,11 @@
         }
 
         function configurarVolver(accion) {
-            convertirEnIcono(accion, "←", "Volver", "brand-header-icon");
-            accion.classList.add("brand-header-back");
-
-            /* Un único criterio funcional: volver dentro del sistema.
-               Si no hay una página interna anterior, ir a Inicio. */
-            accion.onclick = function (event) {
-                event.preventDefault();
-                let volverDentroDelSistema = false;
-                try {
-                    volverDentroDelSistema = !!document.referrer
-                        && new URL(document.referrer).origin === window.location.origin;
-                } catch (error) {
-                    volverDentroDelSistema = false;
-                }
-
-                if (volverDentroDelSistema && window.history.length > 1) {
-                    window.history.back();
-                } else {
-                    window.location.href = urlInicio;
-                }
-            };
+            accion.remove();
         }
 
         function configurarInicio(accion) {
-            convertirEnIcono(accion, "⌂", "Ir al inicio", "brand-header-icon");
-            accion.classList.add("brand-header-home");
-
-            if (accion.tagName === "A") {
-                accion.setAttribute("href", urlInicio);
-            } else {
-                accion.onclick = function (event) {
-                    event.preventDefault();
-                    window.location.href = urlInicio;
-                };
-            }
+            accion.remove();
         }
 
         document.querySelectorAll(".brand-bar").forEach(function (marca) {
@@ -203,7 +175,7 @@
             encabezado.querySelectorAll("a, button").forEach(function (accion) {
                 const texto = textoAccion(accion);
 
-                if (/^(?:←|‹|↩)?\s*VOLVER(?:\s+.*)?$/i.test(texto)) {
+                if (/^(?:←|‹|↩)?\s*VOLVER$/i.test(texto)) {
                     configurarVolver(accion);
                 } else if (/^(?:⌂|🏠)?\s*(?:IR\s+AL\s+)?INICIO$/i.test(texto)) {
                     configurarInicio(accion);

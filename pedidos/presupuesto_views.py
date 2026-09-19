@@ -164,16 +164,80 @@ def _parsear_items(request):
             componentes = defaultdict(int)
 
             if kit.modalidad == "FIJO":
-                componentes_fijos = list(kit.componentes.all())
-                if not componentes_fijos:
-                    raise ValueError(
-                        f"El kit {kit.nombre} no tiene una composición fija configurada."
+                detalle_id = request.POST.get(
+                    f"detalle_id_{indice}",
+                    "",
+                ).strip()
+                detalle_snapshot = None
+
+                if detalle_id:
+                    detalle_snapshot = (
+                        DetallePresupuesto.objects
+                        .filter(
+                            id=detalle_id,
+                            kit=kit,
+                            tipo_item="KIT",
+                        )
+                        .prefetch_related(
+                            "productos_kit__producto"
+                        )
+                        .first()
                     )
 
-                for componente in componentes_fijos:
-                    componentes[componente.producto_id] += (
-                        componente.cantidad * cantidad
+                if (
+                    detalle_snapshot
+                    and detalle_snapshot.productos_kit.exists()
+                ):
+                    # Mantiene la receta histórica mientras el usuario
+                    # no cambie explícitamente de kit.
+                    factor = (
+                        Decimal(cantidad)
+                        / Decimal(
+                            max(
+                                int(
+                                    detalle_snapshot.cantidad
+                                    or 1
+                                ),
+                                1,
+                            )
+                        )
                     )
+                    for componente in (
+                        detalle_snapshot.productos_kit.all()
+                    ):
+                        cantidad_snapshot = Decimal(
+                            int(componente.cantidad or 0)
+                        )
+                        cantidad_nueva = int(
+                            (
+                                cantidad_snapshot
+                                * factor
+                            ).quantize(
+                                Decimal("1")
+                            )
+                        )
+                        componentes[
+                            componente.producto_id
+                        ] += max(
+                            cantidad_nueva,
+                            0,
+                        )
+                else:
+                    componentes_fijos = list(
+                        kit.componentes.all()
+                    )
+                    if not componentes_fijos:
+                        raise ValueError(
+                            f"El kit {kit.nombre} no tiene una composición fija configurada."
+                        )
+
+                    for componente in componentes_fijos:
+                        componentes[
+                            componente.producto_id
+                        ] += (
+                            componente.cantidad
+                            * cantidad
+                        )
             else:
                 ids = request.POST.getlist(f"productos_kit_{indice}")
                 if len(ids) != kit.cantidad_productos:
@@ -474,11 +538,20 @@ def nuevo_presupuesto(request):
 
 
 def lista_presupuestos(request):
-    presupuestos = list(
+    estado = request.GET.get("estado", "").strip().upper()
+
+    base = list(
         Presupuesto.objects
         .select_related("cliente", "pedido_generado")
         .prefetch_related("detalles")
         .order_by("-id")
+    )
+
+    estados_validos = {"PENDIENTE", "APROBADO", "RECHAZADO"}
+    presupuestos = (
+        [item for item in base if item.estado == estado]
+        if estado in estados_validos
+        else base
     )
 
     return render(
@@ -486,16 +559,19 @@ def lista_presupuestos(request):
         "pedidos/presupuestos_lista.html",
         {
             "presupuestos": presupuestos,
+            "estado_seleccionado": (
+                estado if estado in estados_validos else ""
+            ),
             "pendientes": sum(
-                1 for item in presupuestos
+                1 for item in base
                 if item.estado == "PENDIENTE"
             ),
             "aprobados": sum(
-                1 for item in presupuestos
+                1 for item in base
                 if item.estado == "APROBADO"
             ),
             "rechazados": sum(
-                1 for item in presupuestos
+                1 for item in base
                 if item.estado == "RECHAZADO"
             ),
         },
@@ -794,3 +870,159 @@ def rechazar_presupuesto(request, presupuesto_id):
         "pedidos:presupuesto_detalle",
         presupuesto_id=presupuesto.id,
     )
+
+@transaction.atomic
+def repetir_pedido_como_presupuesto(request, pedido_id):
+    """
+    Crea un presupuesto nuevo a partir de un pedido histórico.
+
+    Se conserva exactamente:
+    - cliente
+    - productos / kits / personalizados
+    - cantidades
+    - composición real de cada kit
+    - precio acordado histórico
+    - personalizaciones y observaciones
+
+    La fecha de entrega se deja vacía porque corresponde a una nueva venta.
+    El precio de lista se recalcula con valores actuales para que la edición
+    muestre la diferencia sin alterar el precio acordado que se copió.
+    """
+    if request.method != "POST":
+        return redirect(
+            "pedidos:detalle",
+            pedido_id=pedido_id,
+        )
+
+    pedido = get_object_or_404(
+        Pedido.objects
+        .select_related("cliente")
+        .prefetch_related(
+            "detalles__producto",
+            "detalles__kit",
+            "detalles__productos_kit__producto",
+        ),
+        id=pedido_id,
+    )
+
+    detalles = list(pedido.detalles.all())
+    if not detalles:
+        messages.error(
+            request,
+            f"{pedido.codigo} no tiene ítems para repetir.",
+        )
+        return redirect(
+            "pedidos:detalle",
+            pedido_id=pedido.id,
+        )
+
+    presupuesto = Presupuesto.objects.create(
+        cliente=pedido.cliente,
+        fecha_entrega=None,
+        observaciones=pedido.observaciones,
+        estado="PENDIENTE",
+    )
+
+    for detalle in detalles:
+        if detalle.tipo_item == "PRODUCTO":
+            precio_lista = (
+                _precio_lista_producto(detalle.producto)
+                if detalle.producto
+                else detalle.precio_unitario
+            )
+            DetallePresupuesto.objects.create(
+                presupuesto=presupuesto,
+                tipo_item="PRODUCTO",
+                producto=detalle.producto,
+                cantidad=detalle.cantidad,
+                precio_lista_unitario=precio_lista,
+                precio_unitario=detalle.precio_unitario,
+                costo_unitario=detalle.costo_unitario,
+            )
+            continue
+
+        if detalle.tipo_item == "KIT":
+            kit = detalle.kit
+            precio_lista = Decimal(str(
+                kit.precio
+                if kit and kit.precio is not None
+                else detalle.precio_unitario
+            ))
+
+            if (
+                kit
+                and kit.modalidad == "LIBRE_CATEGORIA"
+                and detalle.cantidad > 0
+            ):
+                productos_libres = []
+                for componente in detalle.productos_kit.all():
+                    total = int(componente.cantidad or 0)
+                    repeticiones = max(
+                        total // int(detalle.cantidad or 1),
+                        1,
+                    )
+                    productos_libres.extend(
+                        [componente.producto] * repeticiones
+                    )
+                productos_libres = productos_libres[
+                    : int(kit.cantidad_productos or 0)
+                ]
+                if productos_libres:
+                    precio_lista = Decimal(str(
+                        precio_automatico_kit_libre(
+                            kit,
+                            productos_libres,
+                        )
+                    ))
+
+            nuevo_detalle = DetallePresupuesto.objects.create(
+                presupuesto=presupuesto,
+                tipo_item="KIT",
+                kit=kit,
+                cantidad=detalle.cantidad,
+                precio_lista_unitario=precio_lista,
+                precio_unitario=detalle.precio_unitario,
+                precio_kit_manual=True,
+                costo_unitario=detalle.costo_unitario,
+            )
+
+            for componente in detalle.productos_kit.all():
+                DetallePresupuestoKitProducto.objects.create(
+                    detalle=nuevo_detalle,
+                    producto=componente.producto,
+                    cantidad=componente.cantidad,
+                )
+            continue
+
+        precio_lista = (
+            _precio_lista_producto(detalle.producto)
+            if detalle.producto
+            else detalle.precio_unitario
+        )
+        DetallePresupuesto.objects.create(
+            presupuesto=presupuesto,
+            tipo_item="PERSONALIZADO",
+            producto=detalle.producto,
+            cantidad=detalle.cantidad,
+            precio_lista_unitario=precio_lista,
+            precio_unitario=detalle.precio_unitario,
+            costo_unitario=detalle.costo_unitario,
+            personalizado=True,
+            detalle_personalizacion=detalle.detalle_personalizacion,
+            color_personalizacion=detalle.color_personalizacion,
+            precio_total_personalizado=detalle.precio_total_personalizado,
+        )
+
+    messages.success(
+        request,
+        (
+            f"{presupuesto.codigo} creado desde {pedido.codigo}. "
+            "Se copiaron composición, cantidades y precios acordados. "
+            "Revisá los valores actuales antes de enviarlo."
+        ),
+    )
+    return redirect(
+        "pedidos:presupuesto_editar",
+        presupuesto_id=presupuesto.id,
+    )
+

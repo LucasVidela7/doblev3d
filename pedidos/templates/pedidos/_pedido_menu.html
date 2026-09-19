@@ -11,6 +11,14 @@
         <a href="{% url 'pedidos:detalle' pedido.id %}">Ver pedido</a>
         {% endif %}
         <a href="{% url 'clientes:detalle' pedido.cliente.id %}">Ver cliente</a>
+        <form
+            method="post"
+            action="{% url 'pedidos:repetir_como_presupuesto' pedido.id %}"
+            onsubmit="return confirm('Se creará un presupuesto nuevo copiando este pedido tal como fue vendido. ¿Continuar?');"
+        >
+            {% csrf_token %}
+            <button type="submit">Repetir como presupuesto</button>
+        </form>
 
         {% if pedido.estado == 'PENDIENTE' %}
         <a href="{% url 'pedidos:editar' pedido.id %}">Editar pedido</a>

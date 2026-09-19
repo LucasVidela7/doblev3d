@@ -8,62 +8,37 @@
 <link rel="stylesheet" href="{% static 'brand/brand.css' %}">
 <title>Solicitudes web | Doble V 3D</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:var(--dv-bg,#f5f7fb);color:var(--dv-text,#17233a);font-family:Arial,sans-serif}
-.shell{width:min(1180px,100%);margin:auto;padding:22px 16px 55px}
-.head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
-h1{margin:0;font-size:30px}.sub{margin-top:5px;color:var(--dv-muted,#667085);font-size:12px}
-.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 14px;border:1px solid var(--dv-border,#dfe5ef);border-radius:12px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);text-decoration:none;font-size:10px;font-weight:900}.btn.primary{background:var(--dv-brand-blue,#134a9a);border-color:var(--dv-brand-blue,#134a9a);color:#fff}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}.stat{padding:14px;border:1px solid var(--dv-border,#dfe5ef);border-radius:15px;background:var(--dv-surface,#fff)}.stat b{display:block;font-size:24px}.stat span{font-size:9px;font-weight:900;color:var(--dv-muted,#667085)}
-.grid{display:grid;gap:11px}.card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:15px;border:1px solid var(--dv-border,#dfe5ef);border-radius:17px;background:var(--dv-surface,#fff);box-shadow:var(--dv-shadow-soft,0 4px 14px rgba(20,25,35,.05))}
-.title{font-size:15px;font-weight:900}.meta{margin-top:5px;color:var(--dv-muted,#667085);font-size:10px}.amount{margin-top:8px;font-size:18px;font-weight:900}
-.badge{display:inline-flex;margin-top:8px;padding:6px 9px;border-radius:999px;font-size:9px;font-weight:900}.NUEVA{background:var(--dv-warning-soft,#fff5d8);color:var(--dv-warning-text,#775a13)}.CONTACTADA{background:var(--dv-brand-blue-soft,#eef4ff);color:var(--dv-accent-blue-text,#0d376f)}.CONVERTIDA{background:var(--dv-success-soft,#eaf7ee);color:var(--dv-success-text,#28633c)}.RECHAZADA{background:var(--dv-danger-soft,#fdeaea);color:var(--dv-danger-text,#913b3b)}
-.card-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.card-actions a{min-height:38px;display:inline-flex;align-items:center;padding:0 11px;border:1px solid var(--dv-border,#dfe5ef);border-radius:10px;color:var(--dv-text,#17233a);text-decoration:none;font-size:9px;font-weight:900}.card-actions a.primary{background:var(--dv-brand-blue,#134a9a);color:#fff;border-color:var(--dv-brand-blue,#134a9a)}
-.empty{padding:36px;text-align:center;color:var(--dv-muted,#667085);background:var(--dv-surface,#fff);border:1px dashed var(--dv-border,#dfe5ef);border-radius:17px}
-@media(max-width:700px){.head{align-items:flex-start;flex-direction:column}.actions{width:100%}.actions .btn{flex:1}.stats{grid-template-columns:1fr}.card{grid-template-columns:1fr}.card-actions{justify-content:flex-start}}
+*{box-sizing:border-box}body{margin:0;padding-bottom:105px;background:var(--dv-bg,#f5f7fb);color:var(--dv-text,#17233a);font-family:Arial,sans-serif}.shell{width:min(1180px,100%);margin:auto;padding:22px 16px 55px}.head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}h1{margin:0;font-size:30px}.sub{margin-top:5px;color:var(--dv-muted,#667085);font-size:12px}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 14px;border:1px solid var(--dv-border,#dfe5ef);border-radius:12px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);text-decoration:none;font-size:10px;font-weight:900}.btn.primary{background:var(--dv-brand-blue,#134a9a);border-color:var(--dv-brand-blue,#134a9a);color:#fff}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}.stat{display:block;padding:14px;border:1px solid var(--dv-border,#dfe5ef);border-radius:15px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);text-decoration:none}.stat.activa{outline:2px solid var(--dv-brand-blue,#134a9a);outline-offset:-2px}.stat b{display:block;font-size:24px}.stat span{font-size:9px;font-weight:900;color:var(--dv-muted,#667085)}.grid{display:grid;gap:11px}.card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:15px;border:1px solid var(--dv-border,#dfe5ef);border-radius:17px;background:var(--dv-surface,#fff);box-shadow:var(--dv-shadow-soft,0 4px 14px rgba(20,25,35,.05));cursor:pointer}.card:hover{border-color:color-mix(in srgb,var(--dv-brand-blue,#134a9a) 28%,var(--dv-border,#dfe5ef))}.title{font-size:15px;font-weight:900}.meta{margin-top:5px;color:var(--dv-muted,#667085);font-size:10px}.amount{margin-top:8px;font-size:18px;font-weight:900}.badge{display:inline-flex;margin-top:8px;padding:6px 9px;border-radius:999px;font-size:9px;font-weight:900}.NUEVA{background:var(--dv-warning-soft,#fff5d8);color:var(--dv-warning-text,#775a13)}.CONTACTADA{background:var(--dv-brand-blue-soft,#eef4ff);color:var(--dv-accent-blue-text,#0d376f)}.CONVERTIDA{background:var(--dv-success-soft,#eaf7ee);color:var(--dv-success-text,#28633c)}.RECHAZADA{background:var(--dv-danger-soft,#fdeaea);color:var(--dv-danger-text,#913b3b)}.card-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.card-actions a{min-height:38px;display:inline-flex;align-items:center;padding:0 11px;border:1px solid var(--dv-border,#dfe5ef);border-radius:10px;color:var(--dv-text,#17233a);text-decoration:none;font-size:9px;font-weight:900}.card-actions a.primary{background:var(--dv-brand-blue,#134a9a);color:#fff;border-color:var(--dv-brand-blue,#134a9a)}.empty{padding:36px;text-align:center;color:var(--dv-muted,#667085);background:var(--dv-surface,#fff);border:1px dashed var(--dv-border,#dfe5ef);border-radius:17px}
+@media(max-width:700px){.shell{padding:16px 10px 36px}.head{align-items:flex-start;flex-direction:column}.actions{width:100%;display:grid;grid-template-columns:1fr 1fr}.stats{grid-template-columns:repeat(2,1fr);gap:7px}.stat{padding:12px}.card{grid-template-columns:1fr}.card-actions{justify-content:flex-start}.card-actions a{flex:1}}
 </style>
 </head>
 <body>
 <div class="shell">
-    <div class="head">
-        <div>
-            <h1>Solicitudes web</h1>
-            <div class="sub">Pedidos armados desde el catálogo antes de convertirse en presupuesto.</div>
-        </div>
-        <div class="actions">
-            <a class="btn" href="{% url 'pedidos:presupuestos' %}">PRESUPUESTOS</a>
-            <a class="btn primary" href="{% url 'catalogo' %}" target="_blank" rel="noopener">VER CATÁLOGO</a>
-        </div>
-    </div>
+ <div class="head">
+  <div><h1>Solicitudes web</h1><div class="sub">Pedidos armados desde el catálogo antes de convertirse en presupuesto.</div></div>
+  <div class="actions"><a class="btn" href="{% url 'pedidos:presupuestos' %}">PRESUPUESTOS</a><a class="btn" href="{% url 'catalogo' %}" target="_blank" rel="noopener">VER CATÁLOGO</a></div>
+ </div>
 
-    <div class="stats">
-        <div class="stat"><b>{{ nuevas }}</b><span>NUEVAS</span></div>
-        <div class="stat"><b>{{ contactadas }}</b><span>CONTACTADAS</span></div>
-        <div class="stat"><b>{{ convertidas }}</b><span>CONVERTIDAS</span></div>
-    </div>
+ <div class="stats">
+  <a class="stat {% if estado_seleccionado == 'NUEVA' %}activa{% endif %}" href="?estado=NUEVA"><b>{{ nuevas }}</b><span>NUEVAS</span></a>
+  <a class="stat {% if estado_seleccionado == 'CONTACTADA' %}activa{% endif %}" href="?estado=CONTACTADA"><b>{{ contactadas }}</b><span>CONTACTADAS</span></a>
+  <a class="stat {% if estado_seleccionado == 'CONVERTIDA' %}activa{% endif %}" href="?estado=CONVERTIDA"><b>{{ convertidas }}</b><span>CONVERTIDAS</span></a>
+  <a class="stat {% if estado_seleccionado == 'RECHAZADA' %}activa{% endif %}" href="?estado=RECHAZADA"><b>{{ rechazadas }}</b><span>RECHAZADAS</span></a>
+ </div>
 
-    {% if solicitudes %}
-        <div class="grid">
-            {% for solicitud in solicitudes %}
-                <div class="card">
-                    <div>
-                        <div class="title">{{ solicitud.codigo }} · {{ solicitud.nombre }}</div>
-                        <div class="meta">{{ solicitud.creada_en|date:"d/m/Y H:i" }} · {{ solicitud.telefono }}</div>
-                        <div class="amount">$ {{ solicitud.total|floatformat:"0g" }}</div>
-                        <span class="badge {{ solicitud.estado }}">{{ solicitud.get_estado_display|upper }}</span>
-                    </div>
-                    <div class="card-actions">
-                        {% if solicitud.presupuesto_generado %}
-                            <a href="{% url 'pedidos:presupuesto_detalle' solicitud.presupuesto_generado.id %}">VER {{ solicitud.presupuesto_generado.codigo }}</a>
-                        {% endif %}
-                        <a class="primary" href="{% url 'pedidos:solicitud_web_detalle' solicitud.id %}">VER SOLICITUD</a>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="empty">Todavía no llegaron solicitudes desde el catálogo.</div>
-    {% endif %}
+ {% if estado_seleccionado %}<div style="margin:0 0 10px"><a class="btn" href="{% url 'pedidos:solicitudes_web' %}">VER TODAS</a></div>{% endif %}
+
+ {% if solicitudes %}
+ <div class="grid">
+  {% for solicitud in solicitudes %}
+  <div class="card" role="link" tabindex="0" onclick="if(!event.target.closest('a,button,form'))location.href='{% url 'pedidos:solicitud_web_detalle' solicitud.id %}'" onkeydown="if(event.key==='Enter')location.href='{% url 'pedidos:solicitud_web_detalle' solicitud.id %}'">
+   <div><div class="title">{{ solicitud.codigo }} · {{ solicitud.nombre }}</div><div class="meta">{{ solicitud.creada_en|date:"d/m/Y H:i" }} · {{ solicitud.telefono }}</div><div class="amount">$ {{ solicitud.total|floatformat:"0g" }}</div><span class="badge {{ solicitud.estado }}">{{ solicitud.get_estado_display|upper }}</span></div>
+   <div class="card-actions">{% if solicitud.presupuesto_generado %}<a href="{% url 'pedidos:presupuesto_detalle' solicitud.presupuesto_generado.id %}">VER {{ solicitud.presupuesto_generado.codigo }}</a>{% endif %}<a class="primary" href="{% url 'pedidos:solicitud_web_detalle' solicitud.id %}">VER SOLICITUD</a></div>
+  </div>
+  {% endfor %}
+ </div>
+ {% else %}<div class="empty">No hay solicitudes en este estado.</div>{% endif %}
 </div>
 {% include "shared/navigation.html" %}
 </body>

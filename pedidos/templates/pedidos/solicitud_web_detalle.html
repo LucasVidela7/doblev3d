@@ -37,38 +37,28 @@ h1{margin:0;font-size:30px}.sub{margin-top:5px;color:var(--dv-muted,#667085);fon
             <span class="status {{ solicitud.estado }}">{{ solicitud.get_estado_display|upper }}</span>
         </div>
         <div class="actions">
-            <a class="icon-btn" href="{% url 'pedidos:solicitudes_web' %}" title="Volver a solicitudes" aria-label="Volver a solicitudes">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
-            </a>
+            <a class="btn" href="{% url 'pedidos:solicitudes_web' %}">SOLICITUDES</a>
             {% if whatsapp_url_cliente and solicitud.estado != "RECHAZADA" %}
-                <a class="icon-btn whatsapp" href="{{ whatsapp_url_cliente }}" target="_blank" rel="noopener" title="Enviar WhatsApp con el detalle" aria-label="Enviar WhatsApp con el detalle">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.4-4A8 8 0 1 1 20 11.5Z"></path><path d="M9.1 8.2c.3 2.7 2 4.5 4.8 5.5"></path><path d="M9.2 8.1 8.3 9.3M14 13.7l1.2-1"></path></svg>
-                </a>
+                <a class="btn" href="{{ whatsapp_url_cliente }}" target="_blank" rel="noopener">WHATSAPP</a>
             {% endif %}
             {% if solicitud.estado == "NUEVA" %}
                 <form method="post" action="{% url 'pedidos:solicitud_web_contactada' solicitud.id %}">
                     {% csrf_token %}
-                    <button class="icon-btn contactada" type="submit" title="Marcar como contactada" aria-label="Marcar como contactada">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.8 7.3L3 20l1.3-4.7A8.5 8.5 0 1 1 21 11.5Z"></path><path d="m9 12 2 2 4-4"></path></svg>
-                    </button>
+                    <button class="btn" type="submit">MARCAR CONTACTADA</button>
                 </form>
             {% endif %}
             {% if solicitud.estado == "NUEVA" or solicitud.estado == "CONTACTADA" %}
                 <form method="post" action="{% url 'pedidos:solicitud_web_rechazar' solicitud.id %}">
                     {% csrf_token %}
-                    <button class="icon-btn reject" type="submit" title="Rechazar solicitud" aria-label="Rechazar solicitud">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"></path></svg>
-                    </button>
+                    <button class="btn reject" type="submit">RECHAZAR</button>
                 </form>
                 <form method="post" action="{% url 'pedidos:solicitud_web_convertir' solicitud.id %}">
                     {% csrf_token %}
-                    <button class="icon-btn convert" type="submit" title="Convertir en presupuesto" aria-label="Convertir en presupuesto">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4 10-10"></path></svg>
-                    </button>
+                    <button class="btn convert" type="submit">CONVERTIR EN PRESUPUESTO</button>
                 </form>
             {% elif solicitud.presupuesto_generado %}
-                <a class="icon-btn convert" href="{% url 'pedidos:presupuesto_detalle' solicitud.presupuesto_generado.id %}" title="Ver {{ solicitud.presupuesto_generado.codigo }}" aria-label="Ver {{ solicitud.presupuesto_generado.codigo }}">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"></path><path d="M14 3v4h4M9 12h6M9 16h6"></path></svg>
+                <a class="btn convert" href="{% url 'pedidos:presupuesto_detalle' solicitud.presupuesto_generado.id %}">
+                    VER {{ solicitud.presupuesto_generado.codigo }}
                 </a>
             {% endif %}
         </div>

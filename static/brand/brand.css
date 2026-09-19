@@ -68,6 +68,11 @@ body.modo-captura > .contenedor {
 .encabezado-marca {
     position: relative;
     min-width: 0;
+    min-height: 0;
+    padding-left: 0;
+}
+
+.encabezado-marca:has(> .brand-bar) {
     min-height: 48px;
     padding-left: 64px;
 }
@@ -270,6 +275,11 @@ body.dv-pedido-form-page .dv-manual-volume-note {
     }
 
     .encabezado-marca {
+        min-height: 0;
+        padding-left: 0;
+    }
+
+    .encabezado-marca:has(> .brand-bar) {
         min-height: 44px;
         padding-left: 55px;
     }

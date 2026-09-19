@@ -1,2 +1,2 @@
-Deploy QA: optimizar detalle de pedido
-Incluye: quitar Editar y estado repetidos, volver a Preparación en lugar de Dashboard, toolbar mobile compacta, métricas más ajustadas y menú contextual como único lugar para editar/cancelar/eliminar.
+Deploy QA: centro financiero escalable
+Incluye resumen mensual, navegación por secciones, métricas clickeables, alertas, actividad reciente, historiales paginados de a 20, selector operativo de cobros limitado y pruebas del módulo.

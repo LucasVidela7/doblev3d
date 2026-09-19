@@ -198,6 +198,12 @@ urlpatterns = [
 
 
     path(
+        "<int:pedido_id>/repetir-como-presupuesto/",
+        presupuesto_views.repetir_pedido_como_presupuesto,
+        name="repetir_como_presupuesto",
+    ),
+
+    path(
         "<int:pedido_id>/",
         detalle_views.detalle_pedido,
         name="detalle",

@@ -2,132 +2,194 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
-    <link rel="apple-touch-icon" href="{% static 'brand/apple-touch-icon.png' %}">
-    <link rel="stylesheet" href="{% static 'brand/brand.css' %}">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>{{ cliente.nombre }} | Doble V 3D</title>
-    <style>
-        :root{--bg:#f5f6f8;--surface:#fff;--soft:#f8f9fb;--text:#25282d;--muted:#777d86;--line:#e3e6ea;--dark:#25282d;--green:#eaf7ee;--green-text:#28633c;--amber:#fff5d8;--amber-text:#775a13;--red:#fdeaea;--red-text:#913b3b;--blue:#edf4ff;--blue-text:#315f9f;--shadow:0 5px 20px rgba(28,33,40,.055)}
-        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;padding:0 0 calc(94px + env(safe-area-inset-bottom));font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}a,button,input,textarea,select{touch-action:manipulation}.contenedor{width:min(1120px,100%);margin:auto;padding:22px 18px 34px}
-        .encabezado{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:18px}.titulo-linea{display:flex;align-items:center;gap:9px;flex-wrap:wrap}h1{margin:0;font-size:clamp(26px,4vw,34px)}.codigo-cliente{padding:5px 8px;border-radius:999px;background:#e9ebee;color:#666c74;font-size:8px;font-weight:900}.subtitulo{margin-top:5px;color:var(--muted);font-size:13px}.acciones-encabezado{display:flex;gap:9px}.btn-secundario,.btn-principal{min-height:48px;display:inline-flex;align-items:center;justify-content:center;padding:0 17px;border-radius:13px;font-size:10px;font-weight:900;text-decoration:none;cursor:pointer}.btn-secundario{border:1px solid var(--line);background:#fff;color:var(--text)}.btn-principal{border:1px solid var(--dark);background:var(--dark);color:#fff}
-        .mensajes{margin-bottom:14px}.mensaje{padding:12px 14px;margin-bottom:7px;border-radius:13px;font-size:11px;font-weight:800}.mensaje.success{background:var(--green);color:var(--green-text)}.mensaje.error{background:var(--red);color:var(--red-text)}
-        .metricas{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:15px}.metrica{padding:14px 15px;border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:var(--shadow)}.metrica-label{color:var(--muted);font-size:8px;font-weight:900}.metrica-valor{margin-top:6px;font-size:19px;font-weight:900}.metrica-nota{margin-top:4px;color:var(--muted);font-size:7px}.metrica.saldo-activo{background:var(--amber);border-color:#efdda3}.metrica.saldo-activo .metrica-label,.metrica.saldo-activo .metrica-valor{color:var(--amber-text)}
-        .layout{display:grid;grid-template-columns:340px minmax(0,1fr);gap:14px;align-items:start}.panel{border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:var(--shadow);overflow:hidden}.panel-cabecera{min-height:55px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 15px;border-bottom:1px solid var(--line);background:#fbfbfc}.panel-titulo{font-size:11px;font-weight:900}.panel-subtitulo{margin-top:3px;color:var(--muted);font-size:8px}.panel-cuerpo{padding:15px}
-        .btn-lapiz{width:38px;height:38px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--text);font-size:17px;cursor:pointer}.perfil-resumen{display:grid;gap:7px}.dato-cliente{padding:11px 12px;border-radius:12px;background:var(--soft)}.dato-label{color:var(--muted);font-size:7px;font-weight:900}.dato-valor{margin-top:5px;font-size:12px;font-weight:800;line-height:1.4;overflow-wrap:anywhere}.dato-valor.vacio{color:#a1a6ad}.dato-valor a{color:inherit;text-decoration:none}.observacion-valor{white-space:pre-wrap;font-weight:600}.acciones-perfil{display:grid;gap:8px;margin-top:12px}.btn-nuevo-pedido{min-height:46px;display:flex;align-items:center;justify-content:center;border:1px solid var(--dark);border-radius:12px;background:var(--dark);color:#fff;font-size:9px;font-weight:900;text-decoration:none}.editor-cliente[hidden],.perfil-resumen[hidden]{display:none!important}.campo{margin-bottom:11px}.campo label{display:block;margin-bottom:5px;color:var(--muted);font-size:8px;font-weight:900}.campo input,.campo textarea{width:100%;min-height:46px;padding:9px 11px;border:1px solid var(--line);border-radius:11px;background:#fff;font:inherit;font-size:13px}.campo textarea{min-height:90px;resize:vertical}.acciones-edicion{display:grid;grid-template-columns:1fr 1fr;gap:8px}.btn-cancelar-edicion,.btn-guardar{min-height:45px;border-radius:11px;font-size:9px;font-weight:900;cursor:pointer}.btn-cancelar-edicion{border:1px solid var(--line);background:#fff}.btn-guardar{border:1px solid var(--dark);background:var(--dark);color:#fff}.edicion-aviso{margin-bottom:11px;padding:9px 10px;border-radius:10px;background:var(--blue);color:var(--blue-text);font-size:8px}
-        .pedidos-lista{display:grid}.pedido{padding:15px;border-bottom:1px solid var(--line)}.pedido:last-child{border-bottom:0}.pedido.cancelado{background:#fffafa;border-left:3px solid #d69a9a}.pedido-arriba{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.pedido-codigo{font-size:14px;font-weight:900}.pedido-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;color:var(--muted);font-size:8px;font-weight:800}.pedido-meta span{display:inline-flex;min-height:22px;align-items:center;padding:0 7px;border-radius:7px;background:#eef0f3}.pedido-estados{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}.estado-pedido,.estado-pago{min-height:27px;display:inline-flex;align-items:center;justify-content:center;padding:0 9px;border-radius:999px;font-size:7px;font-weight:900;white-space:nowrap}.pedido-PENDIENTE{background:var(--amber);color:var(--amber-text)}.pedido-PREPARANDO{background:var(--blue);color:var(--blue-text)}.pedido-LISTO,.pedido-ENTREGADO{background:var(--green);color:var(--green-text)}.pedido-CANCELADO{background:var(--red);color:var(--red-text)}.estado-SIN_PAGAR{background:var(--red);color:var(--red-text)}.estado-PARCIAL{background:var(--amber);color:var(--amber-text)}.estado-PAGADO{background:var(--green);color:var(--green-text)}.estado-CANCELADO{background:var(--red);color:var(--red-text)}.cancelado-aviso{margin-top:8px;padding:8px 9px;border-radius:9px;background:var(--red);color:var(--red-text);font-size:8px;font-weight:800}
-        .prep-resumen{margin-top:10px;padding:10px;border-radius:11px;background:#f8faf9;border:1px solid #e3ebe5}.prep-resumen-arriba{display:flex;align-items:center;justify-content:space-between;gap:10px}.prep-titulo{font-size:8px;font-weight:900}.prep-dato{color:var(--muted);font-size:8px;font-weight:900}.prep-alerta{display:inline-flex;min-height:22px;align-items:center;padding:0 7px;border-radius:7px;background:var(--red);color:var(--red-text);font-size:7px;font-weight:900}.barra{height:6px;margin-top:8px;overflow:hidden;border-radius:999px;background:#e7eaed}.barra-valor{height:100%;border-radius:999px;background:#31824a}
-        .pedido-numeros{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:10px}.numero{padding:8px 9px;border-radius:10px;background:var(--soft)}.numero-label{color:var(--muted);font-size:7px;font-weight:900}.numero-valor{margin-top:4px;font-size:11px;font-weight:900}.numero.saldo-activo{background:var(--amber);color:var(--amber-text)}
-        .pedido-acciones{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.pedido-acciones form,.pedido-accion{margin:0}.pedido-acciones button,.pedido-acciones a{min-height:38px;display:inline-flex;align-items:center;justify-content:center;padding:0 11px;border-radius:10px;font-size:8px;font-weight:900;text-decoration:none;cursor:pointer}.btn-ver{border:1px solid var(--line);background:#fff;color:var(--text)}.btn-editar-pedido{border:1px solid var(--line);background:#fff;color:var(--text)}.btn-entregar-pedido{border:1px solid #438d56;background:#438d56;color:#fff}.btn-cancelar-pedido{border:1px solid #e0c36c;background:#fff;color:var(--amber-text)}.btn-eliminar-pedido{border:1px solid #e2bcbc;background:#fff;color:var(--red-text)}.btn-pagar{border:1px solid var(--dark);background:var(--dark);color:#fff}
-        .resumen-pedido{margin-top:10px;border:1px solid var(--line);border-radius:11px;background:#fafbfc;overflow:hidden}.resumen-pedido summary{min-height:42px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 11px;list-style:none;cursor:pointer;color:#525860;font-size:8px;font-weight:900}.resumen-pedido summary::-webkit-details-marker{display:none}.resumen-pedido summary::after{content:'＋';font-size:15px}.resumen-pedido[open] summary::after{content:'−'}.resumen-contenido{border-top:1px solid var(--line)}
-        .prep-item{display:grid;grid-template-columns:minmax(0,1fr) 155px 48px;gap:9px;align-items:center;padding:10px 11px;border-bottom:1px solid var(--line)}.prep-item:last-child{border-bottom:0}.prep-item.listo{background:#fbfffc}.prep-nombre{font-size:10px;font-weight:900}.prep-meta{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}.chip{display:inline-flex;min-height:21px;align-items:center;padding:0 6px;border-radius:7px;background:#eef0f2;color:#5e646c;font-size:7px;font-weight:800}.chip.manual{background:var(--amber);color:var(--amber-text)}.prep-estado{padding:7px 8px;border-radius:9px;background:var(--soft);font-size:7px;font-weight:900;text-align:center;line-height:1.3}.prep-estado.ok{background:var(--green);color:var(--green-text)}.prep-estado.falta{background:var(--red);color:var(--red-text)}.prep-estado.manual{background:var(--amber);color:var(--amber-text)}.prep-check{position:relative;width:46px;height:32px;display:block;cursor:pointer}.prep-check input{position:absolute;opacity:0;pointer-events:none}.prep-check-ui{width:46px;height:32px;display:flex;align-items:center;justify-content:center;border:1px solid #d5d9de;border-radius:10px;background:#fff;color:#9aa0a8;font-size:16px;font-weight:900}.prep-check input:checked + .prep-check-ui{background:#31824a;border-color:#31824a;color:#fff}.prep-check input:disabled + .prep-check-ui{background:#f1f2f4;color:#b7bbc0;cursor:not-allowed}
-        .item-resumen{padding:10px 11px;border-bottom:1px solid var(--line)}.item-resumen:last-child{border-bottom:0}.item-resumen.cancelado{background:#fff6f6}.item-resumen-arriba{display:flex;justify-content:space-between;gap:10px}.item-resumen-nombre{font-size:10px;font-weight:900}.item-resumen-subtotal{font-size:10px;font-weight:900}.item-resumen-meta{margin-top:4px;color:var(--muted);font-size:8px}.item-estado-cancelado{display:inline-flex;min-height:18px;align-items:center;margin-left:5px;padding:0 6px;border-radius:999px;background:var(--red);color:var(--red-text);font-size:7px;font-weight:900}.kit-componentes{margin-top:6px;padding:8px 9px;border-radius:9px;background:#eef0f2}.kit-componentes-titulo{margin-bottom:4px;color:var(--muted);font-size:7px;font-weight:900}.kit-componente{display:flex;justify-content:space-between;gap:8px;padding:2px 0;font-size:8px}.personalizacion{margin-top:6px;padding:8px 9px;border-radius:9px;background:var(--amber);color:var(--amber-text);font-size:8px}.resumen-total{display:flex;justify-content:space-between;gap:10px;padding:10px 11px;border-top:1px solid var(--line);font-size:10px;font-weight:900}.sin-pedidos{padding:44px 18px;color:var(--muted);text-align:center;font-size:10px}
-        .modal-fondo{display:none;position:fixed;inset:0;z-index:1000;padding:18px;background:rgba(20,22,26,.55);align-items:center;justify-content:center}.modal-fondo.abierto{display:flex}.modal{width:min(520px,100%);max-height:calc(100vh - 36px);overflow:auto;border-radius:20px;background:#fff;box-shadow:0 24px 70px rgba(0,0,0,.28)}.modal-cabecera{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:18px;border-bottom:1px solid var(--line)}.modal-titulo{font-size:18px;font-weight:900}.modal-subtitulo{margin-top:4px;color:var(--muted);font-size:10px}.cerrar{width:40px;height:40px;border:1px solid var(--line);border-radius:11px;background:#fff;font-size:20px;cursor:pointer}.modal-cuerpo{padding:18px}.saldo-modal{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:15px;padding:12px;border-radius:12px;background:var(--soft)}.saldo-modal span{color:var(--muted);font-size:10px;font-weight:800}.saldo-modal strong{font-size:19px}.campo-pago{margin-bottom:12px}.campo-pago label{display:block;margin-bottom:5px;color:#555;font-size:8px;font-weight:900}.campo-pago input,.campo-pago select,.campo-pago textarea{width:100%;min-height:48px;padding:9px 11px;border:1px solid #d8dbe0;border-radius:11px;background:#fff;font:inherit;font-size:14px}.campo-pago textarea{min-height:74px;resize:vertical}.acciones-modal{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:16px}.acciones-modal button{min-height:48px;border-radius:12px;font-size:9px;font-weight:900;cursor:pointer}.cancelar-modal{border:1px solid var(--line);background:#fff}.guardar-modal{border:1px solid #438d56;background:#438d56;color:#fff}
-        .nav-inferior{position:fixed;z-index:50;left:50%;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(720px,calc(100% - 20px));display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:7px;border-radius:20px;background:rgba(35,38,43,.96);box-shadow:0 12px 35px rgba(0,0,0,.22)}.nav-item{min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:14px;color:#d9dbe0;text-decoration:none;font-size:9px;font-weight:bold}.nav-item span:first-child{font-size:19px}.nav-item.nuevo-nav{background:#fff;color:var(--dark)}
-        @media(max-width:780px){.contenedor{padding:16px 11px 28px}.encabezado{align-items:flex-start;flex-direction:column}.acciones-encabezado{width:100%}.btn-secundario,.btn-principal{flex:1}.metricas{display:flex;overflow-x:auto;gap:8px}.metrica{min-width:165px}.layout{grid-template-columns:1fr}.prep-item{grid-template-columns:minmax(0,1fr) 46px}.prep-estado{grid-column:1;justify-self:start;text-align:left}.prep-check-form{grid-column:2;grid-row:1 / span 2}.nav-inferior{width:calc(100% - 12px);bottom:max(6px,env(safe-area-inset-bottom))}}
-        @media(max-width:520px){.pedido-arriba{align-items:stretch;flex-direction:column}.pedido-estados{justify-content:flex-start}.pedido-acciones{display:grid;grid-template-columns:1fr 1fr}.pedido-acciones>*{width:100%}.pedido-acciones form button,.pedido-acciones a,.pedido-accion button{width:100%}.pedido-numeros{grid-template-columns:repeat(3,1fr)}}
-    </style>
+<link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
+<link rel="apple-touch-icon" href="{% static 'brand/apple-touch-icon.png' %}">
+<link rel="stylesheet" href="{% static 'brand/brand.css' %}">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>{{ cliente.nombre }} | Doble V 3D</title>
+<style>
+:root{
+  --bg:var(--dv-bg,#f5f6f8);--surface:var(--dv-surface,#fff);--soft:var(--dv-surface-soft,#f8f9fb);
+  --text:var(--dv-text,#25282d);--muted:var(--dv-muted,#777d86);--line:var(--dv-border,#e3e6ea);
+  --blue:var(--dv-brand-blue,#134a9a);--ok-bg:var(--dv-success-soft,#eaf7ee);--ok:var(--dv-success-text,#28633c);
+  --warn-bg:var(--dv-warning-soft,#fff5d8);--warn:var(--dv-warning-text,#775a13);
+  --danger-bg:var(--dv-danger-soft,#fdeaea);--danger:var(--dv-danger-text,#913b3b);
+  --shadow:var(--dv-shadow-soft,0 5px 20px rgba(28,33,40,.055))
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;padding:0 0 calc(102px + env(safe-area-inset-bottom));font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
+a,button,input,textarea,select{touch-action:manipulation}.c{width:min(1220px,100%);margin:auto;padding:22px 18px 34px}
+.h{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px}.encabezado-marca{min-width:0}h1{margin:0 0 5px;font-size:clamp(28px,4vw,36px)}.sub{color:var(--muted);font-size:12px}.codigo{display:inline-flex;margin-top:7px;padding:5px 8px;border-radius:999px;background:var(--soft);font-size:8px;font-weight:900}.acciones{display:flex;gap:8px;flex-wrap:wrap}.btn{min-height:46px;padding:0 14px;border:1px solid var(--line);border-radius:13px;background:var(--surface);color:var(--text);text-decoration:none;font-size:9px;font-weight:900;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}.btn.ok{background:var(--ok-bg);border-color:color-mix(in srgb,var(--ok) 28%,var(--line));color:var(--ok)}.btn.danger{background:var(--danger-bg);color:var(--danger)}.btn.repeat{background:var(--warn-bg);color:var(--warn);border-color:color-mix(in srgb,var(--warn) 25%,var(--line))}
+.mensajes{margin-bottom:12px}.mensaje{padding:11px 13px;border:1px solid var(--line);border-radius:12px;background:var(--surface);font-size:10px;font-weight:800}.mensaje.success{background:var(--ok-bg);color:var(--ok)}.mensaje.error{background:var(--danger-bg);color:var(--danger)}
+.metricas{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;margin-bottom:14px}.metrica{padding:13px;border:1px solid var(--line);border-radius:15px;background:var(--surface);box-shadow:var(--shadow);min-width:0}.metrica small{display:block;color:var(--muted);font-size:7px;font-weight:900}.metrica strong{display:block;margin-top:6px;font-size:20px;overflow:hidden;text-overflow:ellipsis}.metrica span{display:block;margin-top:4px;color:var(--muted);font-size:7px;line-height:1.3}
+.atencion{display:flex;gap:11px;align-items:flex-start;margin-bottom:14px;padding:13px 15px;border:1px solid color-mix(in srgb,var(--warn) 25%,var(--line));border-radius:15px;background:var(--warn-bg);color:var(--warn)}.atencion strong{display:block;font-size:11px;margin-bottom:4px}.atencion ul{margin:0;padding-left:16px;font-size:9px;line-height:1.5}
+.layout{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(300px,.75fr);gap:14px}.stack{display:grid;gap:14px;min-width:0}.panel{border:1px solid var(--line);border-radius:17px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden}.panel-head{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:14px 15px;border-bottom:1px solid var(--line);background:var(--soft)}.panel-title{font-size:11px;font-weight:900}.panel-sub{margin-top:3px;color:var(--muted);font-size:8px}.panel-body{padding:14px}.empty{padding:25px 15px;text-align:center;color:var(--muted);font-size:9px}
+.ahora{display:grid;gap:9px}.accion-card{padding:12px;border:1px solid var(--line);border-radius:13px;background:var(--soft)}.accion-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.accion-title{font-size:11px;font-weight:900}.accion-meta{margin-top:4px;color:var(--muted);font-size:8px;line-height:1.4}.badge{display:inline-flex;align-items:center;min-height:23px;padding:0 7px;border-radius:999px;background:var(--soft);font-size:7px;font-weight:900;white-space:nowrap}.badge.ok{background:var(--ok-bg);color:var(--ok)}.badge.warn{background:var(--warn-bg);color:var(--warn)}.badge.danger{background:var(--danger-bg);color:var(--danger)}.progreso{height:6px;margin-top:9px;border-radius:999px;background:var(--surface);overflow:hidden}.progreso span{display:block;height:100%;background:var(--blue);border-radius:inherit}.mini-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.mini-actions .btn{min-height:38px;padding:0 10px}
+.pedido{padding:14px 15px;border-bottom:1px solid var(--line)}.pedido:last-child{border-bottom:0}.pedido.cancelado{border-left:3px solid var(--danger);background:color-mix(in srgb,var(--danger-bg) 42%,var(--surface))}.pedido-top{display:flex;justify-content:space-between;gap:12px}.pedido-code{font-size:12px;font-weight:900}.pedido-meta{margin-top:4px;color:var(--muted);font-size:8px}.pedido-estados{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.pedido-numeros{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}.numero{padding:8px;border-radius:10px;background:var(--soft)}.numero small{display:block;color:var(--muted);font-size:7px;font-weight:900}.numero strong{display:block;margin-top:3px;font-size:10px}.pedido-acciones{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.pedido-acciones form{margin:0}.pedido-acciones .btn{min-height:38px;padding:0 10px}
+.compra-detail{margin-top:10px;border:1px solid var(--line);border-radius:11px;overflow:hidden;background:var(--soft)}.compra-detail summary{list-style:none;cursor:pointer;padding:10px 11px;font-size:8px;font-weight:900}.compra-detail summary::-webkit-details-marker{display:none}.compra-body{padding:0 11px 9px}.compra-item{padding:9px 0;border-top:1px solid var(--line)}.compra-top{display:flex;justify-content:space-between;gap:10px}.compra-nombre{font-size:9px;font-weight:900}.compra-precio{font-size:9px;font-weight:900}.compra-meta{margin-top:4px;color:var(--muted);font-size:8px}.personalizacion{margin-top:6px;padding:7px 8px;border-radius:8px;background:var(--warn-bg);color:var(--warn);font-size:8px;line-height:1.4}.kit-mini{margin-top:6px;padding:7px 8px;border-radius:8px;background:var(--surface);font-size:8px}.kit-mini div{display:flex;justify-content:space-between;gap:10px;padding:2px 0}
+.presupuesto{padding:12px 0;border-bottom:1px solid var(--line)}.presupuesto:last-child{border-bottom:0}.presupuesto-top{display:flex;justify-content:space-between;gap:10px}.presupuesto-title{font-size:11px;font-weight:900}.presupuesto-meta{margin-top:4px;color:var(--muted);font-size:8px}.presupuesto-total{font-size:12px;font-weight:900}.timeline{display:grid}.evento{display:grid;grid-template-columns:74px 11px minmax(0,1fr);gap:8px;padding:9px 0;border-bottom:1px solid var(--line)}.evento:last-child{border-bottom:0}.evento-fecha{color:var(--muted);font-size:8px}.evento-dot{width:9px;height:9px;border-radius:50%;background:var(--blue);margin-top:2px}.evento-title{font-size:9px;font-weight:900}.evento-detail{margin-top:3px;color:var(--muted);font-size:8px}
+.dato{padding:10px 11px;margin-bottom:7px;border-radius:11px;background:var(--soft)}.dato small{display:block;color:var(--muted);font-size:7px;font-weight:900}.dato div{margin-top:4px;font-size:10px;font-weight:800;line-height:1.4;overflow-wrap:anywhere}.dato a{color:inherit;text-decoration:none}.perfil-actions{display:grid;gap:7px;margin-top:10px}.editor[hidden],.perfil[hidden]{display:none!important}.campo{margin-bottom:10px}.campo label{display:block;margin-bottom:5px;color:var(--muted);font-size:8px;font-weight:900}.campo input,.campo textarea,.campo select{width:100%;min-height:44px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);font:inherit;font-size:13px}.campo textarea{min-height:88px;resize:vertical}.edit-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.resumen-cuenta{display:grid;gap:7px}.cuenta-row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:9px}.cuenta-row:last-child{border-bottom:0}.cuenta-row span{color:var(--muted)}.cuenta-row strong{font-size:10px}
+.modal-fondo{position:fixed;z-index:2000;inset:0;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.48)}.modal-fondo.abierto{display:flex}.modal{width:min(440px,100%);border:1px solid var(--line);border-radius:17px;background:var(--surface);box-shadow:0 18px 50px rgba(0,0,0,.28);overflow:hidden}.modal-head{display:flex;justify-content:space-between;align-items:center;padding:14px;border-bottom:1px solid var(--line)}.modal-title{font-size:12px;font-weight:900}.modal-body{padding:14px}.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+@media(max-width:1000px){.metricas{grid-template-columns:repeat(3,1fr)}.layout{grid-template-columns:1fr}}
+@media(max-width:720px){.c{padding:15px 10px 28px}.h{flex-direction:column}.acciones{width:100%;display:grid;grid-template-columns:1fr 1fr}.acciones .primary{grid-column:1/-1}.metricas{grid-template-columns:repeat(2,1fr);gap:7px}.pedido-top{flex-direction:column}.pedido-estados{justify-content:flex-start}.pedido-acciones{display:grid;grid-template-columns:1fr 1fr}.pedido-acciones>*{width:100%}.pedido-acciones .btn{width:100%}.evento{grid-template-columns:62px 10px minmax(0,1fr)}}
+</style>
 </head>
 <body>
-<div class="contenedor">
-    <header class="encabezado">
-        <div class="encabezado-marca">
-            {% include 'shared/brand_bar.html' %}
-            <div class="titulo-linea"><h1>{{ cliente.nombre }}</h1><span class="codigo-cliente">CLIENTE #{{ cliente.id }}</span></div>
-            <div class="subtitulo">Ficha del cliente, cuenta corriente y estado real de sus pedidos</div>
-        </div>
-        <div class="acciones-encabezado"><button type="button" class="btn-secundario" onclick="history.back()">← VOLVER</button><a href="{% url 'dashboard:inicio' %}" class="btn-principal">INICIO</a></div>
-    </header>
-
-    {% if messages %}<div class="mensajes">{% for message in messages %}<div class="mensaje {{ message.tags }}">{{ message }}</div>{% endfor %}</div>{% endif %}
-
-    <section class="metricas">
-        <div class="metrica"><div class="metrica-label">PEDIDOS</div><div class="metrica-valor">{{ cantidad_pedidos }}</div><div class="metrica-nota">Incluye historial cancelado.</div></div>
-        <div class="metrica"><div class="metrica-label">TOTAL COMPRADO</div><div class="metrica-valor">${{ total_comprado|floatformat:0 }}</div><div class="metrica-nota">No suma pedidos cancelados.</div></div>
-        <div class="metrica"><div class="metrica-label">TOTAL PAGADO</div><div class="metrica-valor">${{ total_pagado|floatformat:0 }}</div><div class="metrica-nota">Sobre pedidos vigentes.</div></div>
-        <div class="metrica {% if saldo_pendiente > 0 %}saldo-activo{% endif %}"><div class="metrica-label">SALDO PENDIENTE</div><div class="metrica-valor">${{ saldo_pendiente|floatformat:0 }}</div><div class="metrica-nota">Cancelados no generan saldo.</div></div>
-    </section>
-
-    <div class="layout">
-        <section class="panel">
-            <div class="panel-cabecera"><div><div class="panel-titulo">DATOS DEL CLIENTE</div><div class="panel-subtitulo" id="modoClienteTexto">{% if modo_edicion %}Editando datos{% else %}Modo consulta{% endif %}</div></div><button type="button" class="btn-lapiz" id="btnEditarCliente" onclick="abrirEdicionCliente()" aria-label="Editar cliente" {% if modo_edicion %}hidden{% endif %}>✎</button></div>
-            <div class="panel-cuerpo">
-                <div class="perfil-resumen" id="perfilResumen" {% if modo_edicion %}hidden{% endif %}>
-                    <div class="dato-cliente"><div class="dato-label">TELÉFONO</div><div class="dato-valor {% if not cliente.telefono %}vacio{% endif %}">{% if cliente.telefono %}<a href="tel:{{ cliente.telefono }}">{{ cliente.telefono }}</a>{% else %}Sin teléfono cargado{% endif %}</div></div>
-                    <div class="dato-cliente"><div class="dato-label">EMAIL</div><div class="dato-valor {% if not cliente.email %}vacio{% endif %}">{% if cliente.email %}<a href="mailto:{{ cliente.email }}">{{ cliente.email }}</a>{% else %}Sin email cargado{% endif %}</div></div>
-                    <div class="dato-cliente"><div class="dato-label">OBSERVACIONES</div><div class="dato-valor observacion-valor {% if not cliente.observaciones %}vacio{% endif %}">{% if cliente.observaciones %}{{ cliente.observaciones }}{% else %}Sin observaciones{% endif %}</div></div>
-                    <div class="acciones-perfil"><a href="{% url 'pedidos:nuevo' %}?cliente={{ cliente.id }}" class="btn-nuevo-pedido">+ CREAR PEDIDO PARA ESTE CLIENTE</a></div>
-                </div>
-                <form method="post" class="editor-cliente" id="editorCliente" {% if not modo_edicion %}hidden{% endif %}>{% csrf_token %}<div class="edicion-aviso">Los cambios se guardan únicamente al presionar Guardar.</div><div class="campo"><label for="nombre">NOMBRE</label><input id="nombre" name="nombre" type="text" value="{{ cliente.nombre }}" required></div><div class="campo"><label for="telefono">TELÉFONO</label><input id="telefono" name="telefono" type="text" value="{{ cliente.telefono }}"></div><div class="campo"><label for="email">EMAIL</label><input id="email" name="email" type="email" value="{{ cliente.email }}"></div><div class="campo"><label for="observaciones">OBSERVACIONES</label><textarea id="observaciones" name="observaciones">{{ cliente.observaciones }}</textarea></div><div class="acciones-edicion"><button type="button" class="btn-cancelar-edicion" onclick="cancelarEdicionCliente()">CANCELAR</button><button type="submit" class="btn-guardar">GUARDAR</button></div></form>
-            </div>
-        </section>
-
-        <section class="panel">
-            <div class="panel-cabecera"><div><div class="panel-titulo">PEDIDOS DEL CLIENTE</div><div class="panel-subtitulo">{{ cantidad_pedidos }} pedido{{ cantidad_pedidos|pluralize:"s" }} · los activos muestran preparación; entregados/cancelados muestran historial</div></div></div>
-            {% if filas_pedidos %}<div class="pedidos-lista">
-            {% for item in filas_pedidos %}
-                <article class="pedido {% if item.cancelado %}cancelado{% endif %}">
-                    <div class="pedido-arriba">
-                        <div><div class="pedido-codigo">{{ item.pedido.codigo }}</div><div class="pedido-meta"><span>{{ item.pedido.fecha|date:"d/m/Y" }}</span>{% if item.pedido.fecha_entrega %}<span>Entrega {{ item.pedido.fecha_entrega|date:"d/m/Y" }}</span>{% endif %}</div></div>
-                        <div class="pedido-estados"><span class="estado-pedido pedido-{{ item.pedido.estado }}">{{ item.pedido.get_estado_display|upper }}</span><span class="estado-pago estado-{{ item.estado_pago }}">{{ item.estado_pago_display|upper }}</span></div>
-                    </div>
-
-                    {% if item.cancelado %}<div class="cancelado-aviso">Pedido cancelado conservado como historial. No impacta el saldo ni admite acciones operativas.</div>{% endif %}
-
-                    {% if item.activo and item.preparacion_total %}
-                    <div class="prep-resumen"><div class="prep-resumen-arriba"><div class="prep-titulo">PREPARACIÓN</div><div style="display:flex;align-items:center;gap:6px"><span class="prep-dato">{{ item.preparacion_listos }}/{{ item.preparacion_total }} listos</span>{% if item.faltantes_stock %}<span class="prep-alerta">{{ item.faltantes_stock }} con faltante</span>{% endif %}</div></div><div class="barra"><div class="barra-valor" style="width:{{ item.preparacion_porcentaje }}%"></div></div></div>
-                    {% endif %}
-
-                    <div class="pedido-numeros"><div class="numero"><div class="numero-label">TOTAL</div><div class="numero-valor">${{ item.total|floatformat:0 }}</div></div><div class="numero"><div class="numero-label">PAGADO</div><div class="numero-valor">${{ item.pagado|floatformat:0 }}</div></div><div class="numero {% if item.saldo > 0 %}saldo-activo{% endif %}"><div class="numero-label">SALDO</div><div class="numero-valor">${{ item.saldo|floatformat:0 }}</div></div></div>
-
-                    <div class="pedido-acciones">
-                        <a href="{% url 'pedidos:detalle' item.pedido.id %}" class="btn-ver">VER DETALLE</a>
-                        {% if item.pedido.estado == 'PENDIENTE' %}<a href="{% url 'pedidos:editar' item.pedido.id %}?volver=cliente&cliente_id={{ cliente.id }}" class="btn-editar-pedido">✎ EDITAR</a><form method="post" action="{% url 'pedidos:cancelar' item.pedido.id %}" onsubmit="return confirmarCancelacionCliente();">{% csrf_token %}<input type="hidden" name="origen" value="cliente"><input type="hidden" name="cliente_id" value="{{ cliente.id }}"><button type="submit" class="btn-cancelar-pedido">CANCELAR</button></form>{% if item.pagado <= 0 %}<form method="post" action="{% url 'pedidos:eliminar' item.pedido.id %}" onsubmit="return confirmarEliminacionCliente();">{% csrf_token %}<input type="hidden" name="origen" value="cliente"><input type="hidden" name="cliente_id" value="{{ cliente.id }}"><button type="submit" class="btn-eliminar-pedido">ELIMINAR</button></form>{% endif %}{% elif item.pedido.estado == 'LISTO' %}<form method="post" action="{% url 'pedidos:entregar' item.pedido.id %}" data-saldo="{{ item.saldo }}" onsubmit="return confirmarEntregaCliente(this);">{% csrf_token %}<input type="hidden" name="origen" value="cliente"><input type="hidden" name="cliente_id" value="{{ cliente.id }}"><button type="submit" class="btn-entregar-pedido">✓ ENTREGAR</button></form>{% endif %}
-                        {% if item.saldo > 0 and not item.cancelado %}<div class="pedido-accion"><button type="button" class="btn-pagar" data-url="{% url 'pedidos:registrar_pago' item.pedido.id %}" data-codigo="{{ item.pedido.codigo }}" data-saldo="{{ item.saldo }}" onclick="abrirPagoCliente(this)">+ PAGO</button></div>{% endif %}
-                    </div>
-
-                    {% if item.activo %}
-                    <details class="resumen-pedido" {% if item.preparacion_total and item.preparacion_listos < item.preparacion_total %}open{% endif %}>
-                        <summary>{% if item.preparacion_total %}PREPARACIÓN · {{ item.preparacion_listos }}/{{ item.preparacion_total }}{% else %}SIN PREPARACIÓN FÍSICA{% endif %}</summary>
-                        <div class="resumen-contenido">
-                            {% for prep in item.preparacion %}
-                            <div class="prep-item {% if prep.listo %}listo{% endif %}">
-                                <div><div class="prep-nombre">{{ prep.nombre }}</div><div class="prep-meta"><span class="chip">Necesita {{ prep.cantidad }}</span>{% if prep.producto %}<span class="chip">{{ prep.producto.codigo }}</span>{% endif %}{% if prep.es_personalizado %}<span class="chip manual">PERSONALIZADO</span>{% endif %}</div></div>
-                                <div class="prep-estado {% if prep.estado_operativo == 'LISTO' or prep.estado_operativo == 'DISPONIBLE' %}ok{% elif prep.estado_operativo == 'FALTANTE' %}falta{% else %}manual{% endif %}">{{ prep.estado_texto }}</div>
-                                <form method="post" action="{% url 'pedidos:cambiar_preparacion' item.pedido.id %}" class="prep-check-form">{% csrf_token %}<input type="hidden" name="origen" value="cliente">{% if prep.es_personalizado %}<input type="hidden" name="detalle_personalizado_id" value="{{ prep.detalle_personalizado_id }}">{% else %}<input type="hidden" name="estado_id" value="{{ prep.estado_id }}">{% endif %}<input type="hidden" name="listo" value="0"><label class="prep-check"><input type="checkbox" name="listo" value="1" {% if prep.listo %}checked{% endif %} {% if not prep.puede_marcar_listo %}disabled{% endif %} onchange="this.form.submit()"><span class="prep-check-ui">✓</span></label></form>
-                            </div>
-                            {% empty %}<div class="sin-pedidos">Este pedido no requiere preparación física. Abrí “Ver detalle” para consultar lo comprado.</div>{% endfor %}
-                        </div>
-                    </details>
-                    {% else %}
-                    <details class="resumen-pedido">
-                        <summary>VER QUÉ COMPRÓ</summary>
-                        <div class="resumen-contenido">
-                            {% for detalle in item.pedido.detalles.all %}
-                            <div class="item-resumen {% if item.cancelado or detalle.estado == 'CANCELADO' %}cancelado{% endif %}"><div class="item-resumen-arriba"><div class="item-resumen-nombre">{% if detalle.tipo_item == 'KIT' and detalle.kit %}{{ detalle.kit.nombre }}{% elif detalle.producto %}{{ detalle.producto.nombre }}{% else %}{{ detalle.get_tipo_item_display }}{% endif %}{% if item.cancelado or detalle.estado == 'CANCELADO' %}<span class="item-estado-cancelado">CANCELADO</span>{% endif %}</div><div class="item-resumen-subtotal">${{ detalle.subtotal|floatformat:0 }}</div></div><div class="item-resumen-meta">Cantidad: {{ detalle.cantidad }} · ${{ detalle.precio_unitario|floatformat:0 }} c/u{% if detalle.tipo_item == 'PERSONALIZADO' %} · PERSONALIZADO{% elif detalle.tipo_item == 'KIT' %} · KIT{% endif %}</div>{% if detalle.tipo_item == 'KIT' %}<div class="kit-componentes"><div class="kit-componentes-titulo">PRODUCTOS DEL KIT</div>{% for componente in detalle.productos_kit.all %}<div class="kit-componente"><span>{{ componente.producto.nombre }}</span><strong>x{{ componente.cantidad }}</strong></div>{% endfor %}</div>{% endif %}{% if detalle.tipo_item == 'PERSONALIZADO' and detalle.detalle_personalizacion or detalle.tipo_item == 'PERSONALIZADO' and detalle.color_personalizacion %}<div class="personalizacion">{% if detalle.detalle_personalizacion %}<div><strong>Detalle:</strong> {{ detalle.detalle_personalizacion }}</div>{% endif %}{% if detalle.color_personalizacion %}<div><strong>Color:</strong> {{ detalle.color_personalizacion }}</div>{% endif %}</div>{% endif %}</div>
-                            {% empty %}<div class="sin-pedidos">Este pedido no tiene productos cargados.</div>{% endfor %}
-                            <div class="resumen-total"><span>TOTAL DEL PEDIDO</span><span>${{ item.total|floatformat:0 }}</span></div>
-                        </div>
-                    </details>
-                    {% endif %}
-                </article>
-            {% endfor %}
-            </div>{% else %}<div class="sin-pedidos">Este cliente todavía no tiene pedidos.</div>{% endif %}
-        </section>
+<div class="c">
+  <header class="h">
+    <div class="encabezado-marca">
+      {% include "shared/brand_bar.html" %}
+      <h1>{{ cliente.nombre }}</h1>
+      <div class="sub">Estado comercial, pedidos, presupuestos y cuenta corriente.</div>
+      <span class="codigo">{{ cliente.codigo }}</span>
     </div>
+    <div class="acciones">
+      <a class="btn" href="{% url 'clientes:lista' %}">← CLIENTES</a>
+      {% if whatsapp_url %}<a class="btn ok" href="{{ whatsapp_url }}" target="_blank" rel="noopener">WHATSAPP</a>{% endif %}
+      <a class="btn primary" href="{% url 'pedidos:nuevo' %}?cliente={{ cliente.id }}">+ NUEVO PRESUPUESTO</a>
+    </div>
+  </header>
+
+  {% if messages %}<div class="mensajes">{% for message in messages %}<div class="mensaje {{ message.tags }}">{{ message }}</div>{% endfor %}</div>{% endif %}
+
+  <section class="metricas">
+    <div class="metrica"><small>PEDIDOS ACTIVOS</small><strong>{{ pedidos_activos_count }}</strong><span>{{ cantidad_pedidos }} históricos</span></div>
+    <div class="metrica"><small>TOTAL COMPRADO</small><strong>$ {{ total_comprado|floatformat:0 }}</strong><span>sin cancelados</span></div>
+    <div class="metrica"><small>TOTAL PAGADO</small><strong>$ {{ total_pagado|floatformat:0 }}</strong><span>cobros registrados</span></div>
+    <div class="metrica"><small>SALDO</small><strong>$ {{ saldo_pendiente|floatformat:0 }}</strong><span>{% if saldo_pendiente > 0 %}pendiente{% else %}al día{% endif %}</span></div>
+    <div class="metrica"><small>PRESUPUESTOS</small><strong>{{ presupuestos_pendientes_count }}</strong><span>pendientes</span></div>
+    <div class="metrica"><small>ÚLTIMA ACTIVIDAD</small><strong>{% if ultima_actividad %}{{ ultima_actividad|date:"d/m" }}{% else %}—{% endif %}</strong><span>{% if dias_sin_actividad != None %}hace {{ dias_sin_actividad }} días{% else %}sin historial{% endif %}</span></div>
+  </section>
+
+  {% if necesita_atencion %}
+  <section class="atencion"><div>⚠</div><div><strong>Este cliente necesita atención</strong><ul>{% for item in atenciones %}<li>{{ item }}</li>{% endfor %}</ul></div></section>
+  {% endif %}
+
+  <div class="layout">
+    <main class="stack">
+      <section class="panel">
+        <div class="panel-head"><div><div class="panel-title">AHORA</div><div class="panel-sub">Lo que requiere seguimiento en este momento</div></div></div>
+        <div class="panel-body ahora">
+          {% for item in filas_pedidos %}{% if item.activo %}
+          <article class="accion-card">
+            <div class="accion-top"><div><div class="accion-title">{{ item.pedido.codigo }} · {{ item.pedido.get_estado_display }}</div><div class="accion-meta">{% if item.pedido.fecha_entrega %}Entrega {{ item.pedido.fecha_entrega|date:"d/m/Y" }} · {% endif %}$ {{ item.total|floatformat:0 }} · saldo $ {{ item.saldo|floatformat:0 }}</div></div><span class="badge {% if item.pedido.estado == 'LISTO' %}ok{% else %}warn{% endif %}">{{ item.pedido.get_estado_display|upper }}</span></div>
+            {% if item.preparacion_total %}<div class="progreso"><span style="width:{{ item.preparacion_porcentaje }}%"></span></div><div class="accion-meta">{{ item.preparacion_listos }}/{{ item.preparacion_total }} preparados{% if item.faltantes_stock %} · {{ item.faltantes_stock }} con faltante{% endif %}</div>{% endif %}
+            <div class="mini-actions"><a class="btn" href="{% url 'pedidos:detalle' item.pedido.id %}">VER PEDIDO</a>{% if item.saldo > 0 %}<button class="btn" type="button" data-url="{% url 'pedidos:registrar_pago' item.pedido.id %}" data-codigo="{{ item.pedido.codigo }}" data-saldo="{{ item.saldo }}" onclick="abrirPagoCliente(this)">REGISTRAR PAGO</button>{% endif %}</div>
+          </article>
+          {% endif %}{% endfor %}
+          {% for presupuesto in presupuestos_pendientes %}
+          <article class="accion-card"><div class="accion-top"><div><div class="accion-title">{{ presupuesto.codigo }} · Presupuesto pendiente</div><div class="accion-meta">{{ presupuesto.fecha|date:"d/m/Y" }} · total $ {{ presupuesto.total|floatformat:0 }}</div></div><span class="badge warn">PENDIENTE</span></div><div class="mini-actions"><a class="btn" href="{% url 'pedidos:presupuesto_detalle' presupuesto.id %}">VER</a><a class="btn" href="{% url 'pedidos:presupuesto_editar' presupuesto.id %}">EDITAR</a></div></article>
+          {% endfor %}
+          {% if not pedidos_activos_count and not presupuestos_pendientes_count %}<div class="empty">No hay pedidos ni presupuestos abiertos.</div>{% endif %}
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><div><div class="panel-title">PEDIDOS</div><div class="panel-sub">Historial completo y acceso rápido para repetir una compra</div></div></div>
+        {% for item in filas_pedidos %}
+        <article class="pedido {% if item.cancelado %}cancelado{% endif %}">
+          <div class="pedido-top">
+            <div><div class="pedido-code">{{ item.pedido.codigo }}</div><div class="pedido-meta">{{ item.pedido.fecha|date:"d/m/Y" }}{% if item.pedido.fecha_entrega %} · entrega {{ item.pedido.fecha_entrega|date:"d/m/Y" }}{% endif %}</div></div>
+            <div class="pedido-estados"><span class="badge {% if item.cancelado %}danger{% elif item.entregado %}ok{% else %}warn{% endif %}">{{ item.pedido.get_estado_display|upper }}</span><span class="badge {% if item.estado_pago == 'PAGADO' %}ok{% elif item.estado_pago == 'CANCELADO' %}danger{% else %}warn{% endif %}">{{ item.estado_pago_display|upper }}</span></div>
+          </div>
+          <div class="pedido-numeros"><div class="numero"><small>TOTAL</small><strong>$ {{ item.total|floatformat:0 }}</strong></div><div class="numero"><small>PAGADO</small><strong>$ {{ item.pagado|floatformat:0 }}</strong></div><div class="numero"><small>SALDO</small><strong>$ {{ item.saldo|floatformat:0 }}</strong></div></div>
+          <div class="pedido-acciones">
+            <a class="btn" href="{% url 'pedidos:detalle' item.pedido.id %}">VER DETALLE</a>
+            {% if item.pedido.estado == 'PENDIENTE' %}
+              <a class="btn" href="{% url 'pedidos:editar' item.pedido.id %}?volver=cliente&cliente_id={{ cliente.id }}">EDITAR PEDIDO</a>
+              <form method="post" action="{% url 'pedidos:cancelar' item.pedido.id %}" onsubmit="return confirmarCancelacionCliente();">{% csrf_token %}<input type="hidden" name="origen" value="cliente"><input type="hidden" name="cliente_id" value="{{ cliente.id }}"><button class="btn danger" type="submit">CANCELAR PEDIDO</button></form>
+              {% if item.pagado <= 0 %}<form method="post" action="{% url 'pedidos:eliminar' item.pedido.id %}" onsubmit="return confirmarEliminacionCliente();">{% csrf_token %}<input type="hidden" name="origen" value="cliente"><input type="hidden" name="cliente_id" value="{{ cliente.id }}"><button class="btn danger" type="submit">ELIMINAR PEDIDO</button></form>{% endif %}
+            {% elif item.pedido.estado == 'LISTO' %}
+              <form method="post" action="{% url 'pedidos:entregar' item.pedido.id %}" data-saldo="{{ item.saldo }}" onsubmit="return confirmarEntregaCliente(this);">{% csrf_token %}<input type="hidden" name="origen" value="cliente"><input type="hidden" name="cliente_id" value="{{ cliente.id }}"><button class="btn ok" type="submit">ENTREGAR PEDIDO</button></form>
+            {% endif %}
+            <form method="post" action="{% url 'pedidos:repetir_como_presupuesto' item.pedido.id %}" onsubmit="return confirm('Se creará un presupuesto nuevo copiando {{ item.pedido.codigo }} tal como fue vendido. ¿Continuar?');">{% csrf_token %}<button class="btn repeat" type="submit">↻ REPETIR COMO PRESUPUESTO</button></form>
+            {% if item.saldo > 0 and not item.cancelado %}<button class="btn" type="button" data-url="{% url 'pedidos:registrar_pago' item.pedido.id %}" data-codigo="{{ item.pedido.codigo }}" data-saldo="{{ item.saldo }}" onclick="abrirPagoCliente(this)">REGISTRAR PAGO</button>{% endif %}
+          </div>
+
+          <details class="compra-detail">
+            <summary>VER QUÉ COMPRÓ</summary>
+            <div class="compra-body">
+              {% for detalle in item.pedido.detalles.all %}
+              <div class="compra-item">
+                <div class="compra-top"><div class="compra-nombre">{% if detalle.tipo_item == 'KIT' and detalle.kit %}{{ detalle.kit.nombre }}{% elif detalle.producto %}{{ detalle.producto.nombre }}{% else %}{{ detalle.get_tipo_item_display }}{% endif %}</div><div class="compra-precio">$ {{ detalle.subtotal|floatformat:0 }}</div></div>
+                <div class="compra-meta">Cantidad {{ detalle.cantidad }} · $ {{ detalle.precio_unitario|floatformat:0 }} c/u · {{ detalle.get_tipo_item_display }}</div>
+                {% if detalle.tipo_item == 'KIT' %}<div class="kit-mini">{% for componente in detalle.productos_kit.all %}<div><span>{{ componente.producto.nombre }}</span><strong>x{{ componente.cantidad }}</strong></div>{% endfor %}</div>{% endif %}
+                {% if detalle.tipo_item == 'PERSONALIZADO' and detalle.detalle_personalizacion or detalle.tipo_item == 'PERSONALIZADO' and detalle.color_personalizacion %}<div class="personalizacion">{% if detalle.detalle_personalizacion %}<div><strong>Detalle:</strong> {{ detalle.detalle_personalizacion }}</div>{% endif %}{% if detalle.color_personalizacion %}<div><strong>Color:</strong> {{ detalle.color_personalizacion }}</div>{% endif %}</div>{% endif %}
+              </div>
+              {% empty %}<div class="empty">Sin ítems cargados.</div>{% endfor %}
+            </div>
+          </details>
+        </article>
+        {% empty %}<div class="empty">Este cliente todavía no tiene pedidos.</div>{% endfor %}
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><div><div class="panel-title">PRESUPUESTOS</div><div class="panel-sub">Pendientes, aprobados y rechazados</div></div><a class="btn primary" href="{% url 'pedidos:nuevo' %}?cliente={{ cliente.id }}">+ NUEVO</a></div>
+        <div class="panel-body">
+          {% for presupuesto in presupuestos %}
+          <div class="presupuesto"><div class="presupuesto-top"><div><div class="presupuesto-title">{{ presupuesto.codigo }}</div><div class="presupuesto-meta">{{ presupuesto.fecha|date:"d/m/Y" }}{% if presupuesto.pedido_generado %} · generó {{ presupuesto.pedido_generado.codigo }}{% endif %}</div></div><div><div class="presupuesto-total">$ {{ presupuesto.total|floatformat:0 }}</div><div style="margin-top:5px;text-align:right"><span class="badge {% if presupuesto.estado == 'APROBADO' %}ok{% elif presupuesto.estado == 'RECHAZADO' %}danger{% else %}warn{% endif %}">{{ presupuesto.get_estado_display|upper }}</span></div></div></div><div class="mini-actions"><a class="btn" href="{% url 'pedidos:presupuesto_detalle' presupuesto.id %}">VER</a>{% if presupuesto.estado == 'PENDIENTE' %}<a class="btn" href="{% url 'pedidos:presupuesto_editar' presupuesto.id %}">EDITAR</a>{% endif %}</div></div>
+          {% empty %}<div class="empty">Todavía no hay presupuestos para este cliente.</div>{% endfor %}
+        </div>
+      </section>
+    </main>
+
+    <aside class="stack">
+      <section class="panel">
+        <div class="panel-head"><div><div class="panel-title">DATOS DEL CLIENTE</div><div class="panel-sub" id="modoClienteTexto">{% if modo_edicion %}Editando datos{% else %}Modo consulta{% endif %}</div></div><button class="btn" id="btnEditarCliente" type="button" onclick="abrirEdicionCliente()" {% if modo_edicion %}hidden{% endif %}>✎</button></div>
+        <div class="panel-body">
+          <div class="perfil" id="perfilResumen" {% if modo_edicion %}hidden{% endif %}>
+            <div class="dato"><small>TELÉFONO</small><div>{% if cliente.telefono %}<a href="tel:{{ cliente.telefono }}">{{ cliente.telefono }}</a>{% else %}Sin teléfono{% endif %}</div></div>
+            <div class="dato"><small>EMAIL</small><div>{% if cliente.email %}<a href="mailto:{{ cliente.email }}">{{ cliente.email }}</a>{% else %}Sin email{% endif %}</div></div>
+            <div class="dato"><small>OBSERVACIONES</small><div>{% if cliente.observaciones %}{{ cliente.observaciones|linebreaksbr }}{% else %}Sin observaciones{% endif %}</div></div>
+            <div class="perfil-actions">{% if whatsapp_url %}<a class="btn ok" href="{{ whatsapp_url }}" target="_blank" rel="noopener">ABRIR WHATSAPP</a>{% endif %}<a class="btn primary" href="{% url 'pedidos:nuevo' %}?cliente={{ cliente.id }}">+ NUEVO PRESUPUESTO</a></div>
+          </div>
+          <form class="editor" id="editorCliente" {% if not modo_edicion %}hidden{% endif %} method="post">{% csrf_token %}
+            <div class="campo"><label>NOMBRE</label><input id="nombre" name="nombre" value="{{ cliente.nombre }}" required></div>
+            <div class="campo"><label>TELÉFONO</label><input name="telefono" value="{{ cliente.telefono }}"></div>
+            <div class="campo"><label>EMAIL</label><input name="email" type="email" value="{{ cliente.email }}"></div>
+            <div class="campo"><label>OBSERVACIONES</label><textarea name="observaciones">{{ cliente.observaciones }}</textarea></div>
+            <div class="edit-actions"><button class="btn" type="button" onclick="cancelarEdicionCliente()">CANCELAR</button><button class="btn primary" type="submit">GUARDAR</button></div>
+          </form>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><div><div class="panel-title">CUENTA CORRIENTE</div><div class="panel-sub">Resumen comercial acumulado</div></div></div>
+        <div class="panel-body resumen-cuenta">
+          <div class="cuenta-row"><span>Total comprado</span><strong>$ {{ total_comprado|floatformat:0 }}</strong></div>
+          <div class="cuenta-row"><span>Total pagado</span><strong>$ {{ total_pagado|floatformat:0 }}</strong></div>
+          <div class="cuenta-row"><span>Saldo pendiente</span><strong>$ {{ saldo_pendiente|floatformat:0 }}</strong></div>
+          <div class="cuenta-row"><span>Pedidos históricos</span><strong>{{ cantidad_pedidos }}</strong></div>
+          <div class="cuenta-row"><span>Cancelados</span><strong>{{ cantidad_cancelados }}</strong></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><div><div class="panel-title">ACTIVIDAD RECIENTE</div><div class="panel-sub">Pedidos, presupuestos y pagos</div></div></div>
+        <div class="panel-body timeline">
+          {% for evento in eventos %}<div class="evento"><div class="evento-fecha">{{ evento.fecha|date:"d/m/Y" }}</div><div class="evento-dot"></div><div><div class="evento-title">{{ evento.titulo }}</div><div class="evento-detail">{{ evento.detalle }}</div></div></div>{% empty %}<div class="empty">Sin actividad registrada.</div>{% endfor %}
+        </div>
+      </section>
+    </aside>
+  </div>
 </div>
 
-<div id="modalPagoCliente" class="modal-fondo" aria-hidden="true" onclick="cerrarPagoClienteDesdeFondo(event)"><div class="modal" role="dialog" aria-modal="true"><div class="modal-cabecera"><div><div class="modal-titulo">Registrar pago</div><div id="modalPagoClientePedido" class="modal-subtitulo"></div></div><button type="button" class="cerrar" onclick="cerrarPagoCliente()">×</button></div><div class="modal-cuerpo"><div class="saldo-modal"><span>Saldo pendiente</span><strong id="modalPagoClienteSaldo">$0</strong></div><form id="formPagoCliente" method="post">{% csrf_token %}<input type="hidden" name="origen" value="cliente"><input type="hidden" name="cliente_id" value="{{ cliente.id }}"><div class="campo-pago"><label for="montoPagoCliente">MONTO</label><input id="montoPagoCliente" name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required></div><div class="campo-pago"><label for="medioPagoCliente">MEDIO DE PAGO</label><select id="medioPagoCliente" name="medio" required><option value="TRANSFERENCIA">Transferencia</option><option value="EFECTIVO">Efectivo</option><option value="MERCADO_PAGO">Mercado Pago</option><option value="OTRO">Otro</option></select></div><div class="campo-pago"><label for="obsPagoCliente">OBSERVACIONES</label><textarea id="obsPagoCliente" name="observaciones" maxlength="250" placeholder="Opcional"></textarea></div><div class="acciones-modal"><button type="button" class="cancelar-modal" onclick="cerrarPagoCliente()">CANCELAR</button><button type="submit" class="guardar-modal">GUARDAR PAGO</button></div></form></div></div></div>
+<div id="modalPagoCliente" class="modal-fondo" aria-hidden="true" onclick="cerrarPagoClienteDesdeFondo(event)">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-head"><div><div class="modal-title">Registrar pago</div><div id="modalPagoClientePedido" class="panel-sub"></div></div><button class="btn" type="button" onclick="cerrarPagoCliente()">×</button></div>
+    <div class="modal-body"><div class="dato"><small>SALDO PENDIENTE</small><div id="modalPagoClienteSaldo">$0</div></div><form id="formPagoCliente" method="post">{% csrf_token %}<input type="hidden" name="origen" value="cliente"><input type="hidden" name="cliente_id" value="{{ cliente.id }}"><div class="campo"><label>MONTO</label><input id="montoPagoCliente" name="monto" type="number" min="0.01" step="0.01" required></div><div class="campo"><label>MEDIO</label><select name="medio" required><option value="TRANSFERENCIA">Transferencia</option><option value="EFECTIVO">Efectivo</option><option value="MERCADO_PAGO">Mercado Pago</option><option value="OTRO">Otro</option></select></div><div class="campo"><label>OBSERVACIONES</label><textarea name="observaciones" maxlength="250"></textarea></div><div class="modal-actions"><button class="btn" type="button" onclick="cerrarPagoCliente()">CANCELAR</button><button class="btn primary" type="submit">GUARDAR PAGO</button></div></form></div>
+  </div>
+</div>
 
 {% include "shared/navigation.html" %}
 <script>
-function abrirEdicionCliente(){const r=document.getElementById('perfilResumen'),e=document.getElementById('editorCliente'),l=document.getElementById('btnEditarCliente'),m=document.getElementById('modoClienteTexto');r.hidden=true;e.hidden=false;l.hidden=true;m.textContent='Editando datos';const n=document.getElementById('nombre');if(n)setTimeout(()=>{n.focus();n.select()},30)}
-function cancelarEdicionCliente(){const r=document.getElementById('perfilResumen'),e=document.getElementById('editorCliente'),l=document.getElementById('btnEditarCliente'),m=document.getElementById('modoClienteTexto');e.reset();e.hidden=true;r.hidden=false;l.hidden=false;m.textContent='Modo consulta';if(window.history.replaceState&&window.location.search.includes('editar=1'))window.history.replaceState({},'',window.location.pathname)}
+function abrirEdicionCliente(){const r=document.getElementById('perfilResumen'),e=document.getElementById('editorCliente'),b=document.getElementById('btnEditarCliente'),m=document.getElementById('modoClienteTexto');r.hidden=true;e.hidden=false;b.hidden=true;m.textContent='Editando datos';setTimeout(()=>document.getElementById('nombre').focus(),30)}
+function cancelarEdicionCliente(){const r=document.getElementById('perfilResumen'),e=document.getElementById('editorCliente'),b=document.getElementById('btnEditarCliente'),m=document.getElementById('modoClienteTexto');e.reset();e.hidden=true;r.hidden=false;b.hidden=false;m.textContent='Modo consulta'}
 function confirmarEntregaCliente(f){const s=Number(String(f.dataset.saldo||'0').replace(',','.'));if(s>0)return confirm('Este pedido todavía tiene un saldo pendiente de $'+s.toLocaleString('es-AR')+'.\n\n¿Querés entregarlo igual?');return confirm('¿Confirmás que el pedido fue entregado al cliente?')}
 function confirmarCancelacionCliente(){return confirm('¿Seguro que querés cancelar este pedido?')}
 function confirmarEliminacionCliente(){return confirm('¿Seguro que querés eliminar definitivamente este pedido?')}
-function abrirPagoCliente(b){const m=document.getElementById('modalPagoCliente'),f=document.getElementById('formPagoCliente'),p=document.getElementById('modalPagoClientePedido'),s=document.getElementById('modalPagoClienteSaldo'),i=document.getElementById('montoPagoCliente');const saldo=Number(String(b.dataset.saldo||'0').replace(',','.'));f.action=b.dataset.url;p.textContent=b.dataset.codigo;s.textContent='$'+saldo.toLocaleString('es-AR');i.value=saldo.toFixed(2);i.max=saldo.toFixed(2);m.classList.add('abierto');m.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';setTimeout(()=>{i.focus();i.select()},40)}
+function abrirPagoCliente(b){const m=document.getElementById('modalPagoCliente'),f=document.getElementById('formPagoCliente'),p=document.getElementById('modalPagoClientePedido'),s=document.getElementById('modalPagoClienteSaldo'),i=document.getElementById('montoPagoCliente');const saldo=Number(String(b.dataset.saldo||'0').replace(',','.'));f.action=b.dataset.url;p.textContent=b.dataset.codigo;s.textContent='$ '+saldo.toLocaleString('es-AR');i.value=saldo.toFixed(2);i.max=saldo.toFixed(2);m.classList.add('abierto');m.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';setTimeout(()=>{i.focus();i.select()},40)}
 function cerrarPagoCliente(){const m=document.getElementById('modalPagoCliente');m.classList.remove('abierto');m.setAttribute('aria-hidden','true');document.body.style.overflow=''}
 function cerrarPagoClienteDesdeFondo(e){if(e.target.id==='modalPagoCliente')cerrarPagoCliente()}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')cerrarPagoCliente()});
