@@ -1,2 +1,2 @@
-Deploy QA: calculadora dentro de Productos
-Incluye: se retira Calculadora del menú hamburguesa y pasa a Más opciones dentro de Productos; Productos queda activo también al entrar a la calculadora
+Deploy QA: calculadora alineada al catálogo
+Incluye: una única función compartida para precio de producto, curva dinámica exacta del carrito, máximo 20 unidades, tabla de precios reales por cantidad y simulación de producto nuevo con las mismas reglas
