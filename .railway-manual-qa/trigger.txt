@@ -1,2 +1,2 @@
-Deploy QA: centro operativo de productos
-Incluye listado responsive con métricas y filtros, detalle con demanda/producción/stock/costos/kits/movimientos, edición guiada y pruebas específicas del módulo.
+Deploy QA: corregir modo oscuro de Productos
+Incluye superficies oscuras en listado, detalle y edición, barra fija coherente y ocultar el placeholder de foto junto al logo cuando no hay imagen.
