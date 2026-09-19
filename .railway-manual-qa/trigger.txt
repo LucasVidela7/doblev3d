@@ -1,2 +1,2 @@
-Deploy QA: avisos flotantes globales en Gestión
-Incluye: mensajes de éxito, error, advertencia e información convertidos en toasts flotantes, compatibles con modo claro/oscuro y responsive.
+Deploy QA: alertas de toda Gestión como toast
+Incluye: captura global de mensajes success/error/warning/info, incluyendo alertas directas del Centro de producción y mensajes dinámicos.
