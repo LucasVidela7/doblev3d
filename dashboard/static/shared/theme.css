@@ -1704,3 +1704,101 @@ html[data-dv-theme="dark"] .dv-order-menu__panel{
     border-color:var(--dv-border)!important;
     color:var(--dv-text)!important;
 }
+
+
+/* =========================================================
+   PRODUCTOS · DARK MODE AUDIT
+   =========================================================
+   Los templates nuevos de Productos tienen algunas superficies propias
+   que no existían cuando se armó el tema compartido. Se normalizan acá
+   para que listado, detalle y edición respeten el modo oscuro.
+*/
+html[data-dv-theme="dark"] .paso,
+html[data-dv-theme="dark"] .preview > div,
+html[data-dv-theme="dark"] .guardar,
+html[data-dv-theme="dark"] .metric,
+html[data-dv-theme="dark"] .prod-box,
+html[data-dv-theme="dark"] details.section,
+html[data-dv-theme="dark"] .section-body,
+html[data-dv-theme="dark"] .card-producto,
+html[data-dv-theme="dark"] .salud,
+html[data-dv-theme="dark"] .armado,
+html[data-dv-theme="dark"] .photo,
+html[data-dv-theme="dark"] .thumb{
+    background:var(--dv-surface)!important;
+    border-color:var(--dv-border)!important;
+    color:var(--dv-text)!important;
+}
+
+html[data-dv-theme="dark"] .prod-box,
+html[data-dv-theme="dark"] .dato,
+html[data-dv-theme="dark"] .armado,
+html[data-dv-theme="dark"] .pieza,
+html[data-dv-theme="dark"] .ayuda{
+    background:var(--dv-surface-soft)!important;
+}
+
+html[data-dv-theme="dark"] .guardar{
+    background:color-mix(in srgb,var(--dv-surface) 94%,transparent)!important;
+    box-shadow:0 12px 30px rgba(0,0,0,.28)!important;
+}
+
+html[data-dv-theme="dark"] .paso small,
+html[data-dv-theme="dark"] .preview small,
+html[data-dv-theme="dark"] .metric .lab,
+html[data-dv-theme="dark"] .metric .note,
+html[data-dv-theme="dark"] .prod-box small,
+html[data-dv-theme="dark"] .card-meta,
+html[data-dv-theme="dark"] .resultado span,
+html[data-dv-theme="dark"] .mini,
+html[data-dv-theme="dark"] .mov-fecha{
+    color:var(--dv-muted)!important;
+}
+
+html[data-dv-theme="dark"] .paso strong,
+html[data-dv-theme="dark"] .preview strong,
+html[data-dv-theme="dark"] .metric .val,
+html[data-dv-theme="dark"] .prod-box strong,
+html[data-dv-theme="dark"] .card-nombre,
+html[data-dv-theme="dark"] .card-precio,
+html[data-dv-theme="dark"] .mini strong{
+    color:var(--dv-text)!important;
+}
+
+html[data-dv-theme="dark"] .salud.ok{
+    background:var(--dv-success-soft)!important;
+    border-color:color-mix(in srgb,var(--dv-success-text) 26%,var(--dv-border))!important;
+}
+html[data-dv-theme="dark"] .salud.warning{
+    background:var(--dv-warning-soft)!important;
+    border-color:color-mix(in srgb,var(--dv-warning-text) 26%,var(--dv-border))!important;
+}
+html[data-dv-theme="dark"] .salud.danger{
+    background:var(--dv-danger-soft)!important;
+    border-color:color-mix(in srgb,var(--dv-danger-text) 26%,var(--dv-border))!important;
+}
+html[data-dv-theme="dark"] .salud p,
+html[data-dv-theme="dark"] .alert-list{
+    color:var(--dv-muted)!important;
+}
+
+html[data-dv-theme="dark"] .card-alertas{
+    background:var(--dv-warning-soft)!important;
+    color:var(--dv-warning-text)!important;
+}
+
+html[data-dv-theme="dark"] .badge.compuesto,
+html[data-dv-theme="dark"] .badge.comp{
+    background:var(--dv-purple-soft)!important;
+    color:var(--dv-purple-text)!important;
+}
+html[data-dv-theme="dark"] .badge.interno,
+html[data-dv-theme="dark"] .badge.pieza{
+    background:var(--dv-warning-soft)!important;
+    color:var(--dv-warning-text)!important;
+}
+
+html[data-dv-theme="dark"] .thumb,
+html[data-dv-theme="dark"] .photo{
+    color:var(--dv-muted)!important;
+}
