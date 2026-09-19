@@ -6,6 +6,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 
 from pedidos.models import Pedido
@@ -100,6 +101,43 @@ def _conflicto_planificacion(
             return existente
 
     return None
+
+
+def _tiempo_sugerido_produccion(producto, cantidad):
+    """
+    Prioriza un tiempo real ya utilizado para la misma cantidad.
+    Si todavía no existe, usa el tiempo unitario del producto como
+    estimación austera para no bloquear la planificación.
+    """
+    cantidad = max(int(cantidad or 0), 1)
+    recomendado = obtener_tiempo_recomendado(
+        producto,
+        cantidad,
+    )
+    if recomendado:
+        return int(recomendado)
+
+    unitario = (
+        int(producto.horas or 0) * 60
+        + int(producto.minutos or 0)
+    )
+    if unitario <= 0:
+        return 0
+
+    return unitario * cantidad
+
+
+def _formatear_minutos(total):
+    total = max(int(total or 0), 0)
+    if total <= 0:
+        return "Sin tiempo estimado"
+
+    horas, minutos = divmod(total, 60)
+    if horas and minutos:
+        return f"{horas} h {minutos} min"
+    if horas:
+        return f"{horas} h"
+    return f"{minutos} min"
 
 
 def _impresora_ocupada(
@@ -567,6 +605,80 @@ def lista_produccion(request):
             f"{peso_faltante_gramos:.0f} g"
         )
 
+    necesidades_pendientes = [
+        item
+        for item in necesidades
+        if int(item.get("falta_iniciar") or 0) > 0
+    ]
+
+    for indice, item in enumerate(necesidades_pendientes):
+        cantidad_sugerida = max(
+            int(item.get("falta_normal_planificar") or 0),
+            0,
+        )
+        item["puede_planificar_rapido"] = cantidad_sugerida > 0
+        item["cantidad_sugerida"] = cantidad_sugerida
+        item["es_recomendada"] = indice == 0
+        item["tiempo_sugerido_minutos"] = (
+            _tiempo_sugerido_produccion(
+                item["producto"],
+                cantidad_sugerida,
+            )
+            if cantidad_sugerida > 0
+            else 0
+        )
+        item["tiempo_sugerido_texto"] = _formatear_minutos(
+            item["tiempo_sugerido_minutos"]
+        )
+
+    cola_pendiente = list(
+        qs_base
+        .filter(estado="PENDIENTE")
+        .order_by(
+            "inicio_impresion",
+            "id",
+        )
+    )
+
+    historial_reciente = list(
+        Produccion.objects
+        .filter(estado="LISTO")
+        .select_related(
+            "producto",
+            "impresora",
+            "pedido",
+            "pedido__cliente",
+        )
+        .order_by("-fecha", "-id")[:12]
+    )
+
+    impresoras_libres_lista = [
+        impresora
+        for impresora in impresoras
+        if impresora.esta_libre
+    ]
+
+    for posicion, impresora in enumerate(impresoras_libres_lista):
+        impresora.siguiente_trabajo = (
+            cola_pendiente[posicion]
+            if posicion < len(cola_pendiente)
+            else None
+        )
+        impresora.sugerencia_necesidad = (
+            necesidades_pendientes[0]
+            if (
+                not impresora.siguiente_trabajo
+                and necesidades_pendientes
+            )
+            else None
+        )
+
+    sugerencia_actual = (
+        necesidades_pendientes[0]
+        if necesidades_pendientes
+        else None
+    )
+
     ahora_input = timezone.localtime(
         ahora,
         ARGENTINA_TZ,
@@ -606,6 +718,11 @@ def lista_produccion(request):
                 cantidad_listas,
 
             "necesidades": necesidades,
+            "necesidades_pendientes": necesidades_pendientes,
+            "cola_pendiente": cola_pendiente,
+            "historial_reciente": historial_reciente,
+            "impresoras_libres_lista": impresoras_libres_lista,
+            "sugerencia_actual": sugerencia_actual,
             "total_falta_planificar": total_falta_planificar,
             "total_planificado_unidades": total_planificado_unidades,
             "total_imprimiendo_unidades": total_imprimiendo_unidades,
@@ -615,6 +732,167 @@ def lista_produccion(request):
             "impresoras_libres": impresoras_libres,
             "peso_faltante_texto": peso_faltante_texto,
         },
+    )
+
+
+# ============================================================
+# ACCIÓN RÁPIDA DESDE "QUÉ IMPRIMIR"
+# ============================================================
+
+@transaction.atomic
+def accion_rapida_necesidad(request):
+    if request.method != "POST":
+        return redirect("produccion:lista")
+
+    from pedidos.impresiones_stock import obtener_impresiones_por_producto
+
+    producto = get_object_or_404(
+        Producto,
+        id=request.POST.get("producto"),
+        activo=True,
+        requiere_impresion=True,
+    )
+
+    try:
+        cantidad = int(request.POST.get("cantidad", "0"))
+    except (TypeError, ValueError):
+        cantidad = 0
+
+    accion = (
+        request.POST.get("accion", "PLANIFICAR")
+        .strip()
+        .upper()
+    )
+
+    item = next(
+        (
+            actual
+            for actual in obtener_impresiones_por_producto()
+            if actual["producto"].id == producto.id
+        ),
+        None,
+    )
+    restante = max(
+        int(item.get("falta_normal_planificar") or 0)
+        if item
+        else 0,
+        0,
+    )
+
+    if cantidad <= 0:
+        messages.error(
+            request,
+            "Ingresá una cantidad mayor a cero.",
+        )
+        return redirect(
+            reverse("produccion:lista") + "#que-imprimir"
+        )
+
+    if restante <= 0:
+        messages.error(
+            request,
+            "Ese producto ya no tiene unidades estándar por planificar.",
+        )
+        return redirect(
+            reverse("produccion:lista") + "#que-imprimir"
+        )
+
+    if cantidad > restante:
+        messages.error(
+            request,
+            (
+                f"Quedan {restante} unidad(es) estándar por cubrir. "
+                "Para fabricar stock extra usá Más opciones."
+            ),
+        )
+        return redirect(
+            reverse("produccion:lista") + "#que-imprimir"
+        )
+
+    tiempo_total = _tiempo_sugerido_produccion(
+        producto,
+        cantidad,
+    )
+
+    if tiempo_total <= 0:
+        messages.error(
+            request,
+            (
+                f"{producto.nombre} no tiene tiempo de impresión configurado. "
+                "Completalo en el producto o usá la planificación manual."
+            ),
+        )
+        return redirect(
+            reverse("produccion:lista") + "#que-imprimir"
+        )
+
+    impresora = None
+    estado = "PENDIENTE"
+    inicio = timezone.now()
+
+    if accion == "INICIAR":
+        impresora = get_object_or_404(
+            Impresora,
+            id=request.POST.get("impresora"),
+            activa=True,
+        )
+        ocupando = _impresora_ocupada(impresora)
+        if ocupando:
+            messages.error(
+                request,
+                (
+                    f"{impresora.nombre} está ocupada por "
+                    f"{ocupando.producto.nombre}."
+                ),
+            )
+            return redirect(
+                reverse("produccion:lista") + "#ahora"
+            )
+        estado = "IMPRIMIENDO"
+    elif accion != "PLANIFICAR":
+        messages.error(
+            request,
+            "La acción solicitada no es válida.",
+        )
+        return redirect(
+            reverse("produccion:lista") + "#que-imprimir"
+        )
+
+    produccion = Produccion.objects.create(
+        producto=producto,
+        cantidad=cantidad,
+        destino="STOCK",
+        pedido=None,
+        estado=estado,
+        impresora=impresora,
+        inicio_impresion=inicio,
+        tiempo_impresion_minutos=tiempo_total,
+        observaciones=(
+            "Creada desde Centro de producción · acción rápida."
+        ),
+    )
+
+    if estado == "IMPRIMIENDO":
+        messages.success(
+            request,
+            (
+                f"{produccion.codigo} iniciada en {impresora.nombre}: "
+                f"{producto.nombre} x{cantidad}."
+            ),
+        )
+        return redirect(
+            reverse("produccion:lista") + "#ahora"
+        )
+
+    messages.success(
+        request,
+        (
+            f"{produccion.codigo} agregada a la cola: "
+            f"{producto.nombre} x{cantidad}."
+        ),
+    )
+    return redirect(
+        reverse("produccion:lista") + "#cola"
     )
 
 
