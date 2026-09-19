@@ -34,6 +34,7 @@ from productos.whatsapp import (
 
 MAX_LINEAS = 20
 MAX_CANTIDAD_LINEA = 20
+CANTIDAD_MINIMA_DESCUENTO_PRODUCTOS = 5
 MAX_UNIDADES_TOTALES = 100
 MAX_PAYLOAD_BYTES = 30000
 
@@ -291,8 +292,8 @@ def _aplicar_descuentos_carrito(lineas):
     """
     Reutiliza las reglas comerciales existentes.
 
-    - Productos: usa el escenario recomendado de la calculadora para la
-      cantidad elegida, sin subir nunca el precio publicado.
+    - Productos: mantiene precio de lista hasta 4 unidades. Desde 5 usa el
+      escenario recomendado de la calculadora, sin subir nunca el precio publicado.
     - Kits: usa la lógica de volumen actual, que se activa desde 5 kits
       totales y puede combinar kits distintos.
     """
@@ -316,7 +317,7 @@ def _aplicar_descuentos_carrito(lineas):
             precio_lista_unitario * Decimal(cantidad)
         )
 
-        if cantidad <= 1:
+        if cantidad < CANTIDAD_MINIMA_DESCUENTO_PRODUCTOS:
             continue
 
         calculo = calcular_escenarios_producto(
