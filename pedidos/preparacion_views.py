@@ -156,10 +156,59 @@ def _armar_fila(pedido):
 def impresiones_por_pedido(request):
     """Centro operativo posterior a Producción.
 
-    Ordena los pedidos según lo que el usuario puede hacer ahora:
-    preparar con stock disponible, continuar un armado ya reservado,
-    resolver faltantes o entregar pedidos ya listos.
+    Mantiene activos y cancelados dentro del mismo módulo para que
+    el cambio de filtro no dependa de una plantilla/contexto distinto.
     """
+    filtro = request.GET.get("estado", "ACTIVOS").strip().upper()
+
+    if filtro == "CANCELADOS":
+        from .historial_views import _productos_cancelados_para_historial
+
+        pedidos_cancelados = (
+            Pedido.objects
+            .filter(estado="CANCELADO")
+            .select_related("cliente")
+            .prefetch_related(
+                "detalles__producto",
+                "detalles__kit",
+                "detalles__productos_kit__producto",
+                "pagos",
+            )
+            .order_by("-id")
+        )
+
+        cancelados = []
+        for pedido in pedidos_cancelados:
+            cancelados.append(
+                {
+                    "pedido": pedido,
+                    "productos": _productos_cancelados_para_historial(
+                        pedido
+                    ),
+                    "total_pedido": pedido.total,
+                    "total_pagado": pedido.total_pagado,
+                }
+            )
+
+        return render(
+            request,
+            "pedidos/impresiones_por_pedido.html",
+            {
+                "cancelados": cancelados,
+                "total_cancelados": len(cancelados),
+                "filtro_pedidos": "CANCELADOS",
+                "para_preparar": [],
+                "en_preparacion": [],
+                "falta_stock": [],
+                "listos": [],
+                "total_para_preparar": 0,
+                "total_en_preparacion": 0,
+                "total_falta_stock": 0,
+                "total_listos": 0,
+                "total_activos": 0,
+            },
+        )
+
     pedidos = (
         Pedido.objects
         .exclude(estado__in=["ENTREGADO", "CANCELADO"])
@@ -204,6 +253,9 @@ def impresiones_por_pedido(request):
             "total_falta_stock": len(grupos["falta_stock"]),
             "total_listos": len(grupos["listos"]),
             "total_activos": total_activos,
+            "total_cancelados": Pedido.objects.filter(
+                estado="CANCELADO"
+            ).count(),
             "filtro_pedidos": "ACTIVOS",
         },
     )
