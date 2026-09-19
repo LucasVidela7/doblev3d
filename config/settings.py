@@ -111,6 +111,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "auditoria.middleware.AuditoriaRequestMiddleware",
     "config.auth_middleware.LoginRequiredMiddleware",
+    "config.catalog_maintenance_middleware.CatalogMaintenanceMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "config.impresiones_landscape_middleware.ImpresionesLandscapeMiddleware",
     "config.dashboard_refinements_middleware.DashboardRefinementsMiddleware",
