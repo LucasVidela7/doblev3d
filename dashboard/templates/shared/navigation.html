@@ -189,6 +189,15 @@
 <div class="dv-global-nav-spacer" aria-hidden="true"></div>
 <nav class="dv-global-nav" aria-label="Navegación principal">
     <a
+        href="{% url 'dashboard:inicio' %}"
+        class="dv-global-nav-item {% if request.resolver_match.namespace == 'dashboard' and request.resolver_match.url_name == 'inicio' %}is-active{% endif %}"
+        {% if request.resolver_match.namespace == 'dashboard' and request.resolver_match.url_name == 'inicio' %}aria-current="page"{% endif %}
+    >
+        <span class="dv-global-nav-icon">⌂</span>
+        <span class="dv-global-nav-label">INICIO</span>
+    </a>
+
+    <a
         href="{% url 'pedidos:impresiones' %}"
         class="dv-global-nav-item {% if request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name != 'nuevo' %}is-active{% endif %}"
         {% if request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name != 'nuevo' %}aria-current="page"{% endif %}
@@ -230,7 +239,7 @@
 (function(){
     function limpiarNavegacionRedundante(){
         document.querySelectorAll("a,button").forEach(function(el){
-            if(el.closest("#dvManagementMenu")) return;
+            if(el.closest("#dvManagementMenu") || el.closest(".dv-global-nav")) return;
             const texto=(el.textContent||"").trim().replace(/\s+/g," ");
             const aria=(el.getAttribute("aria-label")||"").trim();
             if(
