@@ -1,2 +1,2 @@
-Deploy QA: corregir barra de Kits
-El listado de Kits elimina botones legacy, deja NUEVO KIT como única acción principal azul bajo el título y fuerza ancho completo en mobile cuando existe una sola acción principal.
+Deploy QA: centro financiero escalable
+Incluye resumen financiero liviano, periodos rápidos, alertas, vistas separadas de Cobros/Gastos/Cuotas/Caja/Rentabilidad, paginación de 20 y cálculo SQL de saldos para evitar historiales infinitos.
