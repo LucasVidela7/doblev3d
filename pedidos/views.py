@@ -1383,8 +1383,8 @@ def cambiar_listo_impresion(request):
             )
 
         if (
-            stock_disponible
-            < cantidad_necesaria
+            not estado_impresion.reservado_stock
+            and stock_disponible < cantidad_necesaria
         ):
 
             messages.error(
