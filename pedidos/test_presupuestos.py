@@ -230,3 +230,27 @@ class PresupuestosTests(TestCase):
         presupuesto.refresh_from_db()
         self.assertEqual(presupuesto.estado, "RECHAZADO")
         self.assertEqual(Pedido.objects.count(), 0)
+
+    def test_listado_filtra_por_estado(self):
+        pendiente = Presupuesto.objects.create(
+            cliente=self.cliente,
+            estado="PENDIENTE",
+        )
+        rechazado = Presupuesto.objects.create(
+            cliente=self.cliente,
+            estado="RECHAZADO",
+        )
+
+        respuesta = self.client.get(
+            reverse("pedidos:presupuestos"),
+            {"estado": "PENDIENTE"},
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, pendiente.codigo)
+        self.assertNotContains(respuesta, rechazado.codigo)
+        self.assertEqual(
+            respuesta.context["estado_seleccionado"],
+            "PENDIENTE",
+        )
+
