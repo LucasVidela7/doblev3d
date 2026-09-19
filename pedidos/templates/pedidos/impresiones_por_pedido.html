@@ -101,6 +101,8 @@
         .pedido.preparando{border-left:4px solid #4b7fc0}
         .pedido.falta{border-left:4px solid #c65858}
         .pedido.listo{border-left:4px solid #3e9558}
+        .pedido.cancelado{border-left:4px solid #c65858;opacity:.92}
+        .pedido.cancelado .pedido-status{background:var(--red);color:var(--red-text)}
         .pedido-head{
             display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start;padding:13px 14px
         }
@@ -241,8 +243,12 @@
             <div class="subtitulo">Después de imprimir: reservá stock, armá el paquete y dejalo listo para entregar.</div>
         </div>
         <div class="acciones-head">
-            <a href="{% url 'produccion:lista' %}" class="btn-head">← Producción</a>
-            <a href="{% url 'pedidos:cancelados' %}" class="btn-head">Cancelados</a>
+            <a href="{% url 'produccion:lista' %}" class="btn-head">PRODUCCIÓN</a>
+            {% if filtro_pedidos == "CANCELADOS" %}
+                <a href="{% url 'pedidos:impresiones' %}?estado=ACTIVOS" class="btn-head">ACTIVOS</a>
+            {% else %}
+                <a href="{% url 'pedidos:impresiones' %}?estado=CANCELADOS" class="btn-head">CANCELADOS{% if total_cancelados %} · {{ total_cancelados }}{% endif %}</a>
+            {% endif %}
         </div>
     </header>
 
@@ -253,6 +259,79 @@
         {% endfor %}
     </div>
     {% endif %}
+
+    {% if filtro_pedidos == "CANCELADOS" %}
+    <section class="resumen" aria-label="Resumen de pedidos cancelados">
+        <div class="metrica falta">
+            <span>CANCELADOS</span>
+            <strong>{{ total_cancelados }}</strong>
+        </div>
+    </section>
+
+    <section class="seccion" id="cancelados">
+        <div class="seccion-head">
+            <div>
+                <h2>Pedidos cancelados</h2>
+                <div class="seccion-ayuda">Historial de solo lectura. No reserva stock ni participa del flujo de preparación.</div>
+            </div>
+            <span class="seccion-contador">{{ total_cancelados }} pedido{{ total_cancelados|pluralize:"s" }}</span>
+        </div>
+
+        <div class="lista">
+            {% for item_pedido in cancelados %}
+            <article class="pedido cancelado">
+                <header class="pedido-head">
+                    <div>
+                        <div class="pedido-linea">
+                            <span class="codigo">{{ item_pedido.pedido.codigo }}</span>
+                            <span class="cliente">{{ item_pedido.pedido.cliente.nombre }}</span>
+                        </div>
+                        <div class="meta">
+                            <span class="tag">{{ item_pedido.pedido.fecha|date:"d/m/Y" }}</span>
+                            <span class="tag">{{ item_pedido.productos|length }} producto{{ item_pedido.productos|length|pluralize:"s" }}</span>
+                            <span class="tag">Total &#36;{{ item_pedido.total_pedido|floatformat:0 }}</span>
+                        </div>
+                    </div>
+                    <div class="pedido-head-tools">
+                        <span class="pedido-status">CANCELADO</span>
+                    </div>
+                </header>
+
+                <details class="pedido-productos" id="cancelados-pedido-{{ item_pedido.pedido.id }}">
+                    <summary>
+                        <span>PRODUCTOS DEL PEDIDO</span>
+                        <span class="pedido-productos-resumen">{{ item_pedido.productos|length }} item{{ item_pedido.productos|length|pluralize:"s" }}</span>
+                    </summary>
+                    <section class="productos">
+                        {% for item in item_pedido.productos %}
+                        <div class="producto">
+                            <div>
+                                <div class="producto-nombre">{{ item.nombre }}</div>
+                                <div class="producto-detalle">
+                                    Cantidad {{ item.cantidad }}
+                                    {% if item.codigo %} · {{ item.codigo }}{% endif %}
+                                    {% if item.origen %} · {{ item.origen }}{% endif %}
+                                </div>
+                            </div>
+                            <div class="stock manual"><span>ESTADO</span><strong>Solo lectura</strong></div>
+                        </div>
+                        {% endfor %}
+                    </section>
+                </details>
+
+                <footer class="pedido-foot">
+                    <div class="saldo">Pagado <strong>&#36;{{ item_pedido.total_pagado|floatformat:0 }}</strong></div>
+                    <div class="acciones">
+                        <a href="{% url 'pedidos:detalle' item_pedido.pedido.id %}" class="btn">VER PEDIDO</a>
+                    </div>
+                </footer>
+            </article>
+            {% empty %}
+            <div class="vacio">No hay pedidos cancelados.</div>
+            {% endfor %}
+        </div>
+    </section>
+    {% else %}
 
     <section class="resumen" aria-label="Resumen de preparación">
         <a href="#para-preparar" class="metrica disponible" style="text-decoration:none;color:inherit"><span>PARA PREPARAR</span><strong>{{ total_para_preparar }}</strong></a>
@@ -525,6 +604,7 @@
             {% endfor %}
         </div>
     </section>
+    {% endif %}
 </div>
 
 {% include "shared/navigation.html" %}
