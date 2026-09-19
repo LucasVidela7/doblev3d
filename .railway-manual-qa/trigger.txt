@@ -1,2 +1,2 @@
-Deploy QA: dashboard alineado a Producción
-Incluye: se quita la barra de Qué imprimir; dashboard usa la misma necesidad real del Centro de producción y muestra Qué imprimir + Ahora y cola en formato compacto.
+Deploy QA: solicitudes web visibles en dashboard
+Incluye: métrica de solicitudes web, acceso rápido y panel compacto con nuevas/contactadas, total, unidades y acceso al detalle.
