@@ -2000,6 +2000,11 @@ html[data-dv-theme="dark"] .photo{
         margin-left:0!important;
     }
 
+    .dv-page-actions > .dv-page-action-primary:only-child{
+        width:100%!important;
+        flex:1 1 100%!important;
+    }
+
     .dv-page-actions > a,
     .dv-page-actions > button,
     .dv-page-actions > form > button{
