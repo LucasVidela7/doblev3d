@@ -1,2 +1,2 @@
-Deploy QA: contraste de solicitudes web en dashboard
-Incluye: card adaptada al modo oscuro, textos legibles y layout más compacto en desktop.
+Deploy QA: avisos flotantes globales en Gestión
+Incluye: mensajes de éxito, error, advertencia e información convertidos en toasts flotantes, compatibles con modo claro/oscuro y responsive.
