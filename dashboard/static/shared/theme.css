@@ -1621,3 +1621,86 @@ html[data-dv-theme="dark"] .avatar{
     color:var(--dv-text)!important;
     border-color:var(--dv-border)!important;
 }
+
+
+/* =========================================================
+   ACCIONES DE PEDIDO · menú contextual reutilizable
+   ========================================================= */
+.dv-order-menu{
+    position:relative;
+    flex:0 0 auto;
+}
+.dv-order-menu__toggle{
+    width:40px;
+    height:40px;
+    display:grid;
+    place-items:center;
+    padding:0;
+    border:1px solid var(--dv-border,#dfe5ef);
+    border-radius:11px;
+    background:var(--dv-surface,#fff);
+    color:var(--dv-text,#17233a);
+    font:inherit;
+    font-size:22px;
+    font-weight:900;
+    line-height:1;
+    cursor:pointer;
+}
+.dv-order-menu__toggle:hover{
+    background:var(--dv-surface-soft,#f8faff);
+}
+.dv-order-menu__panel{
+    display:none;
+    position:absolute;
+    z-index:250;
+    top:46px;
+    right:0;
+    width:min(230px,calc(100vw - 28px));
+    padding:6px;
+    border:1px solid var(--dv-border,#dfe5ef);
+    border-radius:13px;
+    background:var(--dv-surface,#fff);
+    box-shadow:0 18px 48px rgba(0,0,0,.20);
+}
+.dv-order-menu.is-open .dv-order-menu__panel{
+    display:block;
+}
+.dv-order-menu__panel a,
+.dv-order-menu__panel button{
+    width:100%;
+    min-height:42px;
+    display:flex;
+    align-items:center;
+    padding:0 11px;
+    border:0;
+    border-radius:9px;
+    background:transparent;
+    color:var(--dv-text,#17233a);
+    font:inherit;
+    font-size:10px;
+    font-weight:850;
+    text-align:left;
+    text-decoration:none;
+    cursor:pointer;
+}
+.dv-order-menu__panel a:hover,
+.dv-order-menu__panel button:hover{
+    background:var(--dv-surface-soft,#f8faff);
+}
+.dv-order-menu__panel form{
+    margin:0;
+}
+.dv-order-menu__panel .is-danger{
+    color:var(--dv-danger-text,#a33a3a);
+}
+.dv-order-menu__divider{
+    height:1px;
+    margin:5px 4px;
+    background:var(--dv-border,#dfe5ef);
+}
+html[data-dv-theme="dark"] .dv-order-menu__toggle,
+html[data-dv-theme="dark"] .dv-order-menu__panel{
+    background:var(--dv-surface)!important;
+    border-color:var(--dv-border)!important;
+    color:var(--dv-text)!important;
+}
