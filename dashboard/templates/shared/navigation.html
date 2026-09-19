@@ -95,7 +95,7 @@
 
         <a
             href="{% url 'productos:lista' %}"
-            class="dv-management-menu__link {% if request.resolver_match.namespace == 'productos' %}is-active{% endif %}"
+            class="dv-management-menu__link {% if request.resolver_match.namespace == 'productos' or request.resolver_match.namespace == 'calculadora' %}is-active{% endif %}"
         >
             <span class="dv-management-menu__icon">▦</span>
             <span>
@@ -137,16 +137,6 @@
             </span>
         </a>
 
-        <a
-            href="{% url 'calculadora:precios' %}"
-            class="dv-management-menu__link {% if request.resolver_match.namespace == 'calculadora' %}is-active{% endif %}"
-        >
-            <span class="dv-management-menu__icon">🧮</span>
-            <span>
-                <span class="dv-management-menu__label">Calculadora</span>
-                <span class="dv-management-menu__description">Costos, precios y mayorista.</span>
-            </span>
-        </a>
         <a
             href="{% url 'dashboard:configuracion' %}"
             class="dv-management-menu__link {% if request.resolver_match.namespace == 'dashboard' and request.resolver_match.url_name == 'configuracion' %}is-active{% endif %}"
@@ -239,8 +229,8 @@
 
     <a
         href="{% url 'productos:lista' %}"
-        class="dv-global-nav-item {% if request.resolver_match.namespace == 'productos' or request.resolver_match.namespace == 'kits' %}is-active{% endif %}"
-        {% if request.resolver_match.namespace == 'productos' or request.resolver_match.namespace == 'kits' %}aria-current="page"{% endif %}
+        class="dv-global-nav-item {% if request.resolver_match.namespace == 'productos' or request.resolver_match.namespace == 'kits' or request.resolver_match.namespace == 'calculadora' %}is-active{% endif %}"
+        {% if request.resolver_match.namespace == 'productos' or request.resolver_match.namespace == 'kits' or request.resolver_match.namespace == 'calculadora' %}aria-current="page"{% endif %}
     >
         <span class="dv-global-nav-icon">▦</span>
         <span class="dv-global-nav-label">PRODUCTOS</span>
