@@ -40,11 +40,35 @@ class CatalogMaintenanceMiddleware:
         mantenimiento_forzado = bool(
             getattr(settings, "CATALOGO_MANTENIMIENTO", False)
         )
+        mantenimiento_activo = (
+            mantenimiento_forzado
+            or bool(config and not config.catalogo_activo)
+        )
 
-        if (
-            not mantenimiento_forzado
-            and (not config or config.catalogo_activo)
-        ):
+        if not mantenimiento_activo:
+            return self.get_response(request)
+
+        mensaje_mantenimiento = (
+            config.mensaje_mantenimiento
+            if config and config.mensaje_mantenimiento
+            else (
+                "Estamos haciendo unos ajustes en la tienda. "
+                "Volvé a visitarnos en unos minutos."
+            )
+        )
+
+        usuario = getattr(request, "user", None)
+        es_admin = bool(
+            usuario
+            and usuario.is_authenticated
+            and (usuario.is_staff or usuario.is_superuser)
+        )
+
+        if es_admin:
+            request.catalogo_en_mantenimiento = True
+            request.catalogo_mantenimiento_mensaje = (
+                mensaje_mantenimiento
+            )
             return self.get_response(request)
 
         if match.url_name == "catalogo_carrito_precios":
@@ -61,14 +85,7 @@ class CatalogMaintenanceMiddleware:
             request,
             "productos/catalogo_mantenimiento.html",
             {
-                "mensaje_mantenimiento": (
-                    config.mensaje_mantenimiento
-                    if config and config.mensaje_mantenimiento
-                    else (
-                        "Estamos haciendo unos ajustes en la tienda. "
-                        "Volvé a visitarnos en unos minutos."
-                    )
-                ),
+                "mensaje_mantenimiento": mensaje_mantenimiento,
             },
             status=503,
         )
