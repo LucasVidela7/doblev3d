@@ -1573,7 +1573,13 @@ html[data-dv-theme="dark"] .queue-actions .btn.red:hover{
    DARK MODE · KITS Y CLIENTES
    Corrige superficies claras residuales en vistas mobile.
    ========================================================= */
-html[data-dv-theme="dark"] .composicion,
+html[data-dv-theme="dark"] .composicion{
+    background:transparent!important;
+    border-color:transparent!important;
+    color:var(--dv-text)!important;
+    box-shadow:none!important;
+}
+
 html[data-dv-theme="dark"] .composicion .fila{
     background:var(--dv-surface-soft)!important;
     color:var(--dv-text)!important;
