@@ -8,6 +8,7 @@ from pedidos.detalle_views import _armar_preparacion
 from pedidos.models import Pedido
 
 from .models import Cliente
+from .telefonos import buscar_cliente_por_telefono
 
 
 def _pedidos_cliente_queryset():
@@ -123,6 +124,22 @@ def detalle_cliente(request, cliente_id):
             messages.error(
                 request,
                 "El nombre del cliente no puede quedar vacío."
+            )
+            return redirect(
+                f"{request.path}?editar=1"
+            )
+
+        existente = buscar_cliente_por_telefono(
+            telefono,
+            excluir_id=cliente.id,
+        )
+        if existente:
+            messages.error(
+                request,
+                (
+                    f"Ese teléfono ya pertenece a {existente.nombre} "
+                    f"({existente.codigo})."
+                ),
             )
             return redirect(
                 f"{request.path}?editar=1"
