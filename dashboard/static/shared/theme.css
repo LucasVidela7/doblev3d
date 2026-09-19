@@ -1567,3 +1567,51 @@ html[data-dv-theme="dark"] .queue-actions .btn.red{
 html[data-dv-theme="dark"] .queue-actions .btn.red:hover{
     background:color-mix(in srgb,var(--dv-danger-soft) 82%,#000)!important;
 }
+
+
+/* =========================================================
+   DARK MODE · KITS Y CLIENTES
+   Corrige superficies claras residuales en vistas mobile.
+   ========================================================= */
+html[data-dv-theme="dark"] .composicion,
+html[data-dv-theme="dark"] .composicion .fila{
+    background:var(--dv-surface-soft)!important;
+    color:var(--dv-text)!important;
+    border-color:var(--dv-border)!important;
+}
+
+html[data-dv-theme="dark"] .composicion .fila span,
+html[data-dv-theme="dark"] .composicion .fila strong{
+    color:var(--dv-text)!important;
+}
+
+html[data-dv-theme="dark"] .cliente .columna,
+html[data-dv-theme="dark"] .cliente .comprado{
+    background:var(--dv-surface-soft)!important;
+    color:var(--dv-text)!important;
+    border-color:var(--dv-border)!important;
+}
+
+html[data-dv-theme="dark"] .cliente .columna-label{
+    color:var(--dv-muted)!important;
+}
+
+html[data-dv-theme="dark"] .cliente .columna-valor{
+    color:var(--dv-text)!important;
+}
+
+html[data-dv-theme="dark"] .cliente .columna.saldo-activo{
+    background:var(--dv-warning-soft)!important;
+    color:var(--dv-warning-text)!important;
+}
+
+html[data-dv-theme="dark"] .cliente .columna.saldo-activo .columna-label,
+html[data-dv-theme="dark"] .cliente .columna.saldo-activo .columna-valor{
+    color:var(--dv-warning-text)!important;
+}
+
+html[data-dv-theme="dark"] .avatar{
+    background:var(--dv-surface-muted)!important;
+    color:var(--dv-text)!important;
+    border-color:var(--dv-border)!important;
+}
