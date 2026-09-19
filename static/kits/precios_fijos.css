@@ -341,3 +341,78 @@
         min-height:0;
     }
 }
+
+
+/* Dark mode */
+html[data-dv-theme="dark"] #recomendacion_precio.dv-kit-calculadora-activo{
+    background:var(--dv-surface)!important;
+    border-color:var(--dv-border)!important;
+    color:var(--dv-text)!important;
+}
+html[data-dv-theme="dark"] .dv-kit-escenarios-detalle,
+html[data-dv-theme="dark"] .dv-kit-escenarios-etiqueta,
+html[data-dv-theme="dark"] .dv-kit-escenario-nombre,
+html[data-dv-theme="dark"] .dv-kit-escenario-margen,
+html[data-dv-theme="dark"] .dv-kit-escenario-ayuda,
+html[data-dv-theme="dark"] .dv-kit-opciones-ayuda,
+html[data-dv-theme="dark"] .dv-kit-opciones-subtitulo{
+    color:var(--dv-muted)!important;
+}
+html[data-dv-theme="dark"] .dv-kit-costo-chip,
+html[data-dv-theme="dark"] .dv-kit-precio-actual,
+html[data-dv-theme="dark"] .dv-kit-escenario,
+html[data-dv-theme="dark"] .dv-kit-escenarios-estado,
+html[data-dv-theme="dark"] .dv-kit-opciones-resumen > div{
+    background:var(--dv-surface-soft)!important;
+    border-color:var(--dv-border)!important;
+    color:var(--dv-text)!important;
+}
+html[data-dv-theme="dark"] .dv-kit-escenario.agresivo{
+    background:var(--dv-surface-soft)!important;
+}
+html[data-dv-theme="dark"] .dv-kit-escenario.recomendado{
+    background:var(--dv-success-soft)!important;
+    border-color:color-mix(in srgb,var(--dv-success-text) 35%,var(--dv-border))!important;
+}
+html[data-dv-theme="dark"] .dv-kit-escenario.conservador{
+    background:var(--dv-warning-soft)!important;
+    border-color:color-mix(in srgb,var(--dv-warning-text) 30%,var(--dv-border))!important;
+}
+html[data-dv-theme="dark"] .dv-kit-escenario-precio,
+html[data-dv-theme="dark"] .dv-kit-opciones-numero{
+    color:var(--dv-text)!important;
+}
+html[data-dv-theme="dark"] .dv-kit-usar-precio{
+    background:var(--dv-surface-muted)!important;
+    border-color:var(--dv-border)!important;
+    color:var(--dv-text)!important;
+}
+html[data-dv-theme="dark"] .dv-kit-escenario.recomendado .dv-kit-usar-precio{
+    background:var(--dv-brand-blue)!important;
+    border-color:var(--dv-brand-blue)!important;
+    color:#fff!important;
+}
+html[data-dv-theme="dark"] .dv-kit-base-protegida,
+html[data-dv-theme="dark"] .dv-kit-opciones-rentabilidad{
+    background:var(--dv-surface-soft)!important;
+    border-color:var(--dv-border)!important;
+    color:var(--dv-text)!important;
+}
+html[data-dv-theme="dark"] .dv-kit-opciones-rentabilidad.desactivada{
+    background:var(--dv-surface-soft)!important;
+}
+html[data-dv-theme="dark"] .dv-kit-precio-actual.alerta,
+html[data-dv-theme="dark"] .dv-kit-costo-chip.riesgo{
+    background:var(--dv-warning-soft)!important;
+    color:var(--dv-warning-text)!important;
+}
+html[data-dv-theme="dark"] .dv-kit-precio-actual.protegido{
+    background:var(--dv-success-soft)!important;
+    color:var(--dv-success-text)!important;
+}
+html[data-dv-theme="dark"] .dv-kit-precio-actual.critico,
+html[data-dv-theme="dark"] .dv-kit-base-protegida.alerta,
+html[data-dv-theme="dark"] .dv-kit-escenarios-estado.error{
+    background:var(--dv-danger-soft)!important;
+    color:var(--dv-danger-text)!important;
+}
