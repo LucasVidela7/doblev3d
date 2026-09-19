@@ -152,6 +152,104 @@
     color:rgba(255,255,255,.8);
 }
 
+.dv-management-menu__notifications{
+    flex:0 0 auto;
+    display:flex;
+    justify-content:center;
+    padding:10px 12px;
+    border-top:1px solid var(--dv-border,#dfe5ef);
+    background:var(--dv-surface,#fff);
+}
+
+.dv-management-menu__push{
+    width:100%;
+    min-height:54px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    padding:9px 12px;
+    border:1px solid var(--dv-border,#dfe5ef);
+    border-radius:14px;
+    background:var(--dv-surface-soft,#f8faff);
+    color:var(--dv-text,#17233a);
+    font-family:Arial,sans-serif;
+    cursor:pointer;
+    transition:background .14s ease,border-color .14s ease,transform .12s ease;
+}
+
+.dv-management-menu__push:hover{
+    border-color:rgba(19,74,154,.22);
+    background:var(--dv-brand-blue-soft,#eef4ff);
+}
+
+.dv-management-menu__push:active{
+    transform:scale(.985);
+}
+
+.dv-management-menu__push-icon{
+    width:38px;
+    height:38px;
+    display:grid;
+    place-items:center;
+    flex:0 0 auto;
+    border-radius:11px;
+    background:var(--dv-surface-muted,#f1f4f9);
+    font-size:18px;
+}
+
+.dv-management-menu__push-copy{
+    min-width:0;
+    text-align:left;
+}
+
+.dv-management-menu__push-title,
+.dv-management-menu__push-hint{
+    display:block;
+}
+
+.dv-management-menu__push-title{
+    font-size:11px;
+    font-weight:900;
+    line-height:1.15;
+}
+
+.dv-management-menu__push-hint{
+    margin-top:3px;
+    color:var(--dv-muted,#667085);
+    font-size:8px;
+    font-weight:700;
+}
+
+.dv-management-menu__push.is-active{
+    border-color:rgba(36,99,58,.28);
+    background:#e8f6ec;
+    color:#24633a;
+}
+
+.dv-management-menu__push.is-active .dv-management-menu__push-icon{
+    background:#d8efdf;
+}
+
+.dv-management-menu__push.is-blocked{
+    border-color:rgba(154,48,48,.28);
+    background:#fff2f2;
+    color:#9a3030;
+}
+
+.dv-management-menu__push:disabled{
+    opacity:.58;
+    cursor:not-allowed;
+}
+
+html[data-dv-theme="dark"] .dv-management-menu__notifications{
+    background:var(--dv-surface,#171e2c);
+}
+
+html[data-dv-theme="dark"] .dv-management-menu__push{
+    background:var(--dv-surface-soft,#1b2434);
+}
+
 .dv-management-menu__settings{
     flex:0 0 auto;
     display:flex;
