@@ -612,6 +612,53 @@ def lista_produccion(request):
     ]
 
     for indice, item in enumerate(necesidades_pendientes):
+        total_a_imprimir = max(
+            int(item.get("a_imprimir") or 0),
+            0,
+        )
+        planificadas = max(
+            int(item.get("planificadas") or 0),
+            0,
+        )
+        imprimiendo = max(
+            int(item.get("en_produccion") or 0),
+            0,
+        )
+        cubierto = min(
+            planificadas + imprimiendo,
+            total_a_imprimir,
+        )
+
+        if total_a_imprimir > 0:
+            avance = round(
+                cubierto / total_a_imprimir * 100
+            )
+            porcentaje_cola = min(
+                round(
+                    planificadas
+                    / total_a_imprimir
+                    * 100
+                ),
+                100,
+            )
+            porcentaje_imprimiendo = min(
+                round(
+                    imprimiendo
+                    / total_a_imprimir
+                    * 100
+                ),
+                max(100 - porcentaje_cola, 0),
+            )
+        else:
+            avance = 0
+            porcentaje_cola = 0
+            porcentaje_imprimiendo = 0
+
+        item["cubierto_impresion"] = cubierto
+        item["avance_porcentaje"] = avance
+        item["porcentaje_cola"] = porcentaje_cola
+        item["porcentaje_imprimiendo"] = porcentaje_imprimiendo
+
         cantidad_sugerida = max(
             int(item.get("falta_normal_planificar") or 0),
             0,
