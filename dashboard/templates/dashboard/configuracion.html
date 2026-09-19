@@ -266,7 +266,6 @@
                             <span>Este navegador · {{ dispositivos_push_activos }} dispositivo{{ dispositivos_push_activos|pluralize }} activo{{ dispositivos_push_activos|pluralize }}</span>
                         </span>
                     </button>
-                    <form id="dvGlobalPushCsrf" hidden>{% csrf_token %}</form>
                     {% else %}
                     <div class="cfg-note">
                         Web Push todavía no tiene las claves VAPID configuradas en este entorno.
