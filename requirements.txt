@@ -5,6 +5,7 @@ gunicorn==26.2.0
 imagekitio==5.9.0
 psycopg==3.3.5
 psycopg-binary==3.3.5
+pywebpush==2.5.0
 sqlparse==0.6.0
 tzdata==2026.4
 whitenoise==6.12.0
