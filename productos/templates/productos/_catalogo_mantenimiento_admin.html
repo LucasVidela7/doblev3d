@@ -1,0 +1,100 @@
+{% if request.catalogo_en_mantenimiento %}
+<style>
+    html::before{
+        content:"";
+        position:fixed;
+        inset:0;
+        z-index:2147483000;
+        border:4px solid #f59e0b;
+        pointer-events:none;
+    }
+
+    .dv-maintenance-admin{
+        position:fixed;
+        top:12px;
+        left:50%;
+        z-index:2147483001;
+        width:min(720px,calc(100% - 28px));
+        transform:translateX(-50%);
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:14px;
+        padding:10px 12px;
+        border:1px solid rgba(180,112,0,.30);
+        border-radius:14px;
+        background:rgba(255,247,225,.96);
+        color:#6f4700;
+        box-shadow:0 12px 34px rgba(83,54,0,.18);
+        backdrop-filter:blur(10px);
+        -webkit-backdrop-filter:blur(10px);
+        font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    }
+
+    .dv-maintenance-admin__copy{
+        min-width:0;
+    }
+
+    .dv-maintenance-admin__title{
+        display:block;
+        font-size:.76rem;
+        font-weight:950;
+        letter-spacing:.04em;
+        text-transform:uppercase;
+    }
+
+    .dv-maintenance-admin__text{
+        display:block;
+        margin-top:2px;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+        font-size:.7rem;
+        font-weight:650;
+        color:#8b6116;
+    }
+
+    .dv-maintenance-admin__badge{
+        flex:0 0 auto;
+        padding:6px 9px;
+        border-radius:999px;
+        background:#f59e0b;
+        color:#fff;
+        font-size:.65rem;
+        font-weight:950;
+        letter-spacing:.04em;
+        white-space:nowrap;
+    }
+
+    @media(max-width:640px){
+        html::before{
+            border-width:3px;
+        }
+
+        .dv-maintenance-admin{
+            top:8px;
+            align-items:flex-start;
+            padding:9px 10px;
+        }
+
+        .dv-maintenance-admin__text{
+            white-space:normal;
+            line-height:1.35;
+        }
+
+        .dv-maintenance-admin__badge{
+            display:none;
+        }
+    }
+</style>
+
+<div class="dv-maintenance-admin" role="status" aria-live="polite">
+    <div class="dv-maintenance-admin__copy">
+        <span class="dv-maintenance-admin__title">Tienda en mantenimiento</span>
+        <span class="dv-maintenance-admin__text">
+            Solo vos y otros administradores pueden verla. Para el público continúa bloqueada.
+        </span>
+    </div>
+    <span class="dv-maintenance-admin__badge">SOLO ADMIN</span>
+</div>
+{% endif %}
