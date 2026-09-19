@@ -809,6 +809,7 @@ def _contexto_formulario(request, producto, modo):
         componentes_actuales = list(
             producto.componentes.select_related("componente").all()
         )
+        _enriquecer_productos([producto])
 
     return {
         "producto": producto,
@@ -818,6 +819,7 @@ def _contexto_formulario(request, producto, modo):
         "piezas": _piezas_disponibles(producto),
         "componentes_actuales": componentes_actuales,
         "modo": modo,
+        "margen_minimo": MARGEN_MINIMO,
     }
 
 
