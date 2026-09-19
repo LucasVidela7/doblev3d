@@ -8,6 +8,7 @@ from django.urls import reverse
 
 from clientes.models import Cliente
 from clientes.telefonos import buscar_cliente_por_telefono
+from calculadora.precios import calcular_precio_catalogo_producto
 from kits.economia import precio_automatico_kit_libre
 from kits.models import Kit
 from productos.models import Producto
@@ -100,27 +101,45 @@ def _parsear_items(request):
                 Producto,
                 id=request.POST.get(f"producto_{indice}"),
                 activo=True,
+                solo_produccion=False,
             )
-            precio_unitario = _decimal_positivo(
-                request.POST.get(f"precio_unitario_{indice}", "")
-            )
-            precio_total = _decimal_positivo(
-                request.POST.get(f"precio_total_producto_{indice}", "")
+            precio_manual = (
+                request.POST.get(f"precio_producto_manual_{indice}")
+                == "1"
             )
 
-            if precio_total > 0:
-                precio_unitario = (
-                    precio_total / Decimal(cantidad)
-                ).quantize(CENTAVOS)
-            elif precio_unitario > 0:
-                precio_total = (
-                    precio_unitario * Decimal(cantidad)
-                ).quantize(CENTAVOS)
-
-            if precio_unitario <= 0 or precio_total <= 0:
-                raise ValueError(
-                    f"El precio acordado de {producto.nombre} debe ser mayor a cero."
+            if precio_manual:
+                precio_unitario = _decimal_positivo(
+                    request.POST.get(f"precio_unitario_{indice}", "")
                 )
+                precio_total = _decimal_positivo(
+                    request.POST.get(f"precio_total_producto_{indice}", "")
+                )
+
+                if precio_total > 0:
+                    precio_unitario = (
+                        precio_total / Decimal(cantidad)
+                    ).quantize(CENTAVOS)
+                elif precio_unitario > 0:
+                    precio_total = (
+                        precio_unitario * Decimal(cantidad)
+                    ).quantize(CENTAVOS)
+
+                if precio_unitario <= 0 or precio_total <= 0:
+                    raise ValueError(
+                        f"El precio acordado de {producto.nombre} debe ser mayor a cero."
+                    )
+            else:
+                calculo_catalogo = calcular_precio_catalogo_producto(
+                    producto,
+                    cantidad,
+                )
+                precio_unitario = Decimal(
+                    str(calculo_catalogo["precio_unitario"])
+                ).quantize(CENTAVOS)
+                precio_total = Decimal(
+                    str(calculo_catalogo["precio_final_total"])
+                ).quantize(CENTAVOS)
 
             items.append(
                 {
