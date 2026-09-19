@@ -405,10 +405,8 @@ a,button{touch-action:manipulation}
     .metricas{
         grid-auto-flow:initial;
         grid-auto-columns:auto;
-        grid-template-columns:
-            repeat(4,minmax(145px,.9fr))
-            repeat(2,minmax(210px,1.2fr));
-        gap:9px;
+        grid-template-columns:repeat(7,minmax(0,1fr));
+        gap:8px;
         overflow:visible;
         padding:2px 0 7px;
         margin:0 0 18px;
@@ -416,34 +414,37 @@ a,button{touch-action:manipulation}
 
     .metrica{
         min-width:0;
-        min-height:108px;
-        padding:13px 13px 12px;
-        border-radius:15px;
+        min-height:98px;
+        padding:11px 11px 10px;
+        border-radius:14px;
     }
 
     .metrica-numero{
-        font-size:30px;
+        font-size:27px;
     }
 
     .m-cobrar .metrica-numero,
     .m-cobrado .metrica-numero{
-        font-size:29px;
+        font-size:25px;
+        letter-spacing:-.8px;
     }
 
     .metrica-titulo{
-        font-size:9px;
+        font-size:8px;
+        letter-spacing:.32px;
     }
 
     .metrica-ayuda{
-        font-size:9px;
-        line-height:1.25;
+        margin-top:4px;
+        font-size:8px;
+        line-height:1.2;
     }
 
     .metrica-icono{
-        width:30px;
-        height:30px;
-        border-radius:9px;
-        font-size:15px;
+        width:27px;
+        height:27px;
+        border-radius:8px;
+        font-size:13px;
     }
 
     .seccion{
