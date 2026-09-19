@@ -261,6 +261,82 @@ html[data-dv-theme="dark"] .dv-management-menu__push{
     background:var(--dv-surface-soft,#f8faff);
 }
 
+
+.dv-management-menu__account{
+    flex:0 0 auto;
+    display:grid;
+    gap:8px;
+    padding:10px 12px 12px;
+    border-top:1px solid var(--dv-border,#dfe5ef);
+    background:var(--dv-surface,#fff);
+}
+
+.dv-management-menu__user{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    min-width:0;
+    padding:9px 10px;
+    border:1px solid var(--dv-border,#dfe5ef);
+    border-radius:13px;
+    background:var(--dv-surface-soft,#f8faff);
+    color:var(--dv-text,#17233a);
+}
+
+.dv-management-menu__user-icon{
+    width:34px;
+    height:34px;
+    display:grid;
+    place-items:center;
+    flex:0 0 auto;
+    border-radius:10px;
+    background:var(--dv-surface-muted,#f1f4f9);
+    font-size:16px;
+}
+
+.dv-management-menu__user-copy{
+    min-width:0;
+}
+
+.dv-management-menu__user-label{
+    display:block;
+    color:var(--dv-muted,#667085);
+    font-size:8px;
+    font-weight:900;
+    letter-spacing:.05em;
+}
+
+.dv-management-menu__user strong{
+    display:block;
+    margin-top:2px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-size:11px;
+}
+
+.dv-management-menu__logout-form{
+    margin:0;
+}
+
+.dv-management-menu__logout{
+    width:100%;
+    min-height:40px;
+    border:1px solid rgba(240,57,59,.24);
+    border-radius:11px;
+    background:var(--dv-danger-soft,#fff0f0);
+    color:var(--dv-danger-text,#9a3030);
+    font-family:Arial,sans-serif;
+    font-size:10px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+.dv-management-menu__logout:hover{
+    border-color:rgba(240,57,59,.38);
+    background:#ffe8e8;
+}
+
 .dv-management-menu__settings-copy{
     min-width:0;
 }
@@ -440,4 +516,17 @@ html[data-dv-theme="dark"] .dv-management-menu__link.is-active .dv-management-me
 
 html[data-dv-theme="dark"] .dv-management-menu__settings{
     background:var(--dv-surface-soft,#1b2434);
+}
+
+html[data-dv-theme="dark"] .dv-management-menu__account{
+    background:var(--dv-surface,#171e2c);
+}
+
+html[data-dv-theme="dark"] .dv-management-menu__user{
+    background:var(--dv-surface-soft,#1b2434);
+}
+
+html[data-dv-theme="dark"] .dv-management-menu__logout{
+    background:var(--dv-danger-soft,#3a2023);
+    color:var(--dv-danger-text,#ffb8bd);
 }
