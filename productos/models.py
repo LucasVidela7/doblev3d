@@ -7,6 +7,28 @@ from costos.models import ConfiguracionCostos
 
 
 class ConfiguracionCatalogo(models.Model):
+    catalogo_activo = models.BooleanField(
+        default=True,
+        verbose_name="Catálogo público activo",
+        help_text=(
+            "Si se desactiva, toda la tienda pública muestra una página de mantenimiento."
+        ),
+    )
+    mensaje_mantenimiento = models.CharField(
+        max_length=240,
+        blank=True,
+        default=(
+            "Estamos haciendo unos ajustes en la tienda. Volvé a visitarnos en unos minutos."
+        ),
+        verbose_name="Mensaje de mantenimiento",
+    )
+    notificaciones_pedidos_web_activas = models.BooleanField(
+        default=True,
+        verbose_name="Notificaciones de pedidos web",
+        help_text=(
+            "Activa o desactiva globalmente los avisos push cuando entra una solicitud web."
+        ),
+    )
     instagram_usuario = models.CharField(
         max_length=100,
         blank=True,
