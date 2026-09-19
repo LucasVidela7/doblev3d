@@ -2,7 +2,12 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
-from productos.catalogo import catalogo, catalogo_kit_detalle
+from productos.catalogo import (
+    catalogo,
+    catalogo_kits,
+    catalogo_productos,
+    catalogo_kit_detalle,
+)
 from productos.catalogo_contacto import catalogo_contacto
 from productos.carrito import carrito_checkout, carrito_gracias, carrito_precios
 
@@ -13,6 +18,18 @@ urlpatterns = [
         "",
         catalogo,
         name="catalogo",
+    ),
+
+    # Tienda pública separada por tipo de contenido.
+    path(
+        "productos/",
+        catalogo_productos,
+        name="catalogo_productos",
+    ),
+    path(
+        "kits/",
+        catalogo_kits,
+        name="catalogo_kits",
     ),
 
     # Alias historico para no romper URLs ya compartidas.
