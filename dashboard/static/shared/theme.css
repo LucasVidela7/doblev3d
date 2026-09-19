@@ -1192,3 +1192,197 @@ html[data-dv-theme="dark"] .dv-dashboard-logout{
     color:var(--dv-text)!important;
     border-color:var(--dv-border)!important;
 }
+
+
+/* =========================================================
+   GESTIÓN · LEGIBILIDAD GLOBAL
+   Normaliza textos demasiado pequeños sin alterar títulos.
+   ========================================================= */
+body.dv-management-menu-ready{
+    font-size:14px;
+    line-height:1.45;
+}
+
+body.dv-management-menu-ready :is(
+    .subtitle,.subtitulo,.panel-subtitulo,.section-help,.seccion-ayuda,
+    .metric-note,.metrica-nota,.meta,.origin,.queue-meta,.action-info,
+    .pago-fecha,.pago-observacion,.detalle-cuotas,.dato-label,
+    .campo label,.field label,.code,.metrica-label,.metrica-etiqueta
+){
+    font-size:10px !important;
+    line-height:1.45 !important;
+}
+
+body.dv-management-menu-ready :is(
+    .btn,.boton,.fin-action,.fin-tab,.boton-mini,.cobro-accion,
+    .entrega-link,.web-link a,.dv-btn-listo,.dv-btn-cancelar,.dv-btn-iniciar
+){
+    font-size:10px !important;
+}
+
+body.dv-management-menu-ready :is(
+    .badge,.pill,.estado,.web-status,.metrica-titulo
+){
+    font-size:9px !important;
+}
+
+body.dv-management-menu-ready :is(
+    input,select,textarea
+){
+    font-size:13px;
+}
+
+/* =========================================================
+   FINANZAS · DARK MODE
+   ========================================================= */
+html[data-dv-theme="dark"] :is(
+    .filtro-periodo,.panel,.tarjeta-plan,.caja-principal,.caja-form,
+    .caja-atajo,.fin-toolbar,.modal-fin-dialog,.modal-fin-head
+){
+    background:var(--dv-surface) !important;
+    color:var(--dv-text) !important;
+    border-color:var(--dv-border) !important;
+}
+
+html[data-dv-theme="dark"] :is(
+    .plan-dato,.alerta,.caja-mini,.caja-accion,.cobro-mini,
+    .nota-contable,.saldo-cobro
+){
+    background:var(--dv-surface-soft) !important;
+    color:var(--dv-text) !important;
+    border-color:var(--dv-border) !important;
+}
+
+html[data-dv-theme="dark"] :is(
+    .fin-action,.boton,.boton-mini,.modal-fin-close,input,select,textarea
+){
+    background:var(--dv-surface-soft) !important;
+    color:var(--dv-text) !important;
+    border-color:var(--dv-border) !important;
+}
+
+html[data-dv-theme="dark"] .fin-toolbar{
+    background:color-mix(in srgb,var(--dv-surface) 94%,transparent) !important;
+}
+
+html[data-dv-theme="dark"] .fin-tab{
+    color:var(--dv-muted) !important;
+}
+html[data-dv-theme="dark"] .fin-tab:hover{
+    background:var(--dv-surface-muted) !important;
+    color:var(--dv-text) !important;
+}
+
+html[data-dv-theme="dark"] th{
+    background:var(--dv-surface-muted) !important;
+    color:var(--dv-muted) !important;
+    border-color:var(--dv-border) !important;
+}
+html[data-dv-theme="dark"] td,
+html[data-dv-theme="dark"] .pago-reciente{
+    border-color:var(--dv-border) !important;
+    color:var(--dv-text) !important;
+}
+
+html[data-dv-theme="dark"] .positivo{color:var(--dv-success-text) !important}
+html[data-dv-theme="dark"] .negativo{color:var(--dv-danger-text) !important}
+html[data-dv-theme="dark"] .azul{color:var(--dv-accent-blue-text) !important}
+html[data-dv-theme="dark"] .violeta{color:var(--dv-purple-text) !important}
+
+html[data-dv-theme="dark"] .accion-plan{
+    background:var(--dv-brand-blue-soft) !important;
+    color:var(--dv-accent-blue-text) !important;
+}
+html[data-dv-theme="dark"] .progreso{
+    background:var(--dv-surface-muted) !important;
+}
+html[data-dv-theme="dark"] .progreso > span{
+    background:#5ca879 !important;
+}
+
+/* =========================================================
+   DASHBOARD · DARK MODE + estados de entrega
+   ========================================================= */
+html[data-dv-theme="dark"] :is(
+    .que-imprimir-item,.entrega
+){
+    background:var(--dv-surface-soft) !important;
+    color:var(--dv-text) !important;
+    border-color:var(--dv-border) !important;
+}
+
+html[data-dv-theme="dark"] .que-imprimir-falta{
+    background:var(--dv-danger-soft) !important;
+    color:var(--dv-danger-text) !important;
+}
+
+html[data-dv-theme="dark"] .entrega:hover{
+    background:var(--dv-surface-muted) !important;
+}
+
+html[data-dv-theme="dark"] .badge-PENDIENTE{
+    background:var(--dv-warning-soft) !important;
+    color:var(--dv-warning-text) !important;
+}
+html[data-dv-theme="dark"] .badge-PREPARANDO{
+    background:var(--dv-brand-blue-soft) !important;
+    color:var(--dv-accent-blue-text) !important;
+}
+html[data-dv-theme="dark"] .badge-LISTO{
+    background:var(--dv-success-soft) !important;
+    color:var(--dv-success-text) !important;
+}
+html[data-dv-theme="dark"] .entrega.estado-PENDIENTE{border-left-color:#d8ad32 !important}
+html[data-dv-theme="dark"] .entrega.estado-PREPARANDO{border-left-color:#5f95d7 !important}
+html[data-dv-theme="dark"] .entrega.estado-LISTO{border-left-color:#63b37b !important}
+
+/* =========================================================
+   CENTRO DE PRODUCCIÓN · DARK MODE
+   ========================================================= */
+html[data-dv-theme="dark"] .flow-nav{
+    background:color-mix(in srgb,var(--dv-surface) 94%,transparent) !important;
+    border-color:var(--dv-border) !important;
+}
+html[data-dv-theme="dark"] .flow-nav a:hover{
+    background:var(--dv-surface-muted) !important;
+    color:var(--dv-text) !important;
+}
+html[data-dv-theme="dark"] .recommendation{
+    background:var(--dv-brand-blue-soft) !important;
+    color:var(--dv-text) !important;
+    border-color:color-mix(in srgb,var(--dv-accent-blue-text) 35%,var(--dv-border)) !important;
+}
+html[data-dv-theme="dark"] :is(
+    .toolbar,.printer,.need,.queue-item,.history,.manual
+){
+    background:var(--dv-surface) !important;
+    color:var(--dv-text) !important;
+    border-color:var(--dv-border) !important;
+}
+html[data-dv-theme="dark"] :is(
+    .printer-next,.nbox,.action-info
+){
+    background:var(--dv-surface-soft) !important;
+    color:var(--dv-text) !important;
+}
+html[data-dv-theme="dark"] .nbox.hot{
+    background:var(--dv-danger-soft) !important;
+}
+html[data-dv-theme="dark"] .nbox.hot b{
+    color:var(--dv-danger-text) !important;
+}
+html[data-dv-theme="dark"] :is(
+    .toolbar input,.printer-actions select,.field input,.field select,
+    .queue-actions select
+){
+    background:var(--dv-surface-soft) !important;
+    color:var(--dv-text) !important;
+    border-color:var(--dv-border) !important;
+}
+html[data-dv-theme="dark"] .personal{
+    background:var(--dv-brand-blue-soft) !important;
+    border-color:var(--dv-border) !important;
+}
+html[data-dv-theme="dark"] .personal p{
+    color:var(--dv-accent-blue-text) !important;
+}
