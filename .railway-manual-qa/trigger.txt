@@ -1,2 +1,2 @@
-Deploy QA: nuevo Centro de Preparación
-Incluye: Para preparar / En preparación / Falta stock / Listos, reserva real de stock al iniciar, checklist de armado, liberación de reservas, integración con Producción y navegación actualizada.
+Deploy QA: restaurar acciones cancelar/eliminar
+Incluye: menú contextual en todas las cards de Preparación, acciones en detalle de pedido, cancelar pedidos activos con devolución de stock reservado/preparado y eliminar sólo cuando sigue PENDIENTE.
