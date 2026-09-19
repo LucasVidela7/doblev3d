@@ -112,3 +112,42 @@
         iniciar();
     }
 })();
+
+
+(function(){
+    function cerrarMenusPedido(excepto){
+        document.querySelectorAll(".dv-order-menu.is-open").forEach(function(menu){
+            if(menu===excepto) return;
+            menu.classList.remove("is-open");
+            const boton=menu.querySelector(".dv-order-menu__toggle");
+            if(boton) boton.setAttribute("aria-expanded","false");
+        });
+    }
+
+    window.dvToggleOrderMenu=function(event,boton){
+        if(event){
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        const menu=boton && boton.closest(".dv-order-menu");
+        if(!menu) return;
+
+        const abrir=!menu.classList.contains("is-open");
+        cerrarMenusPedido(menu);
+
+        menu.classList.toggle("is-open",abrir);
+        boton.setAttribute("aria-expanded",abrir ? "true" : "false");
+    };
+
+    document.addEventListener("click",function(event){
+        if(event.target.closest(".dv-order-menu__panel")) return;
+        cerrarMenusPedido();
+    });
+
+    document.addEventListener("keydown",function(event){
+        if(event.key==="Escape"){
+            cerrarMenusPedido();
+        }
+    });
+})();
