@@ -149,6 +149,30 @@
         </a>
     </nav>
 
+    {% if webpush_habilitado %}
+    <div class="dv-management-menu__notifications" aria-label="Notificaciones">
+        <button
+            type="button"
+            id="dvGlobalPushToggle"
+            class="dv-management-menu__push"
+            data-public-key="{{ webpush_public_key }}"
+            data-worker="{% url 'dashboard:push_service_worker' %}"
+            data-subscribe="{% url 'dashboard:push_suscribir' %}"
+            data-unsubscribe="{% url 'dashboard:push_desuscribir' %}"
+            aria-label="Activar notificaciones"
+            aria-pressed="false"
+            title="Notificaciones"
+        >
+            <span class="dv-management-menu__push-icon" aria-hidden="true">🔔</span>
+            <span class="dv-management-menu__push-copy">
+                <span class="dv-management-menu__push-title" data-push-label>Activar avisos</span>
+                <span class="dv-management-menu__push-hint">Pedidos recibidos desde la web</span>
+            </span>
+        </button>
+        <form id="dvGlobalPushCsrf" hidden>{% csrf_token %}</form>
+    </div>
+    {% endif %}
+
     <div class="dv-management-menu__settings" aria-label="Apariencia">
         <div class="dv-management-menu__settings-copy">
             <span class="dv-management-menu__settings-title">Apariencia</span>
@@ -209,24 +233,6 @@
         <span class="dv-global-nav-label">PEDIDOS</span>
     </a>
 
-    {% if webpush_habilitado %}
-    <button
-        type="button"
-        id="dvGlobalPushToggle"
-        class="dv-global-nav-item dv-global-push-toggle"
-        data-public-key="{{ webpush_public_key }}"
-        data-worker="{% url 'dashboard:push_service_worker' %}"
-        data-subscribe="{% url 'dashboard:push_suscribir' %}"
-        data-unsubscribe="{% url 'dashboard:push_desuscribir' %}"
-        aria-label="Activar notificaciones"
-        aria-pressed="false"
-        title="Notificaciones"
-    >
-        <span class="dv-global-nav-icon" aria-hidden="true">🔔</span>
-        <span class="dv-global-nav-label" data-push-label>AVISOS</span>
-    </button>
-    <form id="dvGlobalPushCsrf" hidden>{% csrf_token %}</form>
-    {% else %}
     <a
         href="{% url 'pedidos:nuevo' %}"
         class="dv-global-nav-item is-primary {% if request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name == 'nuevo' %}is-active{% endif %}"
@@ -235,7 +241,6 @@
         <span class="dv-global-nav-icon">＋</span>
         <span class="dv-global-nav-label">NUEVO</span>
     </a>
-    {% endif %}
 
     <a
         href="{% url 'produccion:lista' %}"
