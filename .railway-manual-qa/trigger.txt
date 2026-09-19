@@ -1,2 +1,2 @@
-Deploy QA: solicitudes web visibles en dashboard
-Incluye: métrica de solicitudes web, acceso rápido y panel compacto con nuevas/contactadas, total, unidades y acceso al detalle.
+Deploy QA: métricas del dashboard en una fila
+Incluye: 7 métricas compactas en una sola línea en desktop, con menor alto, tipografía e iconos ajustados.
