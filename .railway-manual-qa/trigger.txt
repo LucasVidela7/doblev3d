@@ -1,2 +1,2 @@
-Deploy QA: quitar bordes claros en composiciones de Kits
-Incluye: composición fija y libre sin wrapper blanco, filas oscuras consistentes y estados de color preservados.
+Deploy QA: composición de Kits sin borde blanco y sin cortes
+Incluye: wrapper transparente en todos los tipos de kit, filas completas y responsive corregido para componentes y referencias de precio.
