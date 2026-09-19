@@ -1,2 +1,2 @@
-Deploy QA: mover campanita al centro del menú
-Incluye: Web Push disponible desde el item central del menú global en todas las pantallas de gestión; se retira del encabezado del dashboard
+Deploy QA: portada del catálogo sólo con ítems con imagen
+Incluye: productos y kits sin imagen dejan de aparecer en destacados de Inicio; siguen disponibles en sus páginas completas
