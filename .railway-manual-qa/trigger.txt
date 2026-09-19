@@ -1,2 +1,2 @@
-Deploy QA: limpieza global de navegación y UX comercial
-Incluye filtros mobile de Clientes, Presupuestos/Solicitudes clickeables por estado, dark mode de Presupuestos, logo solo en Inicio, sin botones redundantes Inicio/Volver, apariencia en Configuración, logout rojo junto al usuario y menú de Producto corregido.
+Deploy QA: restaurar Inicio en navbar inferior
+Único cambio funcional: volver a mostrar Inicio en la navegación inferior, manteniendo intacta la limpieza del resto de botones redundantes.
