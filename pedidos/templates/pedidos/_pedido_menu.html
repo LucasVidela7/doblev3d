@@ -39,10 +39,6 @@
             onsubmit="return confirm('¿Eliminar definitivamente {{ pedido.codigo }}? Usá esta opción solo si fue cargado por error.');"
         >
             {% csrf_token %}
-            {% if origen %}
-            <input type="hidden" name="origen" value="{{ origen }}">
-            <input type="hidden" name="pedido_id" value="{{ pedido.id }}">
-            {% endif %}
             <button type="submit" class="is-danger">Eliminar pedido</button>
         </form>
         {% endif %}
