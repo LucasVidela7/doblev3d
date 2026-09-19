@@ -95,7 +95,7 @@
         }
 
         .pedido{
-            border:1px solid var(--line);border-radius:17px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden
+            border:1px solid var(--line);border-radius:17px;background:var(--surface);box-shadow:var(--shadow);overflow:visible
         }
         .pedido.disponible{border-left:4px solid #3e9558}
         .pedido.preparando{border-left:4px solid #4b7fc0}
@@ -118,6 +118,7 @@
             min-height:29px;display:inline-flex;align-items:center;justify-content:center;padding:0 9px;border-radius:999px;
             font-size:8px;font-weight:900;white-space:nowrap
         }
+        .pedido-head-tools{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
         .pedido.disponible .pedido-status,.pedido.listo .pedido-status{background:var(--green);color:var(--green-text)}
         .pedido.preparando .pedido-status{background:var(--blue);color:var(--blue-text)}
         .pedido.falta .pedido-status{background:var(--red);color:var(--red-text)}
@@ -267,7 +268,10 @@
                             <span class="tag">{{ item_pedido.preparacion_total }} producto{{ item_pedido.preparacion_total|pluralize:"s" }}</span>
                         </div>
                     </div>
-                    <span class="pedido-status">TODO DISPONIBLE</span>
+                    <div class="pedido-head-tools">
+                        <span class="pedido-status">TODO DISPONIBLE</span>
+                        {% include "pedidos/_pedido_menu.html" with pedido=item_pedido.pedido mostrar_detalle=1 %}
+                    </div>
                 </header>
                 <section class="productos">
                     {% for item in item_pedido.productos %}
@@ -318,7 +322,10 @@
                             {% if item_pedido.reservados %}<span class="tag">{{ item_pedido.reservados }} con stock reservado</span>{% endif %}
                         </div>
                     </div>
-                    <span class="pedido-status">ARMANDO PAQUETE</span>
+                    <div class="pedido-head-tools">
+                        <span class="pedido-status">ARMANDO PAQUETE</span>
+                        {% include "pedidos/_pedido_menu.html" with pedido=item_pedido.pedido mostrar_detalle=1 %}
+                    </div>
                 </header>
 
                 {% if item_pedido.reservados %}
@@ -406,7 +413,10 @@
                             <span class="tag">{{ item_pedido.faltantes_stock }} faltante{{ item_pedido.faltantes_stock|pluralize:"s" }}</span>
                         </div>
                     </div>
-                    <span class="pedido-status">FALTA PRODUCCIÓN</span>
+                    <div class="pedido-head-tools">
+                        <span class="pedido-status">FALTA PRODUCCIÓN</span>
+                        {% include "pedidos/_pedido_menu.html" with pedido=item_pedido.pedido mostrar_detalle=1 %}
+                    </div>
                 </header>
 
                 <div class="falta-resumen">Todavía no reserves este pedido. Producción debe completar las piezas faltantes primero.</div>
@@ -459,7 +469,10 @@
                             <span class="tag">Saldo ${{ item_pedido.saldo_pendiente|floatformat:0 }}</span>
                         </div>
                     </div>
-                    <span class="pedido-status">PAQUETE LISTO</span>
+                    <div class="pedido-head-tools">
+                        <span class="pedido-status">PAQUETE LISTO</span>
+                        {% include "pedidos/_pedido_menu.html" with pedido=item_pedido.pedido mostrar_detalle=1 %}
+                    </div>
                 </header>
                 <footer class="pedido-foot">
                     <div class="saldo">{{ item_pedido.estado_pago_display }} · Total <strong>${{ item_pedido.total_pedido|floatformat:0 }}</strong></div>
