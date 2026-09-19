@@ -1,2 +1,2 @@
-Deploy QA: corregir acceso público y home de tienda
-Incluye: Productos/Kits públicos, recuperar texto anterior del hero y centrar banner azul en web
+Deploy QA: corregir filtros y navegación de tienda
+Incluye: productos/kits vuelven a mostrar resultados y la pestaña activa corresponde a la página actual
