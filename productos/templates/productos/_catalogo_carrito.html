@@ -1,5 +1,13 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'productos/catalog_cart.css' %}">
+<div class="dv-site-loader" data-dv-site-loader aria-hidden="true">
+    <div class="dv-site-loader__card" role="status" aria-live="polite">
+        <img src="{% static 'brand/logo.png' %}" alt="">
+        <span class="dv-site-loader__spinner" aria-hidden="true"></span>
+        <strong>Cargando...</strong>
+        <small>Preparando la tienda</small>
+    </div>
+</div>
 <div data-dv-cart-root data-pricing-url="{% url 'catalogo_carrito_precios' %}">
     <div class="dv-cart-overlay" data-dv-cart-overlay></div>
     <aside class="dv-cart-drawer" data-dv-cart-drawer aria-label="Carrito de compras">
