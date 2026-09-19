@@ -1,5 +1,4 @@
 import json
-from collections import defaultdict
 from datetime import timedelta
 from decimal import Decimal
 from html import escape
@@ -20,6 +19,7 @@ from pedidos.models import (
     Presupuesto,
     WebPushSubscription,
 )
+from pedidos.impresiones_stock import obtener_impresiones_por_producto
 from produccion import views as produccion_views
 from produccion.models import Impresora, Produccion
 from productos.models import ConfiguracionCatalogo, Producto
@@ -421,7 +421,7 @@ def _panel_produccion_dashboard(
                         <div class="dv-maquina-nombre">🖨 {nombre}</div>
                         <span class="dv-maquina-estado libre">LIBRE</span>
                     </div>
-                    <div class="dv-maquina-meta">Disponible para la próxima planificación.</div>
+                    <div class="dv-maquina-meta">Libre para tomar el siguiente trabajo de la cola.</div>
                 </div>
                 """
             )
@@ -494,7 +494,7 @@ def _panel_produccion_dashboard(
 
     if not planes_html:
         planes_html.append(
-            '<div class="dv-sin-produccion">No hay planificaciones pendientes.</div>'
+            '<div class="dv-sin-produccion">La cola está vacía.</div>'
         )
 
     produccion_url = escape(reverse("produccion:lista"))
@@ -505,7 +505,7 @@ def _panel_produccion_dashboard(
             <div>
                 <h3 class="panel-titulo">Producción</h3>
                 <div class="panel-subtitulo" style="margin-bottom:0">
-                    Impresoras activas y próximas planificaciones
+                    Ahora, impresoras y próximos trabajos
                 </div>
             </div>
             <a class="dv-produccion-link" href="{produccion_url}">VER TODO →</a>
@@ -516,7 +516,7 @@ def _panel_produccion_dashboard(
         </div>
 
         <div class="dv-planificaciones">
-            <div class="dv-planificaciones-titulo">PLANIFICACIONES</div>
+            <div class="dv-planificaciones-titulo">COLA · PRÓXIMOS TRABAJOS</div>
             {''.join(planes_html)}
         </div>
     </div>
@@ -699,151 +699,22 @@ def inicio(request):
     )
 
     # ==========================================================
-    # NECESIDAD DE IMPRESIÓN
+    # QUÉ IMPRIMIR
     # ==========================================================
-    #
-    # Se calcula con la misma idea operativa de
-    # "Impresiones por producto":
-    #
-    # - Producto / Kit: el stock puede cubrir demanda.
-    # - Personalizado: siempre debe fabricarse para ese pedido.
-    # - Si un producto normal ya fue marcado LISTO para un pedido,
-    #   no vuelve a contarse.
-    # - Si un personalizado está LISTO, tampoco vuelve a contarse.
-    # ==========================================================
-
-    pedidos_para_impresion = (
-        pedidos_activos_qs
-        .prefetch_related(
-            "detalles__producto",
-            "detalles__kit",
-            "detalles__productos_kit__producto",
-            "estados_impresion",
-        )
-        .order_by(
-            "fecha_entrega",
-            "id",
-        )
-    )
-
-    demanda = defaultdict(
-        lambda: {
-            "producto": None,
-            "normal": 0,
-            "personalizada": 0,
-        }
-    )
-
-    for pedido in pedidos_para_impresion:
-        productos_normales_listos = {
-            estado.producto_id
-            for estado in pedido.estados_impresion.all()
-            if estado.listo
-        }
-
-        for detalle in pedido.detalles.all():
-            if detalle.estado in [
-                "CANCELADO",
-                "ENTREGADO",
-            ]:
-                continue
-
-            if (
-                detalle.tipo_item == "PERSONALIZADO"
-                and detalle.producto
-                and detalle.producto.requiere_impresion
-            ):
-                if detalle.estado == "LISTO":
-                    continue
-
-                item = demanda[detalle.producto_id]
-                item["producto"] = detalle.producto
-                item["personalizada"] += detalle.cantidad
-                continue
-
-            if (
-                detalle.tipo_item == "PRODUCTO"
-                and detalle.producto
-                and detalle.producto.requiere_impresion
-            ):
-                if detalle.producto_id in productos_normales_listos:
-                    continue
-
-                item = demanda[detalle.producto_id]
-                item["producto"] = detalle.producto
-                item["normal"] += detalle.cantidad
-
-            elif (
-                detalle.tipo_item == "KIT"
-                and detalle.kit
-            ):
-                for componente in detalle.productos_kit.all():
-                    producto = componente.producto
-
-                    if not producto.requiere_impresion:
-                        continue
-
-                    if producto.id in productos_normales_listos:
-                        continue
-
-                    item = demanda[producto.id]
-                    item["producto"] = producto
-                    item["normal"] += componente.cantidad
-
-    necesidad_impresion = []
-
-    for item in demanda.values():
-        producto = item["producto"]
-
-        falta_normal = max(
-            item["normal"] - producto.stock,
-            0,
-        )
-
-        a_imprimir = (
-            falta_normal
-            + item["personalizada"]
-        )
-
-        if a_imprimir <= 0:
-            continue
-
-        necesidad_impresion.append(
-            {
-                "producto": producto,
-                "cantidad": a_imprimir,
-                "personalizada": item["personalizada"],
-            }
-        )
-
-    necesidad_impresion.sort(
-        key=lambda item: (
-            -item["cantidad"],
-            item["producto"].nombre.lower(),
-        )
-    )
+    # El dashboard usa exactamente la misma fuente que el Centro de
+    # producción para evitar que ambas pantallas indiquen faltantes distintos.
+    necesidad_impresion = [
+        item
+        for item in obtener_impresiones_por_producto()
+        if int(item.get("falta_iniciar") or 0) > 0
+    ]
 
     total_a_imprimir = sum(
-        item["cantidad"]
+        max(int(item.get("falta_iniciar") or 0), 0)
         for item in necesidad_impresion
     )
 
-    top_impresion = necesidad_impresion[:6]
-
-    max_impresion = max(
-        (
-            item["cantidad"]
-            for item in top_impresion
-        ),
-        default=1,
-    )
-
-    for item in top_impresion:
-        item["porcentaje"] = round(
-            item["cantidad"]
-            * 100
-            / max_impresion
-        )
+    top_impresion = necesidad_impresion[:5]
 
     # Productos activos sin stock. Es una alerta simple y útil;
     # no supone un "stock mínimo" porque ese campo aún no existe.
