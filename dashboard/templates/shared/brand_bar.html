@@ -175,7 +175,7 @@
             encabezado.querySelectorAll("a, button").forEach(function (accion) {
                 const texto = textoAccion(accion);
 
-                if (/^(?:←|‹|↩)?\s*VOLVER(?:\s+.*)?$/i.test(texto)) {
+                if (/^(?:←|‹|↩)?\s*VOLVER$/i.test(texto)) {
                     configurarVolver(accion);
                 } else if (/^(?:⌂|🏠)?\s*(?:IR\s+AL\s+)?INICIO$/i.test(texto)) {
                     configurarInicio(accion);
