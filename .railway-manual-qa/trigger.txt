@@ -1,2 +1,2 @@
-Deploy QA: corregir acciones de la cola de producción
-Incluye: selector e iniciar compactos, quitar de cola más chico y consistente, mejor responsive y modo oscuro.
+Deploy QA: producción sin límite para stock
+Incluye: cantidad estándar sin tope superior, excedente destinado a stock y texto inferior ocupando todo el ancho de la card.
