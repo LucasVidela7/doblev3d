@@ -1,2 +1,2 @@
-Deploy QA: métricas del dashboard en una sola fila
-Incluye: cards más compactas en desktop y eliminación del override que las mandaba a varias filas entre 1180 y 1320 px.
+Deploy QA: ajustes generales de Gestión
+Incluye: pagos desde detalle de pedido, fecha de entrega editable para pedidos activos, correcciones de modo oscuro en Finanzas/Dashboard/Producción, estados visuales en próximas entregas y normalización de tipografía.
