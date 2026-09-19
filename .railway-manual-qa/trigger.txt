@@ -1,2 +1,2 @@
-Deploy QA: progreso visual en Qué imprimir
-Incluye: barra acumulada por producto con unidades cubiertas, en cola, imprimiendo, faltantes y porcentaje de avance.
+Deploy QA: dashboard alineado a Producción
+Incluye: se quita la barra de Qué imprimir; dashboard usa la misma necesidad real del Centro de producción y muestra Qué imprimir + Ahora y cola en formato compacto.
