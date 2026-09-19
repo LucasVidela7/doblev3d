@@ -94,6 +94,7 @@ def notificar_nueva_solicitud_web(solicitud_id):
         for item in solicitud.items.all()
     )
     total = solicitud.total
+    total_texto = f"{total:,.0f}".replace(",", ".")
 
     return enviar_push(
         {
@@ -101,7 +102,8 @@ def notificar_nueva_solicitud_web(solicitud_id):
             "body": (
                 f"{solicitud.nombre} · "
                 + "$"
-                + f"{total:,.0f} · "
+                + total_texto
+                + " · "
                 + f"{unidades} unidad{'es' if unidades != 1 else ''}"
             ),
             "url": reverse(
