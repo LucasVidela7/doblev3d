@@ -1,2 +1,2 @@
-Deploy QA: colapsar En preparación
-Incluye: sección En preparación colapsada por defecto, con resumen, contador y apertura al tocar para continuar armando paquetes.
+Deploy QA: colapsar Para preparar
+Incluye: Para preparar colapsado por defecto, contador visible, apertura al tocar y apertura automática al navegar por ancla.
