@@ -1,16 +1,54 @@
 (function(){
     const SELECTORES=[
+        "[data-dv-toast]",
         ".mensajes .mensaje",
         ".messages .message",
         ".messages > li",
-        ".mensajes > .dv-impresiones-mensaje"
+        ".message.success",
+        ".message.error",
+        ".message.warning",
+        ".message.info",
+        ".mensaje.success",
+        ".mensaje.error",
+        ".mensaje.warning",
+        ".mensaje.info",
+        ".alert.alert-success",
+        ".alert.alert-danger",
+        ".alert.alert-error",
+        ".alert.alert-warning",
+        ".alert.alert-info",
+        ".dv-impresiones-mensaje.success",
+        ".dv-impresiones-mensaje.error",
+        ".dv-impresiones-mensaje.warning",
+        ".dv-impresiones-mensaje.info"
     ];
 
     function tipoDe(elemento){
+        const forzado=(
+            elemento.dataset
+            && elemento.dataset.dvToastType
+            || ""
+        ).toLowerCase();
+
+        if(["success","error","warning","info"].includes(forzado)){
+            return forzado;
+        }
+
         const clases=(elemento.className||"").toString().toLowerCase();
-        if(clases.includes("error") || clases.includes("danger")) return "error";
-        if(clases.includes("warning") || clases.includes("warn")) return "warning";
+
+        if(
+            clases.includes("error")
+            || clases.includes("danger")
+            || clases.includes("alert-danger")
+        ) return "error";
+
+        if(
+            clases.includes("warning")
+            || clases.includes("warn")
+        ) return "warning";
+
         if(clases.includes("success")) return "success";
+
         return "info";
     }
 
@@ -91,13 +129,18 @@
         contenedor.appendChild(toast);
 
         const duracion=tipo==="error"||tipo==="warning"?6500:4500;
-        let timer=window.setTimeout(function(){cerrar(toast);},duracion);
+        let timer=window.setTimeout(function(){
+            cerrar(toast);
+        },duracion);
 
         toast.addEventListener("mouseenter",function(){
             window.clearTimeout(timer);
         });
+
         toast.addEventListener("mouseleave",function(){
-            timer=window.setTimeout(function(){cerrar(toast);},1800);
+            timer=window.setTimeout(function(){
+                cerrar(toast);
+            },1800);
         });
 
         requestAnimationFrame(function(){
@@ -105,29 +148,82 @@
         });
     }
 
-    function convertirMensajes(){
-        const vistos=new Set();
-        const nodos=[];
+    function candidatosEn(root){
+        const encontrados=[];
 
-        SELECTORES.forEach(function(selector){
-            document.querySelectorAll(selector).forEach(function(el){
-                if(!vistos.has(el)){
-                    vistos.add(el);
-                    nodos.push(el);
+        if(root && root.nodeType===1){
+            SELECTORES.forEach(function(selector){
+                if(root.matches && root.matches(selector)){
+                    encontrados.push(root);
+                }
+
+                if(root.querySelectorAll){
+                    root.querySelectorAll(selector).forEach(function(el){
+                        encontrados.push(el);
+                    });
                 }
             });
-        });
+        }
 
-        nodos.forEach(function(el){
+        return encontrados;
+    }
+
+    function limpiarWrappers(){
+        document.querySelectorAll(
+            ".mensajes,.messages"
+        ).forEach(function(wrapper){
+            if(
+                !wrapper.children.length
+                && !wrapper.textContent.trim()
+            ){
+                wrapper.remove();
+            }
+        });
+    }
+
+    function convertir(root){
+        const vistos=new Set();
+
+        candidatosEn(root||document.body).forEach(function(el){
+            if(
+                vistos.has(el)
+                || el.dataset.dvToastConverted==="1"
+                || el.closest("#dvToastStack")
+            ){
+                return;
+            }
+
+            vistos.add(el);
+            el.dataset.dvToastConverted="1";
             mostrar(el.textContent,tipoDe(el));
             el.remove();
         });
 
-        document.querySelectorAll(".mensajes,.messages").forEach(function(wrapper){
-            if(!wrapper.children.length && !wrapper.textContent.trim()){
-                wrapper.remove();
-            }
+        limpiarWrappers();
+    }
+
+    function observar(){
+        if(!window.MutationObserver || !document.body) return;
+
+        const observer=new MutationObserver(function(mutations){
+            mutations.forEach(function(mutation){
+                mutation.addedNodes.forEach(function(node){
+                    if(node.nodeType===1){
+                        convertir(node);
+                    }
+                });
+            });
         });
+
+        observer.observe(document.body,{
+            childList:true,
+            subtree:true
+        });
+    }
+
+    function iniciar(){
+        convertir(document.body);
+        observar();
     }
 
     window.DVToast={
@@ -138,8 +234,8 @@
     };
 
     if(document.readyState==="loading"){
-        document.addEventListener("DOMContentLoaded",convertirMensajes);
+        document.addEventListener("DOMContentLoaded",iniciar);
     }else{
-        convertirMensajes();
+        iniciar();
     }
 })();
