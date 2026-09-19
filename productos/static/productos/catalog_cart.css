@@ -281,3 +281,77 @@ html.dv-cart-open .dv-cart-body{
         font-size:.82rem;
     }
 }
+
+
+/* Navegación del catálogo */
+.dv-site-loader{
+    position:fixed;
+    inset:0;
+    z-index:2147482500;
+    display:grid;
+    place-items:center;
+    padding:20px;
+    background:rgba(245,247,251,.84);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .16s ease;
+}
+.dv-site-loader.is-visible{
+    opacity:1;
+    pointer-events:auto;
+}
+.dv-site-loader__card{
+    min-width:min(280px,calc(100vw - 40px));
+    display:grid;
+    justify-items:center;
+    gap:8px;
+    padding:22px 24px;
+    border:1px solid #dfe5ef;
+    border-radius:22px;
+    background:#fff;
+    color:#17233a;
+    box-shadow:0 22px 70px rgba(18,31,52,.17);
+    text-align:center;
+}
+.dv-site-loader__card img{
+    width:70px;
+    height:54px;
+    object-fit:contain;
+}
+.dv-site-loader__spinner{
+    width:25px;
+    height:25px;
+    border:3px solid #dce6f4;
+    border-top-color:#134a9a;
+    border-radius:50%;
+    animation:dvCartSpin .65s linear infinite;
+}
+.dv-site-loader__card strong{
+    margin-top:1px;
+    color:#0d376f;
+    font-size:.9rem;
+}
+.dv-site-loader__card small{
+    color:#667085;
+    font-size:.7rem;
+}
+
+/* Feedback visual al agregar un producto */
+.dv-cart-add-btn.is-adding{
+    pointer-events:none;
+    opacity:1;
+}
+.dv-cart-add-btn.is-added{
+    background:#2f7d4b;
+    color:#fff;
+}
+
+@media(max-width:640px){
+    .dv-site-loader__card{
+        min-width:min(250px,calc(100vw - 28px));
+        padding:20px;
+        border-radius:18px;
+    }
+}
