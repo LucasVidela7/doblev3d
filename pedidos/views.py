@@ -1198,6 +1198,15 @@ def _actualizar_estado_general_pedido(pedido):
         + personalizados_listos
     )
 
+    hay_reservas = (
+        estados_normales
+        .filter(
+            reservado_stock=True,
+            listo=False,
+        )
+        .exists()
+    )
+
     if pedido.estado in [
         "ENTREGADO",
         "CANCELADO",
@@ -1210,7 +1219,7 @@ def _actualizar_estado_general_pedido(pedido):
     ):
         pedido.estado = "LISTO"
 
-    elif cantidad_listos > 0:
+    elif cantidad_listos > 0 or hay_reservas:
         pedido.estado = "PREPARANDO"
 
     else:
@@ -1391,30 +1400,62 @@ def cambiar_listo_impresion(request):
                 "pedidos:impresiones"
             )
 
-        producto.stock -= (
-            cantidad_necesaria
-        )
+        if estado_impresion.reservado_stock:
+            cantidad_reservada = int(
+                estado_impresion.cantidad_stock_reservada or 0
+            )
 
-        producto.save(
-            update_fields=[
-                "stock"
-            ]
-        )
+            if cantidad_reservada != cantidad_necesaria:
+                messages.error(
+                    request,
+                    (
+                        f"La reserva de {producto.nombre} no coincide con "
+                        "la cantidad actual del pedido. Liberá la preparación "
+                        "y volvé a iniciarla."
+                    ),
+                )
+                return redirect("pedidos:impresiones")
 
-        estado_impresion.cantidad_stock_descontada = (
-            cantidad_necesaria
-        )
+            estado_impresion.cantidad_stock_descontada = cantidad_reservada
+            estado_impresion.stock_descontado = True
+            estado_impresion.reservado_stock = False
+            estado_impresion.cantidad_stock_reservada = 0
+            estado_impresion.listo = True
 
-        estado_impresion.stock_descontado = True
-        estado_impresion.listo = True
+            estado_impresion.save(
+                update_fields=[
+                    "cantidad_stock_descontada",
+                    "stock_descontado",
+                    "reservado_stock",
+                    "cantidad_stock_reservada",
+                    "listo",
+                ]
+            )
+        else:
+            producto.stock -= (
+                cantidad_necesaria
+            )
 
-        estado_impresion.save(
-            update_fields=[
-                "cantidad_stock_descontada",
-                "stock_descontado",
-                "listo",
-            ]
-        )
+            producto.save(
+                update_fields=[
+                    "stock"
+                ]
+            )
+
+            estado_impresion.cantidad_stock_descontada = (
+                cantidad_necesaria
+            )
+
+            estado_impresion.stock_descontado = True
+            estado_impresion.listo = True
+
+            estado_impresion.save(
+                update_fields=[
+                    "cantidad_stock_descontada",
+                    "stock_descontado",
+                    "listo",
+                ]
+            )
 
     # ==================================================
     # VOLVER A PENDIENTE
@@ -2149,13 +2190,19 @@ def _restaurar_estado_impresion_para_edicion(pedido, producto_id):
     if not estado:
         return
 
+    devolver = 0
     if estado.stock_descontado and estado.cantidad_stock_descontada:
+        devolver += int(estado.cantidad_stock_descontada or 0)
+    if estado.reservado_stock and estado.cantidad_stock_reservada:
+        devolver += int(estado.cantidad_stock_reservada or 0)
+
+    if devolver:
         producto = (
             Producto.objects
             .select_for_update()
             .get(id=producto_id)
         )
-        producto.stock += estado.cantidad_stock_descontada
+        producto.stock += devolver
         producto.save(update_fields=["stock"])
 
     estado.delete()
@@ -4009,7 +4056,10 @@ def cancelar_pedido(request, pedido_id):
         .select_for_update()
         .filter(
             pedido=pedido,
-            stock_descontado=True,
+        )
+        .filter(
+            models.Q(stock_descontado=True)
+            | models.Q(reservado_stock=True)
         )
         .select_related("producto")
     )
@@ -4020,7 +4070,8 @@ def cancelar_pedido(request, pedido_id):
         )
 
         producto.stock += (
-            estado_impresion.cantidad_stock_descontada
+            int(estado_impresion.cantidad_stock_descontada or 0)
+            + int(estado_impresion.cantidad_stock_reservada or 0)
         )
 
         producto.save(
@@ -4030,12 +4081,16 @@ def cancelar_pedido(request, pedido_id):
         estado_impresion.listo = False
         estado_impresion.stock_descontado = False
         estado_impresion.cantidad_stock_descontada = 0
+        estado_impresion.reservado_stock = False
+        estado_impresion.cantidad_stock_reservada = 0
 
         estado_impresion.save(
             update_fields=[
                 "listo",
                 "stock_descontado",
                 "cantidad_stock_descontada",
+                "reservado_stock",
+                "cantidad_stock_reservada",
             ]
         )
 
@@ -4092,7 +4147,10 @@ def eliminar_pedido(request, pedido_id):
         .select_for_update()
         .filter(
             pedido=pedido,
-            stock_descontado=True,
+        )
+        .filter(
+            models.Q(stock_descontado=True)
+            | models.Q(reservado_stock=True)
         )
         .select_related("producto")
     )
@@ -4103,7 +4161,8 @@ def eliminar_pedido(request, pedido_id):
         )
 
         producto.stock += (
-            estado_impresion.cantidad_stock_descontada
+            int(estado_impresion.cantidad_stock_descontada or 0)
+            + int(estado_impresion.cantidad_stock_reservada or 0)
         )
 
         producto.save(
