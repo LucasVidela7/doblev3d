@@ -1,8 +1,16 @@
+from collections import Counter
 from decimal import Decimal, InvalidOperation
 
 from django.shortcuts import render
 
 from costos.models import ConfiguracionCostos
+from kits.economia import precio_automatico_kit_libre
+from kits.models import Kit
+from pedidos.kits_volumen import (
+    CANTIDAD_MINIMA_KITS_VOLUMEN,
+    DESCUENTO_MAXIMO_KITS,
+    calcular_precio_volumen_kits,
+)
 from productos.models import Producto
 
 from calculadora.precios import (
@@ -118,6 +126,112 @@ def _validar_cantidad(cantidad, errores):
     return cantidad
 
 
+def _calcular_kit(kit, cantidad, ids_seleccion, errores):
+    cantidad = _validar_cantidad(cantidad, errores)
+    componentes = []
+    seleccion_productos = []
+    precio_lista_unitario = Decimal(str(kit.precio or 0))
+
+    if kit.modalidad == "FIJO":
+        componentes_fijos = list(kit.componentes.all())
+        if not componentes_fijos:
+            errores.append(
+                f"{kit.nombre} no tiene componentes configurados."
+            )
+            return None
+
+        componentes = [
+            {
+                "producto": componente.producto,
+                "cantidad": int(componente.cantidad or 0) * cantidad,
+            }
+            for componente in componentes_fijos
+            if int(componente.cantidad or 0) > 0
+        ]
+    else:
+        esperados = int(kit.cantidad_productos or 0)
+        if len(ids_seleccion) != esperados:
+            errores.append(
+                f"{kit.nombre} necesita exactamente {esperados} productos."
+            )
+            return None
+
+        if not kit.tipo_producto_id:
+            errores.append(
+                f"{kit.nombre} no tiene categoría configurada."
+            )
+            return None
+
+        productos = {
+            producto.id: producto
+            for producto in Producto.objects.filter(
+                id__in=set(ids_seleccion),
+                activo=True,
+                solo_produccion=False,
+                tipo_id=kit.tipo_producto_id,
+            )
+        }
+        if any(producto_id not in productos for producto_id in ids_seleccion):
+            errores.append(
+                "Una de las opciones seleccionadas ya no está disponible."
+            )
+            return None
+
+        seleccion_productos = [
+            productos[producto_id]
+            for producto_id in ids_seleccion
+        ]
+        precio_lista_unitario = Decimal(
+            str(precio_automatico_kit_libre(kit, seleccion_productos))
+        )
+
+        conteo = Counter(ids_seleccion)
+        componentes = [
+            {
+                "producto": productos[producto_id],
+                "cantidad": veces * cantidad,
+            }
+            for producto_id, veces in conteo.items()
+        ]
+
+    if precio_lista_unitario <= 0:
+        errores.append(
+            f"{kit.nombre} no tiene un precio válido."
+        )
+        return None
+
+    resumen = calcular_precio_volumen_kits(
+        [
+            {
+                "key": "calculadora",
+                "kit": kit,
+                "cantidad": cantidad,
+                "precio_unitario_lista": precio_lista_unitario,
+                "componentes": componentes,
+            }
+        ]
+    )
+    linea = resumen["lineas"][0]
+
+    return {
+        "kit": kit,
+        "cantidad": cantidad,
+        "seleccion_productos": seleccion_productos,
+        "precio_lista_unitario": linea["precio_unitario_lista"],
+        "precio_final_unitario": linea["precio_unitario_final"],
+        "precio_lista_total": linea["precio_lista_total"],
+        "precio_final_total": linea["precio_final_total"],
+        "ahorro": linea["ahorro"],
+        "descuento_porcentaje": linea["descuento_porcentaje"],
+        "margen_real": resumen["margen_real"],
+        "margen_minimo": resumen["margen_minimo"],
+        "total_piezas": resumen["total_piezas"],
+        "elegible": resumen["elegible"],
+        "limitado_por_margen": resumen["limitado_por_margen"],
+        "precio_base_configurado": Decimal(str(kit.precio or 0)),
+    }
+
+
 def calculadora_precios(request):
     productos = (
         Producto.objects
@@ -126,6 +240,13 @@ def calculadora_precios(request):
             solo_produccion=False,
         )
         .select_related("tipo")
+        .order_by("nombre")
+    )
+    kits = (
+        Kit.objects
+        .filter(activo=True)
+        .select_related("tipo_producto")
+        .prefetch_related("componentes__producto")
         .order_by("nombre")
     )
 
@@ -140,7 +261,7 @@ def calculadora_precios(request):
         "modo",
         request.GET.get("modo", "existente"),
     )
-    if modo not in {"nuevo", "existente"}:
+    if modo not in {"nuevo", "existente", "kit", "personalizado"}:
         modo = "existente"
 
     producto_inicial_id = request.GET.get(
@@ -150,7 +271,10 @@ def calculadora_precios(request):
 
     resultado_nuevo = None
     resultado_existente = None
+    resultado_kit = None
+    resultado_personalizado = None
     errores = []
+    kit_seleccion_ids = []
 
     cantidades_texto = request.POST.get(
         "cantidades_lista",
@@ -289,17 +413,115 @@ def calculadora_precios(request):
                     ),
                 }
 
+        elif modo == "kit":
+            kit_id = _entero(request.POST.get("kit_id"))
+            cantidad = _validar_cantidad(
+                _entero(request.POST.get("cantidad"), 2),
+                errores,
+            )
+            try:
+                kit_seleccion_ids = [
+                    int(valor)
+                    for valor in request.POST.getlist("kit_producto")
+                    if str(valor).strip()
+                ]
+            except (TypeError, ValueError):
+                kit_seleccion_ids = []
+                errores.append(
+                    "La selección de productos del kit no es válida."
+                )
+
+            kit = (
+                Kit.objects
+                .filter(id=kit_id, activo=True)
+                .select_related("tipo_producto")
+                .prefetch_related("componentes__producto")
+                .first()
+            )
+            if not kit:
+                errores.append("Seleccioná un kit válido.")
+
+            if kit and not errores:
+                resultado_kit = _calcular_kit(
+                    kit,
+                    cantidad,
+                    kit_seleccion_ids,
+                    errores,
+                )
+
+        elif modo == "personalizado":
+            producto_id = _entero(
+                request.POST.get("producto_personalizado_id")
+            )
+            cantidad = _validar_cantidad(
+                _entero(request.POST.get("cantidad"), 1),
+                errores,
+            )
+            total_acordado = max(
+                _decimal(request.POST.get("precio_total_personalizado")),
+                Decimal("0"),
+            )
+
+            producto = (
+                Producto.objects
+                .filter(
+                    id=producto_id,
+                    activo=True,
+                    solo_produccion=False,
+                )
+                .select_related("tipo")
+                .first()
+            )
+            if not producto:
+                errores.append(
+                    "Seleccioná un producto base válido."
+                )
+
+            if producto and not errores:
+                base = calcular_precio_catalogo_producto(
+                    producto,
+                    cantidad,
+                )
+                adicional = (
+                    total_acordado - base["precio_final_total"]
+                    if total_acordado > 0
+                    else Decimal("0")
+                )
+
+                resultado_personalizado = {
+                    "producto": producto,
+                    "cantidad": cantidad,
+                    "base": base,
+                    "total_acordado": total_acordado,
+                    "precio_unitario_acordado": (
+                        total_acordado / Decimal(cantidad)
+                        if total_acordado > 0
+                        else Decimal("0")
+                    ),
+                    "diferencia_total": adicional,
+                    "por_debajo_base": (
+                        total_acordado > 0
+                        and total_acordado < base["precio_final_total"]
+                    ),
+                }
+
     context = {
         "modo": modo,
         "productos": productos,
+        "kits": kits,
         "config": config,
         "errores": errores,
         "resultado_nuevo": resultado_nuevo,
         "resultado_existente": resultado_existente,
+        "resultado_kit": resultado_kit,
+        "resultado_personalizado": resultado_personalizado,
         "producto_inicial_id": producto_inicial_id,
         "cantidades_texto": cantidades_texto,
+        "kit_seleccion_ids": kit_seleccion_ids,
         "cantidad_minima_descuento": CANTIDAD_MINIMA_DESCUENTO_PRODUCTOS,
         "descuento_maximo": DESCUENTO_MAXIMO_PRODUCTOS,
+        "cantidad_minima_kits": CANTIDAD_MINIMA_KITS_VOLUMEN,
+        "descuento_maximo_kits": DESCUENTO_MAXIMO_KITS,
         "max_cantidad_catalogo": MAX_CANTIDAD_CATALOGO,
     }
 
