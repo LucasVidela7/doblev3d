@@ -40,6 +40,9 @@ header.shell.top{display:none!important}
 .dv-catalog-header__nav-link:hover{
     background:#eef4ff;color:#134a9a
 }
+.dv-catalog-header__nav-link.is-active{
+    background:#202328;color:#fff;border-color:#202328
+}
 .dv-catalog-header__brand{
     min-width:0;display:inline-flex;align-items:center;gap:9px;
     color:#0d376f;text-decoration:none
@@ -144,7 +147,7 @@ CONTACT_NAV_ID = "dv-catalog-contact-links"
 HEADER_ID = "dv-catalog-header"
 
 
-def _header_html():
+def _header_html(view_name=""):
     config = ConfiguracionCatalogo.objects.first() or ConfiguracionCatalogo()
     actions = [
         (
@@ -191,15 +194,19 @@ def _header_html():
     productos_url = html.escape(reverse("catalogo_productos"), quote=True)
     kits_url = html.escape(reverse("catalogo_kits"), quote=True)
 
+    inicio_class = " is-active" if view_name in {"catalogo", "catalogo_legacy"} else ""
+    productos_class = " is-active" if view_name == "catalogo_productos" else ""
+    kits_class = " is-active" if view_name in {"catalogo_kits", "catalogo_kit_detalle"} else ""
+
     return (
         f'<header id="{HEADER_ID}" class="dv-catalog-header">'
         '<div class="dv-catalog-header__inner">'
         f'<a class="dv-catalog-header__brand" href="{catalogo_url}" aria-label="Ir al inicio">'
         f'<img src="{logo_url}" alt="Doble V 3D"><strong>Doble V 3D</strong></a>'
         '<nav class="dv-catalog-header__nav" aria-label="Secciones de la tienda">'
-        f'<a class="dv-catalog-header__nav-link" href="{catalogo_url}">INICIO</a>'
-        f'<a class="dv-catalog-header__nav-link" href="{productos_url}">PRODUCTOS</a>'
-        f'<a class="dv-catalog-header__nav-link" href="{kits_url}">KITS</a>'
+        f'<a class="dv-catalog-header__nav-link{inicio_class}" href="{catalogo_url}">INICIO</a>'
+        f'<a class="dv-catalog-header__nav-link{productos_class}" href="{productos_url}">PRODUCTOS</a>'
+        f'<a class="dv-catalog-header__nav-link{kits_class}" href="{kits_url}">KITS</a>'
         '</nav>'
         f'<nav id="{CONTACT_NAV_ID}" class="dv-catalog-header__actions" '
         'aria-label="Acciones del catálogo">'
@@ -267,7 +274,7 @@ class CatalogContactMiddleware:
             )
 
         if not _header_insertado(contenido):
-            header = _header_html()
+            header = _header_html(view_name)
             contenido, cantidad = re.subn(
                 r"(<body\b[^>]*>)",
                 r"\1\n" + header,
