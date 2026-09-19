@@ -6,31 +6,14 @@ from costos.models import ConfiguracionCostos
 from productos.models import Producto
 
 from calculadora.precios import (
-    MARGEN_MINIMO as MARGEN_MINIMO_COMPARTIDO,
-    calcular_costo_productivo_producto,
-    redondear_arriba as redondear_arriba_compartido,
-    margen_sugerido as margen_sugerido_compartido,
-    precio_mayorista as precio_mayorista_compartido,
-    fila_precio as fila_precio_compartido,
-    margenes_escenario as margenes_escenario_compartido,
+    CANTIDAD_MINIMA_DESCUENTO_PRODUCTOS,
+    DESCUENTO_MAXIMO_PRODUCTOS,
+    MAX_CANTIDAD_CATALOGO,
+    calcular_precio_catalogo_producto,
 )
 
 
-MARGEN_MINIMO_ADVERTENCIA = MARGEN_MINIMO_COMPARTIDO
-CANTIDAD_PISO_MARGEN = Decimal("1500")
-CANTIDADES_LISTA_DEFAULT = "10,20,50,100"
-
-ESCALAS_MAYORISTAS = (
-    (1, 4, Decimal("60")),
-    (5, 9, Decimal("50")),
-    (10, 24, Decimal("45")),
-    (25, 49, Decimal("40")),
-    (50, 99, Decimal("35")),
-    (100, 199, Decimal("30")),
-    (200, 499, Decimal("27.5")),
-    (500, 999, Decimal("25")),
-    (1000, None, Decimal("22.5")),
-)
+CANTIDADES_LISTA_DEFAULT = "1,2,4,5,6,10,15,20"
 
 
 def _decimal(valor, default=Decimal("0")):
@@ -49,39 +32,6 @@ def _entero(valor, default=0):
         return default
 
 
-def _redondear_arriba(valor, multiplo=Decimal("100")):
-    return redondear_arriba_compartido(valor, multiplo)
-
-
-def _margen_sugerido(cantidad, margen_tope):
-    return margen_sugerido_compartido(cantidad, margen_tope)
-
-
-def _precio_mayorista(costo_productivo, margen):
-    return precio_mayorista_compartido(costo_productivo, margen)
-
-
-def _margen_real(precio_unitario, costo_productivo):
-    precio_unitario = Decimal(precio_unitario)
-    costo_productivo = Decimal(costo_productivo)
-
-    if precio_unitario <= 0:
-        return Decimal("0")
-
-    return (
-        (precio_unitario - costo_productivo)
-        / precio_unitario
-        * Decimal("100")
-    )
-
-
-def _desglose_producto(producto, cantidad=1):
-    return calcular_costo_productivo_producto(
-        producto,
-        cantidad,
-    )
-
-
 def _parsear_cantidades(texto):
     texto = (texto or CANTIDADES_LISTA_DEFAULT).strip()
     cantidades = []
@@ -92,158 +42,37 @@ def _parsear_cantidades(texto):
             continue
 
         cantidad = _entero(parte, 0)
-        if cantidad > 0 and cantidad not in cantidades:
+        if (
+            1 <= cantidad <= MAX_CANTIDAD_CATALOGO
+            and cantidad not in cantidades
+        ):
             cantidades.append(cantidad)
 
     if not cantidades:
-        cantidades = [10, 20, 50, 100]
+        cantidades = [1, 2, 4, 5, 6, 10, 15, 20]
 
     return sorted(cantidades)[:12]
 
 
-def _fila_precio(
-    costo_productivo,
-    cantidad,
-    margen=None,
-    precio_forzado=None,
-    margen_tope=Decimal("60"),
-):
-    if precio_forzado is not None:
-        precio_unitario = Decimal(precio_forzado)
-        costo_productivo = Decimal(costo_productivo)
-        cantidad = max(int(cantidad or 1), 1)
-        total_sin_redondear = precio_unitario * Decimal(cantidad)
-        total = _redondear_arriba(total_sin_redondear, Decimal("100"))
-        costo_total = costo_productivo * Decimal(cantidad)
-        ganancia = total - costo_total
-        margen_real = (
-            ganancia / total * Decimal("100")
-            if total > 0 else Decimal("0")
-        )
-        return {
-            "cantidad": cantidad,
-            "margen_objetivo": (
-                Decimal(margen)
-                if margen is not None
-                else _margen_sugerido(cantidad, margen_tope)
-            ),
-            "precio_unitario": precio_unitario,
-            "total_sin_redondear": total_sin_redondear,
-            "total": total,
-            "costo_total": costo_total,
-            "ganancia": ganancia,
-            "margen_real": margen_real,
-        }
-
-    fila = fila_precio_compartido(
-        costo_productivo,
-        cantidad,
-        margen=margen,
-        margen_tope=margen_tope,
-    )
-
-    total = fila["total_recomendado"]
-    costo_total = fila["costo_total"]
-    ganancia = total - costo_total
-
-    return {
-        "cantidad": fila["cantidad"],
-        "margen_objetivo": fila["margen_objetivo"],
-        "precio_unitario": fila["precio_unitario"],
-        "total_sin_redondear": fila["total_sin_redondear"],
-        "total": total,
-        "costo_total": costo_total,
-        "ganancia": ganancia,
-        "margen_real": (
-            ganancia / total * Decimal("100")
-            if total > 0 else Decimal("0")
-        ),
-    }
-
-
-def _lista_precios(costo_productivo, cantidades, margen_tope):
+def _lista_catalogo(producto, cantidades):
     return [
-        _fila_precio(
-            costo_productivo,
-            cantidad,
-            margen_tope=margen_tope,
-        )
+        calcular_precio_catalogo_producto(producto, cantidad)
         for cantidad in cantidades
     ]
 
 
-def _margenes_escenario(cantidad, margen_tope):
-    return margenes_escenario_compartido(cantidad, margen_tope)
-
-
-def _lista_precios_escenarios(producto, cantidades, margen_tope):
-    """Cada cantidad recalcula su costo para elegir el filamento correcto."""
-    filas = []
-
-    for cantidad in cantidades:
-        desglose = _desglose_producto(producto, cantidad)
-        costo_productivo = desglose["costo_productivo"]
-        margenes = _margenes_escenario(cantidad, margen_tope)
-        filas.append(
-            {
-                "cantidad": cantidad,
-                "desglose": desglose,
-                "conservador": _fila_precio(
-                    costo_productivo,
-                    cantidad,
-                    margenes["conservador"],
-                ),
-                "recomendado": _fila_precio(
-                    costo_productivo,
-                    cantidad,
-                    margenes["recomendado"],
-                ),
-                "agresivo": _fila_precio(
-                    costo_productivo,
-                    cantidad,
-                    margenes["agresivo"],
-                ),
-            }
-        )
-
-    return filas
-
-
-def _filas_de_estrategia(lista_escenarios, estrategia):
-    return [
-        fila[estrategia]
-        for fila in lista_escenarios
-    ]
-
-
-def _moneda_entera(valor):
-    numero = int(Decimal(valor).quantize(Decimal("1")))
-    return f"{numero:,}".replace(",", ".")
-
-
-def _moneda_unitaria(valor):
-    """
-    Muestra hasta 2 decimales solo cuando existen.
-    Ejemplos:
-        18500.00 -> 18.500
-        18500.50 -> 18.500,50
-        18500.57 -> 18.500,57
-    """
-    valor = Decimal(valor).quantize(Decimal("0.01"))
+def _moneda(valor):
+    valor = Decimal(str(valor or 0)).quantize(Decimal("0.01"))
     entero = int(valor)
-    decimales = int((valor - Decimal(entero)) * 100)
-
+    centavos = int((valor - Decimal(entero)) * 100)
     entero_txt = f"{entero:,}".replace(",", ".")
-
-    if decimales == 0:
+    if not centavos:
         return entero_txt
+    return f"{entero_txt},{centavos:02d}".rstrip("0")
 
-    return f"{entero_txt},{decimales:02d}".rstrip("0")
 
-
-def _mensaje_cliente(nombre, filas, estrategia=None):
+def _mensaje_cliente(nombre, filas):
     nombre = (nombre or "Producto").strip()
-
     lineas = [
         f"*{nombre}*",
         "Precios por cantidad:",
@@ -251,53 +80,51 @@ def _mensaje_cliente(nombre, filas, estrategia=None):
     ]
 
     for fila in filas:
+        descuento = fila["descuento_porcentaje"]
+        extra = (
+            f" · {descuento}% desc."
+            if descuento > 0
+            else ""
+        )
         lineas.append(
             f"• x{fila['cantidad']}: "
-            f"${_moneda_unitaria(fila['precio_unitario'])} c/u "
-            f"— Total ${_moneda_entera(fila['total'])}"
+            + "$"
+            + _moneda(fila["precio_unitario"])
+            + " c/u"
+            + extra
+            + " — Total $"
+            + _moneda(fila["precio_final_total"])
         )
 
     lineas.extend(
         [
             "",
-            "Precios sujetos a confirmación al momento de realizar el pedido.",
+            "Precios calculados con la misma lógica vigente del catálogo web.",
         ]
     )
-
     return "\n".join(lineas)
 
 
-def _escenarios(costo_productivo, cantidad, margen_recomendado, margen_tope):
-    margen_conservador = min(
-        margen_recomendado + Decimal("4"),
-        Decimal(margen_tope),
-    )
-    margen_agresivo = max(
-        margen_recomendado - Decimal("4"),
-        MARGEN_MINIMO_ADVERTENCIA,
-    )
-
-    return [
-        {
-            "nombre": nombre,
-            **_fila_precio(
-                costo_productivo,
-                cantidad,
-                margen,
-            ),
-        }
-        for nombre, margen in (
-            ("Conservador", margen_conservador),
-            ("Recomendado", margen_recomendado),
-            ("Agresivo", margen_agresivo),
+def _validar_cantidad(cantidad, errores):
+    if cantidad < 1:
+        errores.append("La cantidad debe ser mayor a 0.")
+        return 1
+    if cantidad > MAX_CANTIDAD_CATALOGO:
+        errores.append(
+            f"El catálogo admite hasta {MAX_CANTIDAD_CATALOGO} unidades "
+            "por línea."
         )
-    ]
+        return MAX_CANTIDAD_CATALOGO
+    return cantidad
 
 
 def calculadora_precios(request):
     productos = (
         Producto.objects
-        .filter(activo=True, requiere_impresion=True)
+        .filter(
+            activo=True,
+            solo_produccion=False,
+        )
         .select_related("tipo")
         .order_by("nombre")
     )
@@ -311,8 +138,10 @@ def calculadora_precios(request):
 
     modo = request.POST.get(
         "modo",
-        request.GET.get("modo", "nuevo"),
+        request.GET.get("modo", "existente"),
     )
+    if modo not in {"nuevo", "existente"}:
+        modo = "existente"
 
     producto_inicial_id = request.GET.get(
         "producto_id",
@@ -330,13 +159,9 @@ def calculadora_precios(request):
     cantidades_lista = _parsear_cantidades(cantidades_texto)
 
     if request.method == "POST":
-        # ==========================================================
-        # PRODUCTO NUEVO
-        # ==========================================================
         if modo == "nuevo":
             nombre_cotizacion = (
-                request.POST.get("nombre_cotizacion", "")
-                .strip()
+                request.POST.get("nombre_cotizacion", "").strip()
                 or "Producto cotizado"
             )
             horas = max(_entero(request.POST.get("horas"), 0), 0)
@@ -349,9 +174,9 @@ def calculadora_precios(request):
                 request.POST.get("margen"),
                 Decimal("60"),
             )
-            cantidad = max(
-                _entero(request.POST.get("cantidad"), 1),
-                1,
+            cantidad = _validar_cantidad(
+                _entero(request.POST.get("cantidad"), 5),
+                errores,
             )
 
             if minutos >= 60:
@@ -388,38 +213,16 @@ def calculadora_precios(request):
                     personalizable=False,
                     stock=0,
                     activo=True,
+                    solo_produccion=False,
                 )
 
-                desglose = _desglose_producto(
+                catalogo = calcular_precio_catalogo_producto(
                     producto_temporal,
                     cantidad,
                 )
-                desglose_lista = _desglose_producto(
-                    producto_temporal,
-                    1,
-                )
-                costo_productivo = desglose["costo_productivo"]
-                precio_lista = producto_temporal.subtotal
-                margen_cantidad = _margen_sugerido(
-                    cantidad,
-                    margen_minorista,
-                )
-                fila_cantidad = _fila_precio(
-                    costo_productivo,
-                    cantidad,
-                    margen_cantidad,
-                    precio_forzado=(
-                        precio_lista if cantidad <= 4 else None
-                    ),
-                )
-                lista_escenarios = _lista_precios_escenarios(
+                lista = _lista_catalogo(
                     producto_temporal,
                     cantidades_lista,
-                    margen_minorista,
-                )
-                lista = _filas_de_estrategia(
-                    lista_escenarios,
-                    "recomendado",
                 )
 
                 resultado_nuevo = {
@@ -428,48 +231,22 @@ def calculadora_precios(request):
                     "minutos": minutos,
                     "peso": peso,
                     "margen_minorista": margen_minorista,
-                    "margen_tope": margen_minorista,
-                    "margen_piso": MARGEN_MINIMO_ADVERTENCIA,
                     "cantidad": cantidad,
-                    "desglose": desglose,
-                    "precio_lista": precio_lista,
-                    "margen_lista_real": _margen_real(
-                        precio_lista,
-                        desglose_lista["costo_productivo"],
-                    ),
-                    "fila_cantidad": fila_cantidad,
+                    "catalogo": catalogo,
                     "lista_precios": lista,
-                    "lista_escenarios": lista_escenarios,
-                    "mensajes": {
-                        "conservador": _mensaje_cliente(
-                            nombre_cotizacion,
-                            _filas_de_estrategia(lista_escenarios, "conservador"),
-                        ),
-                        "recomendado": _mensaje_cliente(
-                            nombre_cotizacion,
-                            _filas_de_estrategia(lista_escenarios, "recomendado"),
-                        ),
-                        "agresivo": _mensaje_cliente(
-                            nombre_cotizacion,
-                            _filas_de_estrategia(lista_escenarios, "agresivo"),
-                        ),
-                    },
                     "mensaje_cliente": _mensaje_cliente(
                         nombre_cotizacion,
                         lista,
                     ),
                 }
 
-        # ==========================================================
-        # PRODUCTO EXISTENTE / MAYORISTA
-        # ==========================================================
         elif modo == "existente":
             producto_id = _entero(
                 request.POST.get("producto_id")
             )
-            cantidad = max(
-                _entero(request.POST.get("cantidad"), 1),
-                1,
+            cantidad = _validar_cantidad(
+                _entero(request.POST.get("cantidad"), 5),
+                errores,
             )
 
             producto = (
@@ -477,8 +254,9 @@ def calculadora_precios(request):
                 .filter(
                     id=producto_id,
                     activo=True,
-                    requiere_impresion=True,
+                    solo_produccion=False,
                 )
+                .select_related("tipo")
                 .first()
             )
 
@@ -491,109 +269,25 @@ def calculadora_precios(request):
                 )
 
             if not errores:
-                desglose = _desglose_producto(
+                catalogo = calcular_precio_catalogo_producto(
                     producto,
                     cantidad,
                 )
-                desglose_lista = _desglose_producto(
+                lista = _lista_catalogo(
                     producto,
-                    1,
-                )
-                costo_productivo = desglose["costo_productivo"]
-                margen_tope = max(
-                    Decimal(producto.margen_ganancia),
-                    MARGEN_MINIMO_ADVERTENCIA,
-                )
-                recomendado = _margen_sugerido(
-                    cantidad,
-                    margen_tope,
+                    cantidades_lista,
                 )
 
-                margen_ingresado = (
-                    request.POST.get("margen_mayorista", "")
-                    .strip()
-                )
-
-                margen_usado = (
-                    _decimal(margen_ingresado, recomendado)
-                    if margen_ingresado
-                    else recomendado
-                )
-
-                if margen_usado > margen_tope:
-                    margen_usado = margen_tope
-
-                if margen_usado < 0 or margen_usado >= 100:
-                    errores.append(
-                        "El margen mayorista debe ser mayor o igual a 0 y menor a 100%."
-                    )
-
-                if not errores:
-                    fila_cantidad = _fila_precio(
-                        costo_productivo,
-                        cantidad,
-                        margen_usado,
-                        precio_forzado=(
-                            producto.subtotal
-                            if cantidad <= 4 and not margen_ingresado
-                            else None
-                        ),
-                    )
-                    lista_escenarios = _lista_precios_escenarios(
-                        producto,
-                        cantidades_lista,
-                        margen_tope,
-                    )
-                    lista = _filas_de_estrategia(
-                        lista_escenarios,
-                        "recomendado",
-                    )
-
-                    resultado_existente = {
-                        "producto": producto,
-                        "cantidad": cantidad,
-                        "desglose": desglose,
-                        "precio_lista": producto.subtotal,
-                        "margen_lista_real": _margen_real(
-                            producto.subtotal,
-                            desglose_lista["costo_productivo"],
-                        ),
-                        "margen_recomendado": recomendado,
-                        "margen_tope": margen_tope,
-                        "margen_piso": MARGEN_MINIMO_ADVERTENCIA,
-                        "margen_usado": margen_usado,
-                        "fila_cantidad": fila_cantidad,
-                        "advertencia_margen": (
-                            margen_usado
-                            < MARGEN_MINIMO_ADVERTENCIA
-                        ),
-                        "escenarios": _escenarios(
-                            costo_productivo,
-                            cantidad,
-                            recomendado,
-                            margen_tope,
-                        ),
-                        "lista_precios": lista,
-                        "lista_escenarios": lista_escenarios,
-                        "mensajes": {
-                            "conservador": _mensaje_cliente(
-                                producto.nombre,
-                                _filas_de_estrategia(lista_escenarios, "conservador"),
-                            ),
-                            "recomendado": _mensaje_cliente(
-                                producto.nombre,
-                                _filas_de_estrategia(lista_escenarios, "recomendado"),
-                            ),
-                            "agresivo": _mensaje_cliente(
-                                producto.nombre,
-                                _filas_de_estrategia(lista_escenarios, "agresivo"),
-                            ),
-                        },
-                        "mensaje_cliente": _mensaje_cliente(
-                            producto.nombre,
-                            lista,
-                        ),
-                    }
+                resultado_existente = {
+                    "producto": producto,
+                    "cantidad": cantidad,
+                    "catalogo": catalogo,
+                    "lista_precios": lista,
+                    "mensaje_cliente": _mensaje_cliente(
+                        producto.nombre,
+                        lista,
+                    ),
+                }
 
     context = {
         "modo": modo,
@@ -602,10 +296,11 @@ def calculadora_precios(request):
         "errores": errores,
         "resultado_nuevo": resultado_nuevo,
         "resultado_existente": resultado_existente,
-        "escalas": ESCALAS_MAYORISTAS,
-        "margen_minimo": MARGEN_MINIMO_ADVERTENCIA,
-        "cantidades_texto": cantidades_texto,
         "producto_inicial_id": producto_inicial_id,
+        "cantidades_texto": cantidades_texto,
+        "cantidad_minima_descuento": CANTIDAD_MINIMA_DESCUENTO_PRODUCTOS,
+        "descuento_maximo": DESCUENTO_MAXIMO_PRODUCTOS,
+        "max_cantidad_catalogo": MAX_CANTIDAD_CATALOGO,
     }
 
     return render(
