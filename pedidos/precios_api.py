@@ -4,7 +4,12 @@ from decimal import Decimal, ROUND_CEILING
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 
-from calculadora.precios import MARGEN_MINIMO, fila_precio, margenes_escenario
+from calculadora.precios import (
+    MARGEN_MINIMO,
+    calcular_precio_catalogo_producto,
+    fila_precio,
+    margenes_escenario,
+)
 from productos.models import Producto
 
 from .kits_volumen import (
@@ -155,6 +160,39 @@ def precio_producto(request):
         minutos = int(producto.minutos or 0)
         peso_gramos = Decimal(str(producto.peso_gramos or 0))
 
+    calculo_catalogo = calcular_precio_catalogo_producto(
+        producto,
+        cantidad,
+    )
+    catalogo_json = {
+        "cantidad": calculo_catalogo["cantidad"],
+        "precio_lista_unitario": float(
+            calculo_catalogo["precio_lista_unitario"]
+        ),
+        "precio_lista_total": float(
+            calculo_catalogo["precio_lista_total"]
+        ),
+        "precio_unitario": float(
+            calculo_catalogo["precio_unitario"]
+        ),
+        "precio_final_total": float(
+            calculo_catalogo["precio_final_total"]
+        ),
+        "ahorro": float(calculo_catalogo["ahorro"]),
+        "descuento_porcentaje": float(
+            calculo_catalogo["descuento_porcentaje"]
+        ),
+        "margen_real": float(
+            calculo_catalogo["margen_real"]
+        ),
+        "ganancia": float(
+            calculo_catalogo["ganancia"]
+        ),
+        "filamento_economico": bool(
+            calculo_catalogo["filamento_economico"]
+        ),
+    }
+
     producto_json = {
         "id": producto.id,
         "codigo": producto.codigo,
@@ -180,6 +218,9 @@ def precio_producto(request):
             "costo_productivo": float(costo_productivo),
             "margen_tope": float(margen_tope),
             "margen_piso": float(margen_piso),
+            "catalogo": catalogo_json,
+            # Se conservan temporalmente para compatibilidad con pantallas
+            # históricas, pero la recomendación comercial vigente es catalogo.
             "escenarios": escenarios,
         }
     )
