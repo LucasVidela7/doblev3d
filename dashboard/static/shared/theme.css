@@ -1227,6 +1227,17 @@ body.dv-management-menu-ready :is(
 }
 
 body.dv-management-menu-ready :is(
+    .metrica-ayuda,.que-imprimir-meta,.web-meta,.web-money span,
+    .entrega-cliente span,.item-tipo,.item-dato,.prep-contador,
+    .prep-personal,.prep-estado .label,.prep-estado .valor,
+    .personal p,.personal strong,.history-title,.queue-title,
+    .printer-name,.product-name,.pago-medio,.pago-monto
+){
+    font-size:10px !important;
+    line-height:1.4 !important;
+}
+
+body.dv-management-menu-ready :is(
     input,select,textarea
 ){
     font-size:13px;
