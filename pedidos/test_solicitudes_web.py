@@ -122,6 +122,28 @@ class SolicitudesWebGestionTests(TestCase):
         self.assertEqual(cliente.telefono, "+54 11 4000 1234")
         self.assertIsNone(presupuesto.pedido_generado)
 
+    def test_convertir_reutiliza_cliente_con_mismo_telefono_en_otro_formato(self):
+        existente = Cliente.objects.create(
+            nombre="Cliente previo",
+            telefono="11 4000-1234",
+            activo=True,
+        )
+
+        response = self.client.post(
+            reverse(
+                "pedidos:solicitud_web_convertir",
+                args=[self.solicitud.id],
+            )
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.solicitud.refresh_from_db()
+        presupuesto = Presupuesto.objects.get(
+            id=self.solicitud.presupuesto_generado_id
+        )
+        self.assertEqual(presupuesto.cliente_id, existente.id)
+        self.assertEqual(Cliente.objects.count(), 1)
+
     def test_marcar_contactada_no_convierte(self):
         response = self.client.post(
             reverse(
