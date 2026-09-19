@@ -162,6 +162,24 @@
             <span id="dvThemeText">CLARO</span>
         </label>
     </div>
+
+    {% if request.user.is_authenticated %}
+    <div class="dv-management-menu__account" aria-label="Sesión">
+        <div class="dv-management-menu__user">
+            <span class="dv-management-menu__user-icon" aria-hidden="true">👤</span>
+            <span class="dv-management-menu__user-copy">
+                <span class="dv-management-menu__user-label">USUARIO</span>
+                <strong>{{ request.user.get_username }}</strong>
+            </span>
+        </div>
+        <form method="post" action="{% url 'logout' %}" class="dv-management-menu__logout-form">
+            {% csrf_token %}
+            <button type="submit" class="dv-management-menu__logout">
+                CERRAR SESIÓN
+            </button>
+        </form>
+    </div>
+    {% endif %}
 </aside>
 
 <div
