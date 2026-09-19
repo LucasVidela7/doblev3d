@@ -32,7 +32,7 @@
 <div class="c">
   <div class="h">
     <div class="hero">
-      <div class="photo">{% if producto.imagen_principal_url %}<img src="{{ producto.imagen_principal_url }}" alt="{{ producto.nombre }}">{% else %}▦{% endif %}</div>
+      {% if producto.imagen_principal_url %}<div class="photo"><img src="{{ producto.imagen_principal_url }}" alt="{{ producto.nombre }}"></div>{% endif %}
       <div class="encabezado-marca">
         {% include "shared/brand_bar.html" %}
         <div class="cod">{{ producto.codigo }}</div>
