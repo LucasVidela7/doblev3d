@@ -20,11 +20,25 @@ from .models import (
 
 
 def lista_solicitudes_web(request):
-    solicitudes = list(
+    estado = request.GET.get("estado", "").strip().upper()
+
+    base = list(
         SolicitudWeb.objects
         .select_related("presupuesto_generado")
         .prefetch_related("items")
         .order_by("-id")
+    )
+
+    estados_validos = {
+        "NUEVA",
+        "CONTACTADA",
+        "CONVERTIDA",
+        "RECHAZADA",
+    }
+    solicitudes = (
+        [item for item in base if item.estado == estado]
+        if estado in estados_validos
+        else base
     )
 
     return render(
@@ -32,12 +46,18 @@ def lista_solicitudes_web(request):
         "pedidos/solicitudes_web_lista.html",
         {
             "solicitudes": solicitudes,
-            "nuevas": sum(1 for s in solicitudes if s.estado == "NUEVA"),
+            "estado_seleccionado": (
+                estado if estado in estados_validos else ""
+            ),
+            "nuevas": sum(1 for s in base if s.estado == "NUEVA"),
             "contactadas": sum(
-                1 for s in solicitudes if s.estado == "CONTACTADA"
+                1 for s in base if s.estado == "CONTACTADA"
             ),
             "convertidas": sum(
-                1 for s in solicitudes if s.estado == "CONVERTIDA"
+                1 for s in base if s.estado == "CONVERTIDA"
+            ),
+            "rechazadas": sum(
+                1 for s in base if s.estado == "RECHAZADA"
             ),
         },
     )
