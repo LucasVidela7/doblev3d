@@ -34,43 +34,35 @@ h1{margin:0;font-size:28px}.sub{margin-top:4px;color:var(--muted);font-size:11px
 @media(max-width:430px){.resumen{grid-template-columns:1fr}}
 
 html[data-dv-theme="dark"] .composicion{
-    background:var(--dv-surface-soft)!important;
-    border:1px solid var(--dv-border)!important;
+    width:100%;
+    padding:0!important;
+    overflow:visible;
+    background:transparent!important;
+    border:0!important;
+    box-shadow:none!important;
 }
 html[data-dv-theme="dark"] .composicion .fila{
-    background:transparent!important;
+    width:100%;
+    margin:0 0 6px;
+    padding:10px 12px!important;
+    border:1px solid var(--dv-border)!important;
+    border-radius:10px!important;
+    background:var(--dv-surface-soft)!important;
     color:var(--dv-text)!important;
+    box-shadow:none!important;
+}
+html[data-dv-theme="dark"] .composicion .fila:last-of-type{
+    margin-bottom:0;
 }
 html[data-dv-theme="dark"] .composicion .fila span,
 html[data-dv-theme="dark"] .composicion .fila strong{
     color:var(--dv-text)!important;
 }
-html[data-dv-theme="dark"] .composicion-libre{
-    width:100%;
-    overflow:hidden;
-    background:var(--dv-surface-soft)!important;
-    border:1px solid var(--dv-border)!important;
-    box-shadow:none!important;
+html[data-dv-theme="dark"] .composicion .fila-premium strong{
+    color:var(--dv-warning-text)!important;
 }
-html[data-dv-theme="dark"] .composicion-libre .fila{
-    margin:0;
-    background:transparent!important;
-    border:0!important;
-}
-html[data-dv-theme="dark"] .composicion-libre .fila + .fila{
-    border-top:1px solid var(--dv-border)!important;
-}
-html[data-dv-theme="dark"] .composicion-fija{
-    padding:0!important;
-    background:transparent!important;
-    border:0!important;
-    box-shadow:none!important;
-}
-html[data-dv-theme="dark"] .composicion-fija .fila{
-    padding:10px 12px!important;
-    border:1px solid var(--dv-border)!important;
-    border-radius:10px!important;
-    background:var(--dv-surface-soft)!important;
+html[data-dv-theme="dark"] .composicion .fila-ok strong{
+    color:var(--dv-success-text)!important;
 }
 </style>
 </head>
