@@ -104,7 +104,7 @@ class FinanzasUnificadasTests(TestCase):
             respuesta.url,
             (
                 f"{reverse('pedidos:finanzas')}"
-                f"?periodo={periodo}#cobros"
+                f"?periodo={periodo}&vista=cobros"
             ),
         )
         self.assertEqual(Pago.objects.count(), 1)
@@ -162,7 +162,7 @@ class FinanzasUnificadasTests(TestCase):
         self.assertEqual(respuesta.status_code, 302)
         self.assertEqual(
             respuesta.url,
-            f"{reverse('pedidos:finanzas')}#cobros",
+            f"{reverse('pedidos:finanzas')}?vista=cobros",
         )
 
     def test_cobros_usa_vista_paginada_y_saldo_sql(self):
