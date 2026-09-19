@@ -275,6 +275,11 @@ body.dv-pedido-form-page .dv-manual-volume-note {
     }
 
     .encabezado-marca {
+        min-height: 0;
+        padding-left: 0;
+    }
+
+    .encabezado-marca:has(> .brand-bar) {
         min-height: 44px;
         padding-left: 55px;
     }
