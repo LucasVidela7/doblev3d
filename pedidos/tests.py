@@ -143,6 +143,10 @@ class AccionesPedidoEstadoTests(TestCase):
             contenido,
             r"/static/shared/theme(?:\.[0-9a-f]+)?\.css",
         )
+        self.assertRegex(
+            contenido,
+            r"/static/shared/toasts(?:\.[0-9a-f]+)?\.js",
+        )
         self.assertIn(
             'id="dv-pedido-form-style"',
             contenido,
