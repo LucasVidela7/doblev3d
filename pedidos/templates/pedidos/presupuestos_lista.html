@@ -9,69 +9,55 @@
 <title>Presupuestos | Doble V 3D</title>
 <style>
 :root{
-    --bg:#f4f5f7;--card:#fff;--text:#24272b;--muted:#73777f;--border:#e3e6ea;
-    --green:#e5f5ea;--green-t:#26653c;--yellow:#fff3ce;--yellow-t:#775b00;
-    --red:#fde8e8;--red-t:#963838;--blue:#eaf2ff;--blue-t:#285b9b;
+ --bg:var(--dv-bg,#f4f5f7);--card:var(--dv-surface,#fff);--soft:var(--dv-surface-soft,#f8f9fb);
+ --text:var(--dv-text,#24272b);--muted:var(--dv-muted,#73777f);--border:var(--dv-border,#e3e6ea);
+ --green:var(--dv-success-soft,#e5f5ea);--green-t:var(--dv-success-text,#26653c);
+ --yellow:var(--dv-warning-soft,#fff3ce);--yellow-t:var(--dv-warning-text,#775b00);
+ --red:var(--dv-danger-soft,#fde8e8);--red-t:var(--dv-danger-text,#963838);
+ --blue:var(--dv-brand-blue,#134a9a)
 }
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
-.shell{width:min(1180px,100%);margin:auto;padding:22px 16px 48px}
-.head{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px}
-h1{margin:0;font-size:30px}.sub{margin-top:5px;color:var(--muted);font-size:12px}
-.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--border);background:#fff;color:var(--text);text-decoration:none;font-size:10px;font-weight:900}.btn.primary{background:#24272b;color:#fff;border-color:#24272b}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}.stat{padding:14px;border:1px solid var(--border);border-radius:15px;background:#fff}.stat b{display:block;font-size:24px}.stat span{font-size:9px;font-weight:900;color:var(--muted)}
-.grid{display:grid;gap:11px}.card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:15px;border:1px solid var(--border);border-radius:17px;background:#fff;box-shadow:0 4px 14px rgba(20,25,35,.05)}
-.title{font-size:15px;font-weight:900}.meta{margin-top:5px;color:var(--muted);font-size:10px}.amount{margin-top:8px;font-size:18px;font-weight:900}
-.badge{display:inline-flex;margin-top:8px;padding:6px 9px;border-radius:999px;font-size:9px;font-weight:900}.PENDIENTE{background:var(--yellow);color:var(--yellow-t)}.APROBADO{background:var(--green);color:var(--green-t)}.RECHAZADO{background:var(--red);color:var(--red-t)}
-.card-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.card-actions a{display:inline-flex;min-height:38px;align-items:center;padding:0 11px;border:1px solid var(--border);border-radius:10px;color:var(--text);text-decoration:none;font-size:9px;font-weight:900}.card-actions a.primary{background:#24272b;color:#fff;border-color:#24272b}
-.empty{padding:36px;text-align:center;color:var(--muted);background:#fff;border:1px dashed var(--border);border-radius:17px}
-@media(max-width:700px){.head{align-items:flex-start;flex-direction:column}.stats{grid-template-columns:1fr}.card{grid-template-columns:1fr}.card-actions{justify-content:flex-start}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif;padding-bottom:105px}.shell{width:min(1180px,100%);margin:auto;padding:22px 16px 48px}.head{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px}h1{margin:0;font-size:30px}.sub{margin-top:5px;color:var(--muted);font-size:12px}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);text-decoration:none;font-size:10px;font-weight:900}.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}.stat{display:block;padding:14px;border:1px solid var(--border);border-radius:15px;background:var(--card);color:var(--text);text-decoration:none}.stat.activa{outline:2px solid var(--blue);outline-offset:-2px}.stat b{display:block;font-size:24px}.stat span{font-size:9px;font-weight:900;color:var(--muted)}.stat small{display:block;margin-top:4px;color:var(--muted);font-size:8px}
+.grid{display:grid;gap:11px}.card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:15px;border:1px solid var(--border);border-radius:17px;background:var(--card);box-shadow:var(--dv-shadow-soft,0 4px 14px rgba(20,25,35,.05));cursor:pointer}.card:hover{border-color:color-mix(in srgb,var(--blue) 28%,var(--border))}.title{font-size:15px;font-weight:900}.meta{margin-top:5px;color:var(--muted);font-size:10px}.amount{margin-top:8px;font-size:18px;font-weight:900}.badge{display:inline-flex;margin-top:8px;padding:6px 9px;border-radius:999px;font-size:9px;font-weight:900}.PENDIENTE{background:var(--yellow);color:var(--yellow-t)}.APROBADO{background:var(--green);color:var(--green-t)}.RECHAZADO{background:var(--red);color:var(--red-t)}.card-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.card-actions a{display:inline-flex;min-height:38px;align-items:center;padding:0 11px;border:1px solid var(--border);border-radius:10px;color:var(--text);text-decoration:none;font-size:9px;font-weight:900}.card-actions a.primary{background:var(--blue);color:#fff;border-color:var(--blue)}.empty{padding:36px;text-align:center;color:var(--muted);background:var(--card);border:1px dashed var(--border);border-radius:17px}
+@media(max-width:700px){.shell{padding:16px 10px 36px}.head{align-items:flex-start;flex-direction:column}.actions{width:100%;display:grid;grid-template-columns:1fr 1fr}.actions .primary{grid-column:1/-1}.stats{grid-template-columns:repeat(3,1fr);gap:7px}.stat{padding:12px 10px}.stat b{font-size:21px}.stat small{display:none}.card{grid-template-columns:1fr;padding:14px}.card-actions{justify-content:flex-start}.card-actions a{flex:1}.title{font-size:14px}}
 </style>
 </head>
 <body>
 <div class="shell">
-    <div class="head">
-        <div>
-            <h1>Presupuestos</h1>
-            <div class="sub">Consultas comerciales antes de convertirse en pedidos.</div>
-        </div>
-        <div class="actions">
-            <a class="btn" href="{% url 'dashboard:inicio' %}">INICIO</a>
-            <a class="btn" href="{% url 'pedidos:solicitudes_web' %}">🛒 SOLICITUDES WEB</a>
-            <a class="btn primary" href="{% url 'pedidos:nuevo' %}">＋ NUEVO PRESUPUESTO</a>
-        </div>
-    </div>
+ <div class="head">
+  <div><h1>Presupuestos</h1><div class="sub">Consultas comerciales antes de convertirse en pedidos.</div></div>
+  <div class="actions">
+   <a class="btn" href="{% url 'pedidos:solicitudes_web' %}">🛒 SOLICITUDES WEB</a>
+   <a class="btn primary" href="{% url 'pedidos:nuevo' %}">＋ NUEVO PRESUPUESTO</a>
+  </div>
+ </div>
 
-    <div class="stats">
-        <div class="stat"><b>{{ pendientes }}</b><span>PENDIENTES</span></div>
-        <div class="stat"><b>{{ aprobados }}</b><span>APROBADOS</span></div>
-        <div class="stat"><b>{{ rechazados }}</b><span>RECHAZADOS</span></div>
-    </div>
+ <div class="stats">
+  <a class="stat {% if estado_seleccionado == 'PENDIENTE' %}activa{% endif %}" href="?estado=PENDIENTE"><b>{{ pendientes }}</b><span>PENDIENTES</span><small>Ver pendientes</small></a>
+  <a class="stat {% if estado_seleccionado == 'APROBADO' %}activa{% endif %}" href="?estado=APROBADO"><b>{{ aprobados }}</b><span>APROBADOS</span><small>Ver aprobados</small></a>
+  <a class="stat {% if estado_seleccionado == 'RECHAZADO' %}activa{% endif %}" href="?estado=RECHAZADO"><b>{{ rechazados }}</b><span>RECHAZADOS</span><small>Ver rechazados</small></a>
+ </div>
 
-    {% if presupuestos %}
-        <div class="grid">
-            {% for presupuesto in presupuestos %}
-                <div class="card">
-                    <div>
-                        <div class="title">{{ presupuesto.codigo }} · {{ presupuesto.cliente.nombre }}</div>
-                        <div class="meta">
-                            {{ presupuesto.fecha|date:"d/m/Y" }}
-                            {% if presupuesto.fecha_entrega %} · entrega {{ presupuesto.fecha_entrega|date:"d/m/Y" }}{% endif %}
-                        </div>
-                        <div class="amount">$ {{ presupuesto.total|floatformat:"0g" }}</div>
-                        <span class="badge {{ presupuesto.estado }}">{{ presupuesto.get_estado_display|upper }}</span>
-                    </div>
-                    <div class="card-actions">
-                        {% if presupuesto.pedido_generado %}
-                            <a href="{% url 'pedidos:detalle' presupuesto.pedido_generado.id %}">VER {{ presupuesto.pedido_generado.codigo }}</a>
-                        {% endif %}
-                        <a class="primary" href="{% url 'pedidos:presupuesto_detalle' presupuesto.id %}">VER PRESUPUESTO</a>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="empty">Todavía no hay presupuestos.</div>
-    {% endif %}
+ {% if estado_seleccionado %}<div style="margin:0 0 10px"><a class="btn" href="{% url 'pedidos:presupuestos' %}">VER TODOS</a></div>{% endif %}
+
+ {% if presupuestos %}
+ <div class="grid">
+  {% for presupuesto in presupuestos %}
+  <div class="card" role="link" tabindex="0" onclick="if(!event.target.closest('a,button,form'))location.href='{% url 'pedidos:presupuesto_detalle' presupuesto.id %}'" onkeydown="if(event.key==='Enter')location.href='{% url 'pedidos:presupuesto_detalle' presupuesto.id %}'">
+   <div>
+    <div class="title">{{ presupuesto.codigo }} · {{ presupuesto.cliente.nombre }}</div>
+    <div class="meta">{{ presupuesto.fecha|date:"d/m/Y" }}{% if presupuesto.fecha_entrega %} · entrega {{ presupuesto.fecha_entrega|date:"d/m/Y" }}{% endif %}</div>
+    <div class="amount">$ {{ presupuesto.total|floatformat:"0g" }}</div>
+    <span class="badge {{ presupuesto.estado }}">{{ presupuesto.get_estado_display|upper }}</span>
+   </div>
+   <div class="card-actions">
+    {% if presupuesto.pedido_generado %}<a href="{% url 'pedidos:detalle' presupuesto.pedido_generado.id %}">VER {{ presupuesto.pedido_generado.codigo }}</a>{% endif %}
+    <a class="primary" href="{% url 'pedidos:presupuesto_detalle' presupuesto.id %}">VER PRESUPUESTO</a>
+   </div>
+  </div>
+  {% endfor %}
+ </div>
+ {% else %}<div class="empty">No hay presupuestos en este estado.</div>{% endif %}
 </div>
 {% include "shared/navigation.html" %}
 </body>
