@@ -2,9 +2,13 @@ from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Count, Prefetch, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 
+from calculadora.precios import MARGEN_MINIMO
+
+from .image_environment import entorno_imagenes
+from .image_models import ProductoImagen
 from .models import Producto, ProductoComponente, TipoProducto
 
 
@@ -27,33 +31,314 @@ def _decimal(valor, default=Decimal("0")):
         return default
 
 
+
+def _imagen_prefetch():
+    return Prefetch(
+        "imagenes",
+        queryset=(
+            ProductoImagen.objects
+            .filter(ambiente=entorno_imagenes())
+            .order_by("orden", "id")
+        ),
+        to_attr="imagenes_entorno",
+    )
+
+
+def _url_con_filtros(request, **cambios):
+    parametros = request.GET.copy()
+    for clave, valor in cambios.items():
+        if valor in (None, ""):
+            parametros.pop(clave, None)
+        else:
+            parametros[clave] = valor
+
+    query = parametros.urlencode()
+    return request.path + (f"?{query}" if query else "")
+
+
+def _enriquecer_productos(productos):
+    """
+    Agrega estado operativo sin persistir datos nuevos:
+    demanda, producción, reserva de stock, rentabilidad, kits e imagen.
+    """
+    productos = list(productos)
+    if not productos:
+        return productos
+
+    from kits.models import Kit, KitComponente
+    from pedidos.impresiones_stock import obtener_impresiones_por_producto
+    from pedidos.models import EstadoImpresionPedido
+    from produccion.models import Produccion
+
+    ids = [producto.id for producto in productos]
+    tipos_ids = {
+        producto.tipo_id
+        for producto in productos
+        if producto.tipo_id
+    }
+
+    produccion_por_producto = {
+        producto_id: {"planificadas": 0, "imprimiendo": 0}
+        for producto_id in ids
+    }
+    for fila in (
+        Produccion.objects
+        .filter(
+            producto_id__in=ids,
+            estado__in=["PENDIENTE", "IMPRIMIENDO"],
+        )
+        .values("producto_id", "estado")
+        .annotate(total=Sum("cantidad"))
+    ):
+        datos = produccion_por_producto.setdefault(
+            fila["producto_id"],
+            {"planificadas": 0, "imprimiendo": 0},
+        )
+        if fila["estado"] == "PENDIENTE":
+            datos["planificadas"] = int(fila["total"] or 0)
+        else:
+            datos["imprimiendo"] = int(fila["total"] or 0)
+
+    reservas = {
+        fila["producto_id"]: int(fila["total"] or 0)
+        for fila in (
+            EstadoImpresionPedido.objects
+            .filter(
+                producto_id__in=ids,
+                reservado_stock=True,
+            )
+            .exclude(
+                pedido__estado__in=["ENTREGADO", "CANCELADO"],
+            )
+            .values("producto_id")
+            .annotate(total=Sum("cantidad_stock_reservada"))
+        )
+    }
+
+    kits_fijos = {
+        fila["producto_id"]: int(fila["total"] or 0)
+        for fila in (
+            KitComponente.objects
+            .filter(
+                producto_id__in=ids,
+                kit__activo=True,
+            )
+            .values("producto_id")
+            .annotate(total=Count("kit_id", distinct=True))
+        )
+    }
+
+    kits_libres = {
+        fila["tipo_producto_id"]: int(fila["total"] or 0)
+        for fila in (
+            Kit.objects
+            .filter(
+                activo=True,
+                modalidad="LIBRE_CATEGORIA",
+                tipo_producto_id__in=tipos_ids,
+            )
+            .values("tipo_producto_id")
+            .annotate(total=Count("id"))
+        )
+    }
+
+    necesidades = {
+        item["producto"].id: item
+        for item in obtener_impresiones_por_producto()
+        if item.get("producto")
+    }
+
+    for producto in productos:
+        imagenes = getattr(producto, "imagenes_entorno", [])
+        imagen = imagenes[0] if imagenes else None
+        producto.imagen_principal_url = (
+            (imagen.thumbnail_url or imagen.url)
+            if imagen
+            else ""
+        )
+
+        produccion = produccion_por_producto.get(
+            producto.id,
+            {"planificadas": 0, "imprimiendo": 0},
+        )
+        producto.planificadas = produccion["planificadas"]
+        producto.imprimiendo = produccion["imprimiendo"]
+
+        necesidad = necesidades.get(producto.id, {})
+        producto.demanda_pedidos = int(
+            necesidad.get("cantidad_pedida")
+            or necesidad.get("a_imprimir")
+            or 0
+        )
+        producto.falta_iniciar = int(
+            necesidad.get("falta_iniciar") or 0
+        )
+        producto.falta_normal_planificar = int(
+            necesidad.get("falta_normal_planificar") or 0
+        )
+        producto.prioridad_operativa = (
+            necesidad.get("prioridad")
+            or ("EN CURSO" if producto.planificadas or producto.imprimiendo else "")
+        )
+        producto.origenes_demanda = necesidad.get("origenes") or []
+
+        producto.stock_reservado = reservas.get(producto.id, 0)
+        producto.stock_disponible = max(
+            int(producto.stock or 0) - producto.stock_reservado,
+            0,
+        )
+
+        producto.kits_relacionados_count = (
+            kits_fijos.get(producto.id, 0)
+            + kits_libres.get(producto.tipo_id, 0)
+        )
+
+        costo = Decimal(str(producto.costo or 0))
+        seguro = Decimal(str(producto.seguro or 0))
+        precio = Decimal(str(producto.subtotal or 0))
+        producto.costo_productivo = costo + seguro
+        producto.margen_real = Decimal("0")
+        if precio > 0:
+            producto.margen_real = (
+                (precio - producto.costo_productivo)
+                / precio
+                * Decimal("100")
+            ).quantize(Decimal("0.1"))
+
+        producto.stock_estado = "OK"
+        producto.stock_estado_clase = "ok"
+        if int(producto.stock or 0) <= 0:
+            producto.stock_estado = "SIN STOCK"
+            producto.stock_estado_clase = "danger"
+        elif int(producto.stock or 0) <= 2:
+            producto.stock_estado = "BAJO"
+            producto.stock_estado_clase = "warning"
+
+        alertas = []
+        if (
+            producto.requiere_impresion
+            and producto.horas_totales <= 0
+        ):
+            alertas.append("Falta tiempo de impresión")
+        if (
+            producto.requiere_impresion
+            and Decimal(str(producto.peso_gramos or 0)) <= 0
+        ):
+            alertas.append("Falta peso")
+        if producto.requiere_impresion and precio <= 0:
+            alertas.append("Precio sin calcular")
+        elif (
+            producto.requiere_impresion
+            and precio > 0
+            and producto.margen_real < MARGEN_MINIMO
+        ):
+            alertas.append(
+                f"Margen debajo de {MARGEN_MINIMO}%"
+            )
+        if producto.falta_iniciar > 0:
+            alertas.append(
+                f"Faltan planificar {producto.falta_iniciar}"
+            )
+
+        producto.alertas_operativas = alertas
+        producto.necesita_atencion = bool(alertas)
+        producto.salud_clase = (
+            "danger"
+            if any(
+                texto.startswith("Falta") or "Margen" in texto
+                for texto in alertas
+            )
+            else ("warning" if alertas else "ok")
+        )
+
+    return productos
+
+
 def lista(request):
     busqueda = request.GET.get("q", "").strip()
     tipo_seleccionado = request.GET.get("tipo", "").strip()
+    estado_seleccionado = request.GET.get("estado", "").strip()
     mostrar_piezas = request.GET.get("piezas", "") == "1"
 
-    productos = (
+    productos_qs = (
         Producto.objects
         .select_related("tipo")
-        .prefetch_related("componentes__componente")
+        .prefetch_related(
+            "componentes__componente",
+            _imagen_prefetch(),
+        )
         .all()
         .order_by("-activo", "nombre")
     )
 
     if not mostrar_piezas:
-        productos = productos.filter(solo_produccion=False)
+        productos_qs = productos_qs.filter(solo_produccion=False)
 
     if busqueda:
         filtros = Q(nombre__icontains=busqueda)
         numero = busqueda.upper().replace("P", "").strip()
         if numero.isdigit():
             filtros |= Q(id=int(numero))
-        productos = productos.filter(filtros)
+        productos_qs = productos_qs.filter(filtros)
 
     if tipo_seleccionado:
-        productos = productos.filter(tipo_id=tipo_seleccionado)
+        productos_qs = productos_qs.filter(
+            tipo_id=tipo_seleccionado
+        )
 
-    tipos = TipoProducto.objects.filter(activo=True).order_by("nombre")
+    productos_base = _enriquecer_productos(productos_qs)
+
+    metricas = {
+        "total": len(productos_base),
+        "activos": sum(1 for p in productos_base if p.activo),
+        "sin_stock": sum(
+            1 for p in productos_base
+            if int(p.stock or 0) <= 0 and not p.solo_produccion
+        ),
+        "bajo_stock": sum(
+            1 for p in productos_base
+            if 0 < int(p.stock or 0) <= 2 and not p.solo_produccion
+        ),
+        "atencion": sum(
+            1 for p in productos_base if p.necesita_atencion
+        ),
+        "con_demanda": sum(
+            1 for p in productos_base
+            if p.demanda_pedidos > 0
+            or p.planificadas > 0
+            or p.imprimiendo > 0
+        ),
+    }
+
+    filtros_estado = {
+        "activos": lambda p: p.activo,
+        "inactivos": lambda p: not p.activo,
+        "sin_stock": lambda p: (
+            int(p.stock or 0) <= 0 and not p.solo_produccion
+        ),
+        "bajo_stock": lambda p: (
+            0 < int(p.stock or 0) <= 2 and not p.solo_produccion
+        ),
+        "atencion": lambda p: p.necesita_atencion,
+        "demanda": lambda p: (
+            p.demanda_pedidos > 0
+            or p.planificadas > 0
+            or p.imprimiendo > 0
+        ),
+        "compuestos": lambda p: p.es_compuesto,
+    }
+    if estado_seleccionado in filtros_estado:
+        productos = [
+            producto
+            for producto in productos_base
+            if filtros_estado[estado_seleccionado](producto)
+        ]
+    else:
+        productos = productos_base
+
+    tipos = TipoProducto.objects.filter(
+        activo=True
+    ).order_by("nombre")
 
     parametros_toggle = request.GET.copy()
     if mostrar_piezas:
@@ -66,6 +351,16 @@ def lista(request):
     if query_toggle:
         piezas_toggle_url = f"{piezas_toggle_url}?{query_toggle}"
 
+    filtro_urls = {
+        "todos": _url_con_filtros(request, estado=None),
+        "activos": _url_con_filtros(request, estado="activos"),
+        "sin_stock": _url_con_filtros(request, estado="sin_stock"),
+        "bajo_stock": _url_con_filtros(request, estado="bajo_stock"),
+        "atencion": _url_con_filtros(request, estado="atencion"),
+        "demanda": _url_con_filtros(request, estado="demanda"),
+        "compuestos": _url_con_filtros(request, estado="compuestos"),
+    }
+
     return render(
         request,
         "productos/lista.html",
@@ -74,20 +369,89 @@ def lista(request):
             "tipos": tipos,
             "busqueda": busqueda,
             "tipo_seleccionado": tipo_seleccionado,
+            "estado_seleccionado": estado_seleccionado,
             "mostrar_piezas": mostrar_piezas,
             "piezas_toggle_url": piezas_toggle_url,
+            "metricas": metricas,
+            "filtro_urls": filtro_urls,
         },
     )
 
 
 def detalle(request, producto_id):
+    from kits.models import Kit
+    from produccion.models import Produccion
+    from stock.models import MovimientoStock
+
     producto = get_object_or_404(
         Producto.objects
         .select_related("tipo")
-        .prefetch_related("componentes__componente"),
+        .prefetch_related(
+            "componentes__componente",
+            "usado_como_componente__producto",
+            _imagen_prefetch(),
+        ),
         id=producto_id,
     )
-    return render(request, "productos/detalle.html", {"producto": producto})
+    _enriquecer_productos([producto])
+
+    producciones_activas = list(
+        Produccion.objects
+        .filter(
+            producto=producto,
+            estado__in=["PENDIENTE", "IMPRIMIENDO"],
+        )
+        .select_related("impresora", "pedido", "pedido__cliente")
+        .order_by("estado", "inicio_impresion", "id")
+    )
+
+    movimientos_stock = list(
+        MovimientoStock.objects
+        .filter(producto=producto)
+        .order_by("-fecha", "-id")[:10]
+    )
+
+    kits_relacionados = list(
+        Kit.objects
+        .filter(
+            Q(
+                modalidad="FIJO",
+                componentes__producto=producto,
+            )
+            | Q(
+                modalidad="LIBRE_CATEGORIA",
+                tipo_producto=producto.tipo,
+            ),
+            activo=True,
+        )
+        .distinct()
+        .order_by("nombre")
+    )
+
+    productos_padre = [
+        relacion.producto
+        for relacion in producto.usado_como_componente.all()
+    ]
+
+    cantidad_sugerida = max(
+        producto.falta_normal_planificar,
+        producto.falta_iniciar,
+        1,
+    )
+
+    return render(
+        request,
+        "productos/detalle.html",
+        {
+            "producto": producto,
+            "producciones_activas": producciones_activas,
+            "movimientos_stock": movimientos_stock,
+            "kits_relacionados": kits_relacionados,
+            "productos_padre": productos_padre,
+            "cantidad_sugerida": cantidad_sugerida,
+            "margen_minimo": MARGEN_MINIMO,
+        },
+    )
 
 
 @transaction.atomic
