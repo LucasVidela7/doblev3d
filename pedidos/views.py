@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from clientes.models import Cliente
+from clientes.telefonos import buscar_cliente_por_telefono
 from kits.models import Kit
 from productos.models import Producto
 from produccion.models import Produccion
@@ -619,6 +620,22 @@ def nuevo_pedido(request):
 
                 return redirect(
                     "pedidos:nuevo"
+                )
+
+            existente = buscar_cliente_por_telefono(
+                telefono_cliente
+            )
+            if existente:
+                estado = "" if existente.activo else " (inactivo)"
+                messages.error(
+                    request,
+                    (
+                        f"Ese teléfono ya pertenece a {existente.nombre} "
+                        f"({existente.codigo}){estado}. Seleccioná el cliente existente."
+                    ),
+                )
+                return redirect(
+                    f"{reverse('pedidos:nuevo')}?cliente={existente.id}"
                 )
 
             cliente = Cliente.objects.create(
