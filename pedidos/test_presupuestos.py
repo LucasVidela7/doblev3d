@@ -82,6 +82,7 @@ class PresupuestosTests(TestCase):
                 "cantidad_1": str(cantidad),
                 "precio_total_producto_1": total,
                 "precio_unitario_1": "",
+                "precio_producto_manual_1": "1",
             },
         )
 
@@ -168,6 +169,7 @@ class PresupuestosTests(TestCase):
                 "cantidad_1": "1",
                 "precio_total_producto_1": "6000",
                 "precio_unitario_1": "",
+                "precio_producto_manual_1": "1",
             },
         )
 
