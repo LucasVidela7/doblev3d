@@ -2069,8 +2069,10 @@ def registrar_pago(request, pedido_id):
             url = reverse("pedidos:finanzas")
             periodo = request.POST.get("periodo", "").strip()
             if periodo:
-                url += f"?periodo={periodo}"
-            return redirect(f"{url}#cobros")
+                url += f"?periodo={periodo}&vista=cobros"
+            else:
+                url += "?vista=cobros"
+            return redirect(url)
 
         if origen == "cliente" and cliente_id:
             return redirect(
@@ -3091,7 +3093,7 @@ def registrar_gasto(request):
     )
 
     return redirect(
-        f"{redirect('pedidos:finanzas').url}?periodo={periodo}"
+        f"{redirect('pedidos:finanzas').url}?periodo={periodo}&vista=gastos"
     )
 
 
@@ -3147,7 +3149,7 @@ def cambiar_estado_cuota(
     )
 
     return redirect(
-        f"{redirect('pedidos:finanzas').url}?periodo={periodo}"
+        f"{redirect('pedidos:finanzas').url}?periodo={periodo}&vista=cuotas"
     )
 
 
@@ -3182,7 +3184,7 @@ def eliminar_gasto(
     )
 
     return redirect(
-        f"{redirect('pedidos:finanzas').url}?periodo={periodo}"
+        f"{redirect('pedidos:finanzas').url}?periodo={periodo}&vista=gastos"
     )
 
 
@@ -3264,7 +3266,7 @@ def actualizar_saldo_caja(request):
     )
 
     return redirect(
-        f"{redirect('pedidos:finanzas').url}?periodo={periodo}"
+        f"{redirect('pedidos:finanzas').url}?periodo={periodo}&vista=caja"
     )
 
 
