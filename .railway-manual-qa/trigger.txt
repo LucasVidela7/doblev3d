@@ -1,2 +1,2 @@
-Deploy QA: portada sólo con imágenes y avisos dentro del menú
-Incluye: Inicio del catálogo oculta productos y kits sin imagen; se restaura NUEVO en el navbar y la campanita Web Push queda dentro del menú hamburguesa de gestión
+Deploy QA: sección Configuración de gestión
+Incluye: control global de notificaciones Web Push, gestión del dispositivo, activar/desactivar catálogo público, mensaje de mantenimiento y pantalla 503 de mantenimiento para toda la tienda
