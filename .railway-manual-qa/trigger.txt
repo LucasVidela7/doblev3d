@@ -1,2 +1,2 @@
-Deploy QA: corregir estado visual del menú superior
-Incluye: la navegación interna deja de forzar INICIO en negro dentro del header público; solo queda activa la sección actual
+Deploy QA: descuentos de productos desde 5 unidades
+Incluye: productos individuales mantienen precio de lista entre 1 y 4 unidades; descuento automático recién desde la quinta
