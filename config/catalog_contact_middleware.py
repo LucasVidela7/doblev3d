@@ -24,8 +24,21 @@ header.shell.top{display:none!important}
     -webkit-backdrop-filter:blur(14px)
 }
 .dv-catalog-header__inner{
+    position:relative;
     width:min(1180px,calc(100% - 24px));height:100%;margin:0 auto;
-    display:flex;align-items:center;justify-content:space-between;gap:14px
+    display:grid;grid-template-columns:auto minmax(0,1fr) auto;
+    align-items:center;gap:14px
+}
+.dv-catalog-header__nav{
+    min-width:0;display:flex;align-items:center;justify-content:center;gap:4px
+}
+.dv-catalog-header__nav-link{
+    min-height:38px;display:inline-flex;align-items:center;justify-content:center;
+    padding:0 12px;border-radius:11px;color:#40506a;text-decoration:none;
+    font-size:.76rem;font-weight:900;transition:.15s ease
+}
+.dv-catalog-header__nav-link:hover{
+    background:#eef4ff;color:#134a9a
 }
 .dv-catalog-header__brand{
     min-width:0;display:inline-flex;align-items:center;gap:9px;
@@ -79,14 +92,25 @@ header.shell.top{display:none!important}
     outline:3px solid rgba(19,74,154,.25);outline-offset:2px
 }
 @media(max-width:640px){
-    :root{--dv-catalog-header-height:60px}
-    .dv-catalog-header__inner{width:calc(100% - 16px);gap:7px}
+    :root{--dv-catalog-header-height:102px}
+    .dv-catalog-header__inner{
+        width:calc(100% - 16px);height:60px;gap:7px;
+        grid-template-columns:auto 1fr
+    }
     .dv-catalog-header__brand{gap:6px}
     .dv-catalog-header__brand img{width:42px;height:42px}
     .dv-catalog-header__brand strong{display:none}
-    .dv-catalog-header__actions{gap:4px}
+    .dv-catalog-header__actions{gap:4px;justify-self:end}
     .dv-catalog-header__action{width:38px;height:38px;border-radius:11px}
     .dv-catalog-header__action svg{width:19px;height:19px}
+    .dv-catalog-header__nav{
+        position:absolute;left:0;right:0;top:62px;
+        height:34px;justify-content:stretch;gap:5px
+    }
+    .dv-catalog-header__nav-link{
+        flex:1 1 0;min-height:34px;padding:0 7px;
+        border:1px solid #e3e8ef;background:#fff;font-size:.7rem
+    }
 }
 </style>
 """
@@ -164,12 +188,19 @@ def _header_html():
 
     logo_url = html.escape(static("brand/logo.png"), quote=True)
     catalogo_url = html.escape(reverse("catalogo"), quote=True)
+    productos_url = html.escape(reverse("catalogo_productos"), quote=True)
+    kits_url = html.escape(reverse("catalogo_kits"), quote=True)
 
     return (
         f'<header id="{HEADER_ID}" class="dv-catalog-header">'
         '<div class="dv-catalog-header__inner">'
-        f'<a class="dv-catalog-header__brand" href="{catalogo_url}" aria-label="Ir al catálogo">'
+        f'<a class="dv-catalog-header__brand" href="{catalogo_url}" aria-label="Ir al inicio">'
         f'<img src="{logo_url}" alt="Doble V 3D"><strong>Doble V 3D</strong></a>'
+        '<nav class="dv-catalog-header__nav" aria-label="Secciones de la tienda">'
+        f'<a class="dv-catalog-header__nav-link" href="{catalogo_url}">INICIO</a>'
+        f'<a class="dv-catalog-header__nav-link" href="{productos_url}">PRODUCTOS</a>'
+        f'<a class="dv-catalog-header__nav-link" href="{kits_url}">KITS</a>'
+        '</nav>'
         f'<nav id="{CONTACT_NAV_ID}" class="dv-catalog-header__actions" '
         'aria-label="Acciones del catálogo">'
         + "".join(actions)
@@ -204,11 +235,13 @@ class CatalogContactMiddleware:
             view_name in {
                 "catalogo",
                 "catalogo_legacy",
+                "catalogo_productos",
+                "catalogo_kits",
                 "catalogo_kit_detalle",
                 "catalogo_carrito",
                 "catalogo_carrito_gracias",
             }
-            or path in {"/", "/catalogo/"}
+            or path in {"/", "/catalogo/", "/productos/", "/kits/"}
             or path.startswith("/kits/")
             or path.startswith("/carrito/")
         )
