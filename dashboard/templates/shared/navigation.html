@@ -147,31 +147,17 @@
                 <span class="dv-management-menu__description">Costos, precios y mayorista.</span>
             </span>
         </a>
-    </nav>
-
-    {% if webpush_habilitado %}
-    <div class="dv-management-menu__notifications" aria-label="Notificaciones">
-        <button
-            type="button"
-            id="dvGlobalPushToggle"
-            class="dv-management-menu__push"
-            data-public-key="{{ webpush_public_key }}"
-            data-worker="{% url 'dashboard:push_service_worker' %}"
-            data-subscribe="{% url 'dashboard:push_suscribir' %}"
-            data-unsubscribe="{% url 'dashboard:push_desuscribir' %}"
-            aria-label="Activar notificaciones"
-            aria-pressed="false"
-            title="Notificaciones"
+        <a
+            href="{% url 'dashboard:configuracion' %}"
+            class="dv-management-menu__link {% if request.resolver_match.namespace == 'dashboard' and request.resolver_match.url_name == 'configuracion' %}is-active{% endif %}"
         >
-            <span class="dv-management-menu__push-icon" aria-hidden="true">🔔</span>
-            <span class="dv-management-menu__push-copy">
-                <span class="dv-management-menu__push-title" data-push-label>Activar avisos</span>
-                <span class="dv-management-menu__push-hint">Pedidos recibidos desde la web</span>
+            <span class="dv-management-menu__icon">⚙</span>
+            <span>
+                <span class="dv-management-menu__label">Configuración</span>
+                <span class="dv-management-menu__description">Catálogo, mantenimiento y notificaciones.</span>
             </span>
-        </button>
-        <form id="dvGlobalPushCsrf" hidden>{% csrf_token %}</form>
-    </div>
-    {% endif %}
+        </a>
+    </nav>
 
     <div class="dv-management-menu__settings" aria-label="Apariencia">
         <div class="dv-management-menu__settings-copy">
