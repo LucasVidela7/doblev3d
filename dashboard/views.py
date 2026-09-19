@@ -17,6 +17,7 @@ from pedidos.models import (
     Pedido,
     Pago,
     Presupuesto,
+    SolicitudWeb,
     WebPushSubscription,
 )
 from pedidos.impresiones_stock import obtener_impresiones_por_producto
@@ -731,6 +732,38 @@ def inicio(request):
     # PRESUPUESTOS
     # ==========================================================
 
+    solicitudes_web_qs = (
+        SolicitudWeb.objects
+        .filter(
+            estado__in=["NUEVA", "CONTACTADA"],
+        )
+        .prefetch_related("items")
+        .order_by("-id")
+    )
+    solicitudes_web_activas = list(
+        solicitudes_web_qs[:6]
+    )
+    solicitudes_web_nuevas = (
+        SolicitudWeb.objects
+        .filter(estado="NUEVA")
+        .count()
+    )
+    solicitudes_web_contactadas = (
+        SolicitudWeb.objects
+        .filter(estado="CONTACTADA")
+        .count()
+    )
+    solicitudes_web_pendientes = (
+        solicitudes_web_nuevas
+        + solicitudes_web_contactadas
+    )
+
+    for solicitud in solicitudes_web_activas:
+        solicitud.unidades_dashboard = sum(
+            int(item.cantidad or 0)
+            for item in solicitud.items.all()
+        )
+
     presupuestos_pendientes_qs = (
         Presupuesto.objects
         .filter(estado="PENDIENTE")
@@ -813,6 +846,10 @@ def inicio(request):
             "cobrado_mes": cobrado_mes,
             "presupuestos_pendientes": presupuestos_pendientes,
             "monto_presupuestado_pendiente": monto_presupuestado_pendiente,
+            "solicitudes_web_activas": solicitudes_web_activas,
+            "solicitudes_web_nuevas": solicitudes_web_nuevas,
+            "solicitudes_web_contactadas": solicitudes_web_contactadas,
+            "solicitudes_web_pendientes": solicitudes_web_pendientes,
             "webpush_habilitado": _webpush_habilitado(),
             "webpush_public_key": getattr(
                 settings,
