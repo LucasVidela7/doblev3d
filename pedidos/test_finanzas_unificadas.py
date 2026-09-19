@@ -8,7 +8,7 @@ from django.utils import timezone
 from clientes.models import Cliente
 from productos.models import Producto, TipoProducto
 
-from .models import DetallePedido, Pago, Pedido
+from .models import DetallePedido, Gasto, Pago, Pedido
 
 
 @override_settings(
@@ -67,9 +67,9 @@ class FinanzasUnificadasTests(TestCase):
         )
 
         self.assertEqual(respuesta.status_code, 200)
-        self.assertContains(respuesta, "Cobros y saldos")
-        self.assertContains(respuesta, self.pedido.codigo)
-        self.assertContains(respuesta, "+ REGISTRAR COBRO")
+        self.assertContains(respuesta, "Centro financiero")
+        self.assertContains(respuesta, "NECESITAN ATENCIÓN")
+        self.assertContains(respuesta, "REGISTRAR COBRO")
         self.assertContains(respuesta, "modalCobro")
         self.assertContains(respuesta, "modalGasto")
         self.assertContains(respuesta, "modalCaja")
@@ -164,3 +164,82 @@ class FinanzasUnificadasTests(TestCase):
             respuesta.url,
             f"{reverse('pedidos:finanzas')}#cobros",
         )
+
+    def test_cobros_usa_vista_paginada_y_saldo_sql(self):
+        respuesta = self.client.get(
+            reverse("pedidos:finanzas"),
+            {"vista": "cobros"},
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(
+            respuesta.context["vista"],
+            "cobros",
+        )
+        self.assertEqual(
+            respuesta.context["saldo_total_actual"],
+            Decimal("5000"),
+        )
+        pagina = respuesta.context["cobros_pagina"]
+        self.assertIsNotNone(pagina)
+        self.assertEqual(
+            pagina.paginator.per_page,
+            20,
+        )
+        self.assertEqual(
+            pagina.object_list[0].id,
+            self.pedido.id,
+        )
+
+    def test_gastos_se_paginan_de_a_20(self):
+        hoy = timezone.localdate()
+
+        for numero in range(25):
+            Gasto.objects.create(
+                fecha_compra=hoy,
+                tipo="OPERATIVO",
+                categoria="OTRO",
+                descripcion=f"Gasto {numero}",
+                monto_total=Decimal("100"),
+                medio_pago="EFECTIVO",
+                cantidad_cuotas=1,
+            )
+
+        respuesta = self.client.get(
+            reverse("pedidos:finanzas"),
+            {"vista": "gastos"},
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        pagina = respuesta.context["gastos_pagina"]
+        self.assertIsNotNone(pagina)
+        self.assertEqual(
+            pagina.paginator.per_page,
+            20,
+        )
+        self.assertEqual(
+            pagina.paginator.count,
+            25,
+        )
+        self.assertEqual(len(pagina.object_list), 20)
+
+    def test_resumen_no_carga_rentabilidad_historica_detallada(self):
+        respuesta = self.client.get(
+            reverse("pedidos:finanzas"),
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(
+            respuesta.context["vista"],
+            "resumen",
+        )
+        self.assertIsNone(
+            respuesta.context["rentabilidad_pagina"],
+        )
+        self.assertIsNone(
+            respuesta.context["gastos_pagina"],
+        )
+        self.assertIsNone(
+            respuesta.context["cuotas_pagina"],
+        )
+
