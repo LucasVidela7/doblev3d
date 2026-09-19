@@ -108,14 +108,14 @@
             </a>
         </section>
 
-        {% if productos %}
+        {% if productos_inicio %}
         <section class="shell section">
             <div class="section-head">
                 <h2>Productos destacados</h2>
                 <a href="{% url 'catalogo_productos' %}">VER TODOS →</a>
             </div>
             <div class="preview-grid">
-                {% for producto in productos|slice:":4" %}
+                {% for producto in productos_inicio|slice:":4" %}
                 <a class="preview" href="{% url 'catalogo_productos' %}?q={{ producto.nombre|urlencode }}">
                     <div class="preview-media">
                         {% if producto.catalogo_imagen %}
@@ -143,14 +143,14 @@
             <a class="btn" href="{% url 'catalogo_kits' %}">EXPLORAR KITS</a>
         </section>
 
-        {% if kits %}
+        {% if kits_inicio %}
         <section class="shell section">
             <div class="section-head">
                 <h2>Kits destacados</h2>
                 <a href="{% url 'catalogo_kits' %}">VER TODOS →</a>
             </div>
             <div class="preview-grid">
-                {% for kit in kits|slice:":4" %}
+                {% for kit in kits_inicio|slice:":4" %}
                 <a class="preview" href="{% url 'catalogo_kit_detalle' kit.id %}">
                     <div class="preview-media">
                         {% if kit.catalogo_imagen_url %}
