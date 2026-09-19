@@ -6,7 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Catálogo de productos y kits de Doble V 3D.">
-    <title>Catálogo | Doble V 3D</title>
+    <title>{% if vista_catalogo == "productos" %}Productos{% else %}Kits{% endif %} | Doble V 3D</title>
     <link rel="icon" href="{% static 'brand/favicon.ico' %}">
     <style>
         :root {
@@ -640,12 +640,21 @@
     <main>
         <section class="shell hero">
             <div class="hero-card">
-                <p class="eyebrow">Catálogo</p>
-                <h1>Objetos para mirar, tocar y disfrutar.</h1>
-                <p>
-                    Explorá los productos y kits disponibles. Las fotos, opciones y precios
-                    se actualizan desde el mismo sistema de Doble V 3D.
-                </p>
+                {% if vista_catalogo == "productos" %}
+                    <p class="eyebrow">Productos</p>
+                    <h1>Elegí tu próxima pieza.</h1>
+                    <p>
+                        Explorá productos individuales, buscá por nombre o categoría
+                        y agregalos directamente al carrito.
+                    </p>
+                {% else %}
+                    <p class="eyebrow">Kits</p>
+                    <h1>Más opciones, en un solo kit.</h1>
+                    <p>
+                        Descubrí kits listos o configurables. Entrá al detalle,
+                        elegí tus piezas y armá la combinación que quieras.
+                    </p>
+                {% endif %}
             </div>
         </section>
 
@@ -655,11 +664,6 @@
                     <span style="position:absolute;clip:rect(0 0 0 0);clip-path:inset(50%);">Buscar</span>
                     <input id="catalog-search" type="search" placeholder="Buscar por nombre o categoría…" autocomplete="off">
                 </label>
-                <div class="segments" aria-label="Secciones del catálogo">
-                    <button class="filter is-active" type="button" data-kind="all">Todo</button>
-                    <button class="filter" type="button" data-kind="producto">Productos</button>
-                    <button class="filter" type="button" data-kind="kit">Kits</button>
-                </div>
             </div>
         </div>
 
@@ -672,6 +676,7 @@
             </div>
         {% endif %}
 
+        {% if vista_catalogo == "productos" %}
         <section class="shell section" data-section="producto">
             <div class="section-head">
                 <div>
@@ -745,6 +750,9 @@
             {% endif %}
         </section>
 
+        {% endif %}
+
+        {% if vista_catalogo == "kits" %}
         <section class="shell section" data-section="kit">
             <div class="section-head">
                 <div>
@@ -858,6 +866,8 @@
             {% endif %}
         </section>
 
+        {% endif %}
+
         <div class="shell no-results empty" id="no-results">No encontramos resultados con esos filtros.</div>
     </main>
 
@@ -875,7 +885,7 @@
             const kindButtons = [...document.querySelectorAll("[data-kind].filter")];
             const categoryButtons = [...document.querySelectorAll("[data-category].filter")];
 
-            let activeKind = "all";
+            let activeKind = "{{ vista_catalogo|escapejs }}";
             let activeCategory = "";
 
             const normalize = (value) =>
@@ -889,11 +899,7 @@
                 const url = new URL(window.location.href);
                 const rawQuery = search.value.trim();
 
-                if (activeKind && activeKind !== "all") {
-                    url.searchParams.set("tipo", activeKind);
-                } else {
-                    url.searchParams.delete("tipo");
-                }
+                url.searchParams.delete("tipo");
 
                 if (activeCategory) {
                     url.searchParams.set("categoria", activeCategory);
@@ -962,7 +968,7 @@
                 const requestedQuery = params.get("q") || "";
                 const validKinds = new Set(kindButtons.map((button) => button.dataset.kind));
 
-                activeKind = validKinds.has(requestedKind) ? requestedKind : "all";
+                activeKind = "{{ vista_catalogo|escapejs }}";
 
                 const matchingCategory = categoryButtons.find(
                     (button) => normalize(button.dataset.category) === normalize(requestedCategory),
