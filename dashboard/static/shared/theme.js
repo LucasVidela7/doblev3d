@@ -243,8 +243,9 @@
                 )
             );
 
-            if(normales.length>2){
-                const extras=normales.slice(2);
+            const limiteSecundarias=window.matchMedia("(max-width:720px)").matches ? 1 : 2;
+            if(normales.length>limiteSecundarias){
+                const extras=normales.slice(limiteSecundarias);
                 if(overflowExistente){
                     const menu=
                         overflowExistente.querySelector(
