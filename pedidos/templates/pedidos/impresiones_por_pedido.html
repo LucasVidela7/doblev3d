@@ -190,6 +190,23 @@
             .acciones{display:grid;grid-template-columns:1fr 1fr}
             .acciones>*{width:100%}.acciones .btn,.acciones form .btn{width:100%}
         }
+        html[data-dv-theme="dark"] .flujo{
+            background:color-mix(in srgb,var(--dv-surface) 94%,transparent);
+            border-color:var(--dv-border);
+        }
+        html[data-dv-theme="dark"] .barra{
+            background:var(--dv-surface-muted);
+        }
+        html[data-dv-theme="dark"] .check-ui{
+            background:var(--dv-surface-soft);
+            border-color:var(--dv-border);
+            color:var(--dv-muted);
+        }
+        html[data-dv-theme="dark"] .tag{
+            background:var(--dv-surface-soft);
+            color:var(--dv-muted);
+        }
+
         @media(max-width:430px){
             h1{font-size:26px}
             .metrica strong{font-size:22px}
