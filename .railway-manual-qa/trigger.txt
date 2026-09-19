@@ -1,2 +1,2 @@
-Deploy QA: portada del catálogo sólo con ítems con imagen
-Incluye: productos y kits sin imagen dejan de aparecer en destacados de Inicio; siguen disponibles en sus páginas completas
+Deploy QA: portada sólo con imágenes y avisos dentro del menú
+Incluye: Inicio del catálogo oculta productos y kits sin imagen; se restaura NUEVO en el navbar y la campanita Web Push queda dentro del menú hamburguesa de gestión
