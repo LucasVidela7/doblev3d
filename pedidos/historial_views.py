@@ -87,8 +87,7 @@ def pedidos_cancelados(request):
 
 
 def pagos(request):
-    """
-    Ruta histórica de Pagos.
-    El módulo fue unificado dentro de Finanzas.
-    """
-    return redirect(f"{reverse('pedidos:finanzas')}#cobros")
+    """Compatibilidad con la antigua pantalla de pagos."""
+    return redirect(
+        f"{reverse('pedidos:finanzas')}?vista=cobros"
+    )
