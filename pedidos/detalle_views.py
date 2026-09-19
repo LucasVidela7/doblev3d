@@ -46,6 +46,8 @@ def _armar_preparacion(pedido):
                     "estado_id": None,
                     "stock_actual": None,
                     "stock_descontado": 0,
+                    "reservado_stock": False,
+                    "stock_reservado": 0,
                     "faltante": 0,
                     "estado_operativo": "LISTO" if listo else "MANUAL",
                     "estado_texto": "Preparado" if listo else "Preparación manual",
@@ -93,9 +95,17 @@ def _armar_preparacion(pedido):
         )
 
         listo = estado.listo
+        reservado = bool(estado.reservado_stock)
+        reservado_cantidad = int(
+            estado.cantidad_stock_reservada or 0
+        )
         stock_actual = max(int(producto.stock or 0), 0)
-        faltante = 0 if listo else max(cantidad - stock_actual, 0)
-        puede_marcar = listo or faltante == 0
+        faltante = (
+            0
+            if listo or reservado
+            else max(cantidad - stock_actual, 0)
+        )
+        puede_marcar = listo or reservado or faltante == 0
 
         if listo:
             estado_operativo = "LISTO"
@@ -104,6 +114,12 @@ def _armar_preparacion(pedido):
                 f"Preparado · {descontado} descontado"
                 if descontado
                 else "Preparado"
+            )
+        elif reservado:
+            estado_operativo = "RESERVADO"
+            estado_texto = (
+                f"Reservado · {reservado_cantidad} "
+                f"unidad{'es' if reservado_cantidad != 1 else ''}"
             )
         elif faltante:
             estado_operativo = "FALTANTE"
@@ -124,6 +140,8 @@ def _armar_preparacion(pedido):
                 "estado_id": estado.id,
                 "stock_actual": stock_actual,
                 "stock_descontado": estado.cantidad_stock_descontada if listo else 0,
+                "reservado_stock": reservado,
+                "stock_reservado": reservado_cantidad,
                 "faltante": faltante,
                 "estado_operativo": estado_operativo,
                 "estado_texto": estado_texto,
