@@ -135,8 +135,7 @@
             transition:transform .16s ease
         }
         .pedido-productos[open]>summary::after{transform:rotate(180deg)}
-        .pedido-productos-resumen{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-        .pedido-productos-resumen span{
+        .pedido-productos-resumen{
             min-height:22px;display:inline-flex;align-items:center;padding:0 7px;border-radius:999px;
             background:var(--surface);color:var(--muted);font-size:8px;font-weight:900
         }
@@ -294,17 +293,7 @@
                 <details class="pedido-productos" id="productos-pedido-{{ item_pedido.pedido.id }}">
                     <summary>
                         <span>PRODUCTOS DEL PEDIDO</span>
-                        <span class="pedido-productos-resumen"><span>{{ item_pedido.preparacion_total }} producto{{ item_pedido.preparacion_total|pluralize:"s" }}</span></span>
-                    </summary>
-                    <details class="pedido-productos" id="productos-pedido-{{ item_pedido.pedido.id }}">
-                    <summary>
-                        <span>PRODUCTOS DEL PAQUETE</span>
-                        <span class="pedido-productos-resumen"><span>{{ item_pedido.preparacion_listos }}/{{ item_pedido.preparacion_total }} listos</span></span>
-                    </summary>
-                    <details class="pedido-productos" id="productos-pedido-{{ item_pedido.pedido.id }}">
-                    <summary>
-                        <span>PRODUCTOS Y FALTANTES</span>
-                        <span class="pedido-productos-resumen"><span>{{ item_pedido.faltantes_stock }} faltante{{ item_pedido.faltantes_stock|pluralize:"s" }}</span></span>
+                        <span class="pedido-productos-resumen">{{ item_pedido.preparacion_total }} producto{{ item_pedido.preparacion_total|pluralize:"s" }}</span>
                     </summary>
                     <section class="productos">
                     {% for item in item_pedido.productos %}
@@ -366,7 +355,12 @@
                 <div class="preparacion-aviso">El stock reservado ya no está disponible para otros pedidos. Marcá ✓ cuando cada producto quede dentro del paquete.</div>
                 {% endif %}
 
-                <section class="productos">
+                <details class="pedido-productos" id="productos-pedido-{{ item_pedido.pedido.id }}">
+                    <summary>
+                        <span>PRODUCTOS DEL PAQUETE</span>
+                        <span class="pedido-productos-resumen">{{ item_pedido.preparacion_listos }}/{{ item_pedido.preparacion_total }} listos</span>
+                    </summary>
+                    <section class="productos">
                     {% for item in item_pedido.productos %}
                     <div class="producto">
                         <div>
@@ -456,7 +450,12 @@
 
                 <div class="falta-resumen">Todavía no reserves este pedido. Producción debe completar las piezas faltantes primero.</div>
 
-                <section class="productos">
+                <details class="pedido-productos" id="productos-pedido-{{ item_pedido.pedido.id }}">
+                    <summary>
+                        <span>PRODUCTOS Y FALTANTES</span>
+                        <span class="pedido-productos-resumen">{{ item_pedido.faltantes_stock }} faltante{{ item_pedido.faltantes_stock|pluralize:"s" }}</span>
+                    </summary>
+                    <section class="productos">
                     {% for item in item_pedido.productos %}
                     <div class="producto">
                         <div>
