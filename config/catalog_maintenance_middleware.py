@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import Resolver404, resolve
@@ -36,7 +37,14 @@ class CatalogMaintenanceMiddleware:
             return self.get_response(request)
 
         config = ConfiguracionCatalogo.objects.first()
-        if not config or config.catalogo_activo:
+        mantenimiento_forzado = bool(
+            getattr(settings, "CATALOGO_MANTENIMIENTO", False)
+        )
+
+        if (
+            not mantenimiento_forzado
+            and (not config or config.catalogo_activo)
+        ):
             return self.get_response(request)
 
         if match.url_name == "catalogo_carrito_precios":
@@ -53,7 +61,14 @@ class CatalogMaintenanceMiddleware:
             request,
             "productos/catalogo_mantenimiento.html",
             {
-                "mensaje_mantenimiento": config.mensaje_mantenimiento,
+                "mensaje_mantenimiento": (
+                    config.mensaje_mantenimiento
+                    if config and config.mensaje_mantenimiento
+                    else (
+                        "Estamos haciendo unos ajustes en la tienda. "
+                        "Volvé a visitarnos en unos minutos."
+                    )
+                ),
             },
             status=503,
         )
