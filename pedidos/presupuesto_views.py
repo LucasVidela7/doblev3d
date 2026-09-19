@@ -164,16 +164,80 @@ def _parsear_items(request):
             componentes = defaultdict(int)
 
             if kit.modalidad == "FIJO":
-                componentes_fijos = list(kit.componentes.all())
-                if not componentes_fijos:
-                    raise ValueError(
-                        f"El kit {kit.nombre} no tiene una composición fija configurada."
+                detalle_id = request.POST.get(
+                    f"detalle_id_{indice}",
+                    "",
+                ).strip()
+                detalle_snapshot = None
+
+                if detalle_id:
+                    detalle_snapshot = (
+                        DetallePresupuesto.objects
+                        .filter(
+                            id=detalle_id,
+                            kit=kit,
+                            tipo_item="KIT",
+                        )
+                        .prefetch_related(
+                            "productos_kit__producto"
+                        )
+                        .first()
                     )
 
-                for componente in componentes_fijos:
-                    componentes[componente.producto_id] += (
-                        componente.cantidad * cantidad
+                if (
+                    detalle_snapshot
+                    and detalle_snapshot.productos_kit.exists()
+                ):
+                    # Mantiene la receta histórica mientras el usuario
+                    # no cambie explícitamente de kit.
+                    factor = (
+                        Decimal(cantidad)
+                        / Decimal(
+                            max(
+                                int(
+                                    detalle_snapshot.cantidad
+                                    or 1
+                                ),
+                                1,
+                            )
+                        )
                     )
+                    for componente in (
+                        detalle_snapshot.productos_kit.all()
+                    ):
+                        cantidad_snapshot = Decimal(
+                            int(componente.cantidad or 0)
+                        )
+                        cantidad_nueva = int(
+                            (
+                                cantidad_snapshot
+                                * factor
+                            ).quantize(
+                                Decimal("1")
+                            )
+                        )
+                        componentes[
+                            componente.producto_id
+                        ] += max(
+                            cantidad_nueva,
+                            0,
+                        )
+                else:
+                    componentes_fijos = list(
+                        kit.componentes.all()
+                    )
+                    if not componentes_fijos:
+                        raise ValueError(
+                            f"El kit {kit.nombre} no tiene una composición fija configurada."
+                        )
+
+                    for componente in componentes_fijos:
+                        componentes[
+                            componente.producto_id
+                        ] += (
+                            componente.cantidad
+                            * cantidad
+                        )
             else:
                 ids = request.POST.getlist(f"productos_kit_{indice}")
                 if len(ids) != kit.cantidad_productos:
