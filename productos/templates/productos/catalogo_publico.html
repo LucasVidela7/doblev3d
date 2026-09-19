@@ -885,7 +885,7 @@
             const kindButtons = [...document.querySelectorAll("[data-kind].filter")];
             const categoryButtons = [...document.querySelectorAll("[data-category].filter")];
 
-            let activeKind = "{{ vista_catalogo|escapejs }}";
+            let activeKind = {% if vista_catalogo == "productos" %}"producto"{% else %}"kit"{% endif %};
             let activeCategory = "";
 
             const normalize = (value) =>
@@ -968,7 +968,7 @@
                 const requestedQuery = params.get("q") || "";
                 const validKinds = new Set(kindButtons.map((button) => button.dataset.kind));
 
-                activeKind = "{{ vista_catalogo|escapejs }}";
+                activeKind = {% if vista_catalogo == "productos" %}"producto"{% else %}"kit"{% endif %};
 
                 const matchingCategory = categoryButtons.find(
                     (button) => normalize(button.dataset.category) === normalize(requestedCategory),
