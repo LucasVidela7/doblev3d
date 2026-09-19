@@ -47,7 +47,6 @@ CATALOG_EMPTY_FILTERS_SCRIPT = r"""
     const search = document.getElementById('catalog-search');
     const sections = [...document.querySelectorAll('[data-section]')];
 
-    if (!kindButtons.length) return;
 
     const normalize = (value) =>
         (value || '')
@@ -180,7 +179,7 @@ class CatalogGridMiddleware:
         view_name = match.view_name if match else ""
 
         if (
-            view_name not in {"catalogo", "catalogo_legacy"}
+            view_name not in {"catalogo_productos", "catalogo_kits"}
             or response.status_code != 200
             or getattr(response, "streaming", False)
             or "text/html" not in response.get("Content-Type", "")
