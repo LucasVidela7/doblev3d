@@ -1315,11 +1315,23 @@ html[data-dv-theme="dark"] .progreso > span{
    DASHBOARD · DARK MODE + estados de entrega
    ========================================================= */
 html[data-dv-theme="dark"] :is(
-    .que-imprimir-item,.entrega
+    .que-imprimir-item,.entrega,.web-item
 ){
     background:var(--dv-surface-soft) !important;
     color:var(--dv-text) !important;
     border-color:var(--dv-border) !important;
+}
+
+html[data-dv-theme="dark"] :is(
+    .web-title,.web-money strong
+){
+    color:var(--dv-text) !important;
+}
+
+html[data-dv-theme="dark"] :is(
+    .web-meta,.web-money span
+){
+    color:var(--dv-muted) !important;
 }
 
 html[data-dv-theme="dark"] .que-imprimir-falta{
