@@ -300,8 +300,8 @@ def _aplicar_descuentos_carrito(lineas):
     - Productos: mantiene precio de lista hasta 4 unidades. Desde 5 libera
       progresivamente el descuento técnico que permiten costos y margen,
       con un tope comercial de 15%.
-    - Kits: usa la lógica de volumen actual, que se activa desde 5 kits
-      totales y puede combinar kits distintos.
+    - Kits: usa la curva dinámica de volumen desde 2 kits totales y puede
+      combinar kits distintos.
     """
     for linea in lineas:
         precio_lista_unitario = (
