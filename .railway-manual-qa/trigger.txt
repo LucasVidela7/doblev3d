@@ -1,2 +1,2 @@
-Deploy QA: sección Configuración de gestión
-Incluye: control global de notificaciones Web Push, gestión del dispositivo, activar/desactivar catálogo público, mensaje de mantenimiento y pantalla 503 de mantenimiento para toda la tienda
+Deploy QA: calculadora dentro de Productos
+Incluye: se retira Calculadora del menú hamburguesa y pasa a Más opciones dentro de Productos; Productos queda activo también al entrar a la calculadora
