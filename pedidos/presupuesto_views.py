@@ -538,11 +538,20 @@ def nuevo_presupuesto(request):
 
 
 def lista_presupuestos(request):
-    presupuestos = list(
+    estado = request.GET.get("estado", "").strip().upper()
+
+    base = list(
         Presupuesto.objects
         .select_related("cliente", "pedido_generado")
         .prefetch_related("detalles")
         .order_by("-id")
+    )
+
+    estados_validos = {"PENDIENTE", "APROBADO", "RECHAZADO"}
+    presupuestos = (
+        [item for item in base if item.estado == estado]
+        if estado in estados_validos
+        else base
     )
 
     return render(
@@ -550,16 +559,19 @@ def lista_presupuestos(request):
         "pedidos/presupuestos_lista.html",
         {
             "presupuestos": presupuestos,
+            "estado_seleccionado": (
+                estado if estado in estados_validos else ""
+            ),
             "pendientes": sum(
-                1 for item in presupuestos
+                1 for item in base
                 if item.estado == "PENDIENTE"
             ),
             "aprobados": sum(
-                1 for item in presupuestos
+                1 for item in base
                 if item.estado == "APROBADO"
             ),
             "rechazados": sum(
-                1 for item in presupuestos
+                1 for item in base
                 if item.estado == "RECHAZADO"
             ),
         },
