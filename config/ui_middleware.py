@@ -670,22 +670,17 @@ class NormalizarNavegacionMiddleware:
         if es_dashboard or es_pedido_con_kits:
             datos_kits, total_kits, kits_alerta = _datos_economicos_kits()
 
-        if (
-            es_dashboard
-            and request.user.is_authenticated
-            and "dv-dashboard-session" not in html
-        ):
-            if "</head>" in html:
+        if es_dashboard:
+            if "</head>" in html and "dv-dashboard-kits-style" not in html:
                 html = html.replace(
                     "</head>",
-                    DASHBOARD_SESSION_STYLE + DASHBOARD_KITS_STYLE + "\n</head>",
+                    DASHBOARD_KITS_STYLE + "\n</head>",
                     1,
                 )
-            if "</body>" in html:
+            if "</body>" in html and "dv-dashboard-kits-script" not in html:
                 html = html.replace(
                     "</body>",
-                    _dashboard_session_html(request)
-                    + _dashboard_kits_html(total_kits, kits_alerta)
+                    _dashboard_kits_html(total_kits, kits_alerta)
                     + "\n</body>",
                     1,
                 )
