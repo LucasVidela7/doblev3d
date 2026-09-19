@@ -1,2 +1,2 @@
-Deploy QA: restaurar Inicio en navbar inferior
-Único cambio funcional: volver a mostrar Inicio en la navegación inferior, manteniendo intacta la limpieza del resto de botones redundantes.
+Deploy QA: unificar barras de acciones de gestión
+Todas las vistas de gestión usan acciones debajo del título: principal azul, secundarios a la izquierda, overflow en tres puntos y layout responsive para mobile, tablet y web. Incluye Solicitudes web textuales y acciones de Finanzas en cabecera.
