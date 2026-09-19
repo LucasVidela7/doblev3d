@@ -16,10 +16,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from calculadora.precios import (
-    calcular_escenarios_producto,
-    descuento_dinamico_por_cantidad,
-)
+from calculadora.precios import calcular_precio_catalogo_producto
 from kits.economia import precio_automatico_kit_libre
 from kits.models import Kit
 from pedidos.kits_volumen import calcular_precio_volumen_kits
@@ -38,9 +35,6 @@ from productos.whatsapp import (
 
 MAX_LINEAS = 20
 MAX_CANTIDAD_LINEA = 20
-CANTIDAD_MINIMA_DESCUENTO_PRODUCTOS = 5
-DESCUENTO_MAXIMO_PRODUCTOS = Decimal("15")
-SUAVIDAD_DESCUENTO_PRODUCTOS = Decimal("3")
 MAX_UNIDADES_TOTALES = 100
 MAX_PAYLOAD_BYTES = 30000
 
@@ -318,81 +312,18 @@ def _aplicar_descuentos_carrito(lineas):
         if linea["tipo"] != "PRODUCTO":
             continue
 
-        cantidad = int(linea["cantidad"])
-        precio_lista_unitario = linea["precio_lista_unitario"]
-        precio_lista_total = (
-            precio_lista_unitario * Decimal(cantidad)
-        )
-
-        if cantidad < CANTIDAD_MINIMA_DESCUENTO_PRODUCTOS:
-            continue
-
-        calculo = calcular_escenarios_producto(
+        calculo_catalogo = calcular_precio_catalogo_producto(
             linea["producto"],
-            cantidad,
+            int(linea["cantidad"]),
         )
-        recomendado = _decimal(
-            calculo["escenarios"]["recomendado"]["total_recomendado"]
+        linea["precio_unitario"] = _decimal(
+            calculo_catalogo["precio_unitario"]
         )
-
-        precio_tecnico = (
-            recomendado
-            if recomendado > 0
-            else precio_lista_total
+        linea["ahorro_total"] = _decimal(
+            calculo_catalogo["ahorro"]
         )
-        precio_tecnico = min(precio_lista_total, precio_tecnico)
-
-        descuento_tecnico = (
-            (
-                precio_lista_total - precio_tecnico
-            )
-            / precio_lista_total
-            * Decimal("100")
-            if precio_lista_total > 0
-            else Decimal("0")
-        )
-
-        descuento_dinamico = descuento_dinamico_por_cantidad(
-            descuento_tecnico,
-            cantidad,
-            CANTIDAD_MINIMA_DESCUENTO_PRODUCTOS,
-            tope=DESCUENTO_MAXIMO_PRODUCTOS,
-            suavidad=SUAVIDAD_DESCUENTO_PRODUCTOS,
-        )
-        factor_minimo = (
-            Decimal("1")
-            - descuento_dinamico / Decimal("100")
-        )
-        precio_minimo_comercial = (
-            precio_lista_total * factor_minimo
-        ).quantize(Decimal("0.01"))
-
-        # El descuento real depende de dos cosas: cuánto margen técnico existe
-        # y cuánto de ese beneficio habilita la cantidad comprada.
-        precio_final_total = min(
-            precio_lista_total,
-            max(precio_minimo_comercial, precio_tecnico),
-        )
-
-        precio_unitario = (
-            precio_final_total / Decimal(cantidad)
-        ).quantize(Decimal("0.01"))
-        precio_final_total = precio_unitario * Decimal(cantidad)
-        ahorro = max(
-            precio_lista_total - precio_final_total,
-            Decimal("0"),
-        )
-
-        linea["precio_unitario"] = precio_unitario
-        linea["ahorro_total"] = ahorro
-        linea["descuento_porcentaje"] = (
-            (
-                ahorro
-                / precio_lista_total
-                * Decimal("100")
-            ).quantize(Decimal("0.1"))
-            if precio_lista_total > 0
-            else Decimal("0")
+        linea["descuento_porcentaje"] = _decimal(
+            calculo_catalogo["descuento_porcentaje"]
         )
 
     lineas_kits = [
