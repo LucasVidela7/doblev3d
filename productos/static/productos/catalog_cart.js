@@ -13,12 +13,76 @@
     const countNodes = [...document.querySelectorAll('[data-dv-cart-count]')];
     const checkout = root.querySelector('[data-dv-cart-checkout]');
     const toast = root.querySelector('[data-dv-cart-toast]');
+    const siteLoader = document.querySelector('[data-dv-site-loader]');
 
     let loadingTimer = null;
     let pricingTimer = null;
     let pricingSequence = 0;
     let lockedScrollY = 0;
     let bodyWasLocked = false;
+    let navigationPending = false;
+
+    const showSiteLoader = () => {
+        if (!siteLoader) return;
+        navigationPending = true;
+        siteLoader.classList.add('is-visible');
+        siteLoader.setAttribute('aria-hidden', 'false');
+    };
+
+    const hideSiteLoader = () => {
+        if (!siteLoader) return;
+        navigationPending = false;
+        siteLoader.classList.remove('is-visible');
+        siteLoader.setAttribute('aria-hidden', 'true');
+    };
+
+    const isNavigableLink = (anchor, event) => {
+        if (!anchor || !anchor.href) return false;
+        if (
+            event.defaultPrevented
+            || event.button !== 0
+            || event.metaKey
+            || event.ctrlKey
+            || event.shiftKey
+            || event.altKey
+        ) return false;
+        if (
+            anchor.target === '_blank'
+            || anchor.hasAttribute('download')
+            || anchor.dataset.dvNoNavLoader !== undefined
+            || anchor.getAttribute('aria-disabled') === 'true'
+            || anchor.classList.contains('is-disabled')
+        ) return false;
+
+        let target;
+        try {
+            target = new URL(anchor.href, window.location.href);
+        } catch (_) {
+            return false;
+        }
+
+        if (target.origin !== window.location.origin) return false;
+
+        const current = new URL(window.location.href);
+        const sameDocument = (
+            target.pathname === current.pathname
+            && target.search === current.search
+        );
+        if (sameDocument && target.hash) return false;
+
+        return true;
+    };
+
+    document.addEventListener('click', (event) => {
+        const anchor = event.target.closest('a[href]');
+        if (!isNavigableLink(anchor, event)) return;
+        showSiteLoader();
+    }, true);
+
+    window.addEventListener('pageshow', hideSiteLoader);
+    window.addEventListener('beforeunload', () => {
+        if (!navigationPending) showSiteLoader();
+    });
 
     const escapeHtml = (value) =>
         String(value ?? '').replace(/[&<>"']/g, (char) => ({
@@ -128,6 +192,30 @@
                 }, 700);
             }
         }, 330);
+    };
+
+    const addProductWithLoading = (incoming, button) => {
+        if (!button || button.disabled) return;
+
+        const original = button.textContent.trim();
+        button.disabled = true;
+        button.classList.add('is-adding');
+        button.innerHTML =
+            '<span class="dv-cart-button-spinner" aria-hidden="true"></span>'
+            + '<span>AGREGANDO</span>';
+
+        window.setTimeout(() => {
+            button.classList.remove('is-adding');
+            button.classList.add('is-added');
+            button.textContent = 'AGREGADO ✓';
+
+            window.setTimeout(() => {
+                button.classList.remove('is-added');
+                button.disabled = false;
+                button.textContent = original;
+                addItem(incoming, null);
+            }, 240);
+        }, 360);
     };
 
     const addItem = (incoming, button, loadingOptions = {}) => {
@@ -575,7 +663,7 @@
             const listPrice = Number(
                 productButton.dataset.productPrice || 0,
             );
-            addItem({
+            addProductWithLoading({
                 kind: 'product',
                 id: Number(productButton.dataset.productId),
                 name:
