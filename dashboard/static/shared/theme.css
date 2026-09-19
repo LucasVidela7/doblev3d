@@ -1867,11 +1867,12 @@ html[data-dv-theme="dark"] .photo{
 
 .dv-page-actions > .dv-page-action-secondary{
     flex:0 1 auto;
-    border-color:var(--dv-brand-blue)!important;
 }
 
-.dv-page-actions > .dv-page-action-secondary > button,
-.dv-page-actions > .dv-page-action-secondary > a{
+.dv-page-actions > a.dv-page-action-secondary,
+.dv-page-actions > button.dv-page-action-secondary,
+.dv-page-actions > details.dv-page-action-secondary > summary,
+.dv-page-actions > form.dv-page-action-secondary > button{
     border-color:var(--dv-brand-blue)!important;
 }
 
