@@ -1,2 +1,2 @@
-Deploy QA: colapsar Para preparar
-Incluye: Para preparar colapsado por defecto, contador visible, apertura al tocar y apertura automática al navegar por ancla.
+Deploy QA: colapsar productos dentro de cada pedido
+Revierte el colapsado de Para preparar/En preparación. Ahora los pedidos permanecen visibles y Pepino, Estrellas y demás productos quedan dentro de una sección colapsada por pedido, con contador y estado persistente al marcar checks.
