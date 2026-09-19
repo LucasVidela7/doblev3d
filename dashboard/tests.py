@@ -50,7 +50,7 @@ class DashboardProduccionTests(TestCase):
             activa=True,
         )
 
-    def test_dashboard_carga_tema_global_y_selector(self):
+    def test_dashboard_carga_tema_global_y_selector_en_configuracion(self):
         respuesta = self.client.get(
             reverse("dashboard:inicio")
         )
@@ -65,13 +65,22 @@ class DashboardProduccionTests(TestCase):
             contenido,
             r"/static/shared/theme(?:\.[0-9a-f]+)?\.js",
         )
-        self.assertContains(
+        self.assertNotContains(
             respuesta,
             'id="dvThemeToggle"',
         )
+
+        configuracion = self.client.get(
+            reverse("dashboard:configuracion")
+        )
+        self.assertEqual(configuracion.status_code, 200)
         self.assertContains(
-            respuesta,
-            "CLARO",
+            configuracion,
+            'id="dvThemeToggle"',
+        )
+        self.assertContains(
+            configuracion,
+            "Apariencia",
         )
 
         self.assertContains(
