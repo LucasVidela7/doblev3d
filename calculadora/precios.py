@@ -18,6 +18,44 @@ def redondear_arriba(valor, multiplo=Decimal("100")):
     )
 
 
+def descuento_dinamico_por_cantidad(
+    descuento_tecnico,
+    cantidad,
+    cantidad_inicio,
+    tope=Decimal("15"),
+    suavidad=Decimal("3"),
+):
+    """
+    Libera de forma suave el descuento técnico disponible.
+
+    El descuento no nace de una tabla fija. Primero se calcula cuánto descuento
+    soporta realmente el producto/kit según costos y margen; luego la cantidad
+    habilita una porción creciente de ese beneficio con una curva asintótica.
+
+    - antes de cantidad_inicio: 0%
+    - en el umbral: se habilita una fracción pequeña
+    - al crecer la cantidad: se acerca gradualmente al descuento técnico
+    - nunca supera el tope comercial
+    """
+    cantidad = max(int(cantidad or 0), 0)
+    cantidad_inicio = max(int(cantidad_inicio or 1), 1)
+    tecnico = max(Decimal(str(descuento_tecnico or 0)), Decimal("0"))
+    tope = max(Decimal(str(tope or 0)), Decimal("0"))
+    suavidad = max(Decimal(str(suavidad or 0)), Decimal("0"))
+
+    if cantidad < cantidad_inicio or tecnico <= 0 or tope <= 0:
+        return Decimal("0")
+
+    disponible = min(tecnico, tope)
+    progreso = Decimal(cantidad - cantidad_inicio + 1)
+    divisor = progreso + suavidad
+    if divisor <= 0:
+        return disponible.quantize(Decimal("0.1"))
+
+    factor = progreso / divisor
+    return (disponible * factor).quantize(Decimal("0.1"))
+
+
 def margen_sugerido(cantidad, margen_tope):
     cantidad = max(int(cantidad or 1), 1)
     margen_tope = max(Decimal(str(margen_tope)), MARGEN_MINIMO)
