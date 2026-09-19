@@ -14,6 +14,12 @@ urlpatterns = [
     ),
 
     path(
+        "configuracion/",
+        views.configuracion,
+        name="configuracion",
+    ),
+
+    path(
         "sw.js",
         views.push_service_worker,
         name="push_service_worker",
