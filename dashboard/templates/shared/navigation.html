@@ -149,20 +149,6 @@
         </a>
     </nav>
 
-    <div class="dv-management-menu__settings" aria-label="Apariencia">
-        <div class="dv-management-menu__settings-copy">
-            <span class="dv-management-menu__settings-title">Apariencia</span>
-            <span class="dv-management-menu__settings-hint">Tema de la interfaz</span>
-        </div>
-        <label class="dv-theme-control" title="Cambiar tema">
-            <span class="dv-theme-icon" aria-hidden="true">☀</span>
-            <input id="dvThemeToggle" type="checkbox" role="switch" aria-label="Cambiar a modo oscuro">
-            <span class="dv-theme-track" aria-hidden="true"></span>
-            <span class="dv-theme-icon" aria-hidden="true">☾</span>
-            <span id="dvThemeText">CLARO</span>
-        </label>
-    </div>
-
     {% if request.user.is_authenticated %}
     <div class="dv-management-menu__account" aria-label="Sesión">
         <div class="dv-management-menu__user">
@@ -210,15 +196,6 @@
 <div class="dv-global-nav-spacer" aria-hidden="true"></div>
 <nav class="dv-global-nav" aria-label="Navegación principal">
     <a
-        href="{% url 'dashboard:inicio' %}"
-        class="dv-global-nav-item {% if request.resolver_match.namespace == 'dashboard' and request.resolver_match.url_name == 'inicio' %}is-active{% endif %}"
-        {% if request.resolver_match.namespace == 'dashboard' and request.resolver_match.url_name == 'inicio' %}aria-current="page"{% endif %}
-    >
-        <span class="dv-global-nav-icon">⌂</span>
-        <span class="dv-global-nav-label">INICIO</span>
-    </a>
-
-    <a
         href="{% url 'pedidos:impresiones' %}"
         class="dv-global-nav-item {% if request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name != 'nuevo' %}is-active{% endif %}"
         {% if request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name != 'nuevo' %}aria-current="page"{% endif %}
@@ -254,6 +231,33 @@
         <span class="dv-global-nav-label">PRODUCTOS</span>
     </a>
 </nav>
+
+
+<script>
+(function(){
+    function limpiarNavegacionRedundante(){
+        document.querySelectorAll("a,button").forEach(function(el){
+            if(el.closest("#dvManagementMenu")) return;
+            const texto=(el.textContent||"").trim().replace(/\s+/g," ");
+            const aria=(el.getAttribute("aria-label")||"").trim();
+            if(
+                /^(?:⌂|🏠|INICIO|IR AL INICIO)$/i.test(texto)
+                || /^(?:←|‹|↩|VOLVER|← VOLVER)$/i.test(texto)
+                || /^(?:Ir al inicio|Volver)$/i.test(aria)
+                || el.classList.contains("brand-header-home")
+                || el.classList.contains("brand-header-back")
+            ){
+                el.remove();
+            }
+        });
+    }
+    if(document.readyState==="loading"){
+        document.addEventListener("DOMContentLoaded",limpiarNavegacionRedundante);
+    }else{
+        limpiarNavegacionRedundante();
+    }
+})();
+</script>
 
 <script src="{% static 'shared/theme.js' %}"></script>
 <script src="{% static 'shared/management_menu.js' %}"></script>
