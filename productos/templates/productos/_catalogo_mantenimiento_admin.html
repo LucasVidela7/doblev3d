@@ -11,7 +11,7 @@
 
     .dv-maintenance-admin{
         position:fixed;
-        top:12px;
+        bottom:76px;
         left:50%;
         z-index:2147483001;
         width:min(720px,calc(100% - 28px));
@@ -66,13 +66,17 @@
         white-space:nowrap;
     }
 
+    .dv-kit-configurable-page .dv-maintenance-admin{
+        bottom:142px;
+    }
+
     @media(max-width:640px){
         html::before{
             border-width:3px;
         }
 
         .dv-maintenance-admin{
-            top:8px;
+            bottom:70px;
             align-items:flex-start;
             padding:9px 10px;
         }
@@ -84,6 +88,10 @@
 
         .dv-maintenance-admin__badge{
             display:none;
+        }
+
+        .dv-kit-configurable-page .dv-maintenance-admin{
+            bottom:138px;
         }
     }
 </style>
