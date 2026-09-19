@@ -15,6 +15,34 @@ from productos.models import Producto
 
 
 CANTIDAD_MINIMA_KITS_VOLUMEN = 2
+DESCUENTO_INICIAL_KITS = Decimal("5")
+INCREMENTO_DESCUENTO_KITS = Decimal("1")
+DESCUENTO_MAXIMO_KITS = Decimal("15")
+
+
+def _descuento_maximo_kits(cantidad_kits):
+    """
+    Curva comercial progresiva para kits.
+
+    - 1 kit: 0%
+    - 2 kits: hasta 5%
+    - cada kit adicional suma 1 punto
+    - tope: 15%
+
+    La lógica técnica de costos y margen puede limitar el descuento a uno menor.
+    """
+    cantidad_kits = max(int(cantidad_kits or 0), 0)
+    if cantidad_kits < CANTIDAD_MINIMA_KITS_VOLUMEN:
+        return Decimal("0")
+
+    escalones = Decimal(
+        cantidad_kits - CANTIDAD_MINIMA_KITS_VOLUMEN
+    )
+    return min(
+        DESCUENTO_INICIAL_KITS
+        + escalones * INCREMENTO_DESCUENTO_KITS,
+        DESCUENTO_MAXIMO_KITS,
+    )
 
 
 def _decimal(valor):
@@ -195,9 +223,11 @@ def calcular_precio_volumen_kits(items):
 
     Reglas:
     - La lógica se activa desde 2 kits totales.
-    - La intensidad del descuento depende de la cantidad REAL de productos
-      contenidos dentro de esos kits, no sólo del número de kits.
-    - La curva de costos/margen determina el PORCENTAJE de descuento técnico.
+    - Comercialmente arranca en hasta 5%, suma 1 punto por kit adicional
+      y tiene un tope de 15%.
+    - La intensidad técnica también depende de la cantidad REAL de productos
+      contenidos dentro de esos kits.
+    - La curva de costos/margen puede limitar el descuento a uno menor.
     - Ese porcentaje se aplica sobre el precio real configurado de los kits,
       conservando así su posicionamiento de mercado.
     - El descuento nunca baja una línea por debajo de MARGEN_MINIMO.
@@ -306,6 +336,32 @@ def calcular_precio_volumen_kits(items):
     else:
         precio_objetivo_total = precio_lista_total
 
+    descuento_maximo_comercial = (
+        _descuento_maximo_kits(total_kits)
+        if elegible
+        else Decimal("0")
+    )
+    precio_minimo_comercial_total = (
+        redondear_arriba(
+            precio_lista_total
+            * (
+                Decimal("1")
+                - descuento_maximo_comercial / Decimal("100")
+            ),
+            Decimal("100"),
+        )
+        if elegible
+        else precio_lista_total
+    )
+
+    # La referencia técnica puede proponer una caída brusca (por ejemplo,
+    # 15% al pasar de 1 a 2 kits). La curva comercial limita esa baja para
+    # que el beneficio crezca de forma progresiva y predecible.
+    precio_objetivo_total = min(
+        precio_lista_total,
+        max(precio_objetivo_total, precio_minimo_comercial_total),
+    )
+
     ajustado_por_precio_real = (
         elegible
         and precio_objetivo_total > precio_objetivo_tecnico_total
@@ -411,6 +467,7 @@ def calcular_precio_volumen_kits(items):
         ),
         "precio_objetivo_tecnico_total": precio_objetivo_tecnico_total,
         "descuento_referencia_porcentaje": descuento_referencia_porcentaje,
+        "descuento_maximo_comercial": descuento_maximo_comercial,
         "ajustado_por_precio_real": ajustado_por_precio_real,
         "precio_objetivo_total": precio_objetivo_total,
         "precio_final_total": precio_final_total,
@@ -641,6 +698,9 @@ def resumen_json(resumen):
         ),
         "descuento_referencia_porcentaje": float(
             resumen["descuento_referencia_porcentaje"]
+        ),
+        "descuento_maximo_comercial": float(
+            resumen["descuento_maximo_comercial"]
         ),
         "ajustado_por_precio_real": bool(resumen["ajustado_por_precio_real"]),
         "precio_objetivo_total": float(resumen["precio_objetivo_total"]),
