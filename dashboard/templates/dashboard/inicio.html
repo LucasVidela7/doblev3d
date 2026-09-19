@@ -185,14 +185,50 @@ a,button{touch-action:manipulation}
 .panel-titulo{margin:0 0 4px;font-size:17px}
 .panel-subtitulo{margin-bottom:17px;color:var(--muted);font-size:11px}
 
-/* NECESIDAD DE IMPRESIÓN */
-.barra-item + .barra-item{margin-top:15px}
-.barra-cabecera{display:flex;justify-content:space-between;gap:12px;align-items:baseline;margin-bottom:7px}
-.barra-producto{min-width:0;font-size:13px;font-weight:bold;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.barra-cantidad{flex:0 0 auto;font-size:13px;font-weight:900}
-.barra-fondo{height:10px;border-radius:999px;background:#eceef1;overflow:hidden}
-.barra-valor{height:100%;min-width:6px;border-radius:inherit;background:var(--oscuro)}
-.barra-nota{margin-top:5px;color:var(--muted);font-size:10px}
+/* QUÉ IMPRIMIR */
+.que-imprimir{display:grid;gap:8px}
+.que-imprimir-item{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:10px;
+    align-items:center;
+    padding:10px 11px;
+    border:1px solid var(--borde);
+    border-radius:13px;
+    background:#fafafa;
+}
+.que-imprimir-producto{
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-size:11px;
+    font-weight:900;
+}
+.que-imprimir-meta{
+    margin-top:4px;
+    color:var(--muted);
+    font-size:8px;
+    line-height:1.4;
+}
+.que-imprimir-falta{
+    min-width:58px;
+    text-align:center;
+    padding:7px 8px;
+    border-radius:10px;
+    background:var(--rojo);
+    color:var(--rojo-texto);
+}
+.que-imprimir-falta span{
+    display:block;
+    font-size:6px;
+    font-weight:900;
+}
+.que-imprimir-falta strong{
+    display:block;
+    margin-top:2px;
+    font-size:17px;
+}
 
 /* PEDIDOS POR ESTADO */
 .estado-resumen{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:18px}
@@ -472,13 +508,13 @@ a,button{touch-action:manipulation}
 
     <a href="{% url 'produccion:lista' %}" class="metrica m-planificacion">
         <div class="metrica-cabecera">
-            <div class="metrica-titulo">PLANIFICACIÓN</div>
+            <div class="metrica-titulo">PRODUCCIÓN</div>
             <div class="metrica-icono">🖨</div>
         </div>
         <div>
             <div class="metrica-numero">{{ total_a_imprimir }}</div>
             <div class="metrica-ayuda">
-                {{ producciones_pendientes }} planificadas · {{ producciones_imprimiendo }} imprimiendo
+                {{ producciones_pendientes }} en cola · {{ producciones_imprimiendo }} imprimiendo
             </div>
         </div>
     </a>
@@ -559,10 +595,6 @@ a,button{touch-action:manipulation}
             <div class="accion-icono">↗</div>
             <div><div class="accion-titulo">Finanzas</div><div class="accion-texto">Cobros, caja, gastos, rentabilidad e inversión.</div></div>
         </a>
-        <a href="{% url 'calculadora:precios' %}" class="accion">
-            <div class="accion-icono">🧮</div>
-            <div><div class="accion-titulo">Calculadora</div><div class="accion-texto">Cotizar productos y mayorista</div></div>
-        </a>
     </div>
 </section>
 
@@ -575,26 +607,31 @@ a,button{touch-action:manipulation}
 
     <div class="paneles">
         <div class="panel">
-            <h3 class="panel-titulo">Necesidad de impresión</h3>
-            <div class="panel-subtitulo">Productos con más unidades pendientes</div>
+            <h3 class="panel-titulo">Qué imprimir</h3>
+            <div class="panel-subtitulo">Faltantes que todavía no están cubiertos por stock, cola o impresión.</div>
 
             {% if top_impresion %}
-            {% for item in top_impresion %}
-            <div class="barra-item">
-                <div class="barra-cabecera">
-                    <div class="barra-producto">{{ item.producto.nombre }}</div>
-                    <div class="barra-cantidad">{{ item.cantidad }}</div>
+            <div class="que-imprimir">
+                {% for item in top_impresion %}
+                <div class="que-imprimir-item">
+                    <div>
+                        <div class="que-imprimir-producto">{{ item.producto.nombre }}</div>
+                        <div class="que-imprimir-meta">
+                            Pedido {{ item.cantidad_pedida }}
+                            · En cola {{ item.planificadas }}
+                            · Imprimiendo {{ item.en_produccion }}
+                            {% if item.cantidad_personalizada %}· {{ item.cantidad_personalizada }} personalizadas{% endif %}
+                        </div>
+                    </div>
+                    <div class="que-imprimir-falta">
+                        <span>FALTA</span>
+                        <strong>{{ item.falta_iniciar }}</strong>
+                    </div>
                 </div>
-                <div class="barra-fondo">
-                    <div class="barra-valor" style="width: {{ item.porcentaje }}%;"></div>
-                </div>
-                {% if item.personalizada %}
-                <div class="barra-nota">{{ item.personalizada }} personalizadas</div>
-                {% endif %}
+                {% endfor %}
             </div>
-            {% endfor %}
             {% else %}
-            <div class="sin-datos">No hay productos pendientes de impresión.</div>
+            <div class="sin-datos">No hay nada nuevo por imprimir.</div>
             {% endif %}
         </div>
 
