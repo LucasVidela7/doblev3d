@@ -1,2 +1,2 @@
-Deploy QA: curva dinámica unificada de descuentos
-Incluye: productos y kits dejan de usar escalones fijos; el descuento nace del margen/costo técnico y se libera gradualmente según cantidad, con tope comercial de 15%
+Deploy QA: notificaciones push para pedidos web
+Incluye: suscripción por dispositivo desde dashboard, service worker, VAPID, persistencia y aviso al confirmar una SolicitudWeb
