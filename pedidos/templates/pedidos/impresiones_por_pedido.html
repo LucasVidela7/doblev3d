@@ -84,16 +84,6 @@
         }
 
         .seccion{scroll-margin-top:76px;margin-top:20px}
-        .seccion-colapsable{border:0}
-        .seccion-colapsable>summary{list-style:none;cursor:pointer}
-        .seccion-colapsable>summary::-webkit-details-marker{display:none}
-        .seccion-colapsable .seccion-head{margin-bottom:0;padding:12px 13px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
-        .seccion-colapsable[open] .seccion-head{margin-bottom:8px}
-        .seccion-colapsable .seccion-head::after{
-            content:"⌄";flex:0 0 auto;margin-left:auto;color:var(--muted);font-size:18px;font-weight:900;
-            transition:transform .16s ease
-        }
-        .seccion-colapsable[open] .seccion-head::after{transform:rotate(180deg)}
         .seccion-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:8px}
         .seccion h2{margin:0;font-size:20px}
         .seccion-ayuda{margin-top:3px;color:var(--muted);font-size:10px;line-height:1.4}
@@ -133,7 +123,25 @@
         .pedido.preparando .pedido-status{background:var(--blue);color:var(--blue-text)}
         .pedido.falta .pedido-status{background:var(--red);color:var(--red-text)}
 
-        .productos{display:grid;border-top:1px solid var(--line)}
+        .pedido-productos{border-top:1px solid var(--line)}
+        .pedido-productos>summary{
+            list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;
+            min-height:46px;padding:0 14px;cursor:pointer;background:var(--soft);
+            color:var(--text);font-size:9px;font-weight:900
+        }
+        .pedido-productos>summary::-webkit-details-marker{display:none}
+        .pedido-productos>summary::after{
+            content:"⌄";flex:0 0 auto;color:var(--muted);font-size:17px;font-weight:900;
+            transition:transform .16s ease
+        }
+        .pedido-productos[open]>summary::after{transform:rotate(180deg)}
+        .pedido-productos-resumen{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+        .pedido-productos-resumen span{
+            min-height:22px;display:inline-flex;align-items:center;padding:0 7px;border-radius:999px;
+            background:var(--surface);color:var(--muted);font-size:8px;font-weight:900
+        }
+        .pedido-productos .productos{border-top:1px solid var(--line)}
+        .productos{display:grid}
         .producto{
             display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:11px 14px;
             border-bottom:1px solid var(--line)
@@ -261,13 +269,11 @@
         <a href="#listos">LISTOS <b>{{ total_listos }}</b></a>
     </nav>
 
-    <details class="seccion seccion-colapsable" id="para-preparar">
-        <summary>
-            <div class="seccion-head">
-                <div><h2>Para preparar</h2><div class="seccion-ayuda">Pedidos con todo el stock disponible. Tocá para desplegar y comenzar a preparar.</div></div>
-                <span class="seccion-contador">{{ total_para_preparar }} pedido{{ total_para_preparar|pluralize:"s" }}</span>
-            </div>
-        </summary>
+    <section class="seccion" id="para-preparar">
+        <div class="seccion-head">
+            <div><h2>Para preparar</h2><div class="seccion-ayuda">Pedidos que hoy tienen todo el stock necesario. Al empezar, el stock queda reservado para ese paquete.</div></div>
+            <span class="seccion-contador">{{ total_para_preparar }} pedido{{ total_para_preparar|pluralize:"s" }}</span>
+        </div>
         <div class="lista">
             {% for item_pedido in para_preparar %}
             <article class="pedido disponible">
@@ -285,7 +291,22 @@
                         {% include "pedidos/_pedido_menu.html" with pedido=item_pedido.pedido mostrar_detalle=1 %}
                     </div>
                 </header>
-                <section class="productos">
+                <details class="pedido-productos" id="productos-pedido-{{ item_pedido.pedido.id }}">
+                    <summary>
+                        <span>PRODUCTOS DEL PEDIDO</span>
+                        <span class="pedido-productos-resumen"><span>{{ item_pedido.preparacion_total }} producto{{ item_pedido.preparacion_total|pluralize:"s" }}</span></span>
+                    </summary>
+                    <details class="pedido-productos" id="productos-pedido-{{ item_pedido.pedido.id }}">
+                    <summary>
+                        <span>PRODUCTOS DEL PAQUETE</span>
+                        <span class="pedido-productos-resumen"><span>{{ item_pedido.preparacion_listos }}/{{ item_pedido.preparacion_total }} listos</span></span>
+                    </summary>
+                    <details class="pedido-productos" id="productos-pedido-{{ item_pedido.pedido.id }}">
+                    <summary>
+                        <span>PRODUCTOS Y FALTANTES</span>
+                        <span class="pedido-productos-resumen"><span>{{ item_pedido.faltantes_stock }} faltante{{ item_pedido.faltantes_stock|pluralize:"s" }}</span></span>
+                    </summary>
+                    <section class="productos">
                     {% for item in item_pedido.productos %}
                     <div class="producto">
                         <div>
@@ -299,7 +320,8 @@
                         {% endif %}
                     </div>
                     {% endfor %}
-                </section>
+                    </section>
+                </details>
                 <footer class="pedido-foot">
                     <div class="saldo">Saldo <strong>${{ item_pedido.saldo_pendiente|floatformat:0 }}</strong> · {{ item_pedido.estado_pago_display }}</div>
                     <div class="acciones">
@@ -315,15 +337,13 @@
             <div class="vacio">No hay pedidos con stock completo esperando preparación.</div>
             {% endfor %}
         </div>
-    </details>
+    </section>
 
-    <details class="seccion seccion-colapsable" id="en-preparacion">
-        <summary>
-            <div class="seccion-head">
-                <div><h2>En preparación</h2><div class="seccion-ayuda">El stock ya está reservado. Tocá para ver y continuar armando los paquetes.</div></div>
-                <span class="seccion-contador">{{ total_en_preparacion }} pedido{{ total_en_preparacion|pluralize:"s" }}</span>
-            </div>
-        </summary>
+    <section class="seccion" id="en-preparacion">
+        <div class="seccion-head">
+            <div><h2>En preparación</h2><div class="seccion-ayuda">El stock ya está reservado. Marcá cada producto a medida que lo colocás en el paquete.</div></div>
+            <span class="seccion-contador">{{ total_en_preparacion }} pedido{{ total_en_preparacion|pluralize:"s" }}</span>
+        </div>
         <div class="lista">
             {% for item_pedido in en_preparacion %}
             <article class="pedido preparando">
@@ -385,7 +405,8 @@
                         </form>
                     </div>
                     {% endfor %}
-                </section>
+                    </section>
+                </details>
 
                 <div class="progreso">
                     <div class="progreso-head"><span>PROGRESO DEL PAQUETE</span><span>{{ item_pedido.preparacion_porcentaje }}%</span></div>
@@ -409,7 +430,7 @@
             <div class="vacio">No hay pedidos en preparación.</div>
             {% endfor %}
         </div>
-    </details>
+    </section>
 
     <section class="seccion" id="falta-stock">
         <div class="seccion-head">
@@ -451,7 +472,8 @@
                         {% endif %}
                     </div>
                     {% endfor %}
-                </section>
+                    </section>
+                </details>
                 <footer class="pedido-foot">
                     <div class="saldo">Faltan imprimir <strong>{{ item_pedido.total_a_imprimir }}</strong> unidad{{ item_pedido.total_a_imprimir|pluralize:"es" }}</div>
                     <div class="acciones">
@@ -549,19 +571,22 @@ function confirmarEntrega(saldoPendiente){
     return confirm("¿Confirmás que el pedido fue entregado al cliente?");
 }
 
-function abrirSeccionPorHash(){
-    if(!window.location.hash)return;
-    const destino=document.querySelector(window.location.hash);
-    if(destino && destino.tagName==="DETAILS"){
-        destino.open=true;
-    }
+function iniciarProductosColapsables(){
+    document.querySelectorAll(".pedido-productos[id]").forEach(function(detalle){
+        const clave="dv-preparacion-"+detalle.id;
+        if(sessionStorage.getItem(clave)==="1"){
+            detalle.open=true;
+        }
+        detalle.addEventListener("toggle",function(){
+            sessionStorage.setItem(clave,detalle.open ? "1" : "0");
+        });
+    });
 }
 
 document.addEventListener("DOMContentLoaded",function(){
     restaurarPosicion();
-    abrirSeccionPorHash();
+    iniciarProductosColapsables();
 });
-window.addEventListener("hashchange",abrirSeccionPorHash);
 </script>
 </body>
 </html>
