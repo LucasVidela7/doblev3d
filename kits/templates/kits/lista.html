@@ -45,6 +45,21 @@ html[data-dv-theme="dark"] .composicion .fila span,
 html[data-dv-theme="dark"] .composicion .fila strong{
     color:var(--dv-text)!important;
 }
+html[data-dv-theme="dark"] .composicion-libre{
+    width:100%;
+    overflow:hidden;
+    background:var(--dv-surface-soft)!important;
+    border:1px solid var(--dv-border)!important;
+    box-shadow:none!important;
+}
+html[data-dv-theme="dark"] .composicion-libre .fila{
+    margin:0;
+    background:transparent!important;
+    border:0!important;
+}
+html[data-dv-theme="dark"] .composicion-libre .fila + .fila{
+    border-top:1px solid var(--dv-border)!important;
+}
 </style>
 </head>
 <body>
@@ -180,7 +195,7 @@ html[data-dv-theme="dark"] .composicion .fila strong{
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div class="composicion">
+                    <div class="composicion composicion-libre">
                         <div class="fila">
                             <span>Categoría / tipo</span>
                             <strong>{{ kit.tipo_producto|default:"—" }}</strong>
