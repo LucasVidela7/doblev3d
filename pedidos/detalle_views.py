@@ -3,9 +3,10 @@ from collections import OrderedDict
 from django.contrib import messages
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.dateparse import parse_date
 
 from . import acciones_impresion
-from .models import EstadoImpresionPedido, Pedido
+from .models import EstadoImpresionPedido, Pago, Pedido
 
 
 def _armar_preparacion(pedido):
@@ -180,8 +181,47 @@ def detalle_pedido(request, pedido_id):
             "cantidad_unidades": cantidad_unidades,
             "preparacion_editable": pedido.estado not in {"ENTREGADO", "CANCELADO"},
             "pedido_activo": pedido.estado not in {"ENTREGADO", "CANCELADO"},
+            "medios_pago": Pago.MEDIOS,
         },
     )
+
+
+@transaction.atomic
+def actualizar_fecha_entrega(request, pedido_id):
+    if request.method != "POST":
+        return redirect("pedidos:detalle", pedido_id=pedido_id)
+
+    pedido = get_object_or_404(
+        Pedido.objects.select_for_update(),
+        id=pedido_id,
+    )
+
+    if pedido.estado in {"ENTREGADO", "CANCELADO"}:
+        messages.error(
+            request,
+            "La fecha de entrega no se puede modificar en un pedido entregado o cancelado.",
+        )
+        return redirect("pedidos:detalle", pedido_id=pedido.id)
+
+    valor = (request.POST.get("fecha_entrega") or "").strip()
+    fecha_entrega = parse_date(valor) if valor else None
+
+    if valor and fecha_entrega is None:
+        messages.error(request, "Ingresá una fecha de entrega válida.")
+        return redirect("pedidos:detalle", pedido_id=pedido.id)
+
+    pedido.fecha_entrega = fecha_entrega
+    pedido.save(update_fields=["fecha_entrega"])
+
+    messages.success(
+        request,
+        (
+            f"Fecha de entrega de {pedido.codigo} actualizada."
+            if fecha_entrega
+            else f"Fecha de entrega de {pedido.codigo} eliminada."
+        ),
+    )
+    return redirect("pedidos:detalle", pedido_id=pedido.id)
 
 
 def _volver_preparacion(request, pedido):
