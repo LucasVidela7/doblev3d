@@ -1,2 +1,2 @@
-Deploy QA: restaurar acciones cancelar/eliminar
-Incluye: menú contextual en todas las cards de Preparación, acciones en detalle de pedido, cancelar pedidos activos con devolución de stock reservado/preparado y eliminar sólo cuando sigue PENDIENTE.
+Deploy QA: colapsar En preparación
+Incluye: sección En preparación colapsada por defecto, con resumen, contador y apertura al tocar para continuar armando paquetes.
