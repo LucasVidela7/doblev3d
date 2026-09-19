@@ -246,7 +246,10 @@
                 )
             );
 
-            const limiteSecundarias=window.matchMedia("(max-width:720px)").matches ? 1 : 2;
+            const esMobile=window.matchMedia("(max-width:720px)").matches;
+            const limiteSecundarias=esMobile
+                ? (principal ? 1 : 2)
+                : 2;
             if(normales.length>limiteSecundarias){
                 const extras=normales.slice(limiteSecundarias);
                 if(overflowExistente){
