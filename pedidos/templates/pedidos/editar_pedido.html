@@ -690,6 +690,13 @@ function agregarItem(data = null) {
                             id="precio_total_producto_${i}"
                             value=""
                         >
+
+                        <input
+                            type="hidden"
+                            name="precio_producto_manual_${i}"
+                            id="precio_producto_manual_${i}"
+                            value="${data?.id ? "1" : "0"}"
+                        >
                     </div>
 
                     <div>
@@ -794,7 +801,7 @@ function agregarItem(data = null) {
                         id="personalizado_recomendaciones_${i}"
                     >
                         <div class="cargando">
-                            Seleccioná un producto base para ver precios sugeridos.
+                            Seleccioná un producto base para ver la base vigente del catálogo.
                         </div>
                     </div>
 
@@ -1074,67 +1081,47 @@ async function cargarKit(
 ========================================================= */
 
 function cambioProducto(i) {
-
-    const input =
-        document.getElementById(
-            `precio_unitario_${i}`
-        );
+    const input = document.getElementById(
+        `precio_unitario_${i}`
+    );
+    const manual = document.getElementById(
+        `precio_producto_manual_${i}`
+    );
 
     if (input) {
         input.value = "";
         input.dataset.producto = "";
+        input.dataset.cantidad = "";
     }
+    if (manual) manual.value = "0";
 
-    cargarPrecioProducto(
-        i,
-        true,
-        false
-    );
+    cargarPrecioProducto(i, true, false);
 }
 
 
 function cambioCantidad(i) {
-
-    const tipo =
-        document.getElementById(
-            `tipo_item_${i}`
-        )?.value;
+    const tipo = document.getElementById(
+        `tipo_item_${i}`
+    )?.value;
 
     if (tipo === "PRODUCTO") {
-
         actualizarTotalProducto(i);
 
-        clearTimeout(
-            timerProducto[i]
+        clearTimeout(timerProducto[i]);
+        timerProducto[i] = setTimeout(
+            () => cargarPrecioProducto(i, false, false),
+            250
         );
-
-        timerProducto[i] =
-            setTimeout(
-                () => cargarPrecioProducto(
-                    i,
-                    false,
-                    false
-                ),
-                250
-            );
     }
 
     if (tipo === "PERSONALIZADO") {
-
         actualizarInfoPersonalizado(i);
 
-        clearTimeout(
-            timerPersonalizado[i]
+        clearTimeout(timerPersonalizado[i]);
+        timerPersonalizado[i] = setTimeout(
+            () => cargarPrecioPersonalizado(i, false),
+            250
         );
-
-        timerPersonalizado[i] =
-            setTimeout(
-                () => cargarPrecioPersonalizado(
-                    i,
-                    false
-                ),
-                250
-            );
     }
 }
 
@@ -1143,30 +1130,32 @@ function actualizarTotalProducto(
     i,
     desdeEdicionManual = false
 ) {
-
-    const cantidad =
-        Number(
-            document.getElementById(
-                `cantidad_${i}`
-            )?.value || 0
-        );
-
-    const precio =
-        Number(
-            document.getElementById(
-                `precio_unitario_${i}`
-            )?.value || 0
-        );
-
-    const total =
+    const cantidad = Number(
         document.getElementById(
-            `precio_total_actual_${i}`
-        );
+            `cantidad_${i}`
+        )?.value || 0
+    );
 
-    const totalHidden =
+    const precio = Number(
         document.getElementById(
-            `precio_total_producto_${i}`
+            `precio_unitario_${i}`
+        )?.value || 0
+    );
+
+    const total = document.getElementById(
+        `precio_total_actual_${i}`
+    );
+
+    const totalHidden = document.getElementById(
+        `precio_total_producto_${i}`
+    );
+
+    if (desdeEdicionManual) {
+        const manual = document.getElementById(
+            `precio_producto_manual_${i}`
         );
+        if (manual) manual.value = "1";
+    }
 
     const totalCalculado =
         cantidad > 0 && precio > 0
@@ -1180,16 +1169,11 @@ function actualizarTotalProducto(
             : "";
     }
 
-    if (!total) {
-        return;
-    }
+    if (!total) return;
 
     total.textContent =
         totalCalculado > 0
-        ? `Total acordado: $${moneda(
-            totalCalculado,
-            2
-        )}`
+        ? `Total acordado: $${moneda(totalCalculado, 2)}`
         : "—";
 }
 
@@ -1199,36 +1183,27 @@ async function cargarPrecioProducto(
     productoCambio = false,
     conservarPrecioActual = false
 ) {
-
-    const tipo =
-        document.getElementById(
-            `tipo_item_${i}`
-        );
-
-    const producto =
-        document.getElementById(
-            `producto_${i}`
-        );
-
-    const cantidadInput =
-        document.getElementById(
-            `cantidad_${i}`
-        );
-
-    const precioInput =
-        document.getElementById(
-            `precio_unitario_${i}`
-        );
-
-    const info =
-        document.getElementById(
-            `precio_lista_info_${i}`
-        );
-
-    const recomendaciones =
-        document.getElementById(
-            `recomendaciones_precio_${i}`
-        );
+    const tipo = document.getElementById(
+        `tipo_item_${i}`
+    );
+    const producto = document.getElementById(
+        `producto_${i}`
+    );
+    const cantidadInput = document.getElementById(
+        `cantidad_${i}`
+    );
+    const precioInput = document.getElementById(
+        `precio_unitario_${i}`
+    );
+    const info = document.getElementById(
+        `precio_lista_info_${i}`
+    );
+    const recomendaciones = document.getElementById(
+        `recomendaciones_precio_${i}`
+    );
+    const manual = document.getElementById(
+        `precio_producto_manual_${i}`
+    );
 
     if (
         !tipo
@@ -1239,16 +1214,13 @@ async function cargarPrecioProducto(
         return;
     }
 
-    const cantidad =
-        Math.max(
-            Number(
-                cantidadInput.value || 1
-            ),
-            1
-        );
+    const cantidad = Math.max(
+        Number(cantidadInput.value || 1),
+        1
+    );
 
     recomendaciones.innerHTML =
-        '<div class="cargando">Calculando recomendaciones…</div>';
+        '<div class="cargando">Calculando precio del catálogo…</div>';
 
     const url =
         "{% url 'pedidos:precio_producto' %}"
@@ -1256,200 +1228,138 @@ async function cargarPrecioProducto(
         + `&cantidad=${encodeURIComponent(cantidad)}`;
 
     try {
-
-        const respuesta =
-            await fetch(
-                url,
-                {
-                    headers: {
-                        "X-Requested-With":
-                            "XMLHttpRequest"
-                    }
-                }
-            );
+        const respuesta = await fetch(url, {
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        });
 
         if (!respuesta.ok) {
-            throw new Error(
-                "No se pudo calcular el precio."
-            );
+            throw new Error("No se pudo calcular el precio.");
         }
 
-        const datos =
-            await respuesta.json();
+        const datos = await respuesta.json();
+        datosPrecioProducto[i] = datos;
 
-        datosPrecioProducto[i] =
-            datos;
-
-        const precioLista =
-            Number(
-                datos.producto.precio_lista
-            );
+        const precioLista = Number(datos.producto.precio_lista || 0);
+        const catalogo = datos.catalogo || {};
+        const precioCatalogo = Number(
+            catalogo.precio_unitario || precioLista
+        );
+        const totalCatalogo = Number(
+            catalogo.precio_final_total || (precioCatalogo * cantidad)
+        );
+        const descuento = Number(
+            catalogo.descuento_porcentaje || 0
+        );
+        const esManual = manual && manual.value === "1";
 
         /*
-         * Al abrir un pedido existente NO pisamos el precio
-         * histórico/acordado. Si cambia el producto, sí cargamos
-         * lista como punto de partida, igual que Nuevo Pedido.
+         * Los precios históricos se preservan como acordados/manuales.
+         * Si se selecciona otro producto o se vuelve a automático,
+         * se toma exactamente el precio vigente del catálogo.
          */
         if (
-            productoCambio
-            || (
-                !conservarPrecioActual
-                && !precioInput.value
+            !esManual
+            && !conservarPrecioActual
+            && (
+                productoCambio
+                || !precioInput.value
+                || precioInput.dataset.producto !== String(datos.producto.id)
+                || precioInput.dataset.cantidad !== String(cantidad)
             )
         ) {
-            precioInput.value =
-                precioLista.toFixed(2);
-        }
+            precioInput.value = precioCatalogo.toFixed(2);
+            precioInput.dataset.producto = String(datos.producto.id);
+            precioInput.dataset.cantidad = String(cantidad);
 
-        precioInput.dataset.producto =
-            String(datos.producto.id);
+            const totalHidden = document.getElementById(
+                `precio_total_producto_${i}`
+            );
+            if (totalHidden) {
+                totalHidden.value = totalCatalogo.toFixed(2);
+            }
+        }
 
         info.innerHTML =
             `Lista: <strong>$${moneda(precioLista)}</strong>/u`
-            + ` · tope ${datos.producto.margen_tope}%`
-            + ` · piso ${datos.producto.margen_piso}%`;
+            + ` · Catálogo x${cantidad}: <strong>$${moneda(precioCatalogo)}</strong>/u`
+            + (descuento > 0
+                ? ` · <strong>${moneda(descuento, 1)}% desc.</strong>`
+                : " · sin descuento");
 
-        if (cantidad <= 1) {
-
-            recomendaciones.innerHTML =
-                '<div class="cargando">'
-                + 'Para 1 unidad se mantiene el precio de lista. '
-                + 'El precio acordado puede editarse manualmente.'
-                + '</div>';
-
-            actualizarTotalProducto(i);
-            return;
-        }
-
-        const nombres = [
-            ["conservador", "Conservador"],
-            ["recomendado", "Recomendado"],
-            ["agresivo", "Agresivo"]
-        ];
-
-        recomendaciones.innerHTML =
-            nombres.map(
-                ([clave, etiqueta]) => {
-
-                    const fila =
-                        datos.escenarios[clave];
-
-                    return `
-                        <div class="recomendacion ${clave}">
-                            <div class="recomendacion-nombre">
-                                ${etiqueta}
-                            </div>
-
-                            <div class="recomendacion-precio">
-                                $${moneda(
-                                    fila.precio_unitario_pedido
-                                )}/u
-                            </div>
-
-                            <div class="recomendacion-detalle">
-                                Margen ${fila.margen}%<br>
-                                Total sugerido
-                                $${moneda(
-                                    fila.total_recomendado,
-                                    0
-                                )}
-                            </div>
-
-                            <button
-                                type="button"
-                                class="usar-precio"
-                                onclick="usarPrecioProducto(
-                                    ${i},
-                                    '${clave}'
-                                )"
-                            >
-                                USAR ESTE PRECIO
-                            </button>
-                        </div>
-                    `;
-                }
-            ).join("");
+        recomendaciones.innerHTML = `
+            <div class="recomendacion recomendado">
+                <div class="recomendacion-nombre">
+                    Precio vigente del catálogo
+                </div>
+                <div class="recomendacion-precio">
+                    $${moneda(precioCatalogo)}/u
+                </div>
+                <div class="recomendacion-detalle">
+                    Total $${moneda(totalCatalogo, 0)}
+                    ${descuento > 0
+                        ? `<br>Ahorro ${moneda(descuento, 1)}%`
+                        : ""}
+                </div>
+                <button
+                    type="button"
+                    class="usar-precio"
+                    onclick="usarPrecioProducto(${i})"
+                >
+                    USAR PRECIO CATÁLOGO
+                </button>
+            </div>
+        `;
 
         actualizarTotalProducto(i);
 
     } catch (error) {
-
         console.error(error);
-
         recomendaciones.innerHTML =
             '<div class="cargando">'
-            + 'No se pudo calcular la recomendación.'
+            + 'No se pudo calcular el precio del catálogo.'
             + '</div>';
     }
 }
 
 
-function usarPrecioProducto(
-    i,
-    estrategia
-) {
+function usarPrecioProducto(i) {
+    const datos = datosPrecioProducto[i];
+    const input = document.getElementById(
+        `precio_unitario_${i}`
+    );
+    const manual = document.getElementById(
+        `precio_producto_manual_${i}`
+    );
 
-    const datos =
-        datosPrecioProducto[i];
+    if (!datos || !datos.catalogo || !input) return;
 
-    const input =
-        document.getElementById(
-            `precio_unitario_${i}`
-        );
+    const precioUnitario = Number(
+        datos.catalogo.precio_unitario || 0
+    );
+    const totalRecomendado = Number(
+        datos.catalogo.precio_final_total || 0
+    );
 
-    if (
-        !datos
-        || !datos.escenarios
-        || !datos.escenarios[estrategia]
-        || !input
-    ) {
-        return;
-    }
+    input.value = precioUnitario.toFixed(2);
+    input.dataset.producto = String(datos.producto.id);
+    input.dataset.cantidad = String(datos.catalogo.cantidad || "");
+    if (manual) manual.value = "0";
 
-    const cantidad =
-        Math.max(
-            Number(
-                document.getElementById(
-                    `cantidad_${i}`
-                )?.value || 1
-            ),
-            1
-        );
-
-    const totalRecomendado =
-        Number(
-            datos
-            .escenarios[estrategia]
-            .total_recomendado
-        );
-
-    const precioUnitario =
-        totalRecomendado / cantidad;
-
-    input.value =
-        precioUnitario.toFixed(2);
-
-    const totalHidden =
-        document.getElementById(
-            `precio_total_producto_${i}`
-        );
-
+    const totalHidden = document.getElementById(
+        `precio_total_producto_${i}`
+    );
     if (totalHidden) {
-        totalHidden.value =
-            totalRecomendado.toFixed(2);
+        totalHidden.value = totalRecomendado.toFixed(2);
     }
 
-    const totalVisible =
-        document.getElementById(
-            `precio_total_actual_${i}`
-        );
-
+    const totalVisible = document.getElementById(
+        `precio_total_actual_${i}`
+    );
     if (totalVisible) {
         totalVisible.textContent =
-            `Total acordado: $${moneda(
-                totalRecomendado,
-                2
-            )}`;
+            `Total acordado: $${moneda(totalRecomendado, 2)}`;
     }
 }
 
@@ -1459,11 +1369,7 @@ function usarPrecioProducto(
 ========================================================= */
 
 function cambioProductoPersonalizado(i) {
-
-    cargarPrecioPersonalizado(
-        i,
-        true
-    );
+    cargarPrecioPersonalizado(i, true);
 }
 
 
@@ -1471,26 +1377,18 @@ async function cargarPrecioPersonalizado(
     i,
     productoCambio = false
 ) {
-
-    const tipo =
-        document.getElementById(
-            `tipo_item_${i}`
-        );
-
-    const producto =
-        document.getElementById(
-            `producto_personalizado_${i}`
-        );
-
-    const cantidadInput =
-        document.getElementById(
-            `cantidad_${i}`
-        );
-
-    const recomendaciones =
-        document.getElementById(
-            `personalizado_recomendaciones_${i}`
-        );
+    const tipo = document.getElementById(
+        `tipo_item_${i}`
+    );
+    const producto = document.getElementById(
+        `producto_personalizado_${i}`
+    );
+    const cantidadInput = document.getElementById(
+        `cantidad_${i}`
+    );
+    const recomendaciones = document.getElementById(
+        `personalizado_recomendaciones_${i}`
+    );
 
     if (
         !tipo
@@ -1501,16 +1399,13 @@ async function cargarPrecioPersonalizado(
         return;
     }
 
-    const cantidad =
-        Math.max(
-            Number(
-                cantidadInput.value || 1
-            ),
-            1
-        );
+    const cantidad = Math.max(
+        Number(cantidadInput.value || 1),
+        1
+    );
 
     recomendaciones.innerHTML =
-        '<div class="cargando">Calculando recomendaciones…</div>';
+        '<div class="cargando">Calculando base del catálogo…</div>';
 
     const url =
         "{% url 'pedidos:precio_producto' %}"
@@ -1518,156 +1413,105 @@ async function cargarPrecioPersonalizado(
         + `&cantidad=${encodeURIComponent(cantidad)}`;
 
     try {
-
-        const respuesta =
-            await fetch(
-                url,
-                {
-                    headers: {
-                        "X-Requested-With":
-                            "XMLHttpRequest"
-                    }
-                }
-            );
+        const respuesta = await fetch(url, {
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        });
 
         if (!respuesta.ok) {
-            throw new Error(
-                "No se pudo calcular el precio."
-            );
+            throw new Error("No se pudo calcular el precio.");
         }
 
-        const datos =
-            await respuesta.json();
+        const datos = await respuesta.json();
+        datosPrecioPersonalizado[i] = datos;
 
-        datosPrecioPersonalizado[i] =
-            datos;
+        const catalogo = datos.catalogo || {};
+        const precioUnitario = Number(
+            catalogo.precio_unitario || datos.producto.precio_lista || 0
+        );
+        const totalBase = Number(
+            catalogo.precio_final_total || (precioUnitario * cantidad)
+        );
+        const descuento = Number(
+            catalogo.descuento_porcentaje || 0
+        );
 
-        const nombres = [
-            ["conservador", "Conservador"],
-            ["recomendado", "Recomendado"],
-            ["agresivo", "Agresivo"]
-        ];
-
-        recomendaciones.innerHTML =
-            nombres.map(
-                ([clave, etiqueta]) => {
-
-                    const fila =
-                        datos.escenarios[clave];
-
-                    return `
-                        <div class="recomendacion ${clave}">
-                            <div class="recomendacion-nombre">
-                                ${etiqueta}
-                            </div>
-
-                            <div class="recomendacion-precio">
-                                $${moneda(
-                                    fila.precio_unitario_pedido
-                                )}/u
-                            </div>
-
-                            <div class="recomendacion-detalle">
-                                Margen ${fila.margen}%<br>
-                                Total
-                                $${moneda(
-                                    fila.total_recomendado,
-                                    0
-                                )}
-                            </div>
-
-                            <button
-                                type="button"
-                                class="usar-precio"
-                                onclick="usarPrecioPersonalizado(
-                                    ${i},
-                                    '${clave}'
-                                )"
-                            >
-                                USAR ESTE TOTAL
-                            </button>
-                        </div>
-                    `;
-                }
-            ).join("");
+        recomendaciones.innerHTML = `
+            <div class="recomendacion recomendado">
+                <div class="recomendacion-nombre">
+                    Base vigente del catálogo
+                </div>
+                <div class="recomendacion-precio">
+                    $${moneda(precioUnitario)}/u
+                </div>
+                <div class="recomendacion-detalle">
+                    Total base $${moneda(totalBase, 0)}
+                    ${descuento > 0
+                        ? `<br>${moneda(descuento, 1)}% desc. por cantidad`
+                        : ""}
+                    <br>Sumá manualmente el valor del trabajo personalizado.
+                </div>
+                <button
+                    type="button"
+                    class="usar-precio"
+                    onclick="usarPrecioPersonalizado(${i})"
+                >
+                    USAR BASE CATÁLOGO
+                </button>
+            </div>
+        `;
 
         actualizarInfoPersonalizado(i);
 
     } catch (error) {
-
         console.error(error);
-
         recomendaciones.innerHTML =
             '<div class="cargando">'
-            + 'No se pudo calcular la recomendación.'
+            + 'No se pudo calcular la base del catálogo.'
             + '</div>';
     }
 }
 
 
-function usarPrecioPersonalizado(
-    i,
-    estrategia
-) {
+function usarPrecioPersonalizado(i) {
+    const datos = datosPrecioPersonalizado[i];
+    const input = document.getElementById(
+        `precio_total_personalizado_${i}`
+    );
 
-    const datos =
-        datosPrecioPersonalizado[i];
+    if (!datos || !datos.catalogo || !input) return;
 
-    const input =
-        document.getElementById(
-            `precio_total_personalizado_${i}`
-        );
-
-    if (
-        !datos
-        || !datos.escenarios
-        || !datos.escenarios[estrategia]
-        || !input
-    ) {
-        return;
-    }
-
-    input.value =
-        Number(
-            datos
-            .escenarios[estrategia]
-            .total_recomendado
-        ).toFixed(2);
+    input.value = Number(
+        datos.catalogo.precio_final_total || 0
+    ).toFixed(2);
 
     actualizarInfoPersonalizado(i);
 }
 
 
 function actualizarInfoPersonalizado(i) {
-
-    const datos =
-        datosPrecioPersonalizado[i];
-
-    const cantidad =
-        Math.max(
-            Number(
-                document.getElementById(
-                    `cantidad_${i}`
-                )?.value || 1
-            ),
-            1
-        );
-
-    const total =
+    const datos = datosPrecioPersonalizado[i];
+    const cantidad = Math.max(
         Number(
             document.getElementById(
-                `precio_total_personalizado_${i}`
-            )?.value || 0
-        );
+                `cantidad_${i}`
+            )?.value || 1
+        ),
+        1
+    );
 
-    const info =
+    const total = Number(
         document.getElementById(
-            `personalizado_precio_info_${i}`
-        );
+            `precio_total_personalizado_${i}`
+        )?.value || 0
+    );
 
-    if (!info) {
-        return;
-    }
+    const info = document.getElementById(
+        `personalizado_precio_info_${i}`
+    );
+
+    if (!info) return;
 
     if (!datos) {
         info.textContent =
@@ -1677,25 +1521,34 @@ function actualizarInfoPersonalizado(i) {
         return;
     }
 
-    const precioLista =
-        Number(
-            datos.producto.precio_lista
-        );
+    const catalogo = datos.catalogo || {};
+    const baseUnitario = Number(
+        catalogo.precio_unitario || datos.producto.precio_lista || 0
+    );
+    const baseTotal = Number(
+        catalogo.precio_final_total || (baseUnitario * cantidad)
+    );
+    const descuento = Number(
+        catalogo.descuento_porcentaje || 0
+    );
 
     let texto =
-        `Base lista: <strong>$${moneda(precioLista)}</strong>/u`
-        + ` · tope ${datos.producto.margen_tope}%`
-        + ` · piso ${datos.producto.margen_piso}%`;
+        `Base catálogo x${cantidad}: <strong>$${moneda(baseUnitario)}</strong>/u`
+        + ` · total <strong>$${moneda(baseTotal)}</strong>`;
+
+    if (descuento > 0) {
+        texto += ` · ${moneda(descuento, 1)}% desc. por cantidad`;
+    }
 
     if (total > 0) {
         texto +=
-            ` · acordado: <strong>$${moneda(
-                total / cantidad
-            )}</strong>/u`;
+            ` · acordado: <strong>$${moneda(total / cantidad)}</strong>/u`;
+        if (total < baseTotal) {
+            texto += " · ⚠ por debajo de la base del catálogo";
+        }
     }
 
-    info.innerHTML =
-        texto;
+    info.innerHTML = texto;
 }
 
 
