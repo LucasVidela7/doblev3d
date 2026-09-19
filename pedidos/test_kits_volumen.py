@@ -104,20 +104,36 @@ class PrecioVolumenKitsTests(TestCase):
             "componentes": componentes,
         }
 
-    def test_hasta_cuatro_kits_mantiene_precio_de_lista(self):
+    def test_un_kit_mantiene_precio_de_lista(self):
         resumen = calcular_precio_volumen_kits([
-            self._item(self.kit8, 4),
+            self._item(self.kit8, 1),
         ])
 
         self.assertFalse(resumen["elegible"])
-        self.assertEqual(CANTIDAD_MINIMA_KITS_VOLUMEN, 5)
-        self.assertEqual(resumen["total_kits"], 4)
-        self.assertEqual(resumen["total_piezas"], 32)
+        self.assertEqual(CANTIDAD_MINIMA_KITS_VOLUMEN, 2)
+        self.assertEqual(resumen["total_kits"], 1)
+        self.assertEqual(resumen["total_piezas"], 8)
         self.assertEqual(
             resumen["precio_final_total"],
             resumen["precio_lista_total"],
         )
         self.assertEqual(resumen["ahorro"], Decimal("0"))
+
+    def test_dos_kits_activan_curva_sin_superar_tope_comercial(self):
+        resumen = calcular_precio_volumen_kits([
+            self._item(self.kit8, 2),
+        ])
+
+        self.assertTrue(resumen["elegible"])
+        self.assertEqual(resumen["total_kits"], 2)
+        self.assertLessEqual(
+            resumen["descuento_porcentaje"],
+            Decimal("15"),
+        )
+        self.assertGreaterEqual(
+            resumen["margen_real"],
+            resumen["margen_minimo"],
+        )
 
     def test_cinco_kits_usan_las_piezas_agrupadas_para_el_margen(self):
         resumen = calcular_precio_volumen_kits([
