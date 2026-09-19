@@ -6,6 +6,8 @@ from django.urls import reverse
 
 from pywebpush import WebPushException, webpush
 
+from productos.models import ConfiguracionCatalogo
+
 from .models import WebPushSubscription
 
 
@@ -21,6 +23,10 @@ def webpush_habilitado():
 
 def enviar_push(payload):
     if not webpush_habilitado():
+        return 0
+
+    config = ConfiguracionCatalogo.objects.first()
+    if config and not config.notificaciones_pedidos_web_activas:
         return 0
 
     enviados = 0
