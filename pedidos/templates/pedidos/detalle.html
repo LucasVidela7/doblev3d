@@ -40,6 +40,7 @@
             {% if pedido.estado == 'LISTO' %}
             <form method="post" action="{% url 'pedidos:entregar' pedido.id %}">{% csrf_token %}<input type="hidden" name="origen" value="detalle"><button type="submit" class="btn btn-entregar">✓ Entregar pedido</button></form>
             {% elif pedido.estado == 'PENDIENTE' %}<a href="{% url 'pedidos:editar' pedido.id %}" class="btn btn-principal">Editar pedido</a>{% endif %}
+            {% include "pedidos/_pedido_menu.html" with pedido=pedido origen="detalle" %}
         </div>
     </header>
 
