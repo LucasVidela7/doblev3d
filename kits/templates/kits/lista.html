@@ -60,6 +60,18 @@ html[data-dv-theme="dark"] .composicion-libre .fila{
 html[data-dv-theme="dark"] .composicion-libre .fila + .fila{
     border-top:1px solid var(--dv-border)!important;
 }
+html[data-dv-theme="dark"] .composicion-fija{
+    padding:0!important;
+    background:transparent!important;
+    border:0!important;
+    box-shadow:none!important;
+}
+html[data-dv-theme="dark"] .composicion-fija .fila{
+    padding:10px 12px!important;
+    border:1px solid var(--dv-border)!important;
+    border-radius:10px!important;
+    background:var(--dv-surface-soft)!important;
+}
 </style>
 </head>
 <body>
@@ -184,7 +196,7 @@ html[data-dv-theme="dark"] .composicion-libre .fila + .fila{
                 {% endif %}
 
                 {% if kit.modalidad == "FIJO" %}
-                    <div class="composicion">
+                    <div class="composicion composicion-fija">
                         {% for componente in kit.componentes.all %}
                             <div class="fila">
                                 <span>{{ componente.producto.nombre }}</span>
