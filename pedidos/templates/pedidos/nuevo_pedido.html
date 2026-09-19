@@ -879,7 +879,7 @@ button{font-family:Arial,sans-serif}
                 <div class="precio-producto-cabecera">
                     <div class="precio-producto-titulo">PRECIO DEL PRODUCTO</div>
                     <div class="precio-producto-ayuda">
-                        El precio de lista queda por defecto. Las recomendaciones no se aplican solas.
+                        El precio del catálogo se carga automáticamente según la cantidad. Podés acordar otro valor manualmente.
                     </div>
                 </div>
 
@@ -900,6 +900,13 @@ button{font-family:Arial,sans-serif}
                             name="precio_total_producto_${indice}"
                             id="precio_total_producto_${indice}"
                             value=""
+                        >
+
+                        <input
+                            type="hidden"
+                            name="precio_producto_manual_${indice}"
+                            id="precio_producto_manual_${indice}"
+                            value="0"
                         >
                     </div>
 
@@ -993,8 +1000,8 @@ button{font-family:Arial,sans-serif}
                     </div>
 
                     <div class="personalizado-precios-ayuda">
-                        Usa el costo y el margen del producto base.
-                        No se aplica automáticamente: el precio total acordado sigue siendo editable.
+                        Usa la misma base por cantidad que el catálogo.
+                        El trabajo personalizado se suma manualmente y el precio total sigue siendo editable.
                     </div>
 
                     <div
@@ -1162,6 +1169,13 @@ button{font-family:Arial,sans-serif}
             return;
         }
 
+        if (desdeEdicionManual) {
+            const manualInput = document.getElementById(
+                `precio_producto_manual_${indice}`
+            );
+            if (manualInput) manualInput.value = "1";
+        }
+
         const cantidad =
             Number(
                 cantidadInput.value || 0
@@ -1213,6 +1227,11 @@ button{font-family:Arial,sans-serif}
             totalHidden.value = "";
         }
 
+        const manualInput = document.getElementById(
+            `precio_producto_manual_${indice}`
+        );
+        if (manualInput) manualInput.value = "0";
+
         cargarRecomendacionPrecio(
             indice,
             true
@@ -1239,6 +1258,7 @@ button{font-family:Arial,sans-serif}
         const precioInput = document.getElementById(`precio_unitario_${indice}`);
         const infoLista = document.getElementById(`precio_lista_info_${indice}`);
         const recomendaciones = document.getElementById(`recomendaciones_precio_${indice}`);
+        const manualInput = document.getElementById(`precio_producto_manual_${indice}`);
 
         if (!tipo || tipo.value !== "PRODUCTO" || !producto || !producto.value) {
             if (bloque) bloque.classList.remove("activo");
@@ -1248,7 +1268,7 @@ button{font-family:Arial,sans-serif}
         const cantidad = Math.max(Number(cantidadInput.value || 1), 1);
         bloque.classList.add("activo");
         recomendaciones.innerHTML =
-            '<div class="precio-cargando">Calculando recomendaciones…</div>';
+            '<div class="precio-cargando">Calculando precio del catálogo…</div>';
 
         const url =
             "{% url 'pedidos:precio_producto' %}"
@@ -1265,156 +1285,101 @@ button{font-family:Arial,sans-serif}
             const datos = await respuesta.json();
             datosPrecioPorItem[indice] = datos;
 
-            const precioLista = Number(datos.producto.precio_lista);
+            const precioLista = Number(datos.producto.precio_lista || 0);
+            const catalogo = datos.catalogo || {};
+            const precioCatalogo = Number(catalogo.precio_unitario || precioLista);
+            const totalCatalogo = Number(
+                catalogo.precio_final_total || (precioCatalogo * cantidad)
+            );
+            const descuento = Number(catalogo.descuento_porcentaje || 0);
+            const esManual = manualInput && manualInput.value === "1";
 
             if (
-                productoCambio
-                || !precioInput.value
-                || precioInput.dataset.producto !== String(datos.producto.id)
+                !esManual
+                && (
+                    productoCambio
+                    || !precioInput.value
+                    || precioInput.dataset.producto !== String(datos.producto.id)
+                    || precioInput.dataset.cantidad !== String(cantidad)
+                )
             ) {
-                precioInput.value = precioLista.toFixed(2);
+                precioInput.value = precioCatalogo.toFixed(2);
                 precioInput.dataset.producto = String(datos.producto.id);
+                precioInput.dataset.cantidad = String(cantidad);
+                if (manualInput) manualInput.value = "0";
 
-                const totalHidden =
-                    document.getElementById(
-                        `precio_total_producto_${indice}`
-                    );
-
+                const totalHidden = document.getElementById(
+                    `precio_total_producto_${indice}`
+                );
                 if (totalHidden) {
-                    totalHidden.value =
-                        (
-                            precioLista
-                            * cantidad
-                        ).toFixed(2);
+                    totalHidden.value = totalCatalogo.toFixed(2);
                 }
             }
 
             infoLista.innerHTML =
                 `Lista: <strong>$${moneda(precioLista)}</strong>/u`
-                + ` · tope ${datos.producto.margen_tope}%`
-                + ` · piso ${datos.producto.margen_piso}%`;
+                + ` · Catálogo x${cantidad}: <strong>$${moneda(precioCatalogo)}</strong>/u`
+                + (descuento > 0
+                    ? ` · <strong>${moneda(descuento, 1)}% desc.</strong>`
+                    : " · sin descuento");
 
-            if (cantidad <= 1) {
-                recomendaciones.innerHTML =
-                    '<div class="precio-cargando">'
-                    + 'Para 1 unidad se mantiene el precio de lista. '
-                    + 'Aumentá la cantidad para ver recomendaciones.'
-                    + '</div>';
-                actualizarTotalPrecio(indice);
-                return;
-            }
-
-            const nombres = [
-                ["conservador", "Conservador"],
-                ["recomendado", "Recomendado"],
-                ["agresivo", "Agresivo"]
-            ];
-
-            recomendaciones.innerHTML = nombres.map(([clave, etiqueta]) => {
-                const fila = datos.escenarios[clave];
-
-                return `
-                    <div class="recomendacion-precio ${clave}">
-                        <div class="recomendacion-nombre">${etiqueta}</div>
-                        <div class="recomendacion-precio-unitario">
-                            $${moneda(fila.precio_unitario_pedido)}/u
-                        </div>
-                        <div class="recomendacion-detalle">
-                            Margen ${fila.margen}%<br>
-                            Total sugerido $${moneda(fila.total_recomendado, 0)}
-                        </div>
-                        <button
-                            type="button"
-                            class="boton-usar-precio"
-                            onclick="usarPrecioRecomendado(${indice}, '${clave}')"
-                        >
-                            USAR ESTE PRECIO
-                        </button>
+            recomendaciones.innerHTML = `
+                <div class="recomendacion-precio recomendado">
+                    <div class="recomendacion-nombre">Precio vigente del catálogo</div>
+                    <div class="recomendacion-precio-unitario">
+                        $${moneda(precioCatalogo)}/u
                     </div>
-                `;
-            }).join("");
+                    <div class="recomendacion-detalle">
+                        Total $${moneda(totalCatalogo, 0)}
+                        ${descuento > 0 ? `<br>Ahorro ${moneda(descuento, 1)}%` : ""}
+                    </div>
+                    <button
+                        type="button"
+                        class="boton-usar-precio"
+                        onclick="usarPrecioCatalogo(${indice})"
+                    >
+                        USAR PRECIO CATÁLOGO
+                    </button>
+                </div>
+            `;
 
             actualizarTotalPrecio(indice);
 
         } catch (error) {
             console.error(error);
             recomendaciones.innerHTML =
-                '<div class="precio-cargando">No se pudo calcular la recomendación.</div>';
+                '<div class="precio-cargando">No se pudo calcular el precio del catálogo.</div>';
         }
     }
 
-    function usarPrecioRecomendado(
-        indice,
-        estrategia
-    ) {
-        const datos =
-            datosPrecioPorItem[indice];
+    function usarPrecioCatalogo(indice) {
+        const datos = datosPrecioPorItem[indice];
+        const precioInput = document.getElementById(
+            `precio_unitario_${indice}`
+        );
+        const totalHidden = document.getElementById(
+            `precio_total_producto_${indice}`
+        );
+        const totalVisible = document.getElementById(
+            `precio_total_actual_${indice}`
+        );
+        const manualInput = document.getElementById(
+            `precio_producto_manual_${indice}`
+        );
 
-        const precioInput =
-            document.getElementById(
-                `precio_unitario_${indice}`
-            );
+        if (!datos || !datos.catalogo || !precioInput) return;
 
-        const cantidadInput =
-            document.getElementById(
-                `cantidad_${indice}`
-            );
+        const precioUnitario = Number(datos.catalogo.precio_unitario || 0);
+        const total = Number(datos.catalogo.precio_final_total || 0);
 
-        const totalHidden =
-            document.getElementById(
-                `precio_total_producto_${indice}`
-            );
-
-        const totalVisible =
-            document.getElementById(
-                `precio_total_actual_${indice}`
-            );
-
-        if (
-            !datos
-            || !datos.escenarios
-            || !datos.escenarios[estrategia]
-            || !precioInput
-            || !cantidadInput
-        ) {
-            return;
-        }
-
-        const cantidad =
-            Math.max(
-                Number(
-                    cantidadInput.value || 1
-                ),
-                1
-            );
-
-        const totalRecomendado =
-            Number(
-                datos
-                .escenarios[estrategia]
-                .total_recomendado
-            );
-
-        const precioUnitario =
-            totalRecomendado / cantidad;
-
-        precioInput.value =
-            precioUnitario.toFixed(2);
-
-        precioInput.dataset.producto =
-            String(datos.producto.id);
-
-        if (totalHidden) {
-            totalHidden.value =
-                totalRecomendado.toFixed(2);
-        }
-
+        precioInput.value = precioUnitario.toFixed(2);
+        precioInput.dataset.producto = String(datos.producto.id);
+        precioInput.dataset.cantidad = String(datos.catalogo.cantidad || "");
+        if (manualInput) manualInput.value = "0";
+        if (totalHidden) totalHidden.value = total.toFixed(2);
         if (totalVisible) {
             totalVisible.textContent =
-                `Total acordado: $${moneda(
-                    totalRecomendado,
-                    2
-                )}`;
+                `Total acordado: $${moneda(total, 2)}`;
         }
     }
 
@@ -1444,118 +1409,81 @@ button{font-family:Arial,sans-serif}
 
 
     function actualizarResumenPersonalizado(indice) {
-        const cantidadInput =
-            document.getElementById(
-                `cantidad_${indice}`
-            );
+        const cantidadInput = document.getElementById(
+            `cantidad_${indice}`
+        );
+        const totalInput = document.getElementById(
+            `precio_total_personalizado_${indice}`
+        );
+        const info = document.getElementById(
+            `personalizado_precio_lista_${indice}`
+        );
+        const datos = datosPrecioPersonalizado[indice];
 
-        const totalInput =
-            document.getElementById(
-                `precio_total_personalizado_${indice}`
-            );
+        if (!cantidadInput || !totalInput || !info || !datos) return;
 
-        const info =
-            document.getElementById(
-                `personalizado_precio_lista_${indice}`
-            );
-
-        const datos =
-            datosPrecioPersonalizado[indice];
-
-        if (
-            !cantidadInput
-            || !totalInput
-            || !info
-        ) {
-            return;
-        }
-
-        const cantidad =
-            Math.max(
-                Number(cantidadInput.value || 1),
-                1
-            );
-
-        const total =
-            Number(totalInput.value || 0);
-
-        if (!datos) {
-            return;
-        }
-
-        const precioLista =
-            Number(datos.producto.precio_lista);
+        const cantidad = Math.max(Number(cantidadInput.value || 1), 1);
+        const total = Number(totalInput.value || 0);
+        const catalogo = datos.catalogo || {};
+        const baseUnitario = Number(
+            catalogo.precio_unitario || datos.producto.precio_lista || 0
+        );
+        const baseTotal = Number(
+            catalogo.precio_final_total || (baseUnitario * cantidad)
+        );
+        const descuento = Number(catalogo.descuento_porcentaje || 0);
 
         let texto =
-            `Base lista: <strong>$${moneda(precioLista)}</strong>/u`
-            + ` · tope ${datos.producto.margen_tope}%`
-            + ` · piso ${datos.producto.margen_piso}%`;
+            `Base catálogo x${cantidad}: <strong>$${moneda(baseUnitario)}</strong>/u`
+            + ` · total <strong>$${moneda(baseTotal)}</strong>`;
+
+        if (descuento > 0) {
+            texto += ` · ${moneda(descuento, 1)}% desc. por cantidad`;
+        }
 
         if (total > 0) {
             texto +=
                 ` · acordado: <strong>$${moneda(total / cantidad)}</strong>/u`;
+            if (total < baseTotal) {
+                texto += " · ⚠ por debajo de la base del catálogo";
+            }
         }
 
         info.innerHTML = texto;
     }
 
-
     function cambioCantidadPersonalizado(indice) {
-        clearTimeout(
-            timerPrecioPersonalizado[indice]
+        clearTimeout(timerPrecioPersonalizado[indice]);
+        timerPrecioPersonalizado[indice] = setTimeout(
+            function() {
+                cargarRecomendacionPersonalizado(indice, false);
+            },
+            250
         );
-
-        timerPrecioPersonalizado[indice] =
-            setTimeout(
-                function() {
-                    cargarRecomendacionPersonalizado(
-                        indice,
-                        false
-                    );
-                },
-                250
-            );
     }
-
 
     async function cargarRecomendacionPersonalizado(
         indice,
         productoCambio = false
     ) {
-        const tipo =
-            document.getElementById(
-                `tipo_item_${indice}`
-            );
-
-        const producto =
-            document.getElementById(
-                `producto_personalizado_${indice}`
-            );
-
-        const cantidadInput =
-            document.getElementById(
-                `cantidad_${indice}`
-            );
-
-        const totalInput =
-            document.getElementById(
-                `precio_total_personalizado_${indice}`
-            );
-
-        const bloque =
-            document.getElementById(
-                `personalizado_precios_${indice}`
-            );
-
-        const info =
-            document.getElementById(
-                `personalizado_precio_lista_${indice}`
-            );
-
-        const recomendaciones =
-            document.getElementById(
-                `personalizado_recomendaciones_${indice}`
-            );
+        const tipo = document.getElementById(
+            `tipo_item_${indice}`
+        );
+        const producto = document.getElementById(
+            `producto_personalizado_${indice}`
+        );
+        const cantidadInput = document.getElementById(
+            `cantidad_${indice}`
+        );
+        const totalInput = document.getElementById(
+            `precio_total_personalizado_${indice}`
+        );
+        const bloque = document.getElementById(
+            `personalizado_precios_${indice}`
+        );
+        const recomendaciones = document.getElementById(
+            `personalizado_recomendaciones_${indice}`
+        );
 
         if (
             !tipo
@@ -1563,22 +1491,14 @@ button{font-family:Arial,sans-serif}
             || !producto
             || !producto.value
         ) {
-            if (bloque) {
-                bloque.classList.remove("activo");
-            }
+            if (bloque) bloque.classList.remove("activo");
             return;
         }
 
-        const cantidad =
-            Math.max(
-                Number(cantidadInput.value || 1),
-                1
-            );
-
+        const cantidad = Math.max(Number(cantidadInput.value || 1), 1);
         bloque.classList.add("activo");
-
         recomendaciones.innerHTML =
-            '<div class="precio-cargando">Calculando recomendaciones…</div>';
+            '<div class="precio-cargando">Calculando base del catálogo…</div>';
 
         const url =
             "{% url 'pedidos:precio_producto' %}"
@@ -1586,134 +1506,81 @@ button{font-family:Arial,sans-serif}
             + `&cantidad=${encodeURIComponent(cantidad)}`;
 
         try {
-            const respuesta =
-                await fetch(
-                    url,
-                    {
-                        headers: {
-                            "X-Requested-With":
-                                "XMLHttpRequest"
-                        }
-                    }
-                );
-
+            const respuesta = await fetch(url, {
+                headers: {"X-Requested-With": "XMLHttpRequest"}
+            });
             if (!respuesta.ok) {
-                throw new Error(
-                    "No se pudo calcular el precio."
-                );
+                throw new Error("No se pudo calcular el precio.");
             }
 
-            const datos =
-                await respuesta.json();
+            const datos = await respuesta.json();
+            datosPrecioPersonalizado[indice] = datos;
 
-            datosPrecioPersonalizado[indice] =
-                datos;
-
-            /*
-             * En personalizados NO cargamos automáticamente
-             * el precio de lista ni una recomendación.
-             *
-             * Solo mantenemos lo que el usuario ya escribió
-             * y mostramos opciones para aplicar.
-             */
             if (
                 productoCambio
                 && totalInput
-                && totalInput.dataset.producto
-                    !== String(datos.producto.id)
+                && totalInput.dataset.producto !== String(datos.producto.id)
             ) {
-                totalInput.dataset.producto =
-                    String(datos.producto.id);
+                totalInput.dataset.producto = String(datos.producto.id);
             }
 
             actualizarResumenPersonalizado(indice);
 
-            const nombres = [
-                ["conservador", "Conservador"],
-                ["recomendado", "Recomendado"],
-                ["agresivo", "Agresivo"]
-            ];
+            const catalogo = datos.catalogo || {};
+            const precioUnitario = Number(
+                catalogo.precio_unitario || datos.producto.precio_lista || 0
+            );
+            const totalBase = Number(
+                catalogo.precio_final_total || (precioUnitario * cantidad)
+            );
+            const descuento = Number(catalogo.descuento_porcentaje || 0);
 
-            recomendaciones.innerHTML =
-                nombres.map(
-                    ([clave, etiqueta]) => {
-                        const fila =
-                            datos.escenarios[clave];
-
-                        return `
-                            <div class="personalizado-recomendacion ${clave}">
-                                <div class="personalizado-recomendacion-nombre">
-                                    ${etiqueta}
-                                </div>
-
-                                <div class="personalizado-recomendacion-unitario">
-                                    $${moneda(fila.precio_unitario_pedido)}/u
-                                </div>
-
-                                <div class="personalizado-recomendacion-total">
-                                    Total $${moneda(fila.total_recomendado, 0)}
-                                </div>
-
-                                <div class="personalizado-recomendacion-detalle">
-                                    Margen objetivo ${fila.margen}%<br>
-                                    Sobre el costo del producto base
-                                </div>
-
-                                <button
-                                    type="button"
-                                    class="personalizado-boton-usar"
-                                    onclick="usarPrecioPersonalizado(${indice}, '${clave}')"
-                                >
-                                    USAR ESTE TOTAL
-                                </button>
-                            </div>
-                        `;
-                    }
-                ).join("");
+            recomendaciones.innerHTML = `
+                <div class="personalizado-recomendacion recomendado">
+                    <div class="personalizado-recomendacion-nombre">
+                        Base vigente del catálogo
+                    </div>
+                    <div class="personalizado-recomendacion-unitario">
+                        $${moneda(precioUnitario)}/u
+                    </div>
+                    <div class="personalizado-recomendacion-total">
+                        Total base $${moneda(totalBase, 0)}
+                    </div>
+                    <div class="personalizado-recomendacion-detalle">
+                        ${descuento > 0
+                            ? `Incluye ${moneda(descuento, 1)}% de descuento por cantidad.<br>`
+                            : ""}
+                        Sumá manualmente el valor del trabajo personalizado.
+                    </div>
+                    <button
+                        type="button"
+                        class="personalizado-boton-usar"
+                        onclick="usarPrecioPersonalizado(${indice})"
+                    >
+                        USAR BASE CATÁLOGO
+                    </button>
+                </div>
+            `;
 
         } catch (error) {
             console.error(error);
-
             recomendaciones.innerHTML =
-                '<div class="precio-cargando">'
-                + 'No se pudo calcular la recomendación.'
-                + '</div>';
+                '<div class="precio-cargando">No se pudo calcular la base del catálogo.</div>';
         }
     }
 
+    function usarPrecioPersonalizado(indice) {
+        const datos = datosPrecioPersonalizado[indice];
+        const totalInput = document.getElementById(
+            `precio_total_personalizado_${indice}`
+        );
 
-    function usarPrecioPersonalizado(
-        indice,
-        estrategia
-    ) {
-        const datos =
-            datosPrecioPersonalizado[indice];
+        if (!datos || !datos.catalogo || !totalInput) return;
 
-        const totalInput =
-            document.getElementById(
-                `precio_total_personalizado_${indice}`
-            );
-
-        if (
-            !datos
-            || !datos.escenarios
-            || !datos.escenarios[estrategia]
-            || !totalInput
-        ) {
-            return;
-        }
-
-        const fila =
-            datos.escenarios[estrategia];
-
-        totalInput.value =
-            Number(
-                fila.total_recomendado
-            ).toFixed(2);
-
-        totalInput.dataset.producto =
-            String(datos.producto.id);
-
+        totalInput.value = Number(
+            datos.catalogo.precio_final_total || 0
+        ).toFixed(2);
+        totalInput.dataset.producto = String(datos.producto.id);
         actualizarResumenPersonalizado(indice);
     }
 
