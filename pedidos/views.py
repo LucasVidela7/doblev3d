@@ -2035,6 +2035,12 @@ def registrar_pago(request, pedido_id):
                 cliente_id=cliente_id,
             )
 
+        if origen == "detalle":
+            return redirect(
+                "pedidos:detalle",
+                pedido_id=pedido_id,
+            )
+
         return redirect("pedidos:impresiones")
 
     if request.method != "POST":
