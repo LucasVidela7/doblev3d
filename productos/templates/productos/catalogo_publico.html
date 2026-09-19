@@ -256,14 +256,15 @@
         .section { padding: 14px 0 50px; }
 
         .section-head {
-            display: flex;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
             align-items: end;
-            justify-content: space-between;
-            gap: 20px;
+            gap: 4px 20px;
             margin-bottom: 18px;
         }
 
         .section-head h2 {
+            min-width: 0;
             margin: 0;
             color: var(--brand-blue-strong);
             font-size: clamp(1.5rem, 3.5vw, 2.15rem);
@@ -271,12 +272,15 @@
         }
 
         .section-head p {
-            margin: 4px 0 0;
+            grid-column: 1 / -1;
+            width: 100%;
+            margin: 0;
             color: var(--muted);
         }
 
         .count {
-            flex: 0 0 auto;
+            justify-self: end;
+            white-space: nowrap;
             color: var(--brand-blue);
             font-size: .9rem;
             font-weight: 700;
@@ -680,11 +684,9 @@
         {% if vista_catalogo == "productos" %}
         <section class="shell section" data-section="producto">
             <div class="section-head">
-                <div>
-                    <h2>Productos</h2>
-                    <p>Piezas individuales disponibles en el catálogo.</p>
-                </div>
+                <h2>Productos</h2>
                 <span class="count">{{ productos|length }} disponibles</span>
+                <p>Piezas individuales disponibles en el catálogo.</p>
             </div>
 
             {% if productos %}
@@ -756,11 +758,9 @@
         {% if vista_catalogo == "kits" %}
         <section class="shell section" data-section="kit">
             <div class="section-head">
-                <div>
-                    <h2>Kits</h2>
-                    <p>Combinaciones armadas o configurables según cada propuesta.</p>
-                </div>
+                <h2>Kits</h2>
                 <span class="count">{{ kits|length }} disponibles</span>
+                <p>Combinaciones armadas o configurables según cada propuesta.</p>
             </div>
 
             {% if kits %}
