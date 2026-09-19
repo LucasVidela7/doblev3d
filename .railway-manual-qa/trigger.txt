@@ -1,2 +1,2 @@
-Deploy QA: curva progresiva de descuentos en productos
-Incluye: desde 5 unidades inicia en 5%, suma 1 punto por unidad y tiene tope de 15%; la calculadora de costos puede limitar el descuento a uno menor
+Deploy QA: curva progresiva de descuentos en kits
+Incluye: 2 kits hasta 5%, +1 punto por cada kit adicional y tope de 15%; costos y margen pueden limitar el descuento a uno menor
