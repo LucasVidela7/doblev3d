@@ -84,6 +84,16 @@
         }
 
         .seccion{scroll-margin-top:76px;margin-top:20px}
+        .seccion-colapsable{border:0}
+        .seccion-colapsable>summary{list-style:none;cursor:pointer}
+        .seccion-colapsable>summary::-webkit-details-marker{display:none}
+        .seccion-colapsable .seccion-head{margin-bottom:0;padding:12px 13px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+        .seccion-colapsable[open] .seccion-head{margin-bottom:8px}
+        .seccion-colapsable .seccion-head::after{
+            content:"⌄";flex:0 0 auto;margin-left:auto;color:var(--muted);font-size:18px;font-weight:900;
+            transition:transform .16s ease
+        }
+        .seccion-colapsable[open] .seccion-head::after{transform:rotate(180deg)}
         .seccion-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:8px}
         .seccion h2{margin:0;font-size:20px}
         .seccion-ayuda{margin-top:3px;color:var(--muted);font-size:10px;line-height:1.4}
@@ -305,11 +315,13 @@
         </div>
     </section>
 
-    <section class="seccion" id="en-preparacion">
-        <div class="seccion-head">
-            <div><h2>En preparación</h2><div class="seccion-ayuda">El stock ya está reservado. Marcá cada producto a medida que lo colocás en el paquete.</div></div>
-            <span class="seccion-contador">{{ total_en_preparacion }} pedido{{ total_en_preparacion|pluralize:"s" }}</span>
-        </div>
+    <details class="seccion seccion-colapsable" id="en-preparacion">
+        <summary>
+            <div class="seccion-head">
+                <div><h2>En preparación</h2><div class="seccion-ayuda">El stock ya está reservado. Tocá para ver y continuar armando los paquetes.</div></div>
+                <span class="seccion-contador">{{ total_en_preparacion }} pedido{{ total_en_preparacion|pluralize:"s" }}</span>
+            </div>
+        </summary>
         <div class="lista">
             {% for item_pedido in en_preparacion %}
             <article class="pedido preparando">
@@ -395,7 +407,7 @@
             <div class="vacio">No hay pedidos en preparación.</div>
             {% endfor %}
         </div>
-    </section>
+    </details>
 
     <section class="seccion" id="falta-stock">
         <div class="seccion-head">
