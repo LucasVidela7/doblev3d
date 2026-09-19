@@ -4,16 +4,169 @@ from datetime import timedelta
 from decimal import Decimal
 from html import escape
 
+from django.conf import settings
 from django.db.models import Sum
+from django.http import HttpResponse, JsonResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_POST
 
-from pedidos.models import Pedido, Pago, Presupuesto
+from pedidos.models import (
+    Pedido,
+    Pago,
+    Presupuesto,
+    WebPushSubscription,
+)
 from produccion import views as produccion_views
 from produccion.models import Impresora, Produccion
 from productos.models import Producto
+
+
+def _webpush_habilitado():
+    return bool(
+        getattr(settings, "WEBPUSH_VAPID_PUBLIC_KEY", "")
+        and getattr(settings, "WEBPUSH_VAPID_PRIVATE_KEY", "")
+    )
+
+
+@never_cache
+def push_service_worker(request):
+    script = r"""
+self.addEventListener("install", () => self.skipWaiting());
+
+self.addEventListener("activate", (event) => {
+    event.waitUntil(self.clients.claim());
+});
+
+self.addEventListener("push", (event) => {
+    let data = {};
+    try {
+        data = event.data ? event.data.json() : {};
+    } catch (error) {
+        data = {
+            title: "Doble V 3D",
+            body: event.data ? event.data.text() : "Tenés una novedad.",
+        };
+    }
+
+    const title = data.title || "Doble V 3D";
+    const options = {
+        body: data.body || "Tenés una novedad.",
+        icon: data.icon || "/static/brand/apple-touch-icon.png",
+        badge: data.badge || "/static/brand/favicon.ico",
+        tag: data.tag || "doblev3d",
+        renotify: true,
+        data: {
+            url: data.url || "/gestion/",
+        },
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(title, options)
+    );
+});
+
+self.addEventListener("notificationclick", (event) => {
+    event.notification.close();
+    const target = new URL(
+        (event.notification.data && event.notification.data.url) || "/gestion/",
+        self.location.origin
+    ).href;
+
+    event.waitUntil((async () => {
+        const windows = await self.clients.matchAll({
+            type: "window",
+            includeUncontrolled: true,
+        });
+
+        for (const client of windows) {
+            if (new URL(client.url).origin === self.location.origin) {
+                if ("navigate" in client) {
+                    await client.navigate(target);
+                }
+                return client.focus();
+            }
+        }
+
+        return self.clients.openWindow(target);
+    })());
+});
+"""
+    response = HttpResponse(
+        script,
+        content_type="application/javascript; charset=utf-8",
+    )
+    response["Cache-Control"] = "no-store"
+    response["Service-Worker-Allowed"] = "/gestion/"
+    return response
+
+
+@require_POST
+def push_suscribir(request):
+    if not _webpush_habilitado():
+        return JsonResponse(
+            {"ok": False, "mensaje": "Web Push no está configurado."},
+            status=503,
+        )
+
+    try:
+        payload = json.loads(request.body or b"{}")
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return JsonResponse(
+            {"ok": False, "mensaje": "Suscripción inválida."},
+            status=400,
+        )
+
+    endpoint = str(payload.get("endpoint") or "").strip()
+    keys = payload.get("keys") or {}
+    p256dh = str(keys.get("p256dh") or "").strip()
+    auth = str(keys.get("auth") or "").strip()
+
+    if not endpoint or not p256dh or not auth:
+        return JsonResponse(
+            {"ok": False, "mensaje": "Faltan datos de la suscripción."},
+            status=400,
+        )
+
+    suscripcion, _ = WebPushSubscription.objects.update_or_create(
+        endpoint=endpoint[:1000],
+        defaults={
+            "user": request.user,
+            "p256dh": p256dh,
+            "auth": auth,
+            "user_agent": (
+                request.META.get("HTTP_USER_AGENT") or ""
+            )[:250],
+            "activa": True,
+        },
+    )
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "id": suscripcion.id,
+        }
+    )
+
+
+@require_POST
+def push_desuscribir(request):
+    try:
+        payload = json.loads(request.body or b"{}")
+    except (TypeError, ValueError, json.JSONDecodeError):
+        payload = {}
+
+    endpoint = str(payload.get("endpoint") or "").strip()
+    if endpoint:
+        WebPushSubscription.objects.filter(
+            endpoint=endpoint,
+            user=request.user,
+        ).update(activa=False)
+
+    return JsonResponse({"ok": True})
 
 
 DASHBOARD_PRODUCCION_STYLE = r"""
@@ -789,6 +942,12 @@ def inicio(request):
             "cobrado_mes": cobrado_mes,
             "presupuestos_pendientes": presupuestos_pendientes,
             "monto_presupuestado_pendiente": monto_presupuestado_pendiente,
+            "webpush_habilitado": _webpush_habilitado(),
+            "webpush_public_key": getattr(
+                settings,
+                "WEBPUSH_VAPID_PUBLIC_KEY",
+                "",
+            ),
         },
     )
 
