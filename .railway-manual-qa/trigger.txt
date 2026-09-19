@@ -1,2 +1,2 @@
-Deploy QA: mantenimiento por variable
-Incluye CATALOGO_MANTENIMIENTO para forzar la tienda pública en mantenimiento durante despliegues.
+Deploy QA: Centro de producción austero
+Incluye: flujo Ahora → Qué imprimir → Cola → Historial, acciones rápidas para planificar o iniciar, ejecución por impresora y soporte de personalizados sin nuevas tablas ni servicios.
