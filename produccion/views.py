@@ -744,7 +744,13 @@ def accion_rapida_necesidad(request):
     if request.method != "POST":
         return redirect("produccion:lista")
 
+    from pedidos.impresiones_compuestas import (
+        MARCA_PERSONALIZADO,
+        _cantidad_personalizada_fisica,
+        _cantidad_personalizada_ya_planificada,
+    )
     from pedidos.impresiones_stock import obtener_impresiones_por_producto
+    from pedidos.models import DetallePedido
 
     producto = get_object_or_404(
         Producto,
@@ -763,21 +769,61 @@ def accion_rapida_necesidad(request):
         .strip()
         .upper()
     )
+    personalizado_id = (
+        request.POST.get("personalizado_id", "")
+        .strip()
+    )
 
-    item = next(
-        (
-            actual
-            for actual in obtener_impresiones_por_producto()
-            if actual["producto"].id == producto.id
-        ),
-        None,
+    destino = "STOCK"
+    pedido = None
+    observaciones = (
+        "Creada desde Centro de producción · acción rápida."
     )
-    restante = max(
-        int(item.get("falta_normal_planificar") or 0)
-        if item
-        else 0,
-        0,
-    )
+
+    if personalizado_id:
+        detalle = get_object_or_404(
+            DetallePedido.objects
+            .select_related("pedido", "producto")
+            .prefetch_related("producto__componentes"),
+            id=personalizado_id,
+            tipo_item="PERSONALIZADO",
+            estado="PENDIENTE",
+        )
+        total_fisico = _cantidad_personalizada_fisica(
+            detalle,
+            producto,
+        )
+        ya_planificado = _cantidad_personalizada_ya_planificada(
+            detalle,
+            producto,
+        )
+        restante = max(
+            total_fisico - int(ya_planificado),
+            0,
+        )
+        destino = "PEDIDO"
+        pedido = detalle.pedido
+        observaciones = (
+            f"{MARCA_PERSONALIZADO}{detalle.id}\n"
+            f"{detalle.pedido.codigo} · {detalle.producto.nombre}\n"
+            f"Detalle: {detalle.detalle_personalizacion or 'Sin detalle'}\n"
+            f"Color: {detalle.color_personalizacion or 'Sin color especificado'}"
+        )
+    else:
+        item = next(
+            (
+                actual
+                for actual in obtener_impresiones_por_producto()
+                if actual["producto"].id == producto.id
+            ),
+            None,
+        )
+        restante = max(
+            int(item.get("falta_normal_planificar") or 0)
+            if item
+            else 0,
+            0,
+        )
 
     if cantidad <= 0:
         messages.error(
@@ -791,7 +837,7 @@ def accion_rapida_necesidad(request):
     if restante <= 0:
         messages.error(
             request,
-            "Ese producto ya no tiene unidades estándar por planificar.",
+            "Ese trabajo ya no tiene unidades por planificar.",
         )
         return redirect(
             reverse("produccion:lista") + "#que-imprimir"
@@ -801,7 +847,7 @@ def accion_rapida_necesidad(request):
         messages.error(
             request,
             (
-                f"Quedan {restante} unidad(es) estándar por cubrir. "
+                f"Quedan {restante} unidad(es) por cubrir. "
                 "Para fabricar stock extra usá Más opciones."
             ),
         )
@@ -831,9 +877,22 @@ def accion_rapida_necesidad(request):
     inicio = timezone.now()
 
     if accion == "INICIAR":
+        impresora_id = (
+            request.POST.get("impresora", "")
+            .strip()
+        )
+        if not impresora_id:
+            messages.error(
+                request,
+                "Elegí una impresora libre para iniciar.",
+            )
+            return redirect(
+                reverse("produccion:lista") + "#que-imprimir"
+            )
+
         impresora = get_object_or_404(
             Impresora,
-            id=request.POST.get("impresora"),
+            id=impresora_id,
             activa=True,
         )
         ocupando = _impresora_ocupada(impresora)
@@ -861,15 +920,13 @@ def accion_rapida_necesidad(request):
     produccion = Produccion.objects.create(
         producto=producto,
         cantidad=cantidad,
-        destino="STOCK",
-        pedido=None,
+        destino=destino,
+        pedido=pedido,
         estado=estado,
         impresora=impresora,
         inicio_impresion=inicio,
         tiempo_impresion_minutos=tiempo_total,
-        observaciones=(
-            "Creada desde Centro de producción · acción rápida."
-        ),
+        observaciones=observaciones,
     )
 
     if estado == "IMPRIMIENDO":
