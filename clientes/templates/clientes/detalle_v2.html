@@ -144,7 +144,7 @@ a,button,input,textarea,select{touch-action:manipulation}.c{width:min(1220px,100
             <div class="dato"><small>OBSERVACIONES</small><div>{% if cliente.observaciones %}{{ cliente.observaciones|linebreaksbr }}{% else %}Sin observaciones{% endif %}</div></div>
             <div class="perfil-actions">{% if whatsapp_url %}<a class="btn ok" href="{{ whatsapp_url }}" target="_blank" rel="noopener">ABRIR WHATSAPP</a>{% endif %}<a class="btn primary" href="{% url 'pedidos:nuevo' %}?cliente={{ cliente.id }}">+ NUEVO PRESUPUESTO</a></div>
           </div>
-          <form class="editor" id="editorCliente" method="post" {% if not modo_edicion %}hidden{% endif %}>{% csrf_token %}
+          <form class="editor" id="editorCliente" {% if not modo_edicion %}hidden{% endif %} method="post">{% csrf_token %}
             <div class="campo"><label>NOMBRE</label><input id="nombre" name="nombre" value="{{ cliente.nombre }}" required></div>
             <div class="campo"><label>TELÉFONO</label><input name="telefono" value="{{ cliente.telefono }}"></div>
             <div class="campo"><label>EMAIL</label><input name="email" type="email" value="{{ cliente.email }}"></div>
