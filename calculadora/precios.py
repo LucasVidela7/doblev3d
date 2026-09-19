@@ -5,6 +5,10 @@ MARGEN_MINIMO = Decimal("22.5")
 CANTIDAD_PISO_MARGEN = Decimal("1500")
 DIFERENCIA_ESCENARIO = Decimal("4")
 CANTIDAD_FILAMENTO_ECONOMICO = 5
+CANTIDAD_MINIMA_DESCUENTO_PRODUCTOS = 5
+DESCUENTO_MAXIMO_PRODUCTOS = Decimal("15")
+SUAVIDAD_DESCUENTO_PRODUCTOS = Decimal("3")
+MAX_CANTIDAD_CATALOGO = 20
 
 
 def redondear_arriba(valor, multiplo=Decimal("100")):
@@ -290,6 +294,112 @@ def calcular_costo_productivo_producto(
         "costo": costo,
         "seguro": seguro,
         "costo_productivo": costo + seguro,
+    }
+
+
+def calcular_precio_catalogo_producto(producto, cantidad):
+    """
+    Precio final de un producto exactamente como se publica/cotiza en el carrito.
+
+    Reglas vigentes:
+    - 1 a 4 unidades: precio de lista.
+    - desde 5: descuento dinámico según el beneficio técnico disponible.
+    - tope comercial de descuento: 15%.
+    - el costo por cantidad puede usar filamento económico desde 5 unidades.
+    """
+    cantidad = max(int(cantidad or 1), 1)
+
+    precio_lista_unitario = Decimal(str(producto.subtotal or 0))
+    precio_lista_total = precio_lista_unitario * Decimal(cantidad)
+
+    calculo = calcular_escenarios_producto(producto, cantidad)
+    desglose = calculo["desglose"]
+    costo_productivo_unitario = Decimal(str(calculo["costo_productivo"] or 0))
+    costo_total = costo_productivo_unitario * Decimal(cantidad)
+
+    recomendado = Decimal(str(
+        calculo["escenarios"]["recomendado"]["total_recomendado"] or 0
+    ))
+    precio_tecnico_total = (
+        min(precio_lista_total, recomendado)
+        if recomendado > 0
+        else precio_lista_total
+    )
+
+    descuento_tecnico = Decimal("0")
+    descuento_dinamico = Decimal("0")
+    precio_final_total = precio_lista_total
+
+    if (
+        cantidad >= CANTIDAD_MINIMA_DESCUENTO_PRODUCTOS
+        and precio_lista_total > 0
+    ):
+        descuento_tecnico = (
+            (precio_lista_total - precio_tecnico_total)
+            / precio_lista_total
+            * Decimal("100")
+        )
+        descuento_dinamico = descuento_dinamico_por_cantidad(
+            descuento_tecnico,
+            cantidad,
+            CANTIDAD_MINIMA_DESCUENTO_PRODUCTOS,
+            tope=DESCUENTO_MAXIMO_PRODUCTOS,
+            suavidad=SUAVIDAD_DESCUENTO_PRODUCTOS,
+        )
+        precio_minimo_comercial = (
+            precio_lista_total
+            * (
+                Decimal("1")
+                - descuento_dinamico / Decimal("100")
+            )
+        ).quantize(Decimal("0.01"))
+
+        precio_final_total = min(
+            precio_lista_total,
+            max(precio_minimo_comercial, precio_tecnico_total),
+        )
+
+    precio_unitario = (
+        precio_final_total / Decimal(cantidad)
+    ).quantize(Decimal("0.01"))
+    precio_final_total = precio_unitario * Decimal(cantidad)
+
+    ahorro = max(
+        precio_lista_total - precio_final_total,
+        Decimal("0"),
+    )
+    descuento_porcentaje = (
+        (ahorro / precio_lista_total * Decimal("100"))
+        .quantize(Decimal("0.1"))
+        if precio_lista_total > 0
+        else Decimal("0")
+    )
+    ganancia = precio_final_total - costo_total
+    margen_real = (
+        ganancia / precio_final_total * Decimal("100")
+        if precio_final_total > 0
+        else Decimal("0")
+    )
+
+    return {
+        "cantidad": cantidad,
+        "precio_lista_unitario": precio_lista_unitario,
+        "precio_lista_total": precio_lista_total,
+        "precio_tecnico_total": precio_tecnico_total,
+        "precio_unitario": precio_unitario,
+        "precio_final_total": precio_final_total,
+        "ahorro": ahorro,
+        "descuento_tecnico": descuento_tecnico,
+        "descuento_porcentaje": descuento_porcentaje,
+        "descuento_dinamico": descuento_dinamico,
+        "costo_productivo_unitario": costo_productivo_unitario,
+        "costo_total": costo_total,
+        "ganancia": ganancia,
+        "margen_real": margen_real,
+        "desglose": desglose,
+        "filamento_economico": calculo["filamento_economico"],
+        "precio_filamento_kg": calculo["precio_filamento_kg"],
+        "aplica_descuento": ahorro > 0,
     }
 
 
