@@ -30,6 +30,16 @@ class CatalogoMantenimientoAdminTests(TestCase):
             "SOLO ADMIN",
             status_code=503,
         )
+        self.assertContains(
+            respuesta,
+            "height:100dvh",
+            status_code=503,
+        )
+        self.assertContains(
+            respuesta,
+            "overflow:hidden",
+            status_code=503,
+        )
 
     def test_usuario_logueado_no_admin_tampoco_puede_verlo(self):
         usuario = get_user_model().objects.create_user(
