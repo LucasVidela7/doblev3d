@@ -175,7 +175,10 @@
             ".header-actions",
             ".acciones-encabezado",
             ".acciones-head",
+            ".acciones-cabecera",
             ".cabecera-acciones",
+            ".head-actions",
+            ".top-actions",
             ".toolbar-actions",
             ".h > .a",
             ".header > .a",
@@ -212,7 +215,7 @@
             }
 
             let overflowExistente=hijos.find(function(item){
-                return item.matches("details.more-menu,details.dv-page-overflow");
+                return item.matches("details");
             })||null;
 
             let normales=hijos.filter(function(item){
