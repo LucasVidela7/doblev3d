@@ -7,7 +7,12 @@ from django.urls import reverse
 from django.utils import timezone
 
 from clientes.models import Cliente
-from pedidos.models import DetallePresupuesto, Presupuesto
+from pedidos.models import (
+    DetallePresupuesto,
+    Presupuesto,
+    SolicitudWeb,
+    SolicitudWebItem,
+)
 from produccion.models import Impresora, Produccion
 from productos.models import Producto, TipoProducto
 
@@ -182,6 +187,59 @@ class DashboardProduccionTests(TestCase):
         self.assertNotContains(
             respuesta,
             ">ATRASADOS<",
+        )
+
+    def test_dashboard_muestra_solicitudes_web_pendientes(self):
+        solicitud = SolicitudWeb.objects.create(
+            nombre="Cliente catálogo",
+            telefono="11 4444-5555",
+            telefono_normalizado="1144445555",
+            email="cliente@example.com",
+            estado="NUEVA",
+        )
+        SolicitudWebItem.objects.create(
+            solicitud=solicitud,
+            tipo_item="PRODUCTO",
+            producto=self.producto,
+            cantidad=3,
+            nombre_snapshot=self.producto.nombre,
+            precio_base_unitario=Decimal("5000"),
+            adicional_unitario=Decimal("0"),
+            precio_unitario=Decimal("4500"),
+        )
+
+        respuesta = self.client.get(
+            reverse("dashboard:inicio")
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(
+            respuesta.context["solicitudes_web_pendientes"],
+            1,
+        )
+        self.assertEqual(
+            respuesta.context["solicitudes_web_nuevas"],
+            1,
+        )
+        self.assertContains(
+            respuesta,
+            "SOLICITUDES WEB",
+        )
+        self.assertContains(
+            respuesta,
+            "Cliente catálogo",
+        )
+        self.assertContains(
+            respuesta,
+            "3 unidades",
+        )
+        self.assertContains(
+            respuesta,
+            "13.500",
+        )
+        self.assertContains(
+            respuesta,
+            "REVISAR SOLICITUD",
         )
 
     def test_dashboard_puede_iniciar_planificacion(self):
