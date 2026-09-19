@@ -11,8 +11,8 @@ from .image_models import ProductoImagen
 from .models import Producto
 
 
-def catalogo(request):
-    """Catálogo público de productos y kits disponibles."""
+def _catalogo_publico(request, vista_catalogo):
+    """Construye el contexto público compartido de la tienda."""
 
     ambiente = entorno_imagenes()
 
@@ -129,18 +129,40 @@ def catalogo(request):
         }
     )
 
+    template = (
+        "productos/tienda_inicio.html"
+        if vista_catalogo == "inicio"
+        else "productos/catalogo_publico.html"
+    )
+
     return render(
         request,
-        "productos/catalogo_publico.html",
+        template,
         {
             "productos": productos,
             "kits": kits,
             "categorias": categorias,
+            "vista_catalogo": vista_catalogo,
             "ambiente_catalogo": ambiente,
             "es_ambiente_no_productivo": ambiente != "production",
         },
     )
 
+
+
+def catalogo(request):
+    """Página principal de la tienda pública."""
+    return _catalogo_publico(request, "inicio")
+
+
+def catalogo_productos(request):
+    """Página pública exclusiva de productos."""
+    return _catalogo_publico(request, "productos")
+
+
+def catalogo_kits(request):
+    """Página pública exclusiva de kits."""
+    return _catalogo_publico(request, "kits")
 
 
 def catalogo_kit_detalle(request, kit_id):
