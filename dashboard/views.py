@@ -22,7 +22,7 @@ from pedidos.models import (
 )
 from produccion import views as produccion_views
 from produccion.models import Impresora, Produccion
-from productos.models import Producto
+from productos.models import ConfiguracionCatalogo, Producto
 
 
 def _webpush_habilitado():
@@ -961,6 +961,44 @@ def inicio(request):
     return _inyectar_panel_produccion(
         response,
         panel_html,
+    )
+
+
+@never_cache
+def configuracion(request):
+    config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
+
+    if request.method == "POST":
+        config.catalogo_activo = (
+            request.POST.get("catalogo_activo") == "on"
+        )
+        config.notificaciones_pedidos_web_activas = (
+            request.POST.get("notificaciones_pedidos_web_activas") == "on"
+        )
+        config.mensaje_mantenimiento = (
+            request.POST.get("mensaje_mantenimiento") or ""
+        ).strip()[:240]
+        config.save(
+            update_fields=[
+                "catalogo_activo",
+                "notificaciones_pedidos_web_activas",
+                "mensaje_mantenimiento",
+            ]
+        )
+        return redirect(
+            reverse("dashboard:configuracion") + "?guardado=1"
+        )
+
+    return render(
+        request,
+        "dashboard/configuracion.html",
+        {
+            "config": config,
+            "webpush_configurado": _webpush_habilitado(),
+            "dispositivos_push_activos": (
+                WebPushSubscription.objects.filter(activa=True).count()
+            ),
+        },
     )
 
 
