@@ -559,7 +559,7 @@ class ProductImagesUIMiddleware:
             return response
 
         # Catálogo público: las fotografías se producen en formato cuadrado 1:1.
-        if view_name in {"catalogo", "catalogo_legacy"}:
+        if view_name in {"catalogo_productos", "catalogo_kits"}:
             try:
                 contenido = response.content.decode(response.charset or "utf-8")
             except (AttributeError, UnicodeDecodeError):
