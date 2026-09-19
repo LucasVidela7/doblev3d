@@ -83,9 +83,195 @@
         return !mismoDocumento;
     }
 
+
+    function textoAccion(elemento){
+        return (elemento.textContent||"")
+            .replace(/\s+/g," ")
+            .trim()
+            .toUpperCase();
+    }
+
+    function accionReal(elemento){
+        if(!elemento) return null;
+        if(elemento.matches("a,button,summary")) return elemento;
+        return elemento.querySelector("a,button,summary");
+    }
+
+    function esAccionPrincipal(elemento){
+        const accion=accionReal(elemento);
+        if(!accion) return false;
+
+        const clases=[
+            elemento.className||"",
+            accion.className||""
+        ].join(" ").toLowerCase();
+
+        const texto=textoAccion(accion);
+
+        return (
+            elemento.hasAttribute("data-dv-primary")
+            || accion.hasAttribute("data-dv-primary")
+            || /(?:^|\s)(?:primary|principal|dark|boton-principal|btn-principal|accion-principal|boton-guardar|guardar)(?:\s|$)/.test(clases)
+            || /^(?:\+|＋)?\s*(?:NUEVO|NUEVA|CREAR|GUARDAR|APROBAR|CONVERTIR|PLANIFICAR|SUBIR|CALCULAR|AGREGAR)/.test(texto)
+            || /^EDITAR(?:\s|$)/.test(texto)
+        );
+    }
+
+    function ancestroCabecera(contenedor){
+        let nodo=contenedor.parentElement;
+        let pasos=0;
+
+        while(nodo && pasos<4){
+            if(nodo.querySelector(":scope h1") || nodo.querySelector("h1")){
+                return nodo;
+            }
+            nodo=nodo.parentElement;
+            pasos+=1;
+        }
+        return null;
+    }
+
+    function crearOverflow(acciones){
+        const details=document.createElement("details");
+        details.className="dv-page-overflow";
+
+        const summary=document.createElement("summary");
+        summary.setAttribute("aria-label","Más acciones");
+        summary.textContent="⋯";
+
+        const menu=document.createElement("div");
+        menu.className="dv-page-overflow__menu";
+
+        details.append(summary,menu);
+
+        acciones.forEach(function(item){
+            item.classList.remove(
+                "dv-page-action-secondary",
+                "dv-page-action-primary"
+            );
+            item.classList.add("dv-page-overflow__item");
+            menu.appendChild(item);
+        });
+
+        return details;
+    }
+
+    function normalizarCabecerasGestion(){
+        const selector=[
+            ".acciones",
+            ".actions",
+            ".header-actions",
+            ".acciones-encabezado",
+            ".cabecera-acciones",
+            ".toolbar-actions",
+            ".h > .a",
+            ".header > .a",
+            ".head > .a"
+        ].join(",");
+
+        document.querySelectorAll(selector).forEach(function(acciones){
+            if(
+                acciones.closest(".modal,.panel,.card,.item,.pedido,.printer")
+                && !acciones.parentElement.querySelector("h1")
+            ){
+                return;
+            }
+
+            const cabecera=ancestroCabecera(acciones);
+            if(!cabecera) return;
+
+            const titulo=cabecera.querySelector("h1");
+            if(!titulo) return;
+
+            cabecera.classList.add("dv-page-head");
+            acciones.classList.add("dv-page-actions");
+
+            const hijos=Array.from(acciones.children).filter(function(item){
+                return (
+                    item.matches("a,button,form,details")
+                    && item.offsetParent!==null
+                );
+            });
+
+            if(!hijos.length){
+                acciones.classList.add("is-empty");
+                return;
+            }
+
+            let overflowExistente=hijos.find(function(item){
+                return item.matches("details.more-menu,details.dv-page-overflow");
+            })||null;
+
+            let normales=hijos.filter(function(item){
+                return item!==overflowExistente;
+            });
+
+            let principal=normales.find(esAccionPrincipal)||null;
+            if(!principal && normales.length){
+                principal=normales[normales.length-1];
+            }
+
+            normales.forEach(function(item){
+                item.classList.remove(
+                    "dv-page-action-secondary",
+                    "dv-page-action-primary"
+                );
+                item.classList.add(
+                    item===principal
+                        ?"dv-page-action-primary"
+                        :"dv-page-action-secondary"
+                );
+            });
+
+            if(principal){
+                acciones.appendChild(principal);
+            }
+
+            normales=Array.from(
+                acciones.querySelectorAll(
+                    ":scope > .dv-page-action-secondary"
+                )
+            );
+
+            if(normales.length>2){
+                const extras=normales.slice(2);
+                if(overflowExistente){
+                    const menu=
+                        overflowExistente.querySelector(
+                            ".more-popover,.dv-page-overflow__menu"
+                        )
+                        || overflowExistente;
+                    extras.forEach(function(item){
+                        item.classList.remove("dv-page-action-secondary");
+                        item.classList.add("dv-page-overflow__item");
+                        menu.appendChild(item);
+                    });
+                }else{
+                    overflowExistente=crearOverflow(extras);
+                }
+            }
+
+            if(overflowExistente){
+                overflowExistente.classList.add("dv-page-overflow");
+                acciones.appendChild(overflowExistente);
+            }
+        });
+
+        document.addEventListener("click",function(event){
+            document.querySelectorAll(
+                ".dv-page-overflow[open],.more-menu[open]"
+            ).forEach(function(menu){
+                if(!menu.contains(event.target)){
+                    menu.removeAttribute("open");
+                }
+            });
+        });
+    }
+
     function conectar(){
         const check=document.getElementById("dvThemeToggle");
         aplicarTema(leerTema(),false);
+        normalizarCabecerasGestion();
 
         if(check){
             check.addEventListener("change",function(){
