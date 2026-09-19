@@ -178,6 +178,13 @@ urlpatterns = [
     ),
 
     path(
+        "<int:pedido_id>/fecha-entrega/",
+        detalle_views.actualizar_fecha_entrega,
+        name="actualizar_fecha_entrega",
+    ),
+
+
+    path(
         "<int:pedido_id>/",
         detalle_views.detalle_pedido,
         name="detalle",
