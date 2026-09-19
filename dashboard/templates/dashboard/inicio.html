@@ -321,6 +321,9 @@ a,button{touch-action:manipulation}
     transition:border-color .12s ease,box-shadow .12s ease,background .12s ease;
 }
 .entrega:hover{border-color:#d7dbe0;background:#fff;box-shadow:0 4px 14px rgba(20,25,35,.05)}
+.entrega.estado-PENDIENTE{border-left:4px solid #d8ad32}
+.entrega.estado-PREPARANDO{border-left:4px solid #4d83c4}
+.entrega.estado-LISTO{border-left:4px solid #4a9b62}
 .entrega-fecha{font-size:11px;font-weight:900}
 .entrega-fecha.atrasada{color:var(--rojo-texto)}
 .entrega-cliente{min-width:0}
@@ -784,7 +787,7 @@ a,button{touch-action:manipulation}
         {% if proximas_entregas %}
         <div class="entregas">
             {% for pedido in proximas_entregas %}
-            <div class="entrega">
+            <div class="entrega estado-{{ pedido.estado }}">
                 <div class="entrega-fecha {% if pedido.fecha_entrega < hoy %}atrasada{% endif %}">
                     {% if pedido.fecha_entrega == hoy %}
                     HOY
