@@ -261,11 +261,13 @@
         <a href="#listos">LISTOS <b>{{ total_listos }}</b></a>
     </nav>
 
-    <section class="seccion" id="para-preparar">
-        <div class="seccion-head">
-            <div><h2>Para preparar</h2><div class="seccion-ayuda">Pedidos que hoy tienen todo el stock necesario. Al empezar, el stock queda reservado para ese paquete.</div></div>
-            <span class="seccion-contador">{{ total_para_preparar }} pedido{{ total_para_preparar|pluralize:"s" }}</span>
-        </div>
+    <details class="seccion seccion-colapsable" id="para-preparar">
+        <summary>
+            <div class="seccion-head">
+                <div><h2>Para preparar</h2><div class="seccion-ayuda">Pedidos con todo el stock disponible. Tocá para desplegar y comenzar a preparar.</div></div>
+                <span class="seccion-contador">{{ total_para_preparar }} pedido{{ total_para_preparar|pluralize:"s" }}</span>
+            </div>
+        </summary>
         <div class="lista">
             {% for item_pedido in para_preparar %}
             <article class="pedido disponible">
@@ -313,7 +315,7 @@
             <div class="vacio">No hay pedidos con stock completo esperando preparación.</div>
             {% endfor %}
         </div>
-    </section>
+    </details>
 
     <details class="seccion seccion-colapsable" id="en-preparacion">
         <summary>
@@ -547,7 +549,19 @@ function confirmarEntrega(saldoPendiente){
     return confirm("¿Confirmás que el pedido fue entregado al cliente?");
 }
 
-document.addEventListener("DOMContentLoaded",restaurarPosicion);
+function abrirSeccionPorHash(){
+    if(!window.location.hash)return;
+    const destino=document.querySelector(window.location.hash);
+    if(destino && destino.tagName==="DETAILS"){
+        destino.open=true;
+    }
+}
+
+document.addEventListener("DOMContentLoaded",function(){
+    restaurarPosicion();
+    abrirSeccionPorHash();
+});
+window.addEventListener("hashchange",abrirSeccionPorHash);
 </script>
 </body>
 </html>
