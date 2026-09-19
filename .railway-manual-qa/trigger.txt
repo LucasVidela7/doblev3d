@@ -1,2 +1,2 @@
-Deploy QA: corregir bloque Categoría / tipo en Kits
-Incluye: composición libre con fondo oscuro real, borde correcto, sin blanco residual y filas separadas dentro del mismo bloque.
+Deploy QA: quitar bordes claros en composiciones de Kits
+Incluye: composición fija y libre sin wrapper blanco, filas oscuras consistentes y estados de color preservados.
