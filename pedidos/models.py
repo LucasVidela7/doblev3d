@@ -704,6 +704,14 @@ class EstadoImpresionPedido(models.Model):
         default=0
     )
 
+    reservado_stock = models.BooleanField(
+        default=False
+    )
+
+    cantidad_stock_reservada = models.PositiveIntegerField(
+        default=0
+    )
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
