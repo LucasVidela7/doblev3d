@@ -794,3 +794,159 @@ def rechazar_presupuesto(request, presupuesto_id):
         "pedidos:presupuesto_detalle",
         presupuesto_id=presupuesto.id,
     )
+
+@transaction.atomic
+def repetir_pedido_como_presupuesto(request, pedido_id):
+    """
+    Crea un presupuesto nuevo a partir de un pedido histórico.
+
+    Se conserva exactamente:
+    - cliente
+    - productos / kits / personalizados
+    - cantidades
+    - composición real de cada kit
+    - precio acordado histórico
+    - personalizaciones y observaciones
+
+    La fecha de entrega se deja vacía porque corresponde a una nueva venta.
+    El precio de lista se recalcula con valores actuales para que la edición
+    muestre la diferencia sin alterar el precio acordado que se copió.
+    """
+    if request.method != "POST":
+        return redirect(
+            "pedidos:detalle",
+            pedido_id=pedido_id,
+        )
+
+    pedido = get_object_or_404(
+        Pedido.objects
+        .select_related("cliente")
+        .prefetch_related(
+            "detalles__producto",
+            "detalles__kit",
+            "detalles__productos_kit__producto",
+        ),
+        id=pedido_id,
+    )
+
+    detalles = list(pedido.detalles.all())
+    if not detalles:
+        messages.error(
+            request,
+            f"{pedido.codigo} no tiene ítems para repetir.",
+        )
+        return redirect(
+            "pedidos:detalle",
+            pedido_id=pedido.id,
+        )
+
+    presupuesto = Presupuesto.objects.create(
+        cliente=pedido.cliente,
+        fecha_entrega=None,
+        observaciones=pedido.observaciones,
+        estado="PENDIENTE",
+    )
+
+    for detalle in detalles:
+        if detalle.tipo_item == "PRODUCTO":
+            precio_lista = (
+                _precio_lista_producto(detalle.producto)
+                if detalle.producto
+                else detalle.precio_unitario
+            )
+            DetallePresupuesto.objects.create(
+                presupuesto=presupuesto,
+                tipo_item="PRODUCTO",
+                producto=detalle.producto,
+                cantidad=detalle.cantidad,
+                precio_lista_unitario=precio_lista,
+                precio_unitario=detalle.precio_unitario,
+                costo_unitario=detalle.costo_unitario,
+            )
+            continue
+
+        if detalle.tipo_item == "KIT":
+            kit = detalle.kit
+            precio_lista = Decimal(str(
+                kit.precio
+                if kit and kit.precio is not None
+                else detalle.precio_unitario
+            ))
+
+            if (
+                kit
+                and kit.modalidad == "LIBRE_CATEGORIA"
+                and detalle.cantidad > 0
+            ):
+                productos_libres = []
+                for componente in detalle.productos_kit.all():
+                    total = int(componente.cantidad or 0)
+                    repeticiones = max(
+                        total // int(detalle.cantidad or 1),
+                        1,
+                    )
+                    productos_libres.extend(
+                        [componente.producto] * repeticiones
+                    )
+                productos_libres = productos_libres[
+                    : int(kit.cantidad_productos or 0)
+                ]
+                if productos_libres:
+                    precio_lista = Decimal(str(
+                        precio_automatico_kit_libre(
+                            kit,
+                            productos_libres,
+                        )
+                    ))
+
+            nuevo_detalle = DetallePresupuesto.objects.create(
+                presupuesto=presupuesto,
+                tipo_item="KIT",
+                kit=kit,
+                cantidad=detalle.cantidad,
+                precio_lista_unitario=precio_lista,
+                precio_unitario=detalle.precio_unitario,
+                precio_kit_manual=True,
+                costo_unitario=detalle.costo_unitario,
+            )
+
+            for componente in detalle.productos_kit.all():
+                DetallePresupuestoKitProducto.objects.create(
+                    detalle=nuevo_detalle,
+                    producto=componente.producto,
+                    cantidad=componente.cantidad,
+                )
+            continue
+
+        precio_lista = (
+            _precio_lista_producto(detalle.producto)
+            if detalle.producto
+            else detalle.precio_unitario
+        )
+        DetallePresupuesto.objects.create(
+            presupuesto=presupuesto,
+            tipo_item="PERSONALIZADO",
+            producto=detalle.producto,
+            cantidad=detalle.cantidad,
+            precio_lista_unitario=precio_lista,
+            precio_unitario=detalle.precio_unitario,
+            costo_unitario=detalle.costo_unitario,
+            personalizado=True,
+            detalle_personalizacion=detalle.detalle_personalizacion,
+            color_personalizacion=detalle.color_personalizacion,
+            precio_total_personalizado=detalle.precio_total_personalizado,
+        )
+
+    messages.success(
+        request,
+        (
+            f"{presupuesto.codigo} creado desde {pedido.codigo}. "
+            "Se copiaron composición, cantidades y precios acordados. "
+            "Revisá los valores actuales antes de enviarlo."
+        ),
+    )
+    return redirect(
+        "pedidos:presupuesto_editar",
+        presupuesto_id=presupuesto.id,
+    )
+
