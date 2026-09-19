@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.conf import settings
 from django.db import models
 
 from clientes.models import Cliente
@@ -547,6 +548,33 @@ class SolicitudWeb(models.Model):
 
     def __str__(self):
         return f"{self.codigo} - {self.nombre}"
+
+
+class WebPushSubscription(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="web_push_subscriptions",
+    )
+    endpoint = models.CharField(
+        max_length=1000,
+        unique=True,
+    )
+    p256dh = models.TextField()
+    auth = models.TextField()
+    user_agent = models.CharField(
+        max_length=250,
+        blank=True,
+    )
+    activa = models.BooleanField(default=True)
+    creada_en = models.DateTimeField(auto_now_add=True)
+    actualizada_en = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-actualizada_en", "-id"]
+
+    def __str__(self):
+        return f"Push {self.user_id} · {'activa' if self.activa else 'inactiva'}"
 
 
 class SolicitudWebItem(models.Model):
