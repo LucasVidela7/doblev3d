@@ -158,6 +158,48 @@ class AccionesPedidoEstadoTests(TestCase):
             self.pedido.refresh_from_db()
             self.assertEqual(self.pedido.estado, estado)
 
+    def test_fecha_entrega_se_puede_modificar_en_estados_activos(self):
+        for estado in ("PENDIENTE", "PREPARANDO", "LISTO"):
+            self._estado(estado)
+            respuesta = self.client.post(
+                reverse(
+                    "pedidos:actualizar_fecha_entrega",
+                    args=[self.pedido.id],
+                ),
+                {"fecha_entrega": "2026-10-15"},
+            )
+            self.assertRedirects(
+                respuesta,
+                reverse("pedidos:detalle", args=[self.pedido.id]),
+                fetch_redirect_response=False,
+            )
+            self.pedido.refresh_from_db()
+            self.assertEqual(
+                self.pedido.fecha_entrega,
+                date(2026, 10, 15),
+            )
+
+    def test_fecha_entrega_no_se_modifica_en_estados_finales(self):
+        for estado in ("ENTREGADO", "CANCELADO"):
+            self._estado(estado)
+            self.pedido.fecha_entrega = date(2026, 10, 10)
+            self.pedido.save(update_fields=["fecha_entrega"])
+
+            respuesta = self.client.post(
+                reverse(
+                    "pedidos:actualizar_fecha_entrega",
+                    args=[self.pedido.id],
+                ),
+                {"fecha_entrega": "2026-10-20"},
+            )
+
+            self.assertEqual(respuesta.status_code, 302)
+            self.pedido.refresh_from_db()
+            self.assertEqual(
+                self.pedido.fecha_entrega,
+                date(2026, 10, 10),
+            )
+
     def test_cancelar_no_se_permite_fuera_de_pendiente(self):
         self._estado("LISTO")
         respuesta = self.client.post(
