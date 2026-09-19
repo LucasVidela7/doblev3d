@@ -255,6 +255,19 @@ def calcular_costo_productivo_producto(
         Decimal(str(producto.peso_gramos or 0)),
         cero,
     )
+
+    # Los productos compuestos se calculan desde sus piezas reales para no
+    # depender de que horas/peso agregados hayan quedado sincronizados.
+    if getattr(producto, "es_compuesto", False) and producto.pk:
+        peso_componentes = Decimal("0")
+        for relacion in producto.componentes.select_related("componente").all():
+            cantidad_componente = Decimal(int(relacion.cantidad or 0))
+            peso_componentes += (
+                Decimal(str(relacion.componente.peso_gramos or 0))
+                * cantidad_componente
+            )
+        if peso_componentes > 0:
+            peso_gramos = peso_componentes
     costo_luz = horas_totales * Decimal(str(config.coste_luz_hora or 0))
     costo_material = (
         peso_gramos
