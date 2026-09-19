@@ -196,6 +196,20 @@ CSRF_COOKIE_SAMESITE = "Lax"
 TURNSTILE_SITE_KEY = os.getenv("TURNSTILE_SITE_KEY", "").strip()
 TURNSTILE_SECRET_KEY = os.getenv("TURNSTILE_SECRET_KEY", "").strip()
 
+# Web Push para avisos internos (por ejemplo, un nuevo pedido web).
+WEBPUSH_VAPID_PUBLIC_KEY = os.getenv(
+    "WEBPUSH_VAPID_PUBLIC_KEY",
+    "",
+).strip()
+WEBPUSH_VAPID_PRIVATE_KEY = os.getenv(
+    "WEBPUSH_VAPID_PRIVATE_KEY",
+    "",
+).strip()
+WEBPUSH_VAPID_SUBJECT = os.getenv(
+    "WEBPUSH_VAPID_SUBJECT",
+    "https://doblev3d.com.ar",
+).strip()
+
 
 # Internationalization
 
