@@ -1,0 +1,16 @@
+{% extends "productos/legal_base.html" %}
+{% block title %}Solicitud recibida{% endblock %}
+{% block eyebrow %}Derecho del consumidor{% endblock %}
+{% block heading %}Solicitud recibida{% endblock %}
+{% block intro %}Registramos tu solicitud de arrepentimiento. Doble V 3D podrá contactarte usando el dato que informaste para identificar la operación y continuar el trámite.{% endblock %}
+{% block content %}
+<section class="legal-card">
+{% if solicitud %}
+<div class="legal-highlight"><strong>Código de solicitud:</strong> {{ solicitud.codigo }}<br><strong>Fecha:</strong> {{ solicitud.creada_en|date:"d/m/Y H:i" }}{% if solicitud.referencia %}<br><strong>Referencia informada:</strong> {{ solicitud.referencia }}{% endif %}</div>
+{% else %}
+<div class="legal-highlight"><strong>Solicitud registrada.</strong> Si necesitás agregar información, podés contactarnos por los canales publicados en el catálogo.</div>
+{% endif %}
+<p>Conservá este código como referencia. El envío de este formulario no requiere crear una cuenta ni realizar un pago.</p>
+<div class="legal-actions"><a class="legal-btn" href="{% url 'catalogo_terminos' %}">VER TÉRMINOS</a><a class="legal-btn primary" href="{% url 'catalogo' %}">VOLVER A LA TIENDA</a></div>
+</section>
+{% endblock %}
