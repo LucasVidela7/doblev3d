@@ -387,3 +387,33 @@ class PlanificacionProduccionTests(TestCase):
             'class="product-thumb"',
         )
 
+    def test_historial_produccion_muestra_miniatura(self):
+        ProductoImagen.objects.create(
+            producto=self.producto,
+            file_id="prod-thumb-historial",
+            url="https://example.com/historial.jpg",
+            thumbnail_url="https://example.com/historial-thumb.jpg",
+            orden=1,
+        )
+        Produccion.objects.create(
+            producto=self.producto,
+            cantidad=3,
+            impresora=self.impresora,
+            estado="LISTO",
+            tiempo_impresion_minutos=150,
+        )
+
+        respuesta = self.client.get(
+            reverse("produccion:lista")
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(
+            respuesta,
+            "https://example.com/historial-thumb.jpg",
+        )
+        self.assertContains(
+            respuesta,
+            "VER ÚLTIMAS 1 FINALIZADAS",
+        )
+
