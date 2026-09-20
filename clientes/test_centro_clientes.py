@@ -6,6 +6,7 @@ from django.urls import reverse
 
 from pedidos.models import DetallePedido, Pedido, Presupuesto
 from productos.models import Producto, TipoProducto
+from productos.image_models import ProductoImagen
 
 from .models import Cliente
 
@@ -21,7 +22,7 @@ class CentroClientesTests(TestCase):
         tipo = TipoProducto.objects.create(
             nombre="Sensorial",
         )
-        producto = Producto.objects.create(
+        self.producto = Producto.objects.create(
             nombre="Producto prueba",
             categoria="PRODUCTO",
             tipo=tipo,
@@ -40,7 +41,7 @@ class CentroClientesTests(TestCase):
         DetallePedido.objects.create(
             pedido=pedido,
             tipo_item="PRODUCTO",
-            producto=producto,
+            producto=self.producto,
             cantidad=2,
             precio_unitario=Decimal("5000"),
             estado="PENDIENTE",
@@ -94,3 +95,30 @@ class CentroClientesTests(TestCase):
             respuesta,
             "REPETIR COMO PRESUPUESTO",
         )
+
+    def test_detalle_cliente_muestra_foto_de_la_compra(self):
+        ProductoImagen.objects.create(
+            producto=self.producto,
+            file_id="cliente-compra-thumb",
+            url="https://example.com/cliente-compra.jpg",
+            thumbnail_url="https://example.com/cliente-compra-thumb.jpg",
+            orden=1,
+        )
+
+        respuesta = self.client.get(
+            reverse(
+                "clientes:detalle",
+                args=[self.cliente_obj.id],
+            )
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(
+            respuesta,
+            "https://example.com/cliente-compra-thumb.jpg",
+        )
+        self.assertContains(
+            respuesta,
+            'class="venta-thumb"',
+        )
+
