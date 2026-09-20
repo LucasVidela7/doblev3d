@@ -59,12 +59,47 @@ def preparar_kits_gestion(kits):
             else None
         )
 
+        # Alias temporales para mantener compatibilidad con componentes
+        # internos mientras toda la gestión migra al nuevo centro.
+        kit.opciones_libres_analisis = kit.opciones_gestion
+        kit.recomendacion_sobre_incluidos = False
+        kit.alerta_proteccion_sin_incluidos = False
+
+        if (
+            kit.modalidad == "LIBRE_CATEGORIA"
+            and kit.proteger_rentabilidad_libre
+            and kit.opciones_gestion
+        ):
+            kit.recomendacion_sobre_incluidos = bool(
+                kit.opciones_gestion["cantidad_incluidos"]
+            )
+            kit.alerta_proteccion_sin_incluidos = (
+                kit.opciones_gestion["disponible"]
+                and not kit.opciones_gestion["cantidad_incluidos"]
+            )
+
+            opciones_por_producto = {
+                item["producto_id"]: item
+                for item in kit.opciones_gestion["opciones"]
+            }
+            for visual in getattr(kit, "productos_visuales", []):
+                opcion = opciones_por_producto.get(
+                    visual["producto"].id
+                )
+                if opcion:
+                    visual["incluido"] = bool(opcion["incluido"])
+                    visual["requiere_extra"] = bool(
+                        opcion["requiere_extra"]
+                    )
+                    visual["extra"] = opcion["extra"]
+
         kit.recomendacion_gestion = (
             KitEngine.recomendacion(
                 kit,
                 productos_categoria=productos_categoria,
             )
         )
+        kit.recomendacion_calculadora = kit.recomendacion_gestion
         kit.salud_gestion = KitEngine.estado_salud(
             kit,
             productos_categoria=productos_categoria,
