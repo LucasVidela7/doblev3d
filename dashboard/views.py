@@ -23,7 +23,7 @@ from pedidos.models import (
 from pedidos.impresiones_stock import obtener_impresiones_por_producto
 from produccion import views as produccion_views
 from produccion.models import Impresora, Produccion
-from productos.models import ConfiguracionCatalogo, Producto
+from productos.models import ConfiguracionCatalogo, Producto, SolicitudArrepentimiento
 from productos.miniaturas import asignar_miniaturas_productos
 
 
@@ -978,6 +978,10 @@ def configuracion(request):
         "whatsapp_mensaje_cliente_saldo": 2000,
         "whatsapp_mensaje_cliente_presupuesto": 2000,
         "whatsapp_mensaje_cliente_reactivacion": 2000,
+        "razon_social": 180,
+        "cuit": 20,
+        "domicilio_legal": 240,
+        "email_legal": 254,
     }
     campos_booleanos = [
         "catalogo_activo",
@@ -1055,6 +1059,15 @@ def configuracion(request):
                 .count()
             ),
             "whatsapp_defaults": whatsapp_defaults,
+            "arrepentimientos_recientes": (
+                SolicitudArrepentimiento.objects
+                .order_by("-creada_en", "-id")[:8]
+            ),
+            "arrepentimientos_nuevos": (
+                SolicitudArrepentimiento.objects
+                .filter(estado="NUEVA")
+                .count()
+            ),
         },
     )
 
