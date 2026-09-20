@@ -1,3 +1,4 @@
+from productos.miniaturas import asignar_miniaturas_productos
 from collections import OrderedDict
 
 from django.contrib import messages
@@ -6,6 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.dateparse import parse_date
 
 from . import acciones_impresion
+from .miniaturas import asignar_miniaturas_items
 from .models import EstadoImpresionPedido, Pago, Pedido
 
 
@@ -168,8 +170,17 @@ def detalle_pedido(request, pedido_id):
     )
 
     detalles = list(pedido.detalles.all())
+    asignar_miniaturas_items(detalles)
+
     pagos = list(pedido.pagos.all())
     preparacion = _armar_preparacion(pedido)
+    asignar_miniaturas_productos(
+        [
+            item["producto"]
+            for item in preparacion
+            if item.get("producto")
+        ]
+    )
 
     cantidad_unidades = sum(
         detalle.cantidad
