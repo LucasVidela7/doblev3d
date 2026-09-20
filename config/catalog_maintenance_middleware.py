@@ -16,6 +16,7 @@ class CatalogMaintenanceMiddleware:
         "catalogo",
         "catalogo_legacy",
         "catalogo_productos",
+        "catalogo_producto_detalle",
         "catalogo_kits",
         "catalogo_kit_detalle",
         "catalogo_carrito",
