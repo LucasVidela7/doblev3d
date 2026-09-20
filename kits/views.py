@@ -358,7 +358,8 @@ def _formulario_kit(
         )
 
         return redirect(
-            "kits:lista",
+            "kits:detalle",
+            kit_id=kit.id,
         )
 
     return _render_form(
