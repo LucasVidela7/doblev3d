@@ -9,7 +9,7 @@ from pedidos.models import (
     Pedido,
     Presupuesto,
 )
-from productos.models import Producto, TipoProducto
+from productos.models import ConfiguracionCatalogo, Producto, TipoProducto
 
 from .models import Cliente, ContactoCliente
 
@@ -267,3 +267,59 @@ class SeguimientoClientesTests(TestCase):
             fila["cantidad_pedidos"],
             1,
         )
+
+    def test_whatsapp_usa_plantilla_configurada_y_variables(self):
+        config, _ = ConfiguracionCatalogo.objects.get_or_create(
+            pk=1
+        )
+        config.whatsapp_mensaje_cliente_saldo = (
+            "Hola {nombre} | {codigo} | saldo {saldo} | total {total}"
+        )
+        config.save(
+            update_fields=[
+                "whatsapp_mensaje_cliente_saldo",
+            ]
+        )
+
+        pedido = Pedido.objects.create(
+            cliente=self.cliente,
+            estado="PENDIENTE",
+        )
+        DetallePedido.objects.create(
+            pedido=pedido,
+            tipo_item="PRODUCTO",
+            producto=self.producto,
+            cantidad=2,
+            precio_unitario=Decimal("7500"),
+        )
+
+        respuesta = self.client.get(
+            reverse(
+                "clientes:whatsapp",
+                args=[self.cliente.id],
+            ),
+            {
+                "motivo": "SALDO",
+                "pedido": pedido.id,
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 302)
+        contacto = ContactoCliente.objects.get()
+        self.assertIn(
+            "Hola Cliente Seguimiento",
+            contacto.mensaje,
+        )
+        self.assertIn(
+            pedido.codigo,
+            contacto.mensaje,
+        )
+        self.assertIn(
+            "saldo 15.000",
+            contacto.mensaje,
+        )
+        self.assertIn(
+            "total 15.000",
+            contacto.mensaje,
+        )
+
