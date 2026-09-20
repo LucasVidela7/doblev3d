@@ -17,9 +17,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from calculadora.precios import calcular_precio_catalogo_producto
-from kits.economia import precio_automatico_kit_libre
+from kits.engine import KitEngine
 from kits.models import Kit
-from pedidos.kits_volumen import calcular_precio_volumen_kits
 from pedidos.models import (
     SolicitudWeb,
     SolicitudWebItem,
@@ -242,7 +241,7 @@ def _validar_carrito(payload):
 
                 seleccion = [productos_mapa[pid] for pid in seleccion_ids]
                 precio_unitario = _decimal(
-                    precio_automatico_kit_libre(kit, seleccion)
+                    KitEngine.precio_unitario(kit, productos=seleccion)
                 )
                 precio_base = _decimal(kit.precio)
                 adicional = max(
@@ -371,7 +370,7 @@ def _aplicar_descuentos_carrito(lineas):
                 }
             )
 
-        resumen = calcular_precio_volumen_kits(items)
+        resumen = KitEngine.volumen(items)
         por_key = {
             str(item["key"]): item
             for item in resumen["lineas"]
@@ -682,6 +681,25 @@ def carrito_checkout(request):
                 producto_id=producto_id,
                 cantidad=cantidad,
             )
+
+        if linea["tipo"] == "KIT" and linea["kit"]:
+            componentes_snapshot = [
+                {
+                    "producto": componente.producto,
+                    "cantidad": componente.cantidad,
+                }
+                for componente in item.productos_kit
+                .select_related("producto")
+                .all()
+            ]
+            item.kit_snapshot = KitEngine.snapshot(
+                linea["kit"],
+                cantidad_kits=linea["cantidad"],
+                precio_unitario=linea["precio_unitario"],
+                precio_manual=False,
+                componentes=componentes_snapshot,
+            )
+            item.save(update_fields=["kit_snapshot"])
 
     request.session["solicitud_web_ultima_id"] = solicitud.id
     request.session.pop("solicitud_web_spam", None)
