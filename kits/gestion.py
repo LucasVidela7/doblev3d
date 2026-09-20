@@ -103,6 +103,8 @@ def preparar_kits_gestion(kits):
         kit.salud_gestion = KitEngine.estado_salud(
             kit,
             productos_categoria=productos_categoria,
+            recomendacion=kit.recomendacion_gestion,
+            opciones=kit.opciones_gestion,
         )
 
         kit.imagen_resumen_url = next(
