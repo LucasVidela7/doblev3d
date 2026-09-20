@@ -93,3 +93,14 @@ class CatalogoMantenimientoAdminTests(TestCase):
             respuesta,
             "Tienda en mantenimiento",
         )
+
+    def test_detalle_publico_de_producto_respeta_mantenimiento(self):
+        respuesta = self.client.get(
+            reverse(
+                "catalogo_producto_detalle",
+                args=[999],
+            )
+        )
+
+        self.assertEqual(respuesta.status_code, 503)
+
