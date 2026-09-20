@@ -1,2 +1,2 @@
-Deploy QA: miniaturas en historial y preparación
-Extiende las fotos de producto al Historial de Producción y a las líneas de productos de Preparación, incluyendo pedidos cancelados. Mantiene carga en lote por ambiente y placeholder 3D cuando no hay foto.
+Deploy QA: fotos en todos los flujos de pedidos
+Incluye cabecera corregida del detalle de pedido; miniaturas en preparación y detalle comercial; presupuestos y solicitudes web en lista/detalle; ficha de cliente; previews en nuevo/editar presupuesto o pedido; fallback representativo para kits y carga en lote para evitar N+1.
