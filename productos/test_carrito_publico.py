@@ -62,7 +62,7 @@ class CarritoPublicoTests(TestCase):
         response = self.client.get(reverse("catalogo_carrito"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "SOLICITAR PRESUPUESTO")
+        self.assertContains(response, "ENVIAR SOLICITUD DE PRESUPUESTO")
         self.assertContains(response, "Validando tu solicitud")
         self.assertContains(response, "data-checkout-loader")
 
@@ -334,4 +334,69 @@ class CarritoPublicoTests(TestCase):
             response,
             "El plazo comienza una vez confirmado el presupuesto.",
         )
+
+    def test_checkout_orienta_compra_y_pedido_especial(self):
+        response = self.client.get(
+            reverse("catalogo_carrito")
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "PASO")
+        self.assertContains(response, "TOTAL ESTIMADO")
+        self.assertContains(response, "EDITAR CARRITO")
+        self.assertContains(
+            response,
+            "¿No encontraste un producto en la tienda?",
+        )
+        self.assertContains(
+            response,
+            "data-special-observation",
+        )
+        self.assertContains(
+            response,
+            "?motivo=producto_especial",
+        )
+        self.assertContains(
+            response,
+            "No pagás nada ahora",
+        )
+
+    def test_confirmacion_explica_que_sigue_y_el_plazo(self):
+        config, _ = ConfiguracionCatalogo.objects.get_or_create(
+            pk=1
+        )
+        config.mensaje_plazo_entrega = (
+            "Entrega de prueba luego de confirmar."
+        )
+        config.save(
+            update_fields=["mensaje_plazo_entrega"]
+        )
+
+        self._post(
+            [
+                {
+                    "kind": "product",
+                    "id": self.producto.id,
+                    "qty": 1,
+                }
+            ],
+            telefono="+54 11 5555 6060",
+        )
+
+        response = self.client.get(
+            reverse("catalogo_carrito_gracias")
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "¿Qué pasa ahora?")
+        self.assertContains(response, "Chequeamos tu solicitud")
+        self.assertContains(
+            response,
+            "Comenzamos después de tu OK",
+        )
+        self.assertContains(
+            response,
+            "Entrega de prueba luego de confirmar.",
+        )
+        self.assertNotContains(response, "VOLVER ATRÁS")
 
