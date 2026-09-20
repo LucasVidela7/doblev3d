@@ -95,33 +95,6 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
             </div>
         </div>
 
-        <div class="card recomendacion" id="recomendacion_precio">
-            <div>
-                <div class="seccion-titulo">3 · PRECIO Y RENTABILIDAD</div>
-                <label>PRECIO ACTUAL</label>
-                <input
-                    type="number"
-                    min="0.01"
-                    step="0.01"
-                    name="precio"
-                    id="precio_kit"
-                    required
-                    value="{% if kit and kit.precio is not None %}{{ kit.precio|unlocalize }}{% endif %}"
-                    oninput="actualizarRecomendacion()"
-                    style="margin-bottom:12px"
-                >
-                <div class="recomendacion-etiqueta">RECOMENDACIÓN DE PRECIO</div>
-                <div class="recomendacion-texto" id="recomendacion_detalle">
-                    Elegí la modalidad y composición para calcularla.
-                </div>
-                <span class="recomendacion-estado" id="recomendacion_estado">CALCULANDO</span>
-            </div>
-            <div class="recomendacion-precio">
-                <span>PRECIO MÍNIMO SUGERIDO</span>
-                <strong id="precio_recomendado">—</strong>
-            </div>
-        </div>
-
         <div class="card" id="composicion">
             <div class="seccion-titulo">2 · COMPOSICIÓN</div>
             <label>MODALIDAD</label>
@@ -217,7 +190,34 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
             <div class="ayuda" id="total_piezas">Total piezas: 0</div>
         </div>
 
-        <div class="card" id="catalogo">
+        <div class="card recomendacion" id="recomendacion_precio">
+            <div>
+                <div class="seccion-titulo">3 · PRECIO Y RENTABILIDAD</div>
+                <label>PRECIO ACTUAL</label>
+                <input
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    name="precio"
+                    id="precio_kit"
+                    required
+                    value="{% if kit and kit.precio is not None %}{{ kit.precio|unlocalize }}{% endif %}"
+                    oninput="actualizarRecomendacion()"
+                    style="margin-bottom:12px"
+                >
+                <div class="recomendacion-etiqueta">RECOMENDACIÓN DE PRECIO</div>
+                <div class="recomendacion-texto" id="recomendacion_detalle">
+                    Elegí la modalidad y composición para calcularla.
+                </div>
+                <span class="recomendacion-estado" id="recomendacion_estado">CALCULANDO</span>
+            </div>
+            <div class="recomendacion-precio">
+                <span>PRECIO MÍNIMO SUGERIDO</span>
+                <strong id="precio_recomendado">—</strong>
+            </div>
+        </div>
+
+<div class="card" id="catalogo">
             <div class="seccion-titulo">4 · CATÁLOGO</div>
             <div class="ayuda" style="margin-top:0">
                 El catálogo reutiliza automáticamente las fotos principales de los productos del kit.
