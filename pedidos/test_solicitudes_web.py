@@ -10,6 +10,7 @@ from clientes.models import Cliente
 from costos.models import ConfiguracionCostos
 from pedidos.models import Presupuesto, SolicitudWeb
 from productos.models import Producto, TipoProducto
+from productos.image_models import ProductoImagen
 
 
 @override_settings(
@@ -179,4 +180,30 @@ class SolicitudesWebGestionTests(TestCase):
             respuesta.context["estado_seleccionado"],
             "CONTACTADA",
         )
+
+    def test_foto_aparece_en_bandeja_y_detalle_web(self):
+        ProductoImagen.objects.create(
+            producto=self.producto,
+            file_id="solicitud-thumb",
+            url="https://example.com/solicitud.jpg",
+            thumbnail_url="https://example.com/solicitud-thumb.jpg",
+            orden=1,
+        )
+
+        bandeja = self.client.get(
+            reverse("pedidos:solicitudes_web")
+        )
+        detalle = self.client.get(
+            reverse(
+                "pedidos:solicitud_web_detalle",
+                args=[self.solicitud.id],
+            )
+        )
+
+        for respuesta in (bandeja, detalle):
+            self.assertEqual(respuesta.status_code, 200)
+            self.assertContains(
+                respuesta,
+                "https://example.com/solicitud-thumb.jpg",
+            )
 
