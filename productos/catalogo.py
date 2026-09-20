@@ -8,13 +8,17 @@ from kits.models import Kit
 
 from .image_environment import entorno_imagenes
 from .image_models import ProductoImagen
-from .models import Producto
+from .models import ConfiguracionCatalogo, Producto
 
 
 def _catalogo_publico(request, vista_catalogo):
     """Construye el contexto público compartido de la tienda."""
 
     ambiente = entorno_imagenes()
+    config_catalogo = (
+        ConfiguracionCatalogo.objects.first()
+        or ConfiguracionCatalogo()
+    )
 
     productos = list(
         Producto.objects
@@ -161,6 +165,9 @@ def _catalogo_publico(request, vista_catalogo):
             "vista_catalogo": vista_catalogo,
             "ambiente_catalogo": ambiente,
             "es_ambiente_no_productivo": ambiente != "production",
+            "mensaje_plazo_entrega": (
+                config_catalogo.mensaje_plazo_entrega
+            ),
         },
     )
 
@@ -185,6 +192,10 @@ def catalogo_kit_detalle(request, kit_id):
     """Detalle público de un kit activo, sin exponer la gestión interna."""
 
     ambiente = entorno_imagenes()
+    config_catalogo = (
+        ConfiguracionCatalogo.objects.first()
+        or ConfiguracionCatalogo()
+    )
 
     kit = get_object_or_404(
         Kit.objects
@@ -305,5 +316,8 @@ def catalogo_kit_detalle(request, kit_id):
             "analisis_opciones": analisis,
             "ambiente_catalogo": ambiente,
             "es_ambiente_no_productivo": ambiente != "production",
+            "mensaje_plazo_entrega": (
+                config_catalogo.mensaje_plazo_entrega
+            ),
         },
     )
