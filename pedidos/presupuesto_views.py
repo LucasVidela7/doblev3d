@@ -12,6 +12,7 @@ from calculadora.precios import calcular_precio_catalogo_producto
 from kits.economia import precio_automatico_kit_libre
 from kits.models import Kit
 from productos.models import Producto
+from productos.miniaturas import asignar_miniaturas_productos
 
 from .kits_volumen import calcular_precio_volumen_kits
 from .miniaturas import (
@@ -36,13 +37,16 @@ from .views import _costo_actual_producto, _guardar_costo_kit
 
 
 def _catalogos():
+    productos = list(
+        Producto.objects.filter(activo=True)
+        .select_related("tipo")
+        .order_by("nombre")
+    )
+    asignar_miniaturas_productos(productos)
+
     return {
         "clientes": Cliente.objects.filter(activo=True).order_by("nombre"),
-        "productos": (
-            Producto.objects.filter(activo=True)
-            .select_related("tipo")
-            .order_by("nombre")
-        ),
+        "productos": productos,
         "kits": (
             Kit.objects.filter(activo=True)
             .select_related("tipo_producto")
