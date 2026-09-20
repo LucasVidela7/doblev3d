@@ -150,6 +150,9 @@ def _seguimientos_cliente(
 ):
     items = []
     hoy = timezone.localdate()
+    tiene_whatsapp = bool(
+        numero_whatsapp(cliente)
+    )
 
     for fila in filas_activas:
         pedido = fila["pedido"]
@@ -167,10 +170,14 @@ def _seguimientos_cliente(
                         "coordinar la entrega."
                     ),
                     "accion": "AVISAR CLIENTE",
-                    "url": url_contacto(
-                        cliente,
-                        "PEDIDO_LISTO",
-                        pedido=pedido,
+                    "url": (
+                        url_contacto(
+                            cliente,
+                            "PEDIDO_LISTO",
+                            pedido=pedido,
+                        )
+                        if tiene_whatsapp
+                        else ""
                     ),
                 }
             )
@@ -187,10 +194,14 @@ def _seguimientos_cliente(
                         f"$ {fila['saldo']:,.0f} pendientes."
                     ),
                     "accion": "RECORDAR PAGO",
-                    "url": url_contacto(
-                        cliente,
-                        "SALDO",
-                        pedido=pedido,
+                    "url": (
+                        url_contacto(
+                            cliente,
+                            "SALDO",
+                            pedido=pedido,
+                        )
+                        if tiene_whatsapp
+                        else ""
                     ),
                 }
             )
@@ -211,10 +222,14 @@ def _seguimientos_cliente(
                     f"Presupuesto enviado hace {dias} día(s)."
                 ),
                 "accion": "CONSULTAR",
-                "url": url_contacto(
-                    cliente,
-                    "PRESUPUESTO",
-                    presupuesto=presupuesto,
+                "url": (
+                    url_contacto(
+                        cliente,
+                        "PRESUPUESTO",
+                        presupuesto=presupuesto,
+                    )
+                    if tiene_whatsapp
+                    else ""
                 ),
             }
         )
@@ -237,9 +252,13 @@ def _seguimientos_cliente(
                 "titulo": "Retomar contacto",
                 "detalle": detalle,
                 "accion": "ESCRIBIR",
-                "url": url_contacto(
-                    cliente,
-                    "REACTIVACION",
+                "url": (
+                    url_contacto(
+                        cliente,
+                        "REACTIVACION",
+                    )
+                    if tiene_whatsapp
+                    else ""
                 ),
             }
         )
