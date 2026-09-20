@@ -141,7 +141,10 @@ header.shell.top{display:none!important}
     .dv-catalog-legal-footer{margin-top:22px;padding-bottom:72px}
     .dv-catalog-legal-footer__inner{display:grid;grid-template-columns:1fr}
     .dv-catalog-legal-footer__links{display:grid;grid-template-columns:1fr 1fr}
-    .dv-catalog-withdrawal{right:10px;bottom:10px;max-width:210px;font-size:.58rem}
+    .dv-catalog-withdrawal{
+        right:8px;bottom:8px;min-height:31px;max-width:158px;
+        padding:0 8px;font-size:.49rem;box-shadow:0 4px 12px rgba(25,35,50,.12)
+    }
 }
 </style>
 """
