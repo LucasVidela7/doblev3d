@@ -8,6 +8,7 @@ from django.urls import reverse
 from clientes.models import Cliente
 from costos.models import ConfiguracionCostos
 from productos.models import Producto, TipoProducto
+from productos.image_models import ProductoImagen
 
 from .models import (
     DetallePedido,
@@ -253,4 +254,35 @@ class PresupuestosTests(TestCase):
             respuesta.context["estado_seleccionado"],
             "PENDIENTE",
         )
+
+    def test_fotos_aparecen_en_presupuesto_y_formulario(self):
+        ProductoImagen.objects.create(
+            producto=self.producto,
+            file_id="presupuesto-thumb",
+            url="https://example.com/presupuesto.jpg",
+            thumbnail_url="https://example.com/presupuesto-thumb.jpg",
+            orden=1,
+        )
+        self._crear_presupuesto()
+        presupuesto = Presupuesto.objects.get()
+
+        listado = self.client.get(
+            reverse("pedidos:presupuestos")
+        )
+        detalle = self.client.get(
+            reverse(
+                "pedidos:presupuesto_detalle",
+                args=[presupuesto.id],
+            )
+        )
+        nuevo = self.client.get(
+            reverse("pedidos:nuevo")
+        )
+
+        for respuesta in (listado, detalle, nuevo):
+            self.assertEqual(respuesta.status_code, 200)
+            self.assertContains(
+                respuesta,
+                "https://example.com/presupuesto-thumb.jpg",
+            )
 
