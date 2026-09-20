@@ -394,20 +394,6 @@
         .catalog-confidence{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:-10px auto 18px}
         .catalog-confidence span{min-height:42px;display:flex;align-items:center;justify-content:center;padding:7px 9px;border:1px solid var(--line);border-radius:11px;background:#fff;color:#56657a;font-size:.7rem;font-weight:800;text-align:center}
 
-        .delivery-card-note {
-            display: -webkit-box;
-            overflow: hidden;
-            margin: 10px 0 0;
-            padding: 8px 9px;
-            border-radius: 9px;
-            background: #f5f8fd;
-            color: #667085;
-            font-size: .7rem;
-            line-height: 1.35;
-            -webkit-box-orient: vertical;
-            -webkit-line-clamp: 2;
-        }
-
         .content { padding: 18px; }
 
         .meta {
@@ -601,8 +587,6 @@
 
             .detail { display: none; }
             .delivery-banner{margin-top:0;margin-bottom:14px;padding:10px 11px;font-size:.72rem}
-            .delivery-card-note{margin-top:7px;padding:6px 7px;font-size:.58rem;line-height:1.28}
-
             .mini-list {
                 gap: 4px;
                 margin: 7px 0 9px;
@@ -768,9 +752,6 @@
                                 <p class="detail">
                                     {% if producto.personalizable %}Personalizable{% else %}Impresión 3D{% endif %}
                                 </p>
-                                {% if mensaje_plazo_entrega %}
-                                    <div class="delivery-card-note">⏱ {{ mensaje_plazo_entrega }}</div>
-                                {% endif %}
                                 <div class="price-row">
                                     <div>
                                         <span class="price-label">Precio unitario</span>
