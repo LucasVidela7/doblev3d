@@ -81,7 +81,11 @@ class KitEngine:
         )
 
     @classmethod
-    def validar_configuracion(cls, kit):
+    def validar_configuracion(
+        cls,
+        kit,
+        productos_categoria=None,
+    ):
         errores = []
 
         if not str(getattr(kit, "nombre", "") or "").strip():
@@ -110,7 +114,11 @@ class KitEngine:
                     "La cantidad a elegir debe ser mayor a cero."
                 )
             if kit.tipo_producto_id:
-                productos = cls.productos_categoria(kit)
+                productos = (
+                    list(productos_categoria)
+                    if productos_categoria is not None
+                    else cls.productos_categoria(kit)
+                )
                 if not productos:
                     errores.append(
                         "La categoría no tiene productos comerciales activos."
@@ -123,7 +131,10 @@ class KitEngine:
 
     @classmethod
     def estado_salud(cls, kit, productos_categoria=None):
-        configuracion = cls.validar_configuracion(kit)
+        configuracion = cls.validar_configuracion(
+            kit,
+            productos_categoria=productos_categoria,
+        )
 
         if not configuracion["valido"]:
             return {
