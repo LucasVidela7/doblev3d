@@ -1,7 +1,7 @@
-Deploy QA: compra flotante y subtotal en detalles
-- Detalle de producto: barra inferior flotante con subtotal y Agregar al carrito.
-- El subtotal del producto acompaña la cantidad y el precio recalculado del carrito.
-- Detalle de kit: barra inferior flotante con subtotal y acción de compra.
-- En kits configurables, el subtotal suma automáticamente los adicionales elegidos.
-- Diseño responsive para mobile, tablet y PC.
+Deploy QA: páginas legales públicas
+- Términos y condiciones accesible sin iniciar sesión.
+- Política de privacidad accesible sin iniciar sesión.
+- Botón/formulario de arrepentimiento accesible sin iniciar sesión.
+- Página de confirmación de arrepentimiento accesible sin iniciar sesión.
+- Las páginas legales siguen disponibles aunque el catálogo esté en mantenimiento.
 Sin migraciones.
