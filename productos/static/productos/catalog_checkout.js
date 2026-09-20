@@ -6,6 +6,8 @@
     const form = document.getElementById('dv-checkout-form');
     const submit = document.querySelector('[data-checkout-submit]');
     const loader = document.querySelector('[data-checkout-loader]');
+    const specialObservation = document.querySelector('[data-special-observation]');
+    const observations = document.getElementById('observaciones');
 
     if (!summary || !payloadInput || !form) return;
 
@@ -88,8 +90,15 @@
                     + '% desc. · ahorrás ' + money(savings)
                     + '</span>'
                 : '';
+            const media = item.image
+                ? '<img class="checkout-thumb" src="' + escapeHtml(item.image) + '" alt="">'
+                : '<span class="checkout-thumb checkout-thumb--empty">'
+                    + escapeHtml(String(item.name || '?').slice(0, 1).toUpperCase())
+                    + '</span>';
+
             return '<article class="checkout-line">'
-                + '<div><strong>' + escapeHtml(item.name) + '</strong><span>' + meta + '</span>' + extra + discountHtml + '</div>'
+                + media
+                + '<div class="checkout-line-main"><strong>' + escapeHtml(item.name) + '</strong><span>' + meta + '</span>' + extra + discountHtml + '</div>'
                 + '<div class="checkout-line-money"><b>' + money(Number(item.unitPrice || 0) * Number(item.qty || 1)) + '</b><span>x ' + item.qty + '</span></div>'
                 + '</article>';
         }).join('');
@@ -101,6 +110,25 @@
         totalNode.textContent = money(total);
         submit.disabled = false;
     };
+
+    specialObservation?.addEventListener('click', () => {
+        if (!observations) return;
+        const prompt = (
+            'Producto que no encontré en el catálogo: '
+            + '\nDetalle / referencia: '
+            + '\nCantidad aproximada: '
+        );
+        if (!observations.value.trim()) {
+            observations.value = prompt;
+        } else if (!observations.value.includes('Producto que no encontré en el catálogo:')) {
+            observations.value = observations.value.trim() + '\n\n' + prompt;
+        }
+        observations.focus();
+        observations.setSelectionRange(
+            observations.value.length,
+            observations.value.length,
+        );
+    });
 
     window.setTimeout(render, 220);
     document.addEventListener('dv-cart-change', render);
