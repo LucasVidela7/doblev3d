@@ -36,7 +36,7 @@ def _presupuestos_cliente_queryset():
         .select_related("cliente", "pedido_generado")
         .prefetch_related(
             "detalles__producto",
-            "detalles__kit",
+            "detalles__kit__componentes__producto",
             "detalles__productos_kit__producto",
         )
         .order_by("-id")
