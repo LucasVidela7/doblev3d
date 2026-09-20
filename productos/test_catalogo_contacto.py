@@ -162,3 +162,28 @@ class CatalogoContactoTests(TestCase):
         self.assertContains(gracias, 'id="dv-catalog-header"')
         self.assertContains(checkout, "data-dv-how-buy-open")
         self.assertContains(gracias, "data-dv-how-buy-open")
+
+    def test_whatsapp_puede_consultar_producto_fuera_del_catalogo(self):
+        response = self.client.get(
+            reverse(
+                "catalogo_contacto",
+                kwargs={"canal": "whatsapp"},
+            ),
+            {"motivo": "producto_especial"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(
+            response["Location"].startswith(
+                "https://wa.me/5491164760709"
+            )
+        )
+        self.assertIn(
+            "No%20encontr%C3%A9%20en%20el%20cat%C3%A1logo",
+            response["Location"],
+        )
+        self.assertIn(
+            "posibilidad%20de%20hacerlo",
+            response["Location"],
+        )
+
