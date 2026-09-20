@@ -1,8 +1,6 @@
-Deploy QA: reforma del Centro de Configuración
-- Nueva experiencia por secciones: Tienda, WhatsApp, Notificaciones y Apariencia.
-- Gestión visible de Instagram, WhatsApp público y mantenimiento.
-- Plantillas configurables para WhatsApp de Clientes: general, pedido listo, saldo, presupuesto y reactivación.
-- Plantillas del catálogo/solicitudes web integradas en la misma pantalla.
-- Variables visibles, contador, restaurar valores y vista previa en vivo.
-- Clientes usa las plantillas guardadas al abrir WhatsApp.
-Incluye migración productos.0012_configuracioncatalogo_mensajes_clientes.
+Deploy QA: aviso de plazo de entrega en catálogo
+- Mensaje configurable desde Configuración > Tienda pública.
+- Texto base: 3 a 10 días hábiles desde la confirmación del presupuesto.
+- Visible en portada, Productos/Kits, detalle de kit, Cómo comprar y checkout.
+- Aviso compacto dentro de las tarjetas para no cargar mobile.
+Incluye migración productos.0013_configuracioncatalogo_mensaje_plazo_entrega.
