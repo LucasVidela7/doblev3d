@@ -94,7 +94,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 .queue-actions .cancel-form{grid-column:2;display:block;margin:0}
 .queue-actions .cancel-form .btn{width:110px!important;min-width:110px;padding:0 10px}
 
-.history{overflow:hidden}.history-row{display:grid;grid-template-columns:minmax(0,1fr) 90px 140px auto;gap:8px;align-items:center;padding:10px 12px;border-top:1px solid #edf0f2}.history-row:first-child{border-top:0}.history-title{font-size:10px;font-weight:900}
+.history{overflow:hidden}.history-row{display:grid;grid-template-columns:minmax(0,1fr) 90px 140px auto;gap:8px;align-items:center;padding:10px 12px;border-top:1px solid #edf0f2}.history-row:first-child{border-top:0}.history-title{font-size:10px;font-weight:900}.history-product{min-width:0}.history-product .product-visual{margin-top:0}
 .history details{border:0}.history summary{list-style:none;cursor:pointer;padding:13px 14px;font-size:9px;font-weight:900}.history summary::-webkit-details-marker{display:none}
 
 .manual{margin-top:10px}.manual summary{cursor:pointer;list-style:none;padding:13px 14px;font-size:9px;font-weight:900}.manual summary::-webkit-details-marker{display:none}.manual-body{padding:0 14px 14px}.manual-grid{display:grid;grid-template-columns:minmax(190px,1.3fr) 80px 165px 130px minmax(170px,1fr) 70px 70px auto;gap:6px;align-items:end}
@@ -513,9 +513,18 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                 <summary>VER ÚLTIMAS {{ historial_reciente|length }} FINALIZADAS</summary>
                 {% for produccion in historial_reciente %}
                     <div class="history-row">
-                        <div>
-                            <div class="history-title">{{ produccion.producto.nombre }} × {{ produccion.cantidad }}</div>
-                            <div class="queue-meta">{{ produccion.codigo }} · {{ produccion.fecha|date:"d/m H:i" }}</div>
+                        <div class="history-product">
+                            <div class="product-visual compact">
+                                {% if produccion.producto.imagen_produccion_url %}
+                                    <img class="product-thumb" src="{{ produccion.producto.imagen_produccion_url }}" alt="" loading="lazy">
+                                {% else %}
+                                    <span class="product-thumb product-thumb-empty">3D</span>
+                                {% endif %}
+                                <div>
+                                    <div class="history-title">{{ produccion.producto.nombre }} × {{ produccion.cantidad }}</div>
+                                    <div class="queue-meta">{{ produccion.codigo }} · {{ produccion.fecha|date:"d/m H:i" }}</div>
+                                </div>
+                            </div>
                         </div>
                         <div class="history-hide"><span class="pill free">✓ LISTO</span></div>
                         <div class="history-hide queue-meta">{% if produccion.impresora %}{{ produccion.impresora.nombre }}{% else %}Sin impresora{% endif %}</div>
