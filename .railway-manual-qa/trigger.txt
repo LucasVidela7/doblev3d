@@ -1,2 +1,2 @@
-Deploy QA: centro financiero escalable
-Incluye resumen mensual, navegación por secciones, métricas clickeables, alertas, actividad reciente, historiales paginados de a 20, selector operativo de cobros limitado y pruebas del módulo.
+Deploy QA: miniaturas en producción y dashboard
+Agrega foto principal pequeña del producto en Centro de Producción (Ahora, Qué imprimir y Cola) y en Dashboard (Qué imprimir, impresoras activas y próximos trabajos), con placeholder 3D y carga de imágenes en lote por ambiente.
