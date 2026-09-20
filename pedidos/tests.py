@@ -8,8 +8,9 @@ from django.urls import reverse
 from clientes.models import Cliente
 from costos.models import ConfiguracionCostos
 from productos.models import Producto, ProductoComponente, TipoProducto
+from productos.image_models import ProductoImagen
 
-from .models import Pedido
+from .models import DetallePedido, Pedido
 
 
 class PrecioProductoApiTests(TestCase):
@@ -172,7 +173,7 @@ class AccionesPedidoEstadoTests(TestCase):
 
         self.assertEqual(respuesta.status_code, 200)
         contenido = respuesta.content.decode()
-        self.assertIn("← Preparación", contenido)
+        self.assertIn("PREPARACIÓN", contenido)
         self.assertEqual(contenido.count("Editar pedido"), 1)
         self.assertNotIn("← Dashboard", contenido)
 
@@ -288,3 +289,45 @@ class AccionesPedidoEstadoTests(TestCase):
         )
         self.pedido.refresh_from_db()
         self.assertEqual(self.pedido.estado, "ENTREGADO")
+
+    def test_detalle_pedido_muestra_foto_del_producto(self):
+        tipo = TipoProducto.objects.create(
+            nombre="Tipo detalle pedido",
+        )
+        producto = Producto.objects.create(
+            nombre="Producto detalle pedido",
+            categoria="PRODUCTO",
+            tipo=tipo,
+            requiere_impresion=True,
+            activo=True,
+        )
+        DetallePedido.objects.create(
+            pedido=self.pedido,
+            tipo_item="PRODUCTO",
+            producto=producto,
+            cantidad=1,
+            precio_unitario=Decimal("2500"),
+            estado="PENDIENTE",
+        )
+        ProductoImagen.objects.create(
+            producto=producto,
+            file_id="pedido-thumb",
+            url="https://example.com/pedido.jpg",
+            thumbnail_url="https://example.com/pedido-thumb.jpg",
+            orden=1,
+        )
+
+        respuesta = self.client.get(
+            reverse("pedidos:detalle", args=[self.pedido.id])
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(
+            respuesta,
+            "https://example.com/pedido-thumb.jpg",
+        )
+        self.assertContains(
+            respuesta,
+            'class="pedido-thumb"',
+        )
+
