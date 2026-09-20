@@ -6,6 +6,7 @@ from productos.catalogo import (
     catalogo,
     catalogo_kits,
     catalogo_productos,
+    catalogo_producto_detalle,
     catalogo_kit_detalle,
 )
 from productos.catalogo_contacto import catalogo_contacto
@@ -30,6 +31,11 @@ urlpatterns = [
         "kits/",
         catalogo_kits,
         name="catalogo_kits",
+    ),
+    path(
+        "productos/<int:producto_id>/",
+        catalogo_producto_detalle,
+        name="catalogo_producto_detalle",
     ),
 
     # Alias historico para no romper URLs ya compartidas.
