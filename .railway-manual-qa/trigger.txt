@@ -1,9 +1,8 @@
-Deploy QA: segunda reforma de Clientes + WhatsApp asistido
-- Listado escalable con métricas agregadas sin precargar historiales completos.
-- Ficha con abiertos separados de recientes y historial paginado.
-- Seguimiento comercial con acciones sugeridas.
-- Preferencias de compra.
-- Detección y fusión segura de duplicados históricos.
-- WhatsApp asistido con mensajes por pedido listo, saldo, presupuesto, reactivación y contacto general.
-- Registro explícito de "WhatsApp abierto", sin marcar el mensaje como enviado.
-Incluye migración clientes.0002_contactocliente.
+Deploy QA: reforma del Centro de Configuración
+- Nueva experiencia por secciones: Tienda, WhatsApp, Notificaciones y Apariencia.
+- Gestión visible de Instagram, WhatsApp público y mantenimiento.
+- Plantillas configurables para WhatsApp de Clientes: general, pedido listo, saldo, presupuesto y reactivación.
+- Plantillas del catálogo/solicitudes web integradas en la misma pantalla.
+- Variables visibles, contador, restaurar valores y vista previa en vivo.
+- Clientes usa las plantillas guardadas al abrir WhatsApp.
+Incluye migración productos.0012_configuracioncatalogo_mensajes_clientes.
