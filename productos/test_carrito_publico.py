@@ -11,7 +11,7 @@ from kits.economia import precio_automatico_kit_libre
 from kits.models import Kit, KitComponente
 from pedidos.models import Presupuesto, SolicitudWeb
 from clientes.models import Cliente
-from productos.models import Producto, TipoProducto
+from productos.models import ConfiguracionCatalogo, Producto, TipoProducto
 
 
 @override_settings(
@@ -315,3 +315,23 @@ class CarritoPublicoTests(TestCase):
             "https://wa.me/5491164760709",
         )
         self.assertContains(gracias, "WEB0001")
+
+    def test_checkout_muestra_plazo_desde_confirmacion_del_presupuesto(self):
+        config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
+        config.mensaje_plazo_entrega = (
+            "Entre 3 y 10 días hábiles después de confirmar el presupuesto."
+        )
+        config.save(update_fields=["mensaje_plazo_entrega"])
+
+        response = self.client.get(reverse("catalogo_carrito"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Entre 3 y 10 días hábiles después de confirmar el presupuesto.",
+        )
+        self.assertContains(
+            response,
+            "El plazo comienza una vez confirmado el presupuesto.",
+        )
+
