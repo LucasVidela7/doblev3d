@@ -509,9 +509,9 @@ def items_desde_pedido(pedido):
             ):
                 try:
                     precio_unitario_lista = (
-                        precio_automatico_kit_libre(
+                        KitEngine.precio_unitario(
                             detalle.kit,
-                            seleccion,
+                            productos=seleccion,
                         )
                     )
                 except ValueError:
