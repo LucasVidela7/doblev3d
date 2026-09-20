@@ -33,6 +33,9 @@
         h1{max-width:800px;margin:0;color:var(--blue-dark);font-size:clamp(2.35rem,7vw,5.5rem);line-height:.94;letter-spacing:-.055em}
         .hero-copy{max-width:670px;margin:20px 0 0;color:var(--muted);font-size:clamp(.98rem,2vw,1.15rem);line-height:1.6}
         .hero-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:25px}
+        .delivery-banner{display:flex;align-items:flex-start;gap:10px;margin:0 auto 4px;padding:14px 16px;border:1px solid #cdddf4;border-radius:16px;background:#eef4ff;color:#345f91;font-size:.86rem;line-height:1.5}
+        .delivery-banner strong{display:block;color:var(--blue-dark);font-size:.79rem;text-transform:uppercase;letter-spacing:.04em}
+        .delivery-banner span{display:block;margin-top:2px}
         .btn{min-height:48px;display:inline-flex;align-items:center;justify-content:center;padding:0 18px;border-radius:14px;text-decoration:none;font-weight:950}
         .btn-primary{background:var(--blue);color:#fff}.btn-secondary{border:1px solid var(--line);background:#fff;color:var(--blue-dark)}
         .shop-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:18px 0 34px}
@@ -95,6 +98,13 @@
                 </div>
             </div>
         </section>
+
+        {% if mensaje_plazo_entrega %}
+        <div class="shell delivery-banner" role="note">
+            <div aria-hidden="true">⏱</div>
+            <div><strong>Antes de comprar</strong><span>{{ mensaje_plazo_entrega }}</span></div>
+        </div>
+        {% endif %}
 
         <section class="shell shop-choices" aria-label="Comprar por sección">
             <a class="choice products" href="{% url 'catalogo_productos' %}">
