@@ -1,6 +1,6 @@
-Deploy QA: separar arrepentimiento de barra de compra
-- El botón de arrepentimiento ya no se superpone con la barra flotante del carrito.
-- En detalle de producto y kit se ubica automáticamente por encima del subtotal y CTA.
-- En el resto del catálogo conserva su posición habitual.
-- Ajuste responsive con safe area en mobile.
+Deploy QA: arrepentimiento en footer y oculto en detalles
+- El footer muestra un acceso destacado “BOTÓN DE ARREPENTIMIENTO”.
+- En detalle de productos no se muestra el botón flotante.
+- En detalle de kits no se muestra el botón flotante.
+- En el resto del catálogo el acceso flotante se mantiene.
 Sin migraciones.

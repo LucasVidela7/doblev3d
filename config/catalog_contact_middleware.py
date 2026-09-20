@@ -128,6 +128,13 @@ header.shell.top{display:none!important}
     color:#56657a;text-decoration:none;font-size:.68rem;font-weight:800
 }
 .dv-catalog-legal-footer__links a:hover{text-decoration:underline}
+.dv-catalog-legal-footer__withdrawal{
+    display:inline-flex;align-items:center;justify-content:center;min-height:34px;
+    padding:0 11px;border:1px solid #b83232;border-radius:999px;
+    background:#fff;color:#9b2d2d!important;text-decoration:none!important;
+    font-size:.62rem!important;font-weight:950!important;letter-spacing:.03em
+}
+.dv-catalog-legal-footer__withdrawal:hover{background:#fff5f5}
 .dv-catalog-withdrawal{
     position:fixed;right:14px;bottom:14px;z-index:104;
     min-height:38px;display:inline-flex;align-items:center;justify-content:center;
@@ -142,7 +149,7 @@ header.shell.top{display:none!important}
    El acceso legal se eleva para no tapar subtotal, cantidad ni CTA. */
 body:has(.dv-product-builder) .dv-catalog-withdrawal,
 body:has(.dv-kit-builder) .dv-catalog-withdrawal{
-    bottom:96px
+    display:none!important
 }
 
 @media(max-width:640px){
@@ -155,7 +162,7 @@ body:has(.dv-kit-builder) .dv-catalog-withdrawal{
     }
     body:has(.dv-product-builder) .dv-catalog-withdrawal,
     body:has(.dv-kit-builder) .dv-catalog-withdrawal{
-        bottom:calc(max(8px,env(safe-area-inset-bottom)) + 84px)
+        display:none!important
     }
 }
 </style>
@@ -280,7 +287,7 @@ def _legal_footer_html():
         '<nav class="dv-catalog-legal-footer__links" aria-label="Información legal">'
         f'<a href="{terminos_url}">Términos de compra</a>'
         f'<a href="{privacidad_url}">Privacidad</a>'
-        f'<a href="{arrepentimiento_url}">Cambios y arrepentimiento</a>'
+        f'<a class="dv-catalog-legal-footer__withdrawal" href="{arrepentimiento_url}">BOTÓN DE ARREPENTIMIENTO</a>'
         '</nav></div></footer>'
         f'<a class="dv-catalog-withdrawal" href="{arrepentimiento_url}">'
         'BOTÓN DE ARREPENTIMIENTO</a>'
