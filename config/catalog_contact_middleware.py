@@ -195,7 +195,7 @@ def _header_html(view_name=""):
     kits_url = html.escape(reverse("catalogo_kits"), quote=True)
 
     inicio_class = " is-active" if view_name in {"catalogo", "catalogo_legacy"} else ""
-    productos_class = " is-active" if view_name == "catalogo_productos" else ""
+    productos_class = " is-active" if view_name in {"catalogo_productos", "catalogo_producto_detalle"} else ""
     kits_class = " is-active" if view_name in {"catalogo_kits", "catalogo_kit_detalle"} else ""
 
     return (
@@ -243,6 +243,7 @@ class CatalogContactMiddleware:
                 "catalogo",
                 "catalogo_legacy",
                 "catalogo_productos",
+                "catalogo_producto_detalle",
                 "catalogo_kits",
                 "catalogo_kit_detalle",
                 "catalogo_carrito",
