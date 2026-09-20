@@ -311,8 +311,25 @@
         .catalog-media-link{display:block;color:inherit;text-decoration:none}
         .catalog-title-link{color:inherit;text-decoration:none}
         .catalog-title-link:hover{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
-        .product-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px}
-        .product-actions .catalog-detail-link{min-height:38px}
+        .product-actions{
+            display:grid;
+            grid-template-columns:minmax(72px,.72fr) minmax(118px,1.28fr);
+            align-items:stretch;
+            gap:7px;
+            width:min(100%,270px)
+        }
+        .product-actions .catalog-detail-link{
+            width:100%;
+            min-width:0;
+            min-height:40px;
+            border-color:#b9cbea;
+            background:#eef4ff;
+            color:#0d376f;
+            font-weight:900
+        }
+        .product-actions .dv-cart-card-control{width:100%;min-width:0}
+        .product-actions .dv-cart-add-btn,
+        .product-actions .dv-cart-inline-stepper{width:100%;min-width:0}
         .media {
             position: relative;
             aspect-ratio: 4 / 3;
@@ -619,18 +636,32 @@
                 justify-content: stretch;
             }
 
-            .dv-cart-add-btn,
-            .dv-cart-inline-stepper,
-            .catalog-detail-link {
-                width: 100%;
+            .product-actions{
+                width:100%;
+                grid-template-columns:minmax(58px,.7fr) minmax(0,1.3fr);
+                gap:6px
             }
 
-            .dv-cart-add-btn,
-            .catalog-detail-link {
-                min-height: 34px;
-                padding: 0 7px;
-                border-radius: 9px;
-                font-size: .66rem;
+            .product-actions .catalog-detail-link,
+            .product-actions .dv-cart-add-btn,
+            .product-actions .dv-cart-inline-stepper {
+                width:100%;
+                min-width:0;
+                min-height:40px;
+                border-radius:10px;
+                font-size:.64rem;
+            }
+
+            .product-actions .catalog-detail-link{
+                padding:0 6px;
+                background:#eef4ff;
+                color:#0d376f !important;
+                border-color:#b9cbea;
+                white-space:nowrap
+            }
+
+            .product-actions .dv-cart-add-btn{
+                padding:0 7px
             }
 
             .dv-cart-inline-stepper {
@@ -763,7 +794,7 @@
                                     </div>
                                     {% if producto.catalogo_precio %}
                                         <div class="product-actions">
-                                            <a class="catalog-detail-link" href="{% url 'catalogo_producto_detalle' producto.id %}">VER</a>
+                                            <a class="catalog-detail-link" href="{% url 'catalogo_producto_detalle' producto.id %}" aria-label="Ver detalle de {{ producto.nombre }}">VER</a>
                                         <div
                                             class="dv-cart-card-control"
                                             data-dv-product-control
