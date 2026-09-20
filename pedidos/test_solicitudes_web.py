@@ -85,8 +85,8 @@ class SolicitudesWebGestionTests(TestCase):
             )
         )
         self.assertEqual(detail.status_code, 200)
-        self.assertContains(detail, "Convertir en presupuesto")
-        self.assertContains(detail, "Enviar WhatsApp con el detalle")
+        self.assertContains(detail, "CONVERTIR EN PRESUPUESTO")
+        self.assertContains(detail, "WHATSAPP")
         self.assertContains(detail, self.producto.nombre)
 
     def test_convertir_crea_cliente_y_presupuesto_sin_crear_pedido(self):
