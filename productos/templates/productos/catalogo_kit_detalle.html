@@ -163,6 +163,20 @@
             letter-spacing: .04em;
         }
 
+        .delivery-note{
+            display:flex;
+            align-items:flex-start;
+            gap:9px;
+            margin-top:12px;
+            padding:12px 14px;
+            border:1px solid #cdddf4;
+            border-radius:14px;
+            background:#eef4ff;
+            color:#345f91;
+            font-size:.8rem;
+            line-height:1.45;
+        }
+        .delivery-note strong{color:#0d376f}
         .summary-card strong {
             display: block;
             margin-top: 6px;
@@ -497,6 +511,13 @@
                 <strong>{% if kit.modalidad == "FIJO" %}Fijo{% else %}Armalo vos{% endif %}</strong>
             </div>
         </section>
+
+        {% if mensaje_plazo_entrega %}
+        <div class="shell delivery-note" role="note">
+            <span aria-hidden="true">⏱</span>
+            <div><strong>Plazo de entrega</strong><br>{{ mensaje_plazo_entrega }}</div>
+        </div>
+        {% endif %}
 
         <section
             class="dv-kit-builder"
