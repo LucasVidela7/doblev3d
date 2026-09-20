@@ -30,21 +30,27 @@ def _catalogo_publico(request, vista_catalogo):
         .order_by("tipo__nombre", "nombre")
     )
 
-    imagenes_principales = {
-        imagen.producto_id: imagen
-        for imagen in (
-            ProductoImagen.objects
-            .filter(
-                producto_id__in=[producto.id for producto in productos],
-                ambiente=ambiente,
-                orden=1,
-            )
-            .order_by("producto_id", "id")
+    imagenes_por_producto = defaultdict(list)
+    for imagen in (
+        ProductoImagen.objects
+        .filter(
+            producto_id__in=[producto.id for producto in productos],
+            ambiente=ambiente,
         )
-    }
+        .order_by("producto_id", "orden", "id")
+    ):
+        if len(imagenes_por_producto[imagen.producto_id]) < 2:
+            imagenes_por_producto[imagen.producto_id].append(imagen)
 
     for producto in productos:
-        producto.catalogo_imagen = imagenes_principales.get(producto.id)
+        producto.catalogo_imagenes_preview = (
+            imagenes_por_producto.get(producto.id, [])
+        )
+        producto.catalogo_imagen = (
+            producto.catalogo_imagenes_preview[0]
+            if producto.catalogo_imagenes_preview
+            else None
+        )
         producto.catalogo_precio = producto.subtotal
 
     # En el catálogo priorizamos los productos que ya tienen foto principal.
