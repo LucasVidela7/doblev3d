@@ -19,6 +19,7 @@
 .error{margin-bottom:12px;padding:11px 12px;border-radius:13px;background:#fdeaea;color:#913b3b;font-size:.78rem;line-height:1.4}
 .field{display:grid;gap:6px;margin-bottom:12px}.field label{color:#45546d;font-size:.72rem;font-weight:850}.field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:13px;background:#fff;color:var(--text);font:inherit;font-size:.86rem;outline:none}.field input{height:46px;padding:0 12px}.field textarea{min-height:88px;padding:11px 12px;resize:vertical}.field input:focus,.field textarea:focus{border-color:rgba(19,74,154,.65);box-shadow:0 0 0 4px rgba(19,74,154,.09)}.field small{color:#8a93a3;font-size:.65rem}
 .honeypot{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;overflow:hidden!important}
+.leadtime-note{margin:0 0 12px;padding:11px 12px;border:1px solid #cdddf4;border-radius:12px;background:var(--blue-soft);color:#345f91;font-size:.76rem;line-height:1.45}.leadtime-note strong{display:block;margin-bottom:3px;color:var(--blue-dark);font-size:.72rem;text-transform:uppercase;letter-spacing:.03em}
 .request-note{margin:4px 0 13px;padding:11px 12px;border-radius:13px;background:var(--blue-soft);color:#345f91;font-size:.72rem;line-height:1.45}.request-note strong{color:var(--blue-dark)}
 .submit{width:100%;min-height:49px;display:flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:14px;background:var(--blue);color:#fff;cursor:pointer;font:inherit;font-size:.8rem;font-weight:950;letter-spacing:.02em}.submit:disabled{opacity:.5;cursor:not-allowed}.checkout-submit-spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:checkoutSpin .65s linear infinite}@keyframes checkoutSpin{to{transform:rotate(360deg)}}
 .security{display:flex;align-items:center;justify-content:center;gap:6px;margin:10px 0 0;color:#8a93a3;font-size:.65rem}.security svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2}
@@ -91,9 +92,16 @@
                         <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}"></div>
                     {% endif %}
 
+                    {% if mensaje_plazo_entrega %}
+                    <div class="leadtime-note">
+                        <strong>⏱ Plazo estimado de entrega</strong>
+                        {{ mensaje_plazo_entrega }}
+                    </div>
+                    {% endif %}
+
                     <div class="request-note">
                         <strong>Esto todavía no confirma el pedido.</strong>
-                        Te contactamos antes de comenzar la preparación.
+                        Te contactamos antes de comenzar la preparación. El plazo comienza una vez confirmado el presupuesto.
                     </div>
 
                     <button class="submit" type="submit" data-checkout-submit>SOLICITAR PRESUPUESTO</button>
