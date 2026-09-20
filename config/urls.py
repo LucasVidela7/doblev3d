@@ -10,6 +10,12 @@ from productos.catalogo import (
     catalogo_kit_detalle,
 )
 from productos.catalogo_contacto import catalogo_contacto
+from productos.legal import (
+    arrepentimiento,
+    arrepentimiento_gracias,
+    privacidad,
+    terminos_compra,
+)
 from productos.carrito import carrito_checkout, carrito_gracias, carrito_precios
 
 
@@ -50,6 +56,28 @@ urlpatterns = [
         "kits/<int:kit_id>/",
         catalogo_kit_detalle,
         name="catalogo_kit_detalle",
+    ),
+
+    # Información legal y derechos del consumidor.
+    path(
+        "terminos/",
+        terminos_compra,
+        name="catalogo_terminos",
+    ),
+    path(
+        "privacidad/",
+        privacidad,
+        name="catalogo_privacidad",
+    ),
+    path(
+        "arrepentimiento/",
+        arrepentimiento,
+        name="catalogo_arrepentimiento",
+    ),
+    path(
+        "arrepentimiento/gracias/",
+        arrepentimiento_gracias,
+        name="catalogo_arrepentimiento_gracias",
     ),
 
     # Carrito y solicitud pública de presupuesto.
