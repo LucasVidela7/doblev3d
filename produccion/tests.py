@@ -7,6 +7,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from productos.models import Producto, TipoProducto
+from productos.image_models import ProductoImagen
 
 from .models import Impresora, Produccion
 
@@ -355,3 +356,34 @@ class PlanificacionProduccionTests(TestCase):
             respuesta,
             "Termina aprox. 13:11",
         )
+
+    def test_centro_produccion_muestra_miniatura_del_producto(self):
+        ProductoImagen.objects.create(
+            producto=self.producto,
+            file_id="prod-thumb-centro",
+            url="https://example.com/producto.jpg",
+            thumbnail_url="https://example.com/producto-thumb.jpg",
+            orden=1,
+        )
+        Produccion.objects.create(
+            producto=self.producto,
+            cantidad=2,
+            impresora=self.impresora,
+            estado="IMPRIMIENDO",
+            tiempo_impresion_minutos=150,
+        )
+
+        respuesta = self.client.get(
+            reverse("produccion:lista")
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(
+            respuesta,
+            "https://example.com/producto-thumb.jpg",
+        )
+        self.assertContains(
+            respuesta,
+            'class="product-thumb"',
+        )
+
