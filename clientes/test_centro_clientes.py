@@ -57,7 +57,7 @@ class CentroClientesTests(TestCase):
         )
 
         self.assertEqual(respuesta.status_code, 200)
-        self.assertContains(respuesta, "NECESITAN ATENCIÓN")
+        self.assertContains(respuesta, "SEGUIMIENTO")
         self.assertContains(respuesta, "CON PEDIDOS ACTIVOS")
         self.assertContains(respuesta, "CON PRESUPUESTOS")
         self.assertContains(respuesta, "María González")
