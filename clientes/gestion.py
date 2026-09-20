@@ -102,6 +102,10 @@ def clientes_con_resumen():
                 filter=Q(pedidos__estado="CANCELADO"),
                 distinct=True,
             ),
+            cantidad_presupuestos_db=Count(
+                "presupuestos",
+                distinct=True,
+            ),
             pedidos_activos_count_db=Count(
                 "pedidos",
                 filter=Q(
@@ -233,6 +237,9 @@ def resumen_desde_anotaciones(cliente):
         ),
         "cantidad_cancelados": int(
             cliente.cantidad_cancelados_db or 0
+        ),
+        "cantidad_presupuestos": int(
+            cliente.cantidad_presupuestos_db or 0
         ),
         "pedidos_activos_count": pedidos_activos,
         "pedidos_listos_count": pedidos_listos,
