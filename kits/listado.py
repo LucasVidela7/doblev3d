@@ -26,42 +26,54 @@ def lista_kits(request):
     if modalidad in {"FIJO", "LIBRE_CATEGORIA"}:
         consulta = consulta.filter(modalidad=modalidad)
 
-    kits = preparar_kits_gestion(list(consulta))
-
-    if estado == "ATENCION":
-        kits = [
-            kit
-            for kit in kits
-            if kit.salud_gestion["codigo"] != "SALUDABLE"
-        ]
-    elif estado == "INACTIVOS":
-        kits = [kit for kit in kits if not kit.activo]
-    elif estado == "ACTIVOS":
-        kits = [kit for kit in kits if kit.activo]
+    kits_base = preparar_kits_gestion(
+        list(consulta)
+    )
 
     metricas = {
-        "total": len(kits),
+        "total": len(kits_base),
         "saludables": sum(
             1
-            for kit in kits
+            for kit in kits_base
             if kit.salud_gestion["codigo"] == "SALUDABLE"
         ),
         "atencion": sum(
             1
-            for kit in kits
+            for kit in kits_base
             if kit.salud_gestion["codigo"] != "SALUDABLE"
         ),
         "fijos": sum(
             1
-            for kit in kits
+            for kit in kits_base
             if kit.modalidad == "FIJO"
         ),
         "libres": sum(
             1
-            for kit in kits
+            for kit in kits_base
             if kit.modalidad == "LIBRE_CATEGORIA"
         ),
     }
+
+    if estado == "ATENCION":
+        kits = [
+            kit
+            for kit in kits_base
+            if kit.salud_gestion["codigo"] != "SALUDABLE"
+        ]
+    elif estado == "INACTIVOS":
+        kits = [
+            kit
+            for kit in kits_base
+            if not kit.activo
+        ]
+    elif estado == "ACTIVOS":
+        kits = [
+            kit
+            for kit in kits_base
+            if kit.activo
+        ]
+    else:
+        kits = kits_base
 
     return render(
         request,
