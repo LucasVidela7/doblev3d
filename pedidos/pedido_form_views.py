@@ -15,6 +15,7 @@ from kits.economia import (
 )
 from kits.models import Kit
 from productos.models import Producto
+from productos.miniaturas import asignar_miniaturas_productos
 
 from .models import (
     DetalleKitProducto,
@@ -274,6 +275,8 @@ def nuevo_pedido(request):
         .select_related("tipo_producto")
         .order_by("nombre")
     )
+
+    asignar_miniaturas_productos(list(productos))
 
     if request.method != "POST":
         return render(
@@ -564,6 +567,8 @@ def editar_pedido(request, pedido_id):
         .select_related("tipo_producto")
         .order_by("nombre")
     )
+
+    asignar_miniaturas_productos(list(productos))
 
     detalles_actuales = list(
         pedido.detalles.select_related("producto", "kit")
