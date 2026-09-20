@@ -14,6 +14,10 @@ from kits.models import Kit
 from productos.models import Producto
 
 from .kits_volumen import calcular_precio_volumen_kits
+from .miniaturas import (
+    asignar_miniatura_resumen,
+    asignar_miniaturas_items,
+)
 from .models import (
     DetalleKitProducto,
     DetallePedido,
@@ -543,9 +547,15 @@ def lista_presupuestos(request):
     base = list(
         Presupuesto.objects
         .select_related("cliente", "pedido_generado")
-        .prefetch_related("detalles")
+        .prefetch_related(
+            "detalles__producto",
+            "detalles__kit__componentes__producto",
+            "detalles__productos_kit__producto",
+        )
         .order_by("-id")
     )
+
+    asignar_miniatura_resumen(base, "detalles")
 
     estados_validos = {"PENDIENTE", "APROBADO", "RECHAZADO"}
     presupuestos = (
@@ -590,12 +600,15 @@ def detalle_presupuesto(request, presupuesto_id):
         id=presupuesto_id,
     )
 
+    detalles = list(presupuesto.detalles.all())
+    asignar_miniaturas_items(detalles)
+
     return render(
         request,
         "pedidos/presupuesto_detalle.html",
         {
             "presupuesto": presupuesto,
-            "detalles": list(presupuesto.detalles.all()),
+            "detalles": detalles,
         },
     )
 
