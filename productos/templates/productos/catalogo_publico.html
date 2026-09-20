@@ -391,6 +391,8 @@
         }
 
         .delivery-banner strong { color: var(--brand-blue-strong); }
+        .catalog-confidence{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:-10px auto 18px}
+        .catalog-confidence span{min-height:42px;display:flex;align-items:center;justify-content:center;padding:7px 9px;border:1px solid var(--line);border-radius:11px;background:#fff;color:#56657a;font-size:.7rem;font-weight:800;text-align:center}
 
         .delivery-card-note {
             display: -webkit-box;
@@ -561,6 +563,7 @@
             .hero { padding-top: 18px; }
             .hero-card { border-radius: 24px; }
 
+            .catalog-confidence{grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:12px}
             .grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
                 gap: 8px;
@@ -706,6 +709,13 @@
             <div><strong>Plazo estimado.</strong> {{ mensaje_plazo_entrega }}</div>
         </div>
         {% endif %}
+
+        <div class="shell catalog-confidence" aria-label="Cómo funciona la compra">
+            <span>✓ Precios visibles</span>
+            <span>✓ Carrito editable</span>
+            <span>✓ Sin pago online</span>
+            <span>✓ Confirmación por WhatsApp</span>
+        </div>
 
         <div class="toolbar">
             <div class="shell toolbar-inner">
