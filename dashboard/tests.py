@@ -431,6 +431,10 @@ class DashboardProduccionTests(TestCase):
                 "whatsapp_mensaje_cliente_reactivacion": (
                     "{nombre}: pasaron {dias_sin_actividad} días"
                 ),
+                "razon_social": "Responsable Doble V 3D",
+                "cuit": "20-12345678-9",
+                "domicilio_legal": "Domicilio de prueba",
+                "email_legal": "legal@example.com",
             },
         )
 
@@ -459,5 +463,17 @@ class DashboardProduccionTests(TestCase):
         self.assertEqual(
             config.whatsapp_mensaje_cliente_saldo,
             "{nombre}: saldo {saldo}",
+        )
+        self.assertEqual(
+            config.razon_social,
+            "Responsable Doble V 3D",
+        )
+        self.assertEqual(
+            config.cuit,
+            "20-12345678-9",
+        )
+        self.assertEqual(
+            config.email_legal,
+            "legal@example.com",
         )
 
