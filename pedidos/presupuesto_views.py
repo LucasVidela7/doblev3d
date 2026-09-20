@@ -29,6 +29,7 @@ from .models import (
 from .pedido_form_views import (
     CENTAVOS,
     _decimal_positivo,
+    _guardar_snapshot_kit,
     _precio_kit_desde_post,
 )
 from .precios_api import _costos_producto, _precio_lista
@@ -824,6 +825,7 @@ def aprobar_presupuesto(request, presupuesto_id):
                 # Un presupuesto aprobado congela el valor aceptado.
                 precio_kit_manual=True,
                 costo_unitario=None,
+                kit_snapshot=detalle.kit_snapshot or {},
                 estado="PENDIENTE",
             )
 
@@ -835,6 +837,23 @@ def aprobar_presupuesto(request, presupuesto_id):
                 )
 
             _guardar_costo_kit(detalle_pedido)
+            detalle_pedido.refresh_from_db(
+                fields=["costo_unitario", "kit_snapshot"]
+            )
+
+            if detalle_pedido.kit_snapshot:
+                snapshot = dict(detalle_pedido.kit_snapshot)
+                snapshot["costo_unitario"] = (
+                    str(detalle_pedido.costo_unitario)
+                    if detalle_pedido.costo_unitario is not None
+                    else None
+                )
+                detalle_pedido.kit_snapshot = snapshot
+                detalle_pedido.save(
+                    update_fields=["kit_snapshot"]
+                )
+            else:
+                _guardar_snapshot_kit(detalle_pedido)
             continue
 
         DetallePedido.objects.create(
