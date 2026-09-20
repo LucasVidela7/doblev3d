@@ -1,8 +1,7 @@
-Deploy QA: corrección visual de tarjetas y portada
-- Botones VER / AGREGAR corregidos y legibles en mobile.
-- Acciones balanceadas dentro de cada tarjeta de producto.
-- Inicio mantiene 2x2 para Productos y Kits en mobile.
-- Productos destacados muestran hasta dos fotos cuando existen.
-- Kits destacados usan collage cuando hay varias imágenes.
-- Botón de arrepentimiento mobile más compacto para no tapar productos.
+Deploy QA: compra flotante y subtotal en detalles
+- Detalle de producto: barra inferior flotante con subtotal y Agregar al carrito.
+- El subtotal del producto acompaña la cantidad y el precio recalculado del carrito.
+- Detalle de kit: barra inferior flotante con subtotal y acción de compra.
+- En kits configurables, el subtotal suma automáticamente los adicionales elegidos.
+- Diseño responsive para mobile, tablet y PC.
 Sin migraciones.
