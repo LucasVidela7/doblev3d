@@ -234,7 +234,15 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 {% for item in arrepentimientos_recientes %}
 <div class="cfg-legal-item">
 <div><strong>{{ item.codigo }} · {{ item.nombre|default:item.contacto }}</strong><span>{{ item.creada_en|date:"d/m/Y H:i" }}{% if item.referencia %} · Ref. {{ item.referencia }}{% endif %}<br>{{ item.contacto }}</span></div>
+<div style="display:grid;gap:6px;justify-items:end">
 <span class="cfg-legal-badge {% if item.estado == 'RESUELTA' %}ok{% endif %}">{{ item.get_estado_display|upper }}</span>
+{% if item.estado == "NUEVA" %}
+<form method="post" action="{% url 'dashboard:arrepentimiento_resolver' item.id %}">
+{% csrf_token %}
+<button class="cfg-btn" type="submit" style="min-height:32px;padding:0 8px">MARCAR RESUELTA</button>
+</form>
+{% endif %}
+</div>
 </div>
 {% empty %}
 <div class="cfg-note">No hay solicitudes registradas.</div>
