@@ -1016,7 +1016,7 @@ def repetir_pedido_como_presupuesto(request, pedido_id):
                 ]
                 if productos_libres:
                     precio_lista = Decimal(str(
-                        precio_automatico_kit_libre(
+                        KitEngine.precio_unitario(
                             kit,
                             productos_libres,
                         )
