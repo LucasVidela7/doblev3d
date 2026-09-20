@@ -2,7 +2,7 @@ import json
 
 from productos.models import Producto
 
-from .economia import recomendacion_kit
+from .engine import KitEngine
 
 
 DASHBOARD_KITS_STYLE = r"""
@@ -143,7 +143,7 @@ def _datos_economicos_kits():
     }
 
     for kit in kits:
-        recomendacion = recomendacion_kit(
+        recomendacion = KitEngine.recomendacion(
             kit,
             productos_categoria=(
                 productos_por_tipo.get(
