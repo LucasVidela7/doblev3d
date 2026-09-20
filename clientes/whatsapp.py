@@ -2,8 +2,10 @@ from decimal import Decimal
 from urllib.parse import quote, urlencode
 
 from django.urls import reverse
+from django.utils import timezone
 
 from pedidos.models import Pedido, Presupuesto
+from productos.models import ConfiguracionCatalogo
 
 from .telefonos import normalizar_telefono
 
@@ -15,6 +17,53 @@ MOTIVOS_VALIDOS = {
     "PRESUPUESTO",
     "REACTIVACION",
 }
+
+
+class _VariablesWhatsApp(dict):
+    def __missing__(self, clave):
+        return "{" + clave + "}"
+
+
+def _dinero(valor):
+    numero = Decimal(str(valor or 0))
+    return f"{numero:,.0f}".replace(",", ".")
+
+
+def _fecha(valor):
+    if not valor:
+        return ""
+    try:
+        return valor.strftime("%d/%m/%Y")
+    except AttributeError:
+        return str(valor)
+
+
+def _plantilla_config(config, nombre_campo):
+    valor = (
+        getattr(config, nombre_campo, "")
+        or ""
+    ).strip()
+    if valor:
+        return valor
+
+    campo = ConfiguracionCatalogo._meta.get_field(
+        nombre_campo
+    )
+    default = campo.default
+    return (
+        default()
+        if callable(default)
+        else str(default or "")
+    )
+
+
+def _renderizar_plantilla(plantilla, variables):
+    try:
+        return plantilla.format_map(
+            _VariablesWhatsApp(variables)
+        )
+    except (ValueError, KeyError):
+        return plantilla
 
 
 def numero_whatsapp(cliente):
@@ -32,42 +81,149 @@ def mensaje_whatsapp(
     presupuesto=None,
 ):
     motivo = motivo if motivo in MOTIVOS_VALIDOS else "GENERICO"
-    nombre = cliente.nombre.strip() or "¿cómo estás?"
+    config, _ = ConfiguracionCatalogo.objects.get_or_create(
+        pk=1
+    )
+
+    nombre = (
+        cliente.nombre.strip()
+        if cliente.nombre
+        else "¿cómo estás?"
+    )
+
+    variables = {
+        "nombre": nombre,
+        "codigo": "",
+        "saldo": "",
+        "total": "",
+        "pagado": "",
+        "fecha": "",
+        "fecha_entrega": "",
+        "dias_sin_actividad": "",
+        "ultima_actividad": "",
+    }
+
+    campo = "whatsapp_mensaje_cliente_generico"
 
     if motivo == "PEDIDO_LISTO" and pedido:
-        return (
-            f"Hola {nombre} 👋 Tu pedido {pedido.codigo} de Doble V 3D "
-            "ya está listo para entregar. Cuando quieras coordinamos "
-            "la entrega. ¡Gracias!"
+        campo = (
+            "whatsapp_mensaje_cliente_pedido_listo"
+        )
+        variables.update(
+            {
+                "codigo": pedido.codigo,
+                "total": _dinero(
+                    pedido.total
+                ),
+                "pagado": _dinero(
+                    pedido.total_pagado
+                ),
+                "saldo": _dinero(
+                    pedido.saldo_pendiente
+                ),
+                "fecha": _fecha(
+                    pedido.fecha
+                ),
+                "fecha_entrega": _fecha(
+                    pedido.fecha_entrega
+                ),
+            }
         )
 
-    if motivo == "SALDO" and pedido:
-        saldo = max(
-            Decimal(pedido.saldo_pendiente or 0),
-            Decimal("0"),
-        )
-        return (
-            f"Hola {nombre} 👋 Te escribo por el pedido {pedido.codigo}. "
-            f"Quedó un saldo pendiente de $ {saldo:,.0f}. "
-            "Cuando puedas coordinamos el pago. ¡Gracias!"
+    elif motivo == "SALDO" and pedido:
+        campo = "whatsapp_mensaje_cliente_saldo"
+        variables.update(
+            {
+                "codigo": pedido.codigo,
+                "total": _dinero(
+                    pedido.total
+                ),
+                "pagado": _dinero(
+                    pedido.total_pagado
+                ),
+                "saldo": _dinero(
+                    max(
+                        Decimal(
+                            pedido.saldo_pendiente
+                            or 0
+                        ),
+                        Decimal("0"),
+                    )
+                ),
+                "fecha": _fecha(
+                    pedido.fecha
+                ),
+                "fecha_entrega": _fecha(
+                    pedido.fecha_entrega
+                ),
+            }
         )
 
-    if motivo == "PRESUPUESTO" and presupuesto:
-        return (
-            f"Hola {nombre} 👋 ¿Cómo estás? Te escribo por el presupuesto "
-            f"{presupuesto.codigo} de Doble V 3D. Si querés hacer algún "
-            "cambio o avanzar con el pedido, avisame y lo revisamos."
+    elif motivo == "PRESUPUESTO" and presupuesto:
+        campo = (
+            "whatsapp_mensaje_cliente_presupuesto"
+        )
+        variables.update(
+            {
+                "codigo": presupuesto.codigo,
+                "total": _dinero(
+                    presupuesto.total
+                ),
+                "fecha": _fecha(
+                    presupuesto.fecha
+                ),
+            }
         )
 
-    if motivo == "REACTIVACION":
-        return (
-            f"Hola {nombre} 👋 ¿Cómo estás? Hace un tiempo que no hablamos "
-            "y quería consultarte si necesitabas volver a pedir alguno de "
-            "nuestros productos de Doble V 3D."
+    elif motivo == "REACTIVACION":
+        campo = (
+            "whatsapp_mensaje_cliente_reactivacion"
         )
 
-    return (
-        f"Hola {nombre} 👋 ¿Cómo estás? Te escribo de Doble V 3D."
+        ultima_pedido = (
+            Pedido.objects
+            .filter(cliente=cliente)
+            .order_by("-fecha", "-id")
+            .values_list("fecha", flat=True)
+            .first()
+        )
+        ultima_presupuesto = (
+            Presupuesto.objects
+            .filter(cliente=cliente)
+            .order_by("-fecha", "-id")
+            .values_list("fecha", flat=True)
+            .first()
+        )
+        fechas = [
+            valor
+            for valor in (
+                ultima_pedido,
+                ultima_presupuesto,
+            )
+            if valor
+        ]
+        ultima = max(fechas) if fechas else None
+        dias = (
+            (timezone.localdate() - ultima).days
+            if ultima
+            else ""
+        )
+        variables.update(
+            {
+                "dias_sin_actividad": dias,
+                "ultima_actividad": _fecha(
+                    ultima
+                ),
+            }
+        )
+
+    plantilla = _plantilla_config(
+        config,
+        campo,
+    )
+    return _renderizar_plantilla(
+        plantilla,
+        variables,
     )
 
 
