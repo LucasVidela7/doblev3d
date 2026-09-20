@@ -8,8 +8,10 @@ from django.urls import reverse
 
 from clientes.models import Cliente
 from costos.models import ConfiguracionCostos
+from kits.models import Kit, KitComponente
 from pedidos.models import Presupuesto, SolicitudWeb
 from productos.models import Producto, TipoProducto
+from productos.image_models import ProductoImagen
 
 
 @override_settings(
@@ -84,8 +86,8 @@ class SolicitudesWebGestionTests(TestCase):
             )
         )
         self.assertEqual(detail.status_code, 200)
-        self.assertContains(detail, "Convertir en presupuesto")
-        self.assertContains(detail, "Enviar WhatsApp con el detalle")
+        self.assertContains(detail, "CONVERTIR EN PRESUPUESTO")
+        self.assertContains(detail, "WHATSAPP")
         self.assertContains(detail, self.producto.nombre)
 
     def test_convertir_crea_cliente_y_presupuesto_sin_crear_pedido(self):
@@ -178,5 +180,111 @@ class SolicitudesWebGestionTests(TestCase):
         self.assertEqual(
             respuesta.context["estado_seleccionado"],
             "CONTACTADA",
+        )
+
+    def test_foto_aparece_en_bandeja_y_detalle_web(self):
+        ProductoImagen.objects.create(
+            producto=self.producto,
+            file_id="solicitud-thumb",
+            url="https://example.com/solicitud.jpg",
+            thumbnail_url="https://example.com/solicitud-thumb.jpg",
+            orden=1,
+        )
+
+        bandeja = self.client.get(
+            reverse("pedidos:solicitudes_web")
+        )
+        detalle = self.client.get(
+            reverse(
+                "pedidos:solicitud_web_detalle",
+                args=[self.solicitud.id],
+            )
+        )
+
+        for respuesta in (bandeja, detalle):
+            self.assertEqual(respuesta.status_code, 200)
+            self.assertContains(
+                respuesta,
+                "https://example.com/solicitud-thumb.jpg",
+            )
+
+    def test_kit_web_conserva_snapshot_al_convertir_presupuesto(self):
+        kit = Kit.objects.create(
+            nombre="Kit snapshot web",
+            modalidad="FIJO",
+            cantidad_productos=2,
+            precio=Decimal("15000"),
+            activo=True,
+        )
+        KitComponente.objects.create(
+            kit=kit,
+            producto=self.producto,
+            cantidad=2,
+        )
+
+        respuesta = self.client.post(
+            reverse("catalogo_carrito"),
+            {
+                "nombre": "Cliente kit web",
+                "telefono": "+54 11 4999 7788",
+                "email": "kitweb@example.com",
+                "observaciones": "",
+                "cart_payload": json.dumps(
+                    [
+                        {
+                            "kind": "kit",
+                            "id": kit.id,
+                            "qty": 2,
+                            "selections": [],
+                        }
+                    ]
+                ),
+                "website": "",
+            },
+        )
+        self.assertEqual(respuesta.status_code, 302)
+
+        solicitud = (
+            SolicitudWeb.objects
+            .exclude(id=self.solicitud.id)
+            .get()
+        )
+        item = solicitud.items.get()
+
+        self.assertEqual(
+            item.kit_snapshot["nombre"],
+            "Kit snapshot web",
+        )
+        self.assertEqual(
+            item.kit_snapshot["componentes"][0]["cantidad_total"],
+            4,
+        )
+
+        snapshot_web = dict(item.kit_snapshot)
+
+        kit.nombre = "Kit modificado luego"
+        kit.precio = Decimal("30000")
+        kit.save(update_fields=["nombre", "precio"])
+
+        respuesta = self.client.post(
+            reverse(
+                "pedidos:solicitud_web_convertir",
+                args=[solicitud.id],
+            )
+        )
+        self.assertEqual(respuesta.status_code, 302)
+
+        solicitud.refresh_from_db()
+        detalle = (
+            solicitud.presupuesto_generado
+            .detalles.get()
+        )
+        self.assertEqual(
+            detalle.kit_snapshot["nombre"],
+            "Kit snapshot web",
+        )
+        self.assertEqual(
+            detalle.kit_snapshot["precio_base"],
+            snapshot_web["precio_base"],
         )
 

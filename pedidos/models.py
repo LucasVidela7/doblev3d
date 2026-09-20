@@ -148,6 +148,11 @@ class DetallePedido(models.Model):
         default=False
     )
 
+    kit_snapshot = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
     # Snapshot del costo por unidad al momento de la venta.
     # NULL = detalle anterior al módulo de rentabilidad.
     costo_unitario = models.DecimalField(
@@ -392,6 +397,11 @@ class DetallePresupuesto(models.Model):
         default=False,
     )
 
+    kit_snapshot = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
     costo_unitario = models.DecimalField(
         max_digits=12,
         decimal_places=2,
@@ -623,6 +633,11 @@ class SolicitudWebItem(models.Model):
         max_digits=12,
         decimal_places=2,
         default=0,
+    )
+
+    kit_snapshot = models.JSONField(
+        default=dict,
+        blank=True,
     )
 
     @property

@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from productos.models import Producto, TipoProducto
 
+from .gestion import preparar_kits_gestion
 from .models import Kit, KitComponente
 
 
@@ -24,6 +25,25 @@ def lista_kits(request):
         "kits/lista.html",
         {
             "kits": kits,
+        },
+    )
+
+
+def detalle_kit(request, kit_id):
+    kit = get_object_or_404(
+        Kit.objects
+        .select_related("tipo_producto")
+        .prefetch_related("componentes__producto__tipo"),
+        id=kit_id,
+    )
+
+    kit = preparar_kits_gestion([kit])[0]
+
+    return render(
+        request,
+        "kits/detalle.html",
+        {
+            "kit": kit,
         },
     )
 
@@ -338,7 +358,8 @@ def _formulario_kit(
         )
 
         return redirect(
-            "kits:lista",
+            "kits:detalle",
+            kit_id=kit.id,
         )
 
     return _render_form(

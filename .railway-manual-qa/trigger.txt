@@ -1,2 +1,8 @@
-Deploy QA: centro financiero escalable
-Incluye resumen mensual, navegación por secciones, métricas clickeables, alertas, actividad reciente, historiales paginados de a 20, selector operativo de cobros limitado y pruebas del módulo.
+Deploy QA: reforma del Centro de Configuración
+- Nueva experiencia por secciones: Tienda, WhatsApp, Notificaciones y Apariencia.
+- Gestión visible de Instagram, WhatsApp público y mantenimiento.
+- Plantillas configurables para WhatsApp de Clientes: general, pedido listo, saldo, presupuesto y reactivación.
+- Plantillas del catálogo/solicitudes web integradas en la misma pantalla.
+- Variables visibles, contador, restaurar valores y vista previa en vivo.
+- Clientes usa las plantillas guardadas al abrir WhatsApp.
+Incluye migración productos.0012_configuracioncatalogo_mensajes_clientes.

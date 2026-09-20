@@ -9,12 +9,10 @@ from django.urls import reverse
 
 from clientes.models import Cliente
 from clientes.telefonos import buscar_cliente_por_telefono
-from kits.economia import (
-    analizar_opciones_kit,
-    precio_automatico_kit_libre,
-)
+from kits.engine import KitEngine
 from kits.models import Kit
 from productos.models import Producto
+from productos.miniaturas import asignar_miniaturas_productos
 
 from .models import (
     DetalleKitProducto,
@@ -73,9 +71,9 @@ def _precio_kit_desde_post(
                 f"Completá los productos de {kit.nombre} antes de calcular el precio."
             )
         precio_lista = _decimal_positivo(
-            precio_automatico_kit_libre(
+            KitEngine.precio_unitario(
                 kit,
-                productos_libres,
+                productos=productos_libres,
             )
         )
     else:
@@ -87,6 +85,37 @@ def _precio_kit_desde_post(
         )
 
     return precio_lista, False
+
+
+def _guardar_snapshot_kit(detalle):
+    if (
+        not detalle
+        or detalle.tipo_item != "KIT"
+        or not detalle.kit_id
+    ):
+        return
+
+    componentes = [
+        {
+            "producto": item.producto,
+            "cantidad": item.cantidad,
+        }
+        for item in detalle.productos_kit
+        .select_related("producto")
+        .all()
+    ]
+
+    detalle.kit_snapshot = KitEngine.snapshot(
+        detalle.kit,
+        cantidad_kits=detalle.cantidad,
+        precio_unitario=detalle.precio_unitario,
+        precio_manual=detalle.precio_kit_manual,
+        componentes=componentes,
+        costo_unitario=detalle.costo_unitario,
+    )
+    detalle.save(
+        update_fields=["kit_snapshot"]
+    )
 
 
 def _ids_kit_libre_para_edicion(detalle):
@@ -198,7 +227,7 @@ def productos_por_kit(request, kit_id):
             solo_produccion=False,
         ).order_by("nombre")
     )
-    analisis = analizar_opciones_kit(
+    analisis = KitEngine.opciones(
         kit,
         productos_categoria=productos,
     )
@@ -274,6 +303,8 @@ def nuevo_pedido(request):
         .select_related("tipo_producto")
         .order_by("nombre")
     )
+
+    asignar_miniaturas_productos(list(productos))
 
     if request.method != "POST":
         return render(
@@ -482,6 +513,10 @@ def nuevo_pedido(request):
                     )
 
             _guardar_costo_kit(detalle)
+            detalle.refresh_from_db(
+                fields=["costo_unitario"]
+            )
+            _guardar_snapshot_kit(detalle)
             continue
 
         if tipo_item == "PERSONALIZADO":
@@ -564,6 +599,8 @@ def editar_pedido(request, pedido_id):
         .select_related("tipo_producto")
         .order_by("nombre")
     )
+
+    asignar_miniaturas_productos(list(productos))
 
     detalles_actuales = list(
         pedido.detalles.select_related("producto", "kit")
@@ -905,6 +942,10 @@ def editar_pedido(request, pedido_id):
                 )
 
             _guardar_costo_kit(detalle)
+            detalle.refresh_from_db(
+                fields=["costo_unitario"]
+            )
+            _guardar_snapshot_kit(detalle)
             continue
 
         anterior = personalizados_anteriores.get(item["detalle_id"])

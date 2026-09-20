@@ -10,7 +10,7 @@ from calculadora.precios import (
     precio_mayorista,
     redondear_arriba,
 )
-from kits.economia import precio_automatico_kit_libre
+from kits.engine import KitEngine
 from kits.models import Kit
 from productos.models import Producto
 
@@ -509,9 +509,9 @@ def items_desde_pedido(pedido):
             ):
                 try:
                     precio_unitario_lista = (
-                        precio_automatico_kit_libre(
+                        KitEngine.precio_unitario(
                             detalle.kit,
-                            seleccion,
+                            productos=seleccion,
                         )
                     )
                 except ValueError:
@@ -645,9 +645,9 @@ def items_desde_payload(payload):
 
         precio_unitario_lista = _decimal(kit.precio)
         if kit.modalidad == "LIBRE_CATEGORIA":
-            precio_unitario_lista = precio_automatico_kit_libre(
+            precio_unitario_lista = KitEngine.precio_unitario(
                 kit,
-                seleccion_productos,
+                productos=seleccion_productos,
             )
 
         items.append(

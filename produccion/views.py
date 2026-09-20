@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from pedidos.models import Pedido
 from productos.models import Producto
+from productos.miniaturas import asignar_miniaturas_productos
 
 from .models import Impresora, Produccion
 
@@ -677,6 +678,37 @@ def lista_produccion(request):
         necesidades_pendientes[0]
         if necesidades_pendientes
         else None
+    )
+
+    productos_visibles = []
+    productos_visibles.extend(
+        produccion.producto
+        for produccion in producciones
+        if getattr(produccion, "producto", None)
+    )
+    productos_visibles.extend(
+        item["producto"]
+        for item in necesidades_pendientes
+        if item.get("producto")
+    )
+    productos_visibles.extend(
+        produccion.producto
+        for produccion in cola_pendiente
+        if getattr(produccion, "producto", None)
+    )
+    productos_visibles.extend(
+        trabajo.producto
+        for trabajo in trabajos_imprimiendo.values()
+        if getattr(trabajo, "producto", None)
+    )
+    productos_visibles.extend(
+        produccion.producto
+        for produccion in historial_reciente
+        if getattr(produccion, "producto", None)
+    )
+
+    asignar_miniaturas_productos(
+        productos_visibles
     )
 
     ahora_input = timezone.localtime(

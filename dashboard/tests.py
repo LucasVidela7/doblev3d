@@ -14,7 +14,8 @@ from pedidos.models import (
     SolicitudWebItem,
 )
 from produccion.models import Impresora, Produccion
-from productos.models import Producto, TipoProducto
+from productos.models import ConfiguracionCatalogo, Producto, TipoProducto
+from productos.image_models import ProductoImagen
 
 
 class DashboardProduccionTests(TestCase):
@@ -341,3 +342,115 @@ class DashboardProduccionTests(TestCase):
             self.producto.stock,
             2,
         )
+
+    def test_dashboard_muestra_miniatura_en_produccion(self):
+        ProductoImagen.objects.create(
+            producto=self.producto,
+            file_id="prod-thumb-dashboard",
+            url="https://example.com/dashboard.jpg",
+            thumbnail_url="https://example.com/dashboard-thumb.jpg",
+            orden=1,
+        )
+        Produccion.objects.create(
+            producto=self.producto,
+            cantidad=1,
+            impresora=self.impresora_a,
+            estado="IMPRIMIENDO",
+            inicio_impresion=timezone.now(),
+            tiempo_impresion_minutos=90,
+        )
+
+        respuesta = self.client.get(
+            reverse("dashboard:inicio")
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(
+            respuesta,
+            "https://example.com/dashboard-thumb.jpg",
+        )
+        self.assertContains(
+            respuesta,
+            'class="dv-producto-thumb"',
+        )
+
+    def test_configuracion_muestra_centro_y_plantillas_whatsapp(self):
+        respuesta = self.client.get(
+            reverse("dashboard:configuracion")
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "Tienda pública")
+        self.assertContains(respuesta, "Mensajes de WhatsApp")
+        self.assertContains(respuesta, "SEGUIMIENTO DE CLIENTES")
+        self.assertContains(respuesta, "Pedido listo")
+        self.assertContains(respuesta, "Saldo pendiente")
+        self.assertContains(respuesta, "Reactivar cliente")
+        self.assertContains(
+            respuesta,
+            'name="whatsapp_mensaje_cliente_pedido_listo"',
+        )
+        self.assertContains(
+            respuesta,
+            'id="dvWhatsappDefaults"',
+        )
+
+    def test_configuracion_guarda_tienda_y_mensajes_whatsapp(self):
+        respuesta = self.client.post(
+            reverse("dashboard:configuracion"),
+            {
+                "catalogo_activo": "on",
+                "notificaciones_pedidos_web_activas": "on",
+                "mostrar_instagram": "on",
+                "mostrar_whatsapp": "on",
+                "mensaje_mantenimiento": "Volvemos pronto.",
+                "instagram_usuario": "@doblev3d_nuevo",
+                "whatsapp_numero": "+54 9 11 1234-5678",
+                "whatsapp_mensaje": "Hola catálogo",
+                "whatsapp_mensaje_respuesta_solicitud": (
+                    "Hola {nombre}, recibimos {codigo}"
+                ),
+                "whatsapp_mensaje_post_solicitud": (
+                    "Envié {codigo} por {total}"
+                ),
+                "whatsapp_mensaje_cliente_generico": (
+                    "Hola {nombre}, mensaje general"
+                ),
+                "whatsapp_mensaje_cliente_pedido_listo": (
+                    "{nombre}: {codigo} listo"
+                ),
+                "whatsapp_mensaje_cliente_saldo": (
+                    "{nombre}: saldo {saldo}"
+                ),
+                "whatsapp_mensaje_cliente_presupuesto": (
+                    "{nombre}: presupuesto {codigo}"
+                ),
+                "whatsapp_mensaje_cliente_reactivacion": (
+                    "{nombre}: pasaron {dias_sin_actividad} días"
+                ),
+            },
+        )
+
+        self.assertRedirects(
+            respuesta,
+            reverse("dashboard:configuracion") + "?guardado=1",
+        )
+
+        config = ConfiguracionCatalogo.objects.get(pk=1)
+        self.assertEqual(
+            config.instagram_usuario,
+            "doblev3d_nuevo",
+        )
+        self.assertEqual(
+            config.whatsapp_numero,
+            "5491112345678",
+        )
+        self.assertEqual(
+            config.whatsapp_mensaje_cliente_pedido_listo,
+            "{nombre}: {codigo} listo",
+        )
+        self.assertEqual(
+            config.whatsapp_mensaje_cliente_saldo,
+            "{nombre}: saldo {saldo}",
+        )
+

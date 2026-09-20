@@ -48,7 +48,7 @@ a,button,input,select{touch-action:manipulation}.c{width:min(1280px,100%);margin
 
   <section class="metricas">
     <a class="metrica {% if not estado_seleccionado %}activa{% endif %}" href="{{ filtro_urls.todos }}"><small>CLIENTES</small><strong>{{ metricas.total }}</strong><span>activos</span></a>
-    <a class="metrica {% if estado_seleccionado == 'atencion' %}activa{% endif %}" href="{{ filtro_urls.atencion }}"><small>NECESITAN ATENCIÓN</small><strong>{{ metricas.atencion }}</strong><span>pendientes operativos</span></a>
+    <a class="metrica {% if estado_seleccionado == 'contactar' %}activa{% endif %}" href="{{ filtro_urls.contactar }}"><small>SEGUIMIENTO</small><strong>{{ metricas.contactar }}</strong><span>clientes para contactar</span></a>
     <a class="metrica {% if estado_seleccionado == 'pedidos' %}activa{% endif %}" href="{{ filtro_urls.pedidos }}"><small>PEDIDOS ACTIVOS</small><strong>{{ metricas.con_pedidos }}</strong><span>clientes con pedidos en curso</span></a>
     <a class="metrica {% if estado_seleccionado == 'presupuestos' %}activa{% endif %}" href="{{ filtro_urls.presupuestos }}"><small>PRESUPUESTOS PENDIENTES</small><strong>{{ metricas.con_presupuestos }}</strong><span>esperando definición</span></a>
     <a class="metrica" href="{{ filtro_urls.todos }}"><small>TOTAL COMPRADO</small><strong>$ {{ metricas.total_comprado|floatformat:0 }}</strong><span>histórico vigente</span></a>
@@ -58,7 +58,7 @@ a,button,input,select{touch-action:manipulation}.c{width:min(1280px,100%);margin
   <form class="filtros" method="get">
     <div class="filtro-head"><strong>FILTROS</strong><span>{{ filas|length }} cliente{{ filas|length|pluralize }}</span></div>
     <div class="campo buscar"><label>BUSCAR</label><input name="q" value="{{ busqueda }}" placeholder="Nombre, teléfono o email..."></div>
-    <div class="campo"><label>ESTADO</label><select name="estado"><option value="">Todos</option><option value="atencion" {% if estado_seleccionado == 'atencion' %}selected{% endif %}>Necesitan atención</option><option value="pedidos" {% if estado_seleccionado == 'pedidos' %}selected{% endif %}>Con pedidos activos</option><option value="saldo" {% if estado_seleccionado == 'saldo' %}selected{% endif %}>Con saldo</option><option value="presupuestos" {% if estado_seleccionado == 'presupuestos' %}selected{% endif %}>Con presupuestos</option><option value="sin_actividad" {% if estado_seleccionado == 'sin_actividad' %}selected{% endif %}>Sin actividad reciente</option></select></div>
+    <div class="campo"><label>ESTADO</label><select name="estado"><option value="">Todos</option><option value="contactar" {% if estado_seleccionado == 'contactar' %}selected{% endif %}>Para contactar</option><option value="atencion" {% if estado_seleccionado == 'atencion' %}selected{% endif %}>Atención operativa</option><option value="pedidos" {% if estado_seleccionado == 'pedidos' %}selected{% endif %}>Con pedidos activos</option><option value="saldo" {% if estado_seleccionado == 'saldo' %}selected{% endif %}>Con saldo</option><option value="presupuestos" {% if estado_seleccionado == 'presupuestos' %}selected{% endif %}>Con presupuestos</option><option value="sin_actividad" {% if estado_seleccionado == 'sin_actividad' %}selected{% endif %}>Sin actividad reciente</option></select></div>
     <button class="btn primary" type="submit">FILTRAR</button>
     <a class="filtro-clear" href="{% url 'clientes:lista' %}">LIMPIAR FILTROS</a>
   </form>
@@ -77,6 +77,7 @@ a,button,input,select{touch-action:manipulation}.c{width:min(1280px,100%);margin
           <div class="estado">
             {% if fila.pedidos_activos_count %}<span class="badge ok">{{ fila.pedidos_activos_count }} pedido{{ fila.pedidos_activos_count|pluralize }} activo{{ fila.pedidos_activos_count|pluralize }}</span>{% endif %}
             {% if fila.presupuestos_pendientes_count %}<span class="badge warn">{{ fila.presupuestos_pendientes_count }} presupuesto{{ fila.presupuestos_pendientes_count|pluralize }} pendiente{{ fila.presupuestos_pendientes_count|pluralize }}</span>{% endif %}
+            {% if fila.para_contactar %}<span class="badge warn">PARA CONTACTAR</span>{% endif %}
             {% if not fila.pedidos_activos_count and not fila.presupuestos_pendientes_count %}<span class="badge">Sin actividad abierta</span>{% endif %}
           </div>
         </div>
@@ -89,7 +90,7 @@ a,button,input,select{touch-action:manipulation}.c{width:min(1280px,100%);margin
         <div class="dato"><small>ÚLTIMA ACTIVIDAD</small><strong>{% if fila.ultima_actividad %}{{ fila.ultima_actividad|date:"d/m/Y" }}{% else %}—{% endif %}</strong></div>
       </div>
       {% if fila.necesita_atencion %}<div class="atencion">⚠ {{ fila.atenciones|join:" · " }}</div>{% endif %}
-      <div class="foot"><span>{% if fila.ultimo_pedido %}Último pedido {{ fila.ultimo_pedido.codigo }}{% elif fila.ultimo_presupuesto %}Último presupuesto {{ fila.ultimo_presupuesto.codigo }}{% else %}Sin movimientos todavía{% endif %}</span><span class="ver">VER CLIENTE →</span></div>
+      <div class="foot"><span>{% if fila.ultimo_pedido_codigo %}Último pedido {{ fila.ultimo_pedido_codigo }}{% elif fila.ultimo_presupuesto_codigo %}Último presupuesto {{ fila.ultimo_presupuesto_codigo }}{% else %}Sin movimientos todavía{% endif %}</span><span class="ver">VER CLIENTE →</span></div>
     </a>
     {% empty %}
     <div class="empty">No se encontraron clientes con estos filtros.</div>

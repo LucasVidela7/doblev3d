@@ -11,6 +11,7 @@ from productos.whatsapp import (
     whatsapp_url,
 )
 
+from .miniaturas import asignar_miniatura_resumen, asignar_miniaturas_items
 from .models import (
     DetallePresupuesto,
     DetallePresupuestoKitProducto,
@@ -25,9 +26,15 @@ def lista_solicitudes_web(request):
     base = list(
         SolicitudWeb.objects
         .select_related("presupuesto_generado")
-        .prefetch_related("items")
+        .prefetch_related(
+            "items__producto",
+            "items__kit__componentes__producto",
+            "items__productos_kit__producto",
+        )
         .order_by("-id")
     )
+
+    asignar_miniatura_resumen(base, "items")
 
     estados_validos = {
         "NUEVA",
@@ -85,12 +92,15 @@ def detalle_solicitud_web(request, solicitud_id):
         mensaje_whatsapp,
     )
 
+    items = list(solicitud.items.all())
+    asignar_miniaturas_items(items)
+
     return render(
         request,
         "pedidos/solicitud_web_detalle.html",
         {
             "solicitud": solicitud,
-            "items": list(solicitud.items.all()),
+            "items": items,
             "whatsapp_numero": solicitud.telefono_normalizado,
             "whatsapp_url_cliente": whatsapp_url_cliente,
         },
@@ -281,6 +291,7 @@ def convertir_solicitud_web(request, solicitud_id):
             # Al convertirlo congelamos ese valor para respetar lo visto
             # por el cliente.
             precio_kit_manual=True,
+            kit_snapshot=item.kit_snapshot or {},
         )
 
         for componente in item.productos_kit.all():

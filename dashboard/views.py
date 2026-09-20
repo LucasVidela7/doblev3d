@@ -24,6 +24,7 @@ from pedidos.impresiones_stock import obtener_impresiones_por_producto
 from produccion import views as produccion_views
 from produccion.models import Impresora, Produccion
 from productos.models import ConfiguracionCatalogo, Producto
+from productos.miniaturas import asignar_miniaturas_productos
 
 
 def _webpush_habilitado():
@@ -240,6 +241,31 @@ DASHBOARD_PRODUCCION_STYLE = r"""
     font-size:11px;
     font-weight:800;
 }
+.dv-producto-linea{
+    display:grid;
+    grid-template-columns:40px minmax(0,1fr);
+    gap:8px;
+    align-items:center;
+    min-width:0;
+}
+.dv-producto-thumb{
+    width:40px;
+    height:40px;
+    border:1px solid var(--dv-border,#e5e7eb);
+    border-radius:9px;
+    background:var(--dv-surface-soft,#f2f4f7);
+    object-fit:cover;
+    display:block;
+}
+.dv-producto-thumb.vacia{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--dv-muted,#73777f);
+    font-size:7px;
+    font-weight:900;
+    letter-spacing:.04em;
+}
 .dv-maquina-meta{
     margin-top:4px;
     color:#73777f;
@@ -303,6 +329,14 @@ DASHBOARD_PRODUCCION_STYLE = r"""
     font-size:10px;
     font-weight:900;
 }
+.dv-plan .dv-producto-linea{
+    grid-template-columns:36px minmax(0,1fr);
+}
+.dv-plan .dv-producto-thumb{
+    width:36px;
+    height:36px;
+    border-radius:8px;
+}
 .dv-plan-meta{
     margin-top:3px;
     color:#73777f;
@@ -346,6 +380,29 @@ DASHBOARD_PRODUCCION_STYLE = r"""
 """
 
 
+def _miniatura_producto_dashboard(producto):
+    url = escape(
+        getattr(
+            producto,
+            "imagen_produccion_url",
+            "",
+        )
+        or ""
+    )
+
+    if url:
+        return (
+            '<img class="dv-producto-thumb" '
+            f'src="{url}" alt="" loading="lazy">'
+        )
+
+    return (
+        '<span class="dv-producto-thumb vacia">'
+        '3D'
+        '</span>'
+    )
+
+
 def _panel_produccion_dashboard(
     request,
     impresoras,
@@ -374,6 +431,9 @@ def _panel_produccion_dashboard(
 
         if produccion:
             producto = escape(produccion.producto.nombre)
+            miniatura = _miniatura_producto_dashboard(
+                produccion.producto
+            )
             fin = produccion.fin_estimado
             fin_texto = (
                 timezone.localtime(fin).strftime("%H:%M")
@@ -395,9 +455,14 @@ def _panel_produccion_dashboard(
                         <div class="dv-maquina-nombre">🖨 {nombre}</div>
                         <span class="dv-maquina-estado imprimiendo">IMPRIMIENDO</span>
                     </div>
-                    <div class="dv-maquina-producto">{producto} × {produccion.cantidad}</div>
-                    <div class="dv-maquina-meta">
-                        Termina {fin_texto} · ⚖ {peso}
+                    <div class="dv-producto-linea">
+                        {miniatura}
+                        <div>
+                            <div class="dv-maquina-producto">{producto} × {produccion.cantidad}</div>
+                            <div class="dv-maquina-meta">
+                                Termina {fin_texto} · ⚖ {peso}
+                            </div>
+                        </div>
                     </div>
                     <div class="dv-maquina-acciones">
                         <form method="post" action="{listo_url}">
@@ -436,6 +501,9 @@ def _panel_produccion_dashboard(
 
     for produccion in planificaciones:
         producto = escape(produccion.producto.nombre)
+        miniatura = _miniatura_producto_dashboard(
+            produccion.producto
+        )
         peso = escape(produccion.peso_total_formateado)
         inicio = produccion.inicio_impresion
 
@@ -482,10 +550,13 @@ def _panel_produccion_dashboard(
         planes_html.append(
             f"""
             <div class="dv-plan">
-                <div>
-                    <div class="dv-plan-producto">{producto} × {produccion.cantidad}</div>
-                    <div class="dv-plan-meta">
-                        {inicio_texto} · {escape(produccion.tiempo_impresion_formateado)} · ⚖ {peso}
+                <div class="dv-producto-linea">
+                    {miniatura}
+                    <div>
+                        <div class="dv-plan-producto">{producto} × {produccion.cantidad}</div>
+                        <div class="dv-plan-meta">
+                            {inicio_texto} · {escape(produccion.tiempo_impresion_formateado)} · ⚖ {peso}
+                        </div>
                     </div>
                 </div>
                 {accion}
@@ -717,6 +788,22 @@ def inicio(request):
 
     top_impresion = necesidad_impresion[:5]
 
+    productos_dashboard = [
+        produccion.producto
+        for produccion in (
+            producciones_actuales_dashboard
+            + planificaciones_dashboard
+        )
+    ]
+    productos_dashboard.extend(
+        item["producto"]
+        for item in top_impresion
+        if item.get("producto")
+    )
+    asignar_miniaturas_productos(
+        productos_dashboard
+    )
+
     # Productos activos sin stock. Es una alerta simple y útil;
     # no supone un "stock mínimo" porque ese campo aún no existe.
     productos_sin_stock = (
@@ -874,38 +961,99 @@ def inicio(request):
 
 @never_cache
 def configuracion(request):
-    config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
+    config, _ = ConfiguracionCatalogo.objects.get_or_create(
+        pk=1
+    )
+
+    campos_texto = {
+        "mensaje_mantenimiento": 240,
+        "instagram_usuario": 100,
+        "whatsapp_numero": 30,
+        "whatsapp_mensaje": 240,
+        "whatsapp_mensaje_respuesta_solicitud": 4000,
+        "whatsapp_mensaje_post_solicitud": 4000,
+        "whatsapp_mensaje_cliente_generico": 2000,
+        "whatsapp_mensaje_cliente_pedido_listo": 2000,
+        "whatsapp_mensaje_cliente_saldo": 2000,
+        "whatsapp_mensaje_cliente_presupuesto": 2000,
+        "whatsapp_mensaje_cliente_reactivacion": 2000,
+    }
+    campos_booleanos = [
+        "catalogo_activo",
+        "notificaciones_pedidos_web_activas",
+        "mostrar_instagram",
+        "mostrar_whatsapp",
+    ]
 
     if request.method == "POST":
-        config.catalogo_activo = (
-            request.POST.get("catalogo_activo") == "on"
-        )
-        config.notificaciones_pedidos_web_activas = (
-            request.POST.get("notificaciones_pedidos_web_activas") == "on"
-        )
-        config.mensaje_mantenimiento = (
-            request.POST.get("mensaje_mantenimiento") or ""
-        ).strip()[:240]
+        actualizados = []
+
+        for campo in campos_booleanos:
+            setattr(
+                config,
+                campo,
+                request.POST.get(campo) == "on",
+            )
+            actualizados.append(campo)
+
+        for campo, limite in campos_texto.items():
+            valor = (
+                request.POST.get(campo)
+                or ""
+            ).strip()[:limite]
+            setattr(config, campo, valor)
+            actualizados.append(campo)
+
         config.save(
-            update_fields=[
-                "catalogo_activo",
-                "notificaciones_pedidos_web_activas",
-                "mensaje_mantenimiento",
-            ]
+            update_fields=actualizados,
         )
         return redirect(
-            reverse("dashboard:configuracion") + "?guardado=1"
+            reverse("dashboard:configuracion")
+            + "?guardado=1"
         )
+
+    whatsapp_defaults = {}
+    for campo in [
+        "whatsapp_mensaje_cliente_generico",
+        "whatsapp_mensaje_cliente_pedido_listo",
+        "whatsapp_mensaje_cliente_saldo",
+        "whatsapp_mensaje_cliente_presupuesto",
+        "whatsapp_mensaje_cliente_reactivacion",
+        "whatsapp_mensaje_respuesta_solicitud",
+        "whatsapp_mensaje_post_solicitud",
+    ]:
+        default = (
+            ConfiguracionCatalogo
+            ._meta
+            .get_field(campo)
+            .default
+        )
+        whatsapp_defaults[campo] = (
+            default()
+            if callable(default)
+            else default
+        )
+
+    webpush_habilitado = _webpush_habilitado()
 
     return render(
         request,
         "dashboard/configuracion.html",
         {
             "config": config,
-            "webpush_configurado": _webpush_habilitado(),
-            "dispositivos_push_activos": (
-                WebPushSubscription.objects.filter(activa=True).count()
+            "webpush_configurado": webpush_habilitado,
+            "webpush_habilitado": webpush_habilitado,
+            "webpush_public_key": getattr(
+                settings,
+                "WEBPUSH_VAPID_PUBLIC_KEY",
+                "",
             ),
+            "dispositivos_push_activos": (
+                WebPushSubscription.objects
+                .filter(activa=True)
+                .count()
+            ),
+            "whatsapp_defaults": whatsapp_defaults,
         },
     )
 

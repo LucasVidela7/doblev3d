@@ -7,10 +7,23 @@ from django.urls import reverse
 from django.utils import timezone
 
 from productos.models import Producto
+from productos.miniaturas import asignar_miniaturas_productos
 
 from .detalle_views import _armar_preparacion
 from .models import EstadoImpresionPedido, Pedido
 from .personalizados_produccion import actualizar_estado_general_pedido
+
+
+def _asignar_miniaturas_filas(filas):
+    productos = []
+
+    for fila in filas:
+        for item in fila.get("productos", []):
+            producto = item.get("producto")
+            if producto:
+                productos.append(producto)
+
+    asignar_miniaturas_productos(productos)
 
 
 def _orden_entrega(fila):
@@ -190,6 +203,8 @@ def impresiones_por_pedido(request):
                 }
             )
 
+        _asignar_miniaturas_filas(cancelados)
+
         return render(
             request,
             "pedidos/impresiones_por_pedido.html",
@@ -237,6 +252,13 @@ def impresiones_por_pedido(request):
 
     for filas in grupos.values():
         filas.sort(key=_orden_entrega)
+
+    filas_activas = [
+        fila
+        for filas in grupos.values()
+        for fila in filas
+    ]
+    _asignar_miniaturas_filas(filas_activas)
 
     total_activos = sum(len(filas) for filas in grupos.values())
 

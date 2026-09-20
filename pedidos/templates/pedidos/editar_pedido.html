@@ -85,6 +85,7 @@ h1{margin:0;font-size:28px}
 }
 
 .full{grid-column:1/-1}
+.seleccion-preview{display:none;grid-template-columns:46px minmax(0,1fr);gap:9px;align-items:center;margin-top:8px;padding:8px;border:1px solid var(--borde);border-radius:11px;background:#fff}.seleccion-preview.activo{display:grid}.seleccion-preview img{width:46px;height:46px;border-radius:9px;object-fit:cover;border:1px solid var(--borde)}.seleccion-preview .vacia{width:46px;height:46px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:#f1f3f5;color:var(--muted);font-size:8px;font-weight:900}.seleccion-preview strong{font-size:10px}.seleccion-preview span{display:block;margin-top:3px;color:var(--muted);font-size:8px}
 
 label{
     display:block;
@@ -479,7 +480,8 @@ const productos = [
             id: {{ p.id }},
             codigo: "{{ p.codigo|escapejs }}",
             nombre: "{{ p.nombre|escapejs }}",
-            tipo: {{ p.tipo_id|default:"null" }}
+            tipo: {{ p.tipo_id|default:"null" }},
+            imagen: "{{ p.imagen_produccion_url|default:''|escapejs }}"
         },
     {% endfor %}
 ];
@@ -511,6 +513,40 @@ function moneda(valor, decimales = 2) {
     ).format(
         Number(valor || 0)
     );
+}
+
+
+function actualizarPreviewProducto(i, personalizado = false) {
+    const select = document.getElementById(
+        personalizado
+            ? `producto_personalizado_${i}`
+            : `producto_${i}`
+    );
+    const preview = document.getElementById(
+        personalizado
+            ? `preview_personalizado_${i}`
+            : `preview_producto_${i}`
+    );
+
+    if (!select || !preview || !select.value) {
+        if (preview) {
+            preview.classList.remove("activo");
+            preview.innerHTML = "";
+        }
+        return;
+    }
+
+    const producto = productos.find(
+        p => String(p.id) === String(select.value)
+    );
+    if (!producto) return;
+
+    preview.classList.add("activo");
+    preview.innerHTML =
+        (producto.imagen
+            ? `<img src="${producto.imagen}" alt="" loading="lazy">`
+            : '<div class="vacia">3D</div>')
+        + `<div><strong>${producto.codigo} · ${producto.nombre}</strong><span>Vista previa del producto</span></div>`;
 }
 
 
@@ -646,6 +682,7 @@ function agregarItem(data = null) {
                 >
                     ${opcionesProductos(data?.producto_id)}
                 </select>
+                <div class="seleccion-preview" id="preview_producto_${i}"></div>
 
             </div>
 
@@ -762,6 +799,7 @@ function agregarItem(data = null) {
                     >
                         ${opcionesProductos(data?.producto_id)}
                     </select>
+                    <div class="seleccion-preview" id="preview_personalizado_${i}"></div>
                 </div>
 
                 <div>
@@ -825,6 +863,11 @@ function agregarItem(data = null) {
         .appendChild(div);
 
     cambiarTipo(i);
+    if (tipo === "PRODUCTO") {
+        actualizarPreviewProducto(i, false);
+    } else if (tipo === "PERSONALIZADO") {
+        actualizarPreviewProducto(i, true);
+    }
 
     if (tipo === "PRODUCTO") {
         actualizarTotalProducto(i);
@@ -1081,6 +1124,7 @@ async function cargarKit(
 ========================================================= */
 
 function cambioProducto(i) {
+    actualizarPreviewProducto(i, false);
     const input = document.getElementById(
         `precio_unitario_${i}`
     );
@@ -1369,6 +1413,7 @@ function usarPrecioProducto(i) {
 ========================================================= */
 
 function cambioProductoPersonalizado(i) {
+    actualizarPreviewProducto(i, true);
     cargarPrecioPersonalizado(i, true);
 }
 

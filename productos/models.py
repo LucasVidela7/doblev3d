@@ -85,6 +85,62 @@ class ConfiguracionCatalogo(models.Model):
         ),
     )
 
+    whatsapp_mensaje_cliente_generico = models.TextField(
+        blank=True,
+        default=(
+            "Hola {nombre} 👋 ¿Cómo estás? Te escribo de Doble V 3D."
+        ),
+        verbose_name="Mensaje general a clientes",
+        help_text="Podés usar {nombre}.",
+    )
+    whatsapp_mensaje_cliente_pedido_listo = models.TextField(
+        blank=True,
+        default=(
+            "Hola {nombre} 👋 Tu pedido {codigo} de Doble V 3D ya está listo "
+            "para entregar. Cuando quieras coordinamos la entrega. ¡Gracias!"
+        ),
+        verbose_name="Mensaje de pedido listo",
+        help_text=(
+            "Podés usar {nombre}, {codigo}, {total} y {fecha_entrega}."
+        ),
+    )
+    whatsapp_mensaje_cliente_saldo = models.TextField(
+        blank=True,
+        default=(
+            "Hola {nombre} 👋 Te escribo por el pedido {codigo}. "
+            "Quedó un saldo pendiente de $ {saldo}. "
+            "Cuando puedas coordinamos el pago. ¡Gracias!"
+        ),
+        verbose_name="Mensaje de saldo pendiente",
+        help_text=(
+            "Podés usar {nombre}, {codigo}, {saldo}, {total} y {pagado}."
+        ),
+    )
+    whatsapp_mensaje_cliente_presupuesto = models.TextField(
+        blank=True,
+        default=(
+            "Hola {nombre} 👋 ¿Cómo estás? Te escribo por el presupuesto "
+            "{codigo} de Doble V 3D. Si querés hacer algún cambio o avanzar "
+            "con el pedido, avisame y lo revisamos."
+        ),
+        verbose_name="Mensaje de presupuesto pendiente",
+        help_text=(
+            "Podés usar {nombre}, {codigo}, {total} y {fecha}."
+        ),
+    )
+    whatsapp_mensaje_cliente_reactivacion = models.TextField(
+        blank=True,
+        default=(
+            "Hola {nombre} 👋 ¿Cómo estás? Hace un tiempo que no hablamos y "
+            "quería consultarte si necesitabas volver a pedir alguno de "
+            "nuestros productos de Doble V 3D."
+        ),
+        verbose_name="Mensaje de reactivación",
+        help_text=(
+            "Podés usar {nombre}, {dias_sin_actividad} y {ultima_actividad}."
+        ),
+    )
+
     class Meta:
         verbose_name = "Configuración del catálogo"
         verbose_name_plural = "Configuración del catálogo"

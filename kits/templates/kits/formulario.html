@@ -15,10 +15,10 @@
 :root{--oscuro:#25282d;--borde:#e3e5e8;--muted:#747981;--fondo:#f4f5f7;--verde:#e4f5e9;--verde-t:#24633a;--amarillo:#fff4cf;--amarillo-t:#765b00}
 body{margin:0;background:var(--fondo);color:#272a2f;font-family:Arial,sans-serif;padding-bottom:95px}
 .contenedor{width:min(900px,100%);margin:auto;padding:20px 14px 35px}
-.header{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px}
+.header{display:grid;grid-template-columns:minmax(0,1fr);gap:11px;margin-bottom:14px}
 h1{margin:0;font-size:27px}.sub{margin-top:4px;color:var(--muted);font-size:11px}
-.acciones{display:flex;gap:8px}.btn{min-height:46px;display:inline-flex;align-items:center;justify-content:center;padding:0 14px;border:1px solid var(--borde);border-radius:12px;background:#fff;color:#292c31;text-decoration:none;font-weight:900;font-size:10px}
-.card{background:#fff;border:1px solid var(--borde);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+.acciones{width:100%;display:flex;gap:8px;align-items:stretch}.btn{min-height:46px;display:inline-flex;align-items:center;justify-content:center;padding:0 14px;border:1px solid var(--dv-brand-blue,#134a9a);border-radius:12px;background:#fff;color:#292c31;text-decoration:none;font-weight:900;font-size:10px}.btn.principal{margin-left:auto;min-width:210px;background:var(--dv-brand-blue,#134a9a);color:#fff;border-color:var(--dv-brand-blue,#134a9a)}
+.secciones{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px}.secciones a{min-height:42px;display:flex;align-items:center;justify-content:center;padding:0 8px;border:1px solid var(--borde);border-radius:11px;background:#fff;color:#34383e;text-decoration:none;font-size:8px;font-weight:900;text-align:center}.seccion-titulo{margin:0 0 10px;font-size:11px;font-weight:900}.card{scroll-margin-top:12px;background:#fff;border:1px solid var(--borde);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 4px 16px rgba(0,0,0,.05)}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.full{grid-column:1/-1}
 label{display:block;margin-bottom:6px;color:var(--muted);font-size:9px;font-weight:900}
 input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:11px;padding:9px 11px;background:#fff;font-size:14px}
@@ -34,7 +34,7 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
 .proteccion-opcion span{display:block;margin-top:4px;color:#68726c;font-size:9px;line-height:1.45}
 .guardar{width:100%;min-height:54px;border:0;border-radius:14px;background:var(--oscuro);color:#fff;font-weight:900}
 .oculto{display:none!important}
-.recomendacion{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;border-color:#d9e1db;background:#fbfdfb}
+.recomendacion{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;border-color:#d9e1db;background:#fbfdfb}.dv-kit-precio-editor{grid-column:1/-1;margin-bottom:4px}.dv-kit-precio-editor input{margin-bottom:4px}
 .recomendacion.revisar{border-color:#ead89d;background:#fffdf5}
 .recomendacion-etiqueta{color:var(--muted);font-size:8px;font-weight:900;letter-spacing:.35px}
 .recomendacion-texto{margin-top:5px;font-size:10px;line-height:1.45;color:#555b63}
@@ -44,7 +44,7 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
 .recomendacion-estado{display:inline-flex;margin-top:7px;padding:4px 7px;border-radius:999px;background:var(--verde);color:var(--verde-t);font-size:7px;font-weight:900}
 .recomendacion.revisar .recomendacion-estado{background:var(--amarillo);color:var(--amarillo-t)}
 .nav{position:fixed;z-index:30;bottom:8px;left:50%;transform:translateX(-50%);width:min(720px,calc(100% - 16px));display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:#25282d;padding:7px;border-radius:19px}.nav a{min-height:57px;color:#ddd;text-decoration:none;font-size:9px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:13px}.nav b{font-size:18px}
-@media(max-width:700px){.header{align-items:flex-start;flex-direction:column}.acciones{width:100%}.btn{flex:1}.grid,.modalidades{grid-template-columns:1fr}.full{grid-column:auto}.componente{grid-template-columns:1fr 90px 42px}.recomendacion{grid-template-columns:1fr}.recomendacion-precio{text-align:left}.recomendacion-precio strong{font-size:22px}}
+@media(max-width:700px){.acciones{width:100%}.btn{flex:1}.btn.principal{margin-left:0;min-width:0;flex:1.25}.secciones{grid-template-columns:1fr 1fr}.grid,.modalidades{grid-template-columns:1fr}.full{grid-column:auto}.componente{grid-template-columns:1fr 90px 42px}.recomendacion{grid-template-columns:1fr}.recomendacion-precio{text-align:left}.recomendacion-precio strong{font-size:22px}}
 </style>
 </head>
 <body>
@@ -69,27 +69,21 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
         {% endfor %}
     {% endif %}
 
+    <nav class="secciones">
+        <a href="#identidad">1 · IDENTIDAD</a>
+        <a href="#composicion">2 · COMPOSICIÓN</a>
+        <a href="#recomendacion_precio">3 · PRECIO</a>
+        <a href="#catalogo">4 · CATÁLOGO</a>
+    </nav>
+
     <form method="post" id="kitForm">
         {% csrf_token %}
 
-        <div class="card grid">
+        <div class="card grid" id="identidad">
+            <div class="full"><div class="seccion-titulo">1 · IDENTIDAD</div></div>
             <div class="full">
                 <label>NOMBRE</label>
                 <input name="nombre" required value="{{ kit.nombre|default:'' }}">
-            </div>
-
-            <div>
-                <label>PRECIO</label>
-                <input
-                    type="number"
-                    min="0.01"
-                    step="0.01"
-                    name="precio"
-                    id="precio_kit"
-                    required
-                    value="{% if kit and kit.precio is not None %}{{ kit.precio|unlocalize }}{% endif %}"
-                    oninput="actualizarRecomendacion()"
-                >
             </div>
 
             <div>
@@ -101,21 +95,8 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
             </div>
         </div>
 
-        <div class="card recomendacion" id="recomendacion_precio">
-            <div>
-                <div class="recomendacion-etiqueta">RECOMENDACIÓN DE PRECIO</div>
-                <div class="recomendacion-texto" id="recomendacion_detalle">
-                    Elegí la modalidad y composición para calcularla.
-                </div>
-                <span class="recomendacion-estado" id="recomendacion_estado">CALCULANDO</span>
-            </div>
-            <div class="recomendacion-precio">
-                <span>PRECIO MÍNIMO SUGERIDO</span>
-                <strong id="precio_recomendado">—</strong>
-            </div>
-        </div>
-
-        <div class="card">
+        <div class="card" id="composicion">
+            <div class="seccion-titulo">2 · COMPOSICIÓN</div>
             <label>MODALIDAD</label>
             <div class="modalidades">
                 <label class="opcion">
@@ -209,6 +190,49 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
             <div class="ayuda" id="total_piezas">Total piezas: 0</div>
         </div>
 
+        <div class="card recomendacion" id="recomendacion_precio">
+            <div class="dv-kit-precio-editor" data-dv-kit-persistente>
+                <div class="seccion-titulo">3 · PRECIO Y RENTABILIDAD</div>
+                <label>PRECIO ACTUAL</label>
+                <input
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    name="precio"
+                    id="precio_kit"
+                    required
+                    value="{% if kit and kit.precio is not None %}{{ kit.precio|unlocalize }}{% endif %}"
+                    oninput="actualizarRecomendacion()"
+                >
+            </div>
+
+            <div>
+                <div class="recomendacion-etiqueta">RECOMENDACIÓN DE PRECIO</div>
+                <div class="recomendacion-texto" id="recomendacion_detalle">
+                    Elegí la modalidad y composición para calcularla.
+                </div>
+                <span class="recomendacion-estado" id="recomendacion_estado">CALCULANDO</span>
+            </div>
+            <div class="recomendacion-precio">
+                <span>PRECIO MÍNIMO SUGERIDO</span>
+                <strong id="precio_recomendado">—</strong>
+            </div>
+        </div>
+
+        <div class="card" id="catalogo">
+            <div class="seccion-titulo">4 · CATÁLOGO</div>
+            <div class="ayuda" style="margin-top:0">
+                El catálogo reutiliza automáticamente las fotos principales de los productos del kit.
+                {% if kit and kit.id %}
+                    La presentación pública puede revisarse sin duplicar imágenes ni configuración.
+                {% else %}
+                    Guardá el kit para habilitar su vista pública.
+                {% endif %}
+            </div>
+            {% if kit and kit.id %}
+                <a class="btn" style="margin-top:12px" href="{% url 'catalogo_kit_detalle' kit.id %}" target="_blank" rel="noopener">VER EN CATÁLOGO</a>
+            {% endif %}
+        </div>
 
     </form>
 </div>

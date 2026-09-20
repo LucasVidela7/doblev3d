@@ -516,6 +516,9 @@
         panel.classList.add("dv-kit-calculadora-activo");
 
         Array.from(panel.children).forEach(function(hijo){
+            if (hijo.hasAttribute("data-dv-kit-persistente")) {
+                return;
+            }
             hijo.classList.add("dv-kit-original");
         });
 

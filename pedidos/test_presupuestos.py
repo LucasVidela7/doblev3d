@@ -7,7 +7,9 @@ from django.urls import reverse
 
 from clientes.models import Cliente
 from costos.models import ConfiguracionCostos
+from kits.models import Kit, KitComponente
 from productos.models import Producto, TipoProducto
+from productos.image_models import ProductoImagen
 
 from .models import (
     DetallePedido,
@@ -252,5 +254,101 @@ class PresupuestosTests(TestCase):
         self.assertEqual(
             respuesta.context["estado_seleccionado"],
             "PENDIENTE",
+        )
+
+    def test_fotos_aparecen_en_presupuesto_y_formulario(self):
+        ProductoImagen.objects.create(
+            producto=self.producto,
+            file_id="presupuesto-thumb",
+            url="https://example.com/presupuesto.jpg",
+            thumbnail_url="https://example.com/presupuesto-thumb.jpg",
+            orden=1,
+        )
+        self._crear_presupuesto()
+        presupuesto = Presupuesto.objects.get()
+
+        listado = self.client.get(
+            reverse("pedidos:presupuestos")
+        )
+        detalle = self.client.get(
+            reverse(
+                "pedidos:presupuesto_detalle",
+                args=[presupuesto.id],
+            )
+        )
+        nuevo = self.client.get(
+            reverse("pedidos:nuevo")
+        )
+
+        for respuesta in (listado, detalle, nuevo):
+            self.assertEqual(respuesta.status_code, 200)
+            self.assertContains(
+                respuesta,
+                "https://example.com/presupuesto-thumb.jpg",
+            )
+
+    def test_snapshot_de_kit_se_conserva_al_aprobar_presupuesto(self):
+        kit = Kit.objects.create(
+            nombre="Kit snapshot presupuesto",
+            modalidad="FIJO",
+            cantidad_productos=2,
+            precio=Decimal("12000"),
+            activo=True,
+        )
+        KitComponente.objects.create(
+            kit=kit,
+            producto=self.producto,
+            cantidad=2,
+        )
+
+        respuesta = self.client.post(
+            reverse("pedidos:nuevo"),
+            data={
+                "cliente": str(self.cliente.id),
+                "fecha_entrega": "",
+                "observaciones": "",
+                "item_indice": ["1"],
+                "tipo_item_1": "KIT",
+                "kit_1": str(kit.id),
+                "cantidad_1": "2",
+                "precio_kit_manual_1": "0",
+            },
+        )
+        self.assertEqual(respuesta.status_code, 302)
+
+        presupuesto = Presupuesto.objects.get()
+        detalle = presupuesto.detalles.get()
+        snapshot_original = dict(detalle.kit_snapshot)
+
+        self.assertEqual(
+            snapshot_original["nombre"],
+            "Kit snapshot presupuesto",
+        )
+        self.assertEqual(
+            snapshot_original["componentes"][0]["cantidad_total"],
+            4,
+        )
+
+        kit.nombre = "Kit cambiado después"
+        kit.precio = Decimal("25000")
+        kit.save(update_fields=["nombre", "precio"])
+
+        respuesta = self.client.post(
+            reverse(
+                "pedidos:presupuesto_aprobar",
+                args=[presupuesto.id],
+            )
+        )
+        self.assertEqual(respuesta.status_code, 302)
+
+        pedido = Pedido.objects.get()
+        detalle_pedido = pedido.detalles.get()
+        self.assertEqual(
+            detalle_pedido.kit_snapshot["nombre"],
+            "Kit snapshot presupuesto",
+        )
+        self.assertEqual(
+            detalle_pedido.kit_snapshot["precio_base"],
+            snapshot_original["precio_base"],
         )
 

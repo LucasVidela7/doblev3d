@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from django.shortcuts import get_object_or_404, render
 
-from kits.economia import analizar_opciones_kit
+from kits.engine import KitEngine
 from kits.imagenes import adjuntar_imagenes_reutilizadas
 from kits.models import Kit
 
@@ -84,7 +84,7 @@ def _catalogo_publico(request, vista_catalogo):
 
     for kit in kits:
         if kit.modalidad == "LIBRE_CATEGORIA":
-            analisis = analizar_opciones_kit(
+            analisis = KitEngine.opciones(
                 kit,
                 productos_categoria=productos_por_tipo.get(
                     kit.tipo_producto_id,
@@ -211,7 +211,7 @@ def catalogo_kit_detalle(request, kit_id):
             .order_by("nombre", "id")
         )
 
-        analisis = analizar_opciones_kit(
+        analisis = KitEngine.opciones(
             kit,
             productos_categoria=productos,
         )

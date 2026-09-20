@@ -9,11 +9,15 @@ from django.urls import reverse
 from clientes.models import Cliente
 from clientes.telefonos import buscar_cliente_por_telefono
 from calculadora.precios import calcular_precio_catalogo_producto
-from kits.economia import precio_automatico_kit_libre
+from kits.engine import KitEngine
 from kits.models import Kit
 from productos.models import Producto
+from productos.miniaturas import asignar_miniaturas_productos
 
-from .kits_volumen import calcular_precio_volumen_kits
+from .miniaturas import (
+    asignar_miniatura_resumen,
+    asignar_miniaturas_items,
+)
 from .models import (
     DetalleKitProducto,
     DetallePedido,
@@ -25,6 +29,7 @@ from .models import (
 from .pedido_form_views import (
     CENTAVOS,
     _decimal_positivo,
+    _guardar_snapshot_kit,
     _precio_kit_desde_post,
 )
 from .precios_api import _costos_producto, _precio_lista
@@ -32,13 +37,16 @@ from .views import _costo_actual_producto, _guardar_costo_kit
 
 
 def _catalogos():
+    productos = list(
+        Producto.objects.filter(activo=True)
+        .select_related("tipo")
+        .order_by("nombre")
+    )
+    asignar_miniaturas_productos(productos)
+
     return {
         "clientes": Cliente.objects.filter(activo=True).order_by("nombre"),
-        "productos": (
-            Producto.objects.filter(activo=True)
-            .select_related("tipo")
-            .order_by("nombre")
-        ),
+        "productos": productos,
         "kits": (
             Kit.objects.filter(activo=True)
             .select_related("tipo_producto")
@@ -263,9 +271,9 @@ def _parsear_items(request):
 
             precio_lista_unitario = Decimal(str(kit.precio or 0))
             if kit.modalidad == "LIBRE_CATEGORIA":
-                precio_lista_unitario = precio_automatico_kit_libre(
+                precio_lista_unitario = KitEngine.precio_unitario(
                     kit,
-                    productos_libres,
+                    productos=productos_libres,
                 )
 
             precio_unitario, precio_manual = _precio_kit_desde_post(
@@ -372,7 +380,7 @@ def _parsear_items(request):
         )
 
     if items_kits:
-        resumen = calcular_precio_volumen_kits(items_kits)
+        resumen = KitEngine.volumen(items_kits)
         por_key = {
             str(linea["key"]): linea
             for linea in resumen["lineas"]
@@ -390,6 +398,35 @@ def _parsear_items(request):
                     ).quantize(CENTAVOS)
 
     return items
+
+
+def _guardar_snapshot_presupuesto_kit(detalle):
+    if (
+        not detalle
+        or detalle.tipo_item != "KIT"
+        or not detalle.kit_id
+    ):
+        return
+
+    componentes = [
+        {
+            "producto": item.producto,
+            "cantidad": item.cantidad,
+        }
+        for item in detalle.productos_kit
+        .select_related("producto")
+        .all()
+    ]
+
+    detalle.kit_snapshot = KitEngine.snapshot(
+        detalle.kit,
+        cantidad_kits=detalle.cantidad,
+        precio_unitario=detalle.precio_unitario,
+        precio_manual=detalle.precio_kit_manual,
+        componentes=componentes,
+        costo_unitario=detalle.costo_unitario,
+    )
+    detalle.save(update_fields=["kit_snapshot"])
 
 
 def _guardar_items(presupuesto, items):
@@ -424,6 +461,8 @@ def _guardar_items(presupuesto, items):
                     producto_id=producto_id,
                     cantidad=cantidad,
                 )
+
+            _guardar_snapshot_presupuesto_kit(detalle)
             continue
 
         DetallePresupuesto.objects.create(
@@ -543,9 +582,15 @@ def lista_presupuestos(request):
     base = list(
         Presupuesto.objects
         .select_related("cliente", "pedido_generado")
-        .prefetch_related("detalles")
+        .prefetch_related(
+            "detalles__producto",
+            "detalles__kit__componentes__producto",
+            "detalles__productos_kit__producto",
+        )
         .order_by("-id")
     )
+
+    asignar_miniatura_resumen(base, "detalles")
 
     estados_validos = {"PENDIENTE", "APROBADO", "RECHAZADO"}
     presupuestos = (
@@ -590,12 +635,15 @@ def detalle_presupuesto(request, presupuesto_id):
         id=presupuesto_id,
     )
 
+    detalles = list(presupuesto.detalles.all())
+    asignar_miniaturas_items(detalles)
+
     return render(
         request,
         "pedidos/presupuesto_detalle.html",
         {
             "presupuesto": presupuesto,
-            "detalles": list(presupuesto.detalles.all()),
+            "detalles": detalles,
         },
     )
 
@@ -777,6 +825,7 @@ def aprobar_presupuesto(request, presupuesto_id):
                 # Un presupuesto aprobado congela el valor aceptado.
                 precio_kit_manual=True,
                 costo_unitario=None,
+                kit_snapshot=detalle.kit_snapshot or {},
                 estado="PENDIENTE",
             )
 
@@ -788,6 +837,23 @@ def aprobar_presupuesto(request, presupuesto_id):
                 )
 
             _guardar_costo_kit(detalle_pedido)
+            detalle_pedido.refresh_from_db(
+                fields=["costo_unitario", "kit_snapshot"]
+            )
+
+            if detalle_pedido.kit_snapshot:
+                snapshot = dict(detalle_pedido.kit_snapshot)
+                snapshot["costo_unitario"] = (
+                    str(detalle_pedido.costo_unitario)
+                    if detalle_pedido.costo_unitario is not None
+                    else None
+                )
+                detalle_pedido.kit_snapshot = snapshot
+                detalle_pedido.save(
+                    update_fields=["kit_snapshot"]
+                )
+            else:
+                _guardar_snapshot_kit(detalle_pedido)
             continue
 
         DetallePedido.objects.create(
@@ -969,7 +1035,7 @@ def repetir_pedido_como_presupuesto(request, pedido_id):
                 ]
                 if productos_libres:
                     precio_lista = Decimal(str(
-                        precio_automatico_kit_libre(
+                        KitEngine.precio_unitario(
                             kit,
                             productos_libres,
                         )
@@ -984,6 +1050,7 @@ def repetir_pedido_como_presupuesto(request, pedido_id):
                 precio_unitario=detalle.precio_unitario,
                 precio_kit_manual=True,
                 costo_unitario=detalle.costo_unitario,
+                kit_snapshot=detalle.kit_snapshot or {},
             )
 
             for componente in detalle.productos_kit.all():
