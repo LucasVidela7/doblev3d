@@ -388,6 +388,8 @@
         .delivery-banner strong { color: var(--brand-blue-strong); }
 
         .delivery-card-note {
+            display: -webkit-box;
+            overflow: hidden;
             margin: 10px 0 0;
             padding: 8px 9px;
             border-radius: 9px;
@@ -395,6 +397,8 @@
             color: #667085;
             font-size: .7rem;
             line-height: 1.35;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
         }
 
         .content { padding: 18px; }
