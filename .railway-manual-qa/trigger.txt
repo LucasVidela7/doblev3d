@@ -1,10 +1,10 @@
-Deploy QA: reforma integral de experiencia del catálogo
-- Recorrido guiado Inicio -> Carrito -> Datos -> Confirmación.
-- Ficha pública de producto con precio, fotos, plazo y agregar al carrito.
-- Tarjetas con VER/AGREGAR y precios más claros.
-- Carrito abre al agregar producto, feedback visual y total estimado.
-- Checkout guiado, editable, sin pago online y con miniaturas.
-- Pedido especial para productos fuera del catálogo: Observaciones o WhatsApp.
-- Confirmación final con próximos pasos y plazo de entrega.
-- Ayudas de confianza y Cómo comprar actualizado.
-Sin cambios de modelos ni migraciones en esta tanda.
+Deploy QA: términos, privacidad y arrepentimiento
+- Centro legal público con Términos de compra y Política de privacidad.
+- BOTÓN DE ARREPENTIMIENTO visible y directo en todo el catálogo.
+- Formulario público sin registro previo, con código de solicitud.
+- Solicitudes visibles y resolubles desde Configuración > Legal.
+- Datos legales del responsable configurables sin inventar información.
+- Acceso legal también durante mantenimiento.
+- Integración legal discreta en checkout.
+- Plazo de entrega eliminado de las tarjetas de Productos y Kits; se conserva como aviso general y en detalles/checkout.
+Incluye migración productos.0014_datos_legales_y_arrepentimiento.
