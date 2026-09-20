@@ -466,3 +466,55 @@ class CatalogoPublicoTests(TestCase):
         )
         self.assertContains(response, "Precio unitario")
 
+    def test_inicio_mantiene_dos_columnas_y_muestra_dos_fotos_del_producto(self):
+        ProductoImagen.objects.create(
+            producto=self.producto,
+            ambiente="qa",
+            file_id="qa-pina-2",
+            url="https://example.com/qa-pina-2.jpg",
+            thumbnail_url="https://example.com/qa-pina-2-thumb.jpg",
+            orden=2,
+        )
+
+        response = self.client.get(reverse("catalogo"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "grid-template-columns:repeat(2,minmax(0,1fr))",
+        )
+        self.assertContains(
+            response,
+            "https://example.com/qa-pina.jpg",
+        )
+        self.assertContains(
+            response,
+            "https://example.com/qa-pina-2.jpg",
+        )
+        self.assertContains(response, "preview-media dual")
+
+    def test_tarjeta_producto_muestra_ver_y_agregar_legibles(self):
+        response = self.client.get(
+            reverse("catalogo_productos")
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            'class="product-actions"',
+        )
+        self.assertContains(
+            response,
+            ">VER</a>",
+            html=True,
+        )
+        self.assertContains(
+            response,
+            ">AGREGAR</button>",
+            html=True,
+        )
+        self.assertContains(
+            response,
+            "grid-template-columns:minmax(58px,.7fr) minmax(0,1.3fr)",
+        )
+
