@@ -130,7 +130,13 @@ class KitEngine:
         }
 
     @classmethod
-    def estado_salud(cls, kit, productos_categoria=None):
+    def estado_salud(
+        cls,
+        kit,
+        productos_categoria=None,
+        recomendacion=None,
+        opciones=None,
+    ):
         configuracion = cls.validar_configuracion(
             kit,
             productos_categoria=productos_categoria,
@@ -145,10 +151,11 @@ class KitEngine:
                 "errores": configuracion["errores"],
             }
 
-        recomendacion = cls.recomendacion(
-            kit,
-            productos_categoria=productos_categoria,
-        )
+        if recomendacion is None:
+            recomendacion = cls.recomendacion(
+                kit,
+                productos_categoria=productos_categoria,
+            )
 
         if not recomendacion["disponible"]:
             return {
@@ -190,10 +197,11 @@ class KitEngine:
             }
 
         if kit.modalidad == "LIBRE_CATEGORIA":
-            opciones = cls.opciones(
-                kit,
-                productos_categoria=productos_categoria,
-            )
+            if opciones is None:
+                opciones = cls.opciones(
+                    kit,
+                    productos_categoria=productos_categoria,
+                )
             if (
                 kit.proteger_rentabilidad_libre
                 and opciones["disponible"]
@@ -364,7 +372,10 @@ class KitEngine:
             )
 
         recomendacion = cls.recomendacion(kit)
-        salud = cls.estado_salud(kit)
+        salud = cls.estado_salud(
+            kit,
+            recomendacion=recomendacion,
+        )
 
         if precio_unitario is None:
             precio_unitario = (
