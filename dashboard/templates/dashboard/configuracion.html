@@ -83,6 +83,12 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 <textarea class="cfg-textarea" id="mensaje_mantenimiento" name="mensaje_mantenimiento" maxlength="240" data-counter>{{ config.mensaje_mantenimiento }}</textarea>
 </div>
 
+<div class="cfg-box full">
+<label class="cfg-label" for="mensaje_plazo_entrega"><span>PLAZO DE ENTREGA INFORMADO EN EL CATÁLOGO</span><span data-count-for="mensaje_plazo_entrega"></span></label>
+<textarea class="cfg-textarea" id="mensaje_plazo_entrega" name="mensaje_plazo_entrega" maxlength="300" data-counter>{{ config.mensaje_plazo_entrega }}</textarea>
+<div class="cfg-note">Se muestra en la portada, Productos/Kits, detalle de kit, “Cómo comprar” y antes de solicitar presupuesto.</div>
+</div>
+
 <div class="cfg-box">
 <div class="cfg-switch-row"><div><div class="cfg-box-title">Mostrar Instagram</div><div class="cfg-box-copy">Controla el acceso desde el catálogo público.</div></div><label class="cfg-switch"><input type="checkbox" name="mostrar_instagram" {% if config.mostrar_instagram %}checked{% endif %}><span class="cfg-switch-track"></span></label></div>
 <label class="cfg-label" for="instagram_usuario"><span>USUARIO</span></label>
