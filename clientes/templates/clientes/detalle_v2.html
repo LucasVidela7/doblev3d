@@ -77,7 +77,7 @@ a,button,input,textarea,select{touch-action:manipulation}.c{width:min(1220px,100
               <div><div class="accion-title">{{ seguimiento.titulo }}</div><div class="accion-meta">{{ seguimiento.detalle }}</div></div>
               <span class="badge {% if seguimiento.tipo == 'PEDIDO_LISTO' %}ok{% else %}warn{% endif %}">{{ seguimiento.tipo }}</span>
             </div>
-            <div class="mini-actions"><a class="btn ok" href="{{ seguimiento.url }}" target="_blank" rel="noopener">{{ seguimiento.accion }} · WHATSAPP</a></div>
+            {% if seguimiento.url %}<div class="mini-actions"><a class="btn ok" href="{{ seguimiento.url }}" target="_blank" rel="noopener">{{ seguimiento.accion }} · WHATSAPP</a></div>{% endif %}
           </article>
           {% endfor %}
 
