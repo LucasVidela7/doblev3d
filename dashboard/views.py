@@ -967,6 +967,7 @@ def configuracion(request):
 
     campos_texto = {
         "mensaje_mantenimiento": 240,
+        "mensaje_plazo_entrega": 300,
         "instagram_usuario": 100,
         "whatsapp_numero": 30,
         "whatsapp_mensaje": 240,
