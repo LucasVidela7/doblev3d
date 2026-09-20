@@ -137,6 +137,14 @@ header.shell.top{display:none!important}
     font-size:.62rem;font-weight:950;letter-spacing:.03em
 }
 .dv-catalog-withdrawal:hover{background:#fff5f5}
+
+/* En detalles de producto/kit hay una barra de compra fija abajo.
+   El acceso legal se eleva para no tapar subtotal, cantidad ni CTA. */
+body:has(.dv-product-builder) .dv-catalog-withdrawal,
+body:has(.dv-kit-builder) .dv-catalog-withdrawal{
+    bottom:96px
+}
+
 @media(max-width:640px){
     .dv-catalog-legal-footer{margin-top:22px;padding-bottom:72px}
     .dv-catalog-legal-footer__inner{display:grid;grid-template-columns:1fr}
@@ -144,6 +152,10 @@ header.shell.top{display:none!important}
     .dv-catalog-withdrawal{
         right:8px;bottom:8px;min-height:31px;max-width:158px;
         padding:0 8px;font-size:.49rem;box-shadow:0 4px 12px rgba(25,35,50,.12)
+    }
+    body:has(.dv-product-builder) .dv-catalog-withdrawal,
+    body:has(.dv-kit-builder) .dv-catalog-withdrawal{
+        bottom:calc(max(8px,env(safe-area-inset-bottom)) + 84px)
     }
 }
 </style>

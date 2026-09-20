@@ -1,7 +1,6 @@
-Deploy QA: páginas legales públicas
-- Términos y condiciones accesible sin iniciar sesión.
-- Política de privacidad accesible sin iniciar sesión.
-- Botón/formulario de arrepentimiento accesible sin iniciar sesión.
-- Página de confirmación de arrepentimiento accesible sin iniciar sesión.
-- Las páginas legales siguen disponibles aunque el catálogo esté en mantenimiento.
+Deploy QA: separar arrepentimiento de barra de compra
+- El botón de arrepentimiento ya no se superpone con la barra flotante del carrito.
+- En detalle de producto y kit se ubica automáticamente por encima del subtotal y CTA.
+- En el resto del catálogo conserva su posición habitual.
+- Ajuste responsive con safe area en mobile.
 Sin migraciones.
