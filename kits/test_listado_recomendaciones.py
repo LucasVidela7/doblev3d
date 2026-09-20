@@ -8,19 +8,19 @@ from django.urls import reverse
 from costos.models import ConfiguracionCostos
 from productos.models import Producto, TipoProducto
 
-from .economia import recomendacion_kit
+from .engine import KitEngine
 from .models import Kit, KitComponente
 
 
-class ListadoRecomendacionesKitTests(TestCase):
+class CentroKitsTests(TestCase):
     def setUp(self):
         usuario = get_user_model().objects.create_user(
-            username="kits-listado-test",
+            username="kits-centro-test",
             password="test-pass",
         )
         self.client.force_login(usuario)
         ConfiguracionCostos.objects.create(
-            nombre="Test listado kits",
+            nombre="Test Centro Kits",
             coste_plastico_kg=Decimal("1000"),
             tasa_fallos=Decimal("0"),
             coste_luz_hora=Decimal("0"),
@@ -29,7 +29,7 @@ class ListadoRecomendacionesKitTests(TestCase):
             activa=True,
         )
         self.tipo = TipoProducto.objects.create(
-            nombre="Sensorial listado",
+            nombre="Sensorial Centro",
             activo=True,
         )
 
@@ -50,64 +50,66 @@ class ListadoRecomendacionesKitTests(TestCase):
             solo_produccion=False,
         )
 
-    def test_estado_precio_usa_agresivo_y_recomendado(self):
-        producto = self.producto(
-            "Producto margen",
-            1000,
-            margen=70,
-        )
+    def test_centro_es_compacto_y_enlaza_al_detalle(self):
+        producto = self.producto("Producto fijo", 500, 65)
         kit = Kit.objects.create(
-            nombre="Kit estados",
+            nombre="Kit centro fijo",
             modalidad="FIJO",
-            cantidad_productos=1,
-            precio=Decimal("1"),
+            cantidad_productos=2,
+            precio=Decimal("5000"),
             activo=True,
         )
         KitComponente.objects.create(
             kit=kit,
             producto=producto,
-            cantidad=1,
+            cantidad=2,
         )
 
-        recomendacion = recomendacion_kit(kit)
-        agresivo = recomendacion["precio_agresivo"]
-        recomendado = recomendacion["precio_recomendado"]
+        respuesta = self.client.get(reverse("kits:lista"))
 
-        self.assertEqual(
-            recomendacion["estado"],
-            "REVISAR",
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "Centro de kits")
+        self.assertContains(respuesta, kit.nombre)
+        self.assertContains(
+            respuesta,
+            reverse("kits:detalle", args=[kit.id]),
         )
+        self.assertContains(respuesta, "CÁLCULO EXACTO")
+        self.assertNotContains(respuesta, "REFERENCIAS DE PRECIO")
 
-        kit.precio = agresivo
-        recomendacion = recomendacion_kit(kit)
-
-        if agresivo < recomendado:
-            self.assertEqual(
-                recomendacion["estado"],
-                "ADVERTENCIA",
-            )
-
-        kit.precio = recomendado
-        recomendacion = recomendacion_kit(kit)
-        self.assertEqual(
-            recomendacion["estado"],
-            "OK",
-        )
-        self.assertFalse(recomendacion["alerta"])
-
-    def test_listado_protegido_evalua_precio_sobre_opciones_incluidas(self):
-        incluido = self.producto(
-            "Incluido protegido listado",
-            100,
-            margen=50,
-        )
-        self.producto(
-            "Premium protegido listado",
-            2000,
-            margen=70,
-        )
+    def test_detalle_concentra_composicion_y_escenarios(self):
+        producto = self.producto("Producto detalle", 500, 65)
         kit = Kit.objects.create(
-            nombre="Kit protegido listado",
+            nombre="Kit detalle",
+            modalidad="FIJO",
+            cantidad_productos=2,
+            precio=Decimal("5000"),
+            activo=True,
+        )
+        KitComponente.objects.create(
+            kit=kit,
+            producto=producto,
+            cantidad=2,
+        )
+
+        respuesta = self.client.get(
+            reverse("kits:detalle", args=[kit.id])
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "ESTADO DEL KIT")
+        self.assertContains(respuesta, "COMPOSICIÓN")
+        self.assertContains(respuesta, "PRECIO Y RENTABILIDAD")
+        self.assertContains(respuesta, "AGRESIVO")
+        self.assertContains(respuesta, "RECOMENDADO")
+        self.assertContains(respuesta, "CONSERVADOR")
+        self.assertContains(respuesta, producto.nombre)
+
+    def test_libre_protegido_expone_incluidos_y_premium(self):
+        incluido = self.producto("Incluido protegido", 100, 50)
+        premium = self.producto("Premium protegido", 2000, 70)
+        kit = Kit.objects.create(
+            nombre="Kit libre protegido",
             modalidad="LIBRE_CATEGORIA",
             tipo_producto=self.tipo,
             cantidad_productos=2,
@@ -117,175 +119,66 @@ class ListadoRecomendacionesKitTests(TestCase):
         )
 
         respuesta = self.client.get(
-            reverse("kits:lista")
+            reverse("kits:detalle", args=[kit.id])
         )
 
         self.assertEqual(respuesta.status_code, 200)
-        kit_listado = next(
-            item
-            for item in respuesta.context["kits"]
-            if item.id == kit.id
-        )
-
-        self.assertTrue(
-            kit_listado.recomendacion_sobre_incluidos
-        )
-        self.assertFalse(
-            kit_listado.alerta_proteccion_sin_incluidos
-        )
-        self.assertIn(
-            incluido.id,
-            {
-                item["producto_id"]
-                for item in kit_listado.opciones_libres_analisis[
-                    "incluidos"
-                ]
-            },
-        )
-        self.assertGreaterEqual(
-            kit_listado.opciones_libres_analisis[
-                "cantidad_premium"
-            ],
-            1,
-        )
-        self.assertNotEqual(
-            kit_listado.recomendacion_calculadora["estado"],
-            "REVISAR",
-        )
-        self.assertContains(
-            respuesta,
-            "PROTECCIÓN ACTIVA",
-        )
-        self.assertContains(
-            respuesta,
-            "CON ADICIONAL",
-        )
-        self.assertContains(
-            respuesta,
-            "BASE PROTEGIDA",
-        )
-        self.assertContains(
-            respuesta,
-            "PRECIO MODULAR",
-        )
-        self.assertNotContains(
-            respuesta,
-            "⚠ REVISAR PRECIO",
-        )
-        self.assertNotContains(
-            respuesta,
-            "REFERENCIAS DE PRECIO",
-        )
-        self.assertNotContains(
-            respuesta,
-            "Recomendado:",
-        )
-
-        visuales = {
-            visual["producto"].id: visual
-            for visual in kit_listado.productos_visuales
+        kit_detalle = respuesta.context["kit"]
+        analisis = kit_detalle.opciones_gestion
+        por_id = {
+            item["producto_id"]: item
+            for item in analisis["opciones"]
         }
-        self.assertTrue(visuales[incluido.id]["incluido"])
-        premium_visual = next(
-            visual
-            for visual in kit_listado.productos_visuales
-            if not visual["incluido"]
-        )
+        self.assertTrue(por_id[incluido.id]["incluido"])
+        self.assertFalse(por_id[premium.id]["incluido"])
         self.assertGreater(
-            premium_visual["extra"],
+            por_id[premium.id]["extra"],
             Decimal("0"),
         )
         self.assertContains(
             respuesta,
-            "INCLUIDA EN EL PRECIO",
+            "Protección de rentabilidad",
         )
-        self.assertContains(
-            respuesta,
-            "kit-foto-estado incluida",
-        )
-        self.assertContains(
-            respuesta,
-            "kit-foto-estado premium",
-        )
+        self.assertContains(respuesta, "INCLUIDO")
 
-    def test_listado_protegido_alerta_si_no_hay_opciones_incluidas(self):
-        self.producto(
-            "Premium único A",
-            2000,
-            margen=70,
-        )
-        self.producto(
-            "Premium único B",
-            2500,
-            margen=70,
-        )
-        Kit.objects.create(
-            nombre="Kit sin base incluida",
-            modalidad="LIBRE_CATEGORIA",
-            tipo_producto=self.tipo,
-            cantidad_productos=2,
-            precio=Decimal("100"),
-            proteger_rentabilidad_libre=True,
-            activo=True,
-        )
-
-        respuesta = self.client.get(
-            reverse("kits:lista")
-        )
-
-        self.assertEqual(respuesta.status_code, 200)
-        self.assertContains(
-            respuesta,
-            "⚠ SIN OPCIONES INCLUIDAS",
-        )
-        self.assertContains(
-            respuesta,
-            "el precio base no incluye ninguna opción",
-        )
-
-    def test_listado_muestra_tres_escenarios_y_no_formula_vieja(self):
-        producto_a = self.producto("Producto A", 500, 65)
-        self.producto("Producto B", 1000, 70)
-
-        fijo = Kit.objects.create(
-            nombre="Kit fijo listado",
+    def test_filtro_atencion_usa_estado_salud(self):
+        producto = self.producto("Producto salud", 1000, 70)
+        revisar = Kit.objects.create(
+            nombre="Kit revisar",
             modalidad="FIJO",
-            cantidad_productos=2,
-            precio=Decimal("5000"),
+            cantidad_productos=1,
+            precio=Decimal("1"),
             activo=True,
         )
         KitComponente.objects.create(
-            kit=fijo,
-            producto=producto_a,
-            cantidad=2,
+            kit=revisar,
+            producto=producto,
+            cantidad=1,
         )
 
-        Kit.objects.create(
-            nombre="Kit libre listado",
-            modalidad="LIBRE_CATEGORIA",
-            tipo_producto=self.tipo,
-            cantidad_productos=2,
-            precio=Decimal("5000"),
+        saludable = Kit.objects.create(
+            nombre="Kit saludable",
+            modalidad="FIJO",
+            cantidad_productos=1,
+            precio=Decimal("1"),
             activo=True,
         )
+        KitComponente.objects.create(
+            kit=saludable,
+            producto=producto,
+            cantidad=1,
+        )
+        recomendado = KitEngine.recomendacion(
+            saludable
+        )["precio_recomendado"]
+        saludable.precio = recomendado
+        saludable.save(update_fields=["precio"])
 
         respuesta = self.client.get(
-            reverse("kits:lista")
+            reverse("kits:lista"),
+            {"estado": "ATENCION"},
         )
 
         self.assertEqual(respuesta.status_code, 200)
-        self.assertContains(respuesta, 'class="escenario agresivo"', count=2)
-        self.assertContains(respuesta, 'class="escenario recomendado"', count=2)
-        self.assertContains(respuesta, 'class="escenario conservador"', count=2)
-        self.assertContains(
-            respuesta,
-            "Peor caso actual",
-        )
-        self.assertNotContains(
-            respuesta,
-            "Precio mínimo sugerido para sostener",
-        )
-        self.assertNotContains(
-            respuesta,
-            "Piso de alerta: 20%",
-        )
+        self.assertContains(respuesta, revisar.nombre)
+        self.assertNotContains(respuesta, saludable.nombre)
