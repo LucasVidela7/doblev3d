@@ -15,6 +15,7 @@ from pedidos.models import (
 )
 from produccion.models import Impresora, Produccion
 from productos.models import Producto, TipoProducto
+from productos.image_models import ProductoImagen
 
 
 class DashboardProduccionTests(TestCase):
@@ -341,3 +342,35 @@ class DashboardProduccionTests(TestCase):
             self.producto.stock,
             2,
         )
+
+    def test_dashboard_muestra_miniatura_en_produccion(self):
+        ProductoImagen.objects.create(
+            producto=self.producto,
+            file_id="prod-thumb-dashboard",
+            url="https://example.com/dashboard.jpg",
+            thumbnail_url="https://example.com/dashboard-thumb.jpg",
+            orden=1,
+        )
+        Produccion.objects.create(
+            producto=self.producto,
+            cantidad=1,
+            impresora=self.impresora_a,
+            estado="IMPRIMIENDO",
+            inicio_impresion=timezone.now(),
+            tiempo_impresion_minutos=90,
+        )
+
+        respuesta = self.client.get(
+            reverse("dashboard:inicio")
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(
+            respuesta,
+            "https://example.com/dashboard-thumb.jpg",
+        )
+        self.assertContains(
+            respuesta,
+            'class="dv-producto-thumb"',
+        )
+
