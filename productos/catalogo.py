@@ -188,6 +188,55 @@ def catalogo_kits(request):
     return _catalogo_publico(request, "kits")
 
 
+def catalogo_producto_detalle(request, producto_id):
+    """Detalle público de un producto activo del catálogo."""
+
+    ambiente = entorno_imagenes()
+    config_catalogo = (
+        ConfiguracionCatalogo.objects.first()
+        or ConfiguracionCatalogo()
+    )
+
+    producto = get_object_or_404(
+        Producto.objects
+        .filter(
+            activo=True,
+            solo_produccion=False,
+        )
+        .select_related("tipo"),
+        id=producto_id,
+    )
+    producto.catalogo_precio = producto.subtotal
+
+    imagenes = list(
+        ProductoImagen.objects
+        .filter(
+            producto=producto,
+            ambiente=ambiente,
+        )
+        .order_by("orden", "id")[:2]
+    )
+    producto.catalogo_imagen_url = (
+        imagenes[0].url
+        if imagenes
+        else ""
+    )
+
+    return render(
+        request,
+        "productos/catalogo_producto_detalle.html",
+        {
+            "producto": producto,
+            "imagenes": imagenes,
+            "ambiente_catalogo": ambiente,
+            "es_ambiente_no_productivo": ambiente != "production",
+            "mensaje_plazo_entrega": (
+                config_catalogo.mensaje_plazo_entrega
+            ),
+        },
+    )
+
+
 def catalogo_kit_detalle(request, kit_id):
     """Detalle público de un kit activo, sin exponer la gestión interna."""
 
