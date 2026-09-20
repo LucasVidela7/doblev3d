@@ -199,6 +199,30 @@ a,button{touch-action:manipulation}
     border-radius:13px;
     background:var(--dv-surface-soft,#fafafa);
 }
+.que-imprimir-identidad{
+    min-width:0;
+    display:grid;
+    grid-template-columns:40px minmax(0,1fr);
+    gap:9px;
+    align-items:center;
+}
+.que-imprimir-thumb{
+    width:40px;
+    height:40px;
+    display:block;
+    object-fit:cover;
+    border:1px solid var(--borde);
+    border-radius:9px;
+    background:var(--dv-surface-soft,#f2f4f7);
+}
+.que-imprimir-thumb.vacia{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--muted);
+    font-size:7px;
+    font-weight:900;
+}
 .que-imprimir-producto{
     min-width:0;
     overflow:hidden;
@@ -733,13 +757,20 @@ a,button{touch-action:manipulation}
             <div class="que-imprimir">
                 {% for item in top_impresion %}
                 <div class="que-imprimir-item">
-                    <div>
-                        <div class="que-imprimir-producto">{{ item.producto.nombre }}</div>
-                        <div class="que-imprimir-meta">
-                            Pedido {{ item.cantidad_pedida }}
-                            · En cola {{ item.planificadas }}
-                            · Imprimiendo {{ item.en_produccion }}
-                            {% if item.cantidad_personalizada %}· {{ item.cantidad_personalizada }} personalizadas{% endif %}
+                    <div class="que-imprimir-identidad">
+                        {% if item.producto.imagen_produccion_url %}
+                            <img class="que-imprimir-thumb" src="{{ item.producto.imagen_produccion_url }}" alt="" loading="lazy">
+                        {% else %}
+                            <span class="que-imprimir-thumb vacia">3D</span>
+                        {% endif %}
+                        <div>
+                            <div class="que-imprimir-producto">{{ item.producto.nombre }}</div>
+                            <div class="que-imprimir-meta">
+                                Pedido {{ item.cantidad_pedida }}
+                                · En cola {{ item.planificadas }}
+                                · Imprimiendo {{ item.en_produccion }}
+                                {% if item.cantidad_personalizada %}· {{ item.cantidad_personalizada }} personalizadas{% endif %}
+                            </div>
                         </div>
                     </div>
                     <div class="que-imprimir-falta">
