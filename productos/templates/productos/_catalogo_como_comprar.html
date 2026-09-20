@@ -278,6 +278,21 @@
     font-weight:700;
     text-align:center;
 }
+.dv-how-buy-leadtime{
+    display:flex;
+    align-items:flex-start;
+    gap:8px;
+    margin-top:12px;
+    padding:10px 11px;
+    border:1px solid #cdddf4;
+    border-radius:12px;
+    background:#eef4ff;
+    color:#345f91;
+    font-size:.72rem;
+    font-weight:700;
+    line-height:1.4;
+}
+.dv-how-buy-leadtime strong{color:#0d376f}
 .dv-how-buy-note svg{
     width:16px;
     height:16px;
@@ -510,6 +525,13 @@
             <p class="dv-how-buy-retire-note">
                 La dirección exacta y el horario se informan al confirmar.
             </p>
+
+            {% if mensaje_plazo_entrega %}
+            <div class="dv-how-buy-leadtime">
+                <span aria-hidden="true">⏱</span>
+                <div><strong>Plazo estimado</strong><br>{{ mensaje_plazo_entrega }}</div>
+            </div>
+            {% endif %}
 
             <div class="dv-how-buy-note">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
