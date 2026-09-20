@@ -2,328 +2,249 @@
 <!doctype html>
 <html lang="es">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>Doble V 3D | Configuración</title>
-    <link rel="icon" href="{% static 'brand/favicon.ico' %}">
-    <link rel="stylesheet" href="{% static 'brand/brand.css' %}">
-    <style>
-        *{box-sizing:border-box}
-        body{
-            margin:0;
-            padding-bottom:110px;
-            background:var(--dv-bg,#f4f6fa);
-            color:var(--dv-text,#17233a);
-            font-family:Arial,sans-serif;
-        }
-        .cfg-shell{
-            width:min(980px,calc(100% - 28px));
-            margin:0 auto;
-            padding:28px 0 40px;
-        }
-        .cfg-head{
-            display:flex;
-            align-items:flex-start;
-            justify-content:space-between;
-            gap:18px;
-            margin-bottom:22px;
-        }
-        .cfg-eyebrow{
-            margin:0 0 6px;
-            color:var(--dv-brand-blue,#134a9a);
-            font-size:10px;
-            font-weight:900;
-            letter-spacing:.09em;
-            text-transform:uppercase;
-        }
-        .cfg-title{
-            margin:0;
-            font-size:clamp(26px,5vw,38px);
-            letter-spacing:-.04em;
-        }
-        .cfg-subtitle{
-            max-width:650px;
-            margin:8px 0 0;
-            color:var(--dv-muted,#667085);
-            font-size:13px;
-            line-height:1.55;
-        }
-        .cfg-status{
-            flex:0 0 auto;
-            min-height:34px;
-            display:inline-flex;
-            align-items:center;
-            gap:7px;
-            padding:0 11px;
-            border:1px solid var(--dv-border,#dfe5ef);
-            border-radius:999px;
-            background:var(--dv-surface,#fff);
-            font-size:9px;
-            font-weight:900;
-        }
-        .cfg-status::before{
-            content:"";
-            width:8px;height:8px;border-radius:999px;background:#53a86a;
-        }
-        .cfg-status.is-maintenance::before{background:#d39432}
-        .cfg-grid{
-            display:grid;
-            grid-template-columns:repeat(2,minmax(0,1fr));
-            gap:15px;
-        }
-        .cfg-card{
-            min-width:0;
-            padding:20px;
-            border:1px solid var(--dv-border,#dfe5ef);
-            border-radius:20px;
-            background:var(--dv-surface,#fff);
-            box-shadow:var(--dv-shadow,0 8px 26px rgba(20,25,35,.06));
-        }
-        .cfg-card.full{grid-column:1/-1}
-        .cfg-card-head{
-            display:flex;align-items:flex-start;justify-content:space-between;gap:14px;
-            margin-bottom:16px;
-        }
-        .cfg-card h2{margin:0;font-size:17px}
-        .cfg-card p{margin:5px 0 0;color:var(--dv-muted,#667085);font-size:11px;line-height:1.45}
-        .cfg-icon{
-            width:42px;height:42px;display:grid;place-items:center;flex:0 0 auto;
-            border-radius:13px;background:var(--dv-surface-muted,#f1f4f9);font-size:19px;
-        }
-        .cfg-switch-row{
-            display:flex;align-items:center;justify-content:space-between;gap:18px;
-            padding:14px 0;border-top:1px solid var(--dv-border,#dfe5ef);
-        }
-        .cfg-switch-row:first-of-type{border-top:0}
-        .cfg-switch-copy strong{display:block;font-size:12px}
-        .cfg-switch-copy span{display:block;margin-top:4px;color:var(--dv-muted,#667085);font-size:10px;line-height:1.35}
-        .cfg-switch{position:relative;flex:0 0 auto;width:52px;height:30px}
-        .cfg-switch input{position:absolute;opacity:0;pointer-events:none}
-        .cfg-switch-track{
-            position:absolute;inset:0;border-radius:999px;background:#c8ced8;transition:.16s ease;cursor:pointer
-        }
-        .cfg-switch-track::after{
-            content:"";position:absolute;top:4px;left:4px;width:22px;height:22px;border-radius:50%;
-            background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.18);transition:.16s ease
-        }
-        .cfg-switch input:checked + .cfg-switch-track{background:var(--dv-brand-blue,#134a9a)}
-        .cfg-switch input:checked + .cfg-switch-track::after{transform:translateX(22px)}
-        .cfg-label{display:block;margin:15px 0 7px;font-size:10px;font-weight:900}
-        .cfg-textarea{
-            width:100%;min-height:94px;resize:vertical;padding:12px 13px;
-            border:1px solid var(--dv-border,#dfe5ef);border-radius:13px;
-            background:var(--dv-surface-soft,#f8faff);color:var(--dv-text,#17233a);
-            font:inherit;font-size:12px;line-height:1.45;outline:none
-        }
-        .cfg-textarea:focus{border-color:rgba(19,74,154,.5);box-shadow:0 0 0 3px rgba(19,74,154,.10)}
-        .cfg-device{
-            width:100%;min-height:58px;display:flex;align-items:center;gap:12px;
-            padding:10px 13px;border:1px solid var(--dv-border,#dfe5ef);border-radius:14px;
-            background:var(--dv-surface-soft,#f8faff);color:var(--dv-text,#17233a);
-            font:inherit;text-align:left;cursor:pointer
-        }
-        .cfg-device-icon{width:38px;height:38px;display:grid;place-items:center;border-radius:11px;background:var(--dv-surface-muted,#f1f4f9);font-size:18px}
-        .cfg-device-copy{min-width:0;flex:1}
-        .cfg-device-copy strong{display:block;font-size:11px}
-        .cfg-device-copy span{display:block;margin-top:3px;color:var(--dv-muted,#667085);font-size:9px}
-        .cfg-device.is-active{border-color:#b6dcc0;background:#e8f6ec;color:#24633a}
-        .cfg-device.is-blocked{border-color:#efc3c3;background:#fff2f2;color:#9a3030}
-        .cfg-device:disabled{opacity:.58;cursor:not-allowed}
-        .cfg-note{
-            margin-top:12px;padding:11px 12px;border-radius:12px;
-            background:var(--dv-surface-muted,#f1f4f9);color:var(--dv-muted,#667085);
-            font-size:10px;line-height:1.4
-        }
-        .cfg-actions{
-            display:flex;justify-content:flex-end;gap:10px;margin-top:16px
-        }
-        .cfg-save{
-            min-height:44px;padding:0 18px;border:0;border-radius:13px;
-            background:var(--dv-brand-blue,#134a9a);color:#fff;font-weight:900;cursor:pointer
-        }
-        .cfg-open{
-            min-height:44px;display:inline-flex;align-items:center;justify-content:center;
-            padding:0 16px;border:1px solid var(--dv-border,#dfe5ef);border-radius:13px;
-            background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);text-decoration:none;font-size:11px;font-weight:900
-        }
-        .cfg-saved{
-            margin-bottom:15px;padding:12px 14px;border:1px solid #b9dec5;border-radius:13px;
-            background:#e8f6ec;color:#24633a;font-size:11px;font-weight:900
-        }
-        html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc8}
-        html[data-dv-theme="dark"] .cfg-device.is-blocked{background:#3b2024;color:#ffc4c4}
-        @media(max-width:700px){
-            .cfg-shell{width:calc(100% - 20px);padding-top:18px}
-            .cfg-head{display:block}
-            .cfg-status{margin-top:12px}
-            .cfg-grid{grid-template-columns:1fr}
-            .cfg-card.full{grid-column:auto}
-            .cfg-card{padding:17px;border-radius:17px}
-            .cfg-actions{display:grid;grid-template-columns:1fr}
-            .cfg-save,.cfg-open{width:100%}
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Doble V 3D | Configuración</title>
+<link rel="icon" href="{% static 'brand/favicon.ico' %}">
+<link rel="stylesheet" href="{% static 'brand/brand.css' %}">
+<style>
+*{box-sizing:border-box}
+:root{--bg:var(--dv-bg,#f4f6fa);--surface:var(--dv-surface,#fff);--soft:var(--dv-surface-soft,#f8faff);--text:var(--dv-text,#17233a);--muted:var(--dv-muted,#667085);--line:var(--dv-border,#dfe5ef);--blue:var(--dv-brand-blue,#134a9a);--ok:#27633b;--ok-bg:#e8f6ec;--warn:#8b6316;--warn-bg:#fff5d8}
+body{margin:0;padding-bottom:110px;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
+.cfg-shell{width:min(1120px,calc(100% - 28px));margin:auto;padding:24px 0 42px}
+.cfg-head{display:grid;grid-template-columns:minmax(0,1fr);gap:11px;margin-bottom:14px}
+.cfg-eyebrow{margin:0 0 5px;color:var(--blue);font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.cfg-title{margin:0;font-size:clamp(28px,5vw,38px);letter-spacing:-.04em}
+.cfg-subtitle{max-width:730px;margin:7px 0 0;color:var(--muted);font-size:12px;line-height:1.5}
+.actions{display:flex;align-items:stretch;gap:8px;width:100%}
+.cfg-btn{min-height:46px;display:inline-flex;align-items:center;justify-content:center;padding:0 15px;border:1px solid var(--blue);border-radius:12px;background:var(--surface);color:var(--text);text-decoration:none;font-size:9px;font-weight:900;cursor:pointer}
+.cfg-btn.principal{margin-left:auto;min-width:220px;background:var(--blue);color:#fff}
+.cfg-saved{margin-bottom:12px;padding:11px 13px;border:1px solid #b9dec5;border-radius:12px;background:var(--ok-bg);color:var(--ok);font-size:10px;font-weight:900}
+.cfg-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:13px}
+.cfg-nav a{min-height:43px;display:flex;align-items:center;justify-content:center;padding:0 8px;border:1px solid var(--line);border-radius:11px;background:var(--surface);color:var(--text);text-decoration:none;font-size:8px;font-weight:900;text-align:center}
+.cfg-section{scroll-margin-top:12px;margin-bottom:13px;padding:18px;border:1px solid var(--line);border-radius:18px;background:var(--surface);box-shadow:var(--dv-shadow,0 7px 24px rgba(20,25,35,.05))}
+.cfg-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:15px}
+.cfg-section h2{margin:0;font-size:17px}.cfg-section-head p{margin:5px 0 0;color:var(--muted);font-size:10px;line-height:1.45}
+.cfg-icon{width:40px;height:40px;display:grid;place-items:center;flex:0 0 auto;border-radius:12px;background:var(--soft);font-size:18px}
+.cfg-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.cfg-box{min-width:0;padding:13px;border:1px solid var(--line);border-radius:14px;background:var(--soft)}
+.cfg-box.full{grid-column:1/-1}.cfg-box-title{font-size:10px;font-weight:900}.cfg-box-copy{margin-top:4px;color:var(--muted);font-size:8px;line-height:1.4}
+.cfg-switch-row{display:flex;align-items:center;justify-content:space-between;gap:15px}
+.cfg-switch{position:relative;flex:0 0 auto;width:50px;height:29px}.cfg-switch input{position:absolute;opacity:0;pointer-events:none}.cfg-switch-track{position:absolute;inset:0;border-radius:999px;background:#c8ced8;cursor:pointer;transition:.16s}.cfg-switch-track::after{content:"";position:absolute;top:4px;left:4px;width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.16);transition:.16s}.cfg-switch input:checked+.cfg-switch-track{background:var(--blue)}.cfg-switch input:checked+.cfg-switch-track::after{transform:translateX(21px)}
+.cfg-label{display:flex;justify-content:space-between;gap:10px;margin:12px 0 6px;font-size:8px;font-weight:900}.cfg-label span:last-child{color:var(--muted);font-weight:700}
+.cfg-input,.cfg-textarea{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);font:inherit;font-size:11px;outline:none}.cfg-input{min-height:42px;padding:8px 10px}.cfg-textarea{min-height:92px;resize:vertical;padding:10px 11px;line-height:1.45}.cfg-input:focus,.cfg-textarea:focus{border-color:rgba(19,74,154,.55);box-shadow:0 0 0 3px rgba(19,74,154,.09)}
+.cfg-note{margin-top:9px;padding:9px 10px;border-radius:10px;background:var(--surface);color:var(--muted);font-size:8px;line-height:1.45}
+.cfg-status{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:0 8px;border-radius:999px;background:var(--ok-bg);color:var(--ok);font-size:7px;font-weight:900}.cfg-status.warn{background:var(--warn-bg);color:var(--warn)}
+.cfg-fold{border:1px solid var(--line);border-radius:14px;background:var(--soft);overflow:hidden}.cfg-fold+.cfg-fold{margin-top:10px}.cfg-fold>summary{list-style:none;cursor:pointer;padding:13px 14px;font-size:10px;font-weight:900}.cfg-fold>summary::-webkit-details-marker{display:none}.cfg-fold>summary:after{content:"＋";float:right;color:var(--muted)}.cfg-fold[open]>summary:after{content:"−"}.cfg-fold-body{padding:0 12px 12px}
+.cfg-message-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.cfg-message{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}.cfg-message.wide{grid-column:1/-1}.cfg-message-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.cfg-message h3{margin:0;font-size:10px}.cfg-message p{margin:4px 0 0;color:var(--muted);font-size:8px;line-height:1.4}.cfg-reset{border:0;background:transparent;color:var(--blue);font-size:7px;font-weight:900;cursor:pointer;padding:2px}
+.cfg-vars{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}.cfg-var{padding:4px 6px;border-radius:999px;background:var(--soft);color:var(--muted);font:700 7px monospace}
+.cfg-preview{margin-top:8px;padding:9px 10px;border:1px dashed var(--line);border-radius:10px;background:var(--soft);white-space:pre-wrap;color:var(--text);font-size:8px;line-height:1.45}.cfg-preview:before{content:"VISTA PREVIA";display:block;margin-bottom:5px;color:var(--muted);font-size:6px;font-weight:900;letter-spacing:.07em}
+.cfg-device{width:100%;min-height:56px;display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--text);font:inherit;text-align:left;cursor:pointer}.cfg-device-icon{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:var(--soft)}.cfg-device-copy{min-width:0;flex:1}.cfg-device-copy strong{display:block;font-size:10px}.cfg-device-copy span{display:block;margin-top:3px;color:var(--muted);font-size:8px}.cfg-device.is-active{border-color:#b6dcc0;background:#e8f6ec;color:#24633a}.cfg-device.is-blocked{border-color:#efc3c3;background:#fff2f2;color:#9a3030}.cfg-device:disabled{opacity:.58;cursor:not-allowed}
+.cfg-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:13px}
+html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc8}html[data-dv-theme="dark"] .cfg-device.is-blocked{background:#3b2024;color:#ffc4c4}
+@media(max-width:760px){.cfg-shell{width:calc(100% - 20px);padding-top:14px}.actions .cfg-btn{flex:1 1 0}.actions .principal{margin-left:0;min-width:0;flex:1.15}.cfg-nav{grid-template-columns:1fr 1fr}.cfg-section{padding:14px;border-radius:15px}.cfg-grid,.cfg-message-grid{grid-template-columns:1fr}.cfg-box.full,.cfg-message.wide{grid-column:auto}.cfg-section-head{margin-bottom:12px}.cfg-footer{display:grid;grid-template-columns:1fr}.cfg-footer .cfg-btn{width:100%}}
+</style>
 </head>
 <body>
-    <main class="cfg-shell">
-        <header class="cfg-head">
-            <div>
-                <p class="cfg-eyebrow">Gestión</p>
-                <h1 class="cfg-title">Configuración</h1>
-                <p class="cfg-subtitle">
-                    Controlá el estado de la tienda pública y cómo querés recibir los avisos de nuevos pedidos web.
-                </p>
-            </div>
-            <div class="cfg-status {% if not config.catalogo_activo %}is-maintenance{% endif %}">
-                {% if config.catalogo_activo %}CATÁLOGO ACTIVO{% else %}EN MANTENIMIENTO{% endif %}
-            </div>
-        </header>
+<main class="cfg-shell">
+<header class="cfg-head">
+<div>
+<p class="cfg-eyebrow">Gestión</p>
+<h1 class="cfg-title">Configuración</h1>
+<p class="cfg-subtitle">Centralizá tienda pública, mensajes de WhatsApp, avisos y apariencia. Los cambios se aplican al guardar sin reiniciar Railway.</p>
+</div>
+<div class="actions">
+<a class="cfg-btn" href="{% url 'catalogo' %}" target="_blank" rel="noopener">VER CATÁLOGO</a>
+<button class="cfg-btn principal" type="submit" form="configForm">GUARDAR CAMBIOS</button>
+</div>
+</header>
 
-        {% if request.GET.guardado %}
-        <div class="cfg-saved">✓ Configuración guardada.</div>
-        {% endif %}
+{% if request.GET.guardado %}<div class="cfg-saved">✓ Configuración guardada y aplicada.</div>{% endif %}
 
-        <form method="post">
-            {% csrf_token %}
-            <div class="cfg-grid">
-                <section class="cfg-card">
-                    <div class="cfg-card-head">
-                        <div>
-                            <h2>Catálogo público</h2>
-                            <p>Podés apagar toda la tienda con un solo control.</p>
-                        </div>
-                        <div class="cfg-icon">🛍</div>
-                    </div>
+<nav class="cfg-nav">
+<a href="#tienda">1 · TIENDA</a>
+<a href="#whatsapp">2 · WHATSAPP</a>
+<a href="#avisos">3 · NOTIFICACIONES</a>
+<a href="#apariencia">4 · APARIENCIA</a>
+</nav>
 
-                    <div class="cfg-switch-row">
-                        <div class="cfg-switch-copy">
-                            <strong>Tienda disponible</strong>
-                            <span>Al desactivarla, Inicio, Productos, Kits y Carrito pasan a mantenimiento.</span>
-                        </div>
-                        <label class="cfg-switch">
-                            <input
-                                type="checkbox"
-                                name="catalogo_activo"
-                                {% if config.catalogo_activo %}checked{% endif %}
-                            >
-                            <span class="cfg-switch-track"></span>
-                        </label>
-                    </div>
+<form method="post" id="configForm">
+{% csrf_token %}
 
-                    <label class="cfg-label" for="mensaje_mantenimiento">Mensaje de mantenimiento</label>
-                    <textarea
-                        class="cfg-textarea"
-                        id="mensaje_mantenimiento"
-                        name="mensaje_mantenimiento"
-                        maxlength="240"
-                        placeholder="Contale al cliente que la tienda volverá pronto."
-                    >{{ config.mensaje_mantenimiento }}</textarea>
+<section class="cfg-section" id="tienda">
+<div class="cfg-section-head"><div><h2>Tienda pública</h2><p>Disponibilidad del catálogo, redes y canales públicos.</p></div><div class="cfg-icon">🛍</div></div>
+<div class="cfg-grid">
+<div class="cfg-box">
+<div class="cfg-switch-row"><div><div class="cfg-box-title">Catálogo disponible</div><div class="cfg-box-copy">Al apagarlo, Inicio, Productos, Kits y Carrito muestran mantenimiento.</div></div><label class="cfg-switch"><input type="checkbox" name="catalogo_activo" {% if config.catalogo_activo %}checked{% endif %}><span class="cfg-switch-track"></span></label></div>
+<div class="cfg-note">{% if config.catalogo_activo %}<span class="cfg-status">CATÁLOGO ACTIVO</span>{% else %}<span class="cfg-status warn">MANTENIMIENTO</span>{% endif %} · Gestión interna sigue funcionando siempre.</div>
+</div>
+<div class="cfg-box">
+<label class="cfg-label" for="mensaje_mantenimiento"><span>MENSAJE DE MANTENIMIENTO</span><span data-count-for="mensaje_mantenimiento"></span></label>
+<textarea class="cfg-textarea" id="mensaje_mantenimiento" name="mensaje_mantenimiento" maxlength="240" data-counter>{{ config.mensaje_mantenimiento }}</textarea>
+</div>
 
-                    <div class="cfg-note">
-                        El modo mantenimiento bloquea también nuevos carritos y solicitudes, pero no afecta ninguna pantalla interna de Gestión.
-                    </div>
-                </section>
+<div class="cfg-box">
+<div class="cfg-switch-row"><div><div class="cfg-box-title">Mostrar Instagram</div><div class="cfg-box-copy">Controla el acceso desde el catálogo público.</div></div><label class="cfg-switch"><input type="checkbox" name="mostrar_instagram" {% if config.mostrar_instagram %}checked{% endif %}><span class="cfg-switch-track"></span></label></div>
+<label class="cfg-label" for="instagram_usuario"><span>USUARIO</span></label>
+<input class="cfg-input" id="instagram_usuario" name="instagram_usuario" maxlength="100" value="{{ config.instagram_usuario }}" placeholder="doblev3d">
+</div>
+<div class="cfg-box">
+<div class="cfg-switch-row"><div><div class="cfg-box-title">Mostrar WhatsApp público</div><div class="cfg-box-copy">Número del negocio visible desde el catálogo.</div></div><label class="cfg-switch"><input type="checkbox" name="mostrar_whatsapp" {% if config.mostrar_whatsapp %}checked{% endif %}><span class="cfg-switch-track"></span></label></div>
+<label class="cfg-label" for="whatsapp_numero"><span>NÚMERO CON CÓDIGO DE PAÍS</span></label>
+<input class="cfg-input" id="whatsapp_numero" name="whatsapp_numero" maxlength="30" inputmode="tel" value="{{ config.whatsapp_numero }}" placeholder="54911...">
+</div>
+</div>
+</section>
 
-                <section class="cfg-card">
-                    <div class="cfg-card-head">
-                        <div>
-                            <h2>Notificaciones</h2>
-                            <p>Elegí si el sistema debe avisarte cuando entra un pedido web.</p>
-                        </div>
-                        <div class="cfg-icon">🔔</div>
-                    </div>
+<section class="cfg-section" id="whatsapp">
+<div class="cfg-section-head"><div><h2>Mensajes de WhatsApp</h2><p>Plantillas editables para seguimiento de clientes y solicitudes del catálogo. Las llaves se reemplazan automáticamente con datos reales.</p></div><div class="cfg-icon">💬</div></div>
 
-                    <div class="cfg-switch-row">
-                        <div class="cfg-switch-copy">
-                            <strong>Avisar nuevos pedidos web</strong>
-                            <span>Control global para todos los dispositivos suscriptos.</span>
-                        </div>
-                        <label class="cfg-switch">
-                            <input
-                                type="checkbox"
-                                name="notificaciones_pedidos_web_activas"
-                                {% if config.notificaciones_pedidos_web_activas %}checked{% endif %}
-                            >
-                            <span class="cfg-switch-track"></span>
-                        </label>
-                    </div>
+<details class="cfg-fold" open>
+<summary>SEGUIMIENTO DE CLIENTES</summary>
+<div class="cfg-fold-body"><div class="cfg-message-grid">
 
-                    {% if webpush_configurado %}
-                    <button
-                        type="button"
-                        id="dvGlobalPushToggle"
-                        class="cfg-device"
-                        data-public-key="{{ webpush_public_key }}"
-                        data-worker="{% url 'dashboard:push_service_worker' %}"
-                        data-subscribe="{% url 'dashboard:push_suscribir' %}"
-                        data-unsubscribe="{% url 'dashboard:push_desuscribir' %}"
-                        aria-label="Activar notificaciones en este dispositivo"
-                        aria-pressed="false"
-                    >
-                        <span class="cfg-device-icon" aria-hidden="true">🔔</span>
-                        <span class="cfg-device-copy">
-                            <strong data-push-label>Activar avisos</strong>
-                            <span>Este navegador · {{ dispositivos_push_activos }} dispositivo{{ dispositivos_push_activos|pluralize }} activo{{ dispositivos_push_activos|pluralize }}</span>
-                        </span>
-                    </button>
-                    {% else %}
-                    <div class="cfg-note">
-                        Web Push todavía no tiene las claves VAPID configuradas en este entorno.
-                    </div>
-                    {% endif %}
-                </section>
+<div class="cfg-message">
+<div class="cfg-message-head"><div><h3>Mensaje general</h3><p>Contacto manual desde la ficha del cliente.</p></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_cliente_generico">RESTAURAR</button></div>
+<div class="cfg-vars"><span class="cfg-var">{nombre}</span></div>
+<label class="cfg-label" for="whatsapp_mensaje_cliente_generico"><span>PLANTILLA</span><span data-count-for="whatsapp_mensaje_cliente_generico"></span></label>
+<textarea class="cfg-textarea" id="whatsapp_mensaje_cliente_generico" name="whatsapp_mensaje_cliente_generico" maxlength="2000" data-counter data-preview="preview_generico">{{ config.whatsapp_mensaje_cliente_generico }}</textarea>
+<div class="cfg-preview" id="preview_generico"></div>
+</div>
 
-                <section class="cfg-card">
-                    <div class="cfg-card-head">
-                        <div>
-                            <h2>Apariencia</h2>
-                            <p>Elegí el tema de la interfaz de gestión para este dispositivo.</p>
-                        </div>
-                        <div class="cfg-icon">◐</div>
-                    </div>
+<div class="cfg-message">
+<div class="cfg-message-head"><div><h3>Pedido listo</h3><p>Se usa al sugerir avisar que el pedido está preparado.</p></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_cliente_pedido_listo">RESTAURAR</button></div>
+<div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{codigo}</span><span class="cfg-var">{total}</span><span class="cfg-var">{fecha_entrega}</span></div>
+<label class="cfg-label" for="whatsapp_mensaje_cliente_pedido_listo"><span>PLANTILLA</span><span data-count-for="whatsapp_mensaje_cliente_pedido_listo"></span></label>
+<textarea class="cfg-textarea" id="whatsapp_mensaje_cliente_pedido_listo" name="whatsapp_mensaje_cliente_pedido_listo" maxlength="2000" data-counter data-preview="preview_listo">{{ config.whatsapp_mensaje_cliente_pedido_listo }}</textarea>
+<div class="cfg-preview" id="preview_listo"></div>
+</div>
 
-                    <div class="cfg-switch-row">
-                        <div class="cfg-switch-copy">
-                            <strong>Modo oscuro</strong>
-                            <span>Tema actual: <b id="dvThemeText">CLARO</b></span>
-                        </div>
-                        <label class="cfg-switch">
-                            <input
-                                id="dvThemeToggle"
-                                type="checkbox"
-                                role="switch"
-                                aria-label="Cambiar a modo oscuro"
-                            >
-                            <span class="cfg-switch-track"></span>
-                        </label>
-                    </div>
+<div class="cfg-message">
+<div class="cfg-message-head"><div><h3>Saldo pendiente</h3><p>Recordatorio de pago desde un pedido abierto.</p></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_cliente_saldo">RESTAURAR</button></div>
+<div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{codigo}</span><span class="cfg-var">{saldo}</span><span class="cfg-var">{total}</span><span class="cfg-var">{pagado}</span></div>
+<label class="cfg-label" for="whatsapp_mensaje_cliente_saldo"><span>PLANTILLA</span><span data-count-for="whatsapp_mensaje_cliente_saldo"></span></label>
+<textarea class="cfg-textarea" id="whatsapp_mensaje_cliente_saldo" name="whatsapp_mensaje_cliente_saldo" maxlength="2000" data-counter data-preview="preview_saldo">{{ config.whatsapp_mensaje_cliente_saldo }}</textarea>
+<div class="cfg-preview" id="preview_saldo"></div>
+</div>
 
-                    <div class="cfg-note">
-                        Esta preferencia se guarda en el navegador y se aplica a toda la suite.
-                    </div>
-                </section>
+<div class="cfg-message">
+<div class="cfg-message-head"><div><h3>Presupuesto pendiente</h3><p>Seguimiento comercial de una cotización sin definición.</p></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_cliente_presupuesto">RESTAURAR</button></div>
+<div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{codigo}</span><span class="cfg-var">{total}</span><span class="cfg-var">{fecha}</span></div>
+<label class="cfg-label" for="whatsapp_mensaje_cliente_presupuesto"><span>PLANTILLA</span><span data-count-for="whatsapp_mensaje_cliente_presupuesto"></span></label>
+<textarea class="cfg-textarea" id="whatsapp_mensaje_cliente_presupuesto" name="whatsapp_mensaje_cliente_presupuesto" maxlength="2000" data-counter data-preview="preview_presupuesto">{{ config.whatsapp_mensaje_cliente_presupuesto }}</textarea>
+<div class="cfg-preview" id="preview_presupuesto"></div>
+</div>
 
-                <section class="cfg-card full">
-                    <div class="cfg-card-head">
-                        <div>
-                            <h2>Aplicación inmediata</h2>
-                            <p>Los cambios se aplican apenas guardás, sin reiniciar Railway.</p>
-                        </div>
-                        <div class="cfg-icon">⚙</div>
-                    </div>
-                    <div class="cfg-actions">
-                        <a class="cfg-open" href="{% url 'catalogo' %}" target="_blank" rel="noopener">VER CATÁLOGO</a>
-                        <button class="cfg-save" type="submit">GUARDAR CAMBIOS</button>
-                    </div>
-                </section>
-            </div>
-        </form>
-    </main>
+<div class="cfg-message wide">
+<div class="cfg-message-head"><div><h3>Reactivar cliente</h3><p>Para clientes sin actividad reciente.</p></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_cliente_reactivacion">RESTAURAR</button></div>
+<div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{dias_sin_actividad}</span><span class="cfg-var">{ultima_actividad}</span></div>
+<label class="cfg-label" for="whatsapp_mensaje_cliente_reactivacion"><span>PLANTILLA</span><span data-count-for="whatsapp_mensaje_cliente_reactivacion"></span></label>
+<textarea class="cfg-textarea" id="whatsapp_mensaje_cliente_reactivacion" name="whatsapp_mensaje_cliente_reactivacion" maxlength="2000" data-counter data-preview="preview_reactivacion">{{ config.whatsapp_mensaje_cliente_reactivacion }}</textarea>
+<div class="cfg-preview" id="preview_reactivacion"></div>
+</div>
 
-    {% if webpush_configurado %}
-    <form id="dvGlobalPushCsrf" hidden>{% csrf_token %}</form>
-    {% endif %}
+</div></div>
+</details>
 
-    {% include "shared/navigation.html" %}
+<details class="cfg-fold">
+<summary>CATÁLOGO Y SOLICITUDES WEB</summary>
+<div class="cfg-fold-body"><div class="cfg-message-grid">
+
+<div class="cfg-message wide">
+<div class="cfg-message-head"><div><h3>Inicio de conversación desde el catálogo</h3><p>Texto inicial al abrir el WhatsApp público del negocio.</p></div></div>
+<label class="cfg-label" for="whatsapp_mensaje"><span>MENSAJE</span><span data-count-for="whatsapp_mensaje"></span></label>
+<textarea class="cfg-textarea" id="whatsapp_mensaje" name="whatsapp_mensaje" maxlength="240" data-counter>{{ config.whatsapp_mensaje }}</textarea>
+</div>
+
+<div class="cfg-message">
+<div class="cfg-message-head"><div><h3>Responder una solicitud</h3><p>Mensaje que abre Gestión para contactar al cliente que completó el carrito.</p></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_respuesta_solicitud">RESTAURAR</button></div>
+<div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{codigo}</span><span class="cfg-var">{detalle}</span><span class="cfg-var">{total}</span><span class="cfg-var">{observaciones}</span></div>
+<label class="cfg-label" for="whatsapp_mensaje_respuesta_solicitud"><span>PLANTILLA</span><span data-count-for="whatsapp_mensaje_respuesta_solicitud"></span></label>
+<textarea class="cfg-textarea" id="whatsapp_mensaje_respuesta_solicitud" name="whatsapp_mensaje_respuesta_solicitud" maxlength="4000" data-counter data-preview="preview_solicitud_respuesta">{{ config.whatsapp_mensaje_respuesta_solicitud }}</textarea>
+<div class="cfg-preview" id="preview_solicitud_respuesta"></div>
+</div>
+
+<div class="cfg-message">
+<div class="cfg-message-head"><div><h3>Después de enviar solicitud</h3><p>Mensaje que el comprador puede abrir hacia tu WhatsApp luego de confirmar el carrito.</p></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_post_solicitud">RESTAURAR</button></div>
+<div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{codigo}</span><span class="cfg-var">{detalle}</span><span class="cfg-var">{total}</span><span class="cfg-var">{observaciones}</span></div>
+<label class="cfg-label" for="whatsapp_mensaje_post_solicitud"><span>PLANTILLA</span><span data-count-for="whatsapp_mensaje_post_solicitud"></span></label>
+<textarea class="cfg-textarea" id="whatsapp_mensaje_post_solicitud" name="whatsapp_mensaje_post_solicitud" maxlength="4000" data-counter data-preview="preview_solicitud_post">{{ config.whatsapp_mensaje_post_solicitud }}</textarea>
+<div class="cfg-preview" id="preview_solicitud_post"></div>
+</div>
+
+</div></div>
+</details>
+</section>
+
+<section class="cfg-section" id="avisos">
+<div class="cfg-section-head"><div><h2>Notificaciones</h2><p>Avisos internos cuando entra una nueva solicitud desde el catálogo.</p></div><div class="cfg-icon">🔔</div></div>
+<div class="cfg-grid">
+<div class="cfg-box">
+<div class="cfg-switch-row"><div><div class="cfg-box-title">Avisar nuevos pedidos web</div><div class="cfg-box-copy">Control global de notificaciones push para todos los dispositivos.</div></div><label class="cfg-switch"><input type="checkbox" name="notificaciones_pedidos_web_activas" {% if config.notificaciones_pedidos_web_activas %}checked{% endif %}><span class="cfg-switch-track"></span></label></div>
+</div>
+<div class="cfg-box">
+{% if webpush_configurado %}
+<button type="button" id="dvGlobalPushToggle" class="cfg-device" data-public-key="{{ webpush_public_key }}" data-worker="{% url 'dashboard:push_service_worker' %}" data-subscribe="{% url 'dashboard:push_suscribir' %}" data-unsubscribe="{% url 'dashboard:push_desuscribir' %}" aria-label="Activar notificaciones en este dispositivo" aria-pressed="false"><span class="cfg-device-icon">🔔</span><span class="cfg-device-copy"><strong data-push-label>Activar avisos</strong><span>Este navegador · {{ dispositivos_push_activos }} dispositivo{{ dispositivos_push_activos|pluralize }} activo{{ dispositivos_push_activos|pluralize }}</span></span></button>
+{% else %}<div class="cfg-note">Web Push todavía no tiene las claves VAPID configuradas en este entorno.</div>{% endif %}
+</div>
+</div>
+</section>
+
+<section class="cfg-section" id="apariencia">
+<div class="cfg-section-head"><div><h2>Apariencia</h2><p>Preferencias visuales locales de este dispositivo.</p></div><div class="cfg-icon">◐</div></div>
+<div class="cfg-grid">
+<div class="cfg-box">
+<div class="cfg-switch-row"><div><div class="cfg-box-title">Modo oscuro</div><div class="cfg-box-copy">Tema actual: <b id="dvThemeText">CLARO</b>. Se guarda sólo en este navegador.</div></div><label class="cfg-switch"><input id="dvThemeToggle" type="checkbox" role="switch" aria-label="Cambiar a modo oscuro"><span class="cfg-switch-track"></span></label></div>
+</div>
+<div class="cfg-box"><div class="cfg-box-title">Aplicación inmediata</div><div class="cfg-box-copy">Tienda, mensajes y avisos toman la nueva configuración al guardar. No hace falta reiniciar el servicio.</div><div class="cfg-footer"><a class="cfg-btn" href="{% url 'catalogo' %}" target="_blank" rel="noopener">VER CATÁLOGO</a><button class="cfg-btn principal" type="submit">GUARDAR CAMBIOS</button></div></div>
+</div>
+</section>
+
+</form>
+</main>
+
+{{ whatsapp_defaults|json_script:"dvWhatsappDefaults" }}
+{% if webpush_configurado %}<form id="dvGlobalPushCsrf" hidden>{% csrf_token %}</form>{% endif %}
+
+<script>
+(function(){
+const ejemplos={
+nombre:"Lucas",codigo:"PED0014",saldo:"12.500",total:"25.000",pagado:"12.500",
+fecha:"20/09/2026",fecha_entrega:"22/09/2026",dias_sin_actividad:"78",
+ultima_actividad:"04/07/2026",detalle:"2 × Kit Sensorial\n1 × Pepino",
+observaciones:"Entrega en Morón"
+};
+let defaults={};
+try{defaults=JSON.parse(document.getElementById("dvWhatsappDefaults")?.textContent||"{}");}catch(e){}
+
+function render(texto){
+return String(texto||"").replace(/\{([a-zA-Z0-9_]+)\}/g,function(_,clave){
+return Object.prototype.hasOwnProperty.call(ejemplos,clave)?ejemplos[clave]:"{"+clave+"}";
+});
+}
+function actualizarCampo(campo){
+const id=campo.id;
+const contador=document.querySelector('[data-count-for="'+id+'"]');
+if(contador){contador.textContent=campo.value.length+" / "+(campo.maxLength>0?campo.maxLength:"—");}
+const destino=campo.dataset.preview?document.getElementById(campo.dataset.preview):null;
+if(destino){destino.textContent=render(campo.value);}
+}
+document.querySelectorAll("[data-counter]").forEach(function(campo){
+actualizarCampo(campo);
+campo.addEventListener("input",function(){actualizarCampo(campo);});
+});
+document.querySelectorAll("[data-reset]").forEach(function(btn){
+btn.addEventListener("click",function(){
+const id=btn.dataset.reset;
+const campo=document.getElementById(id);
+if(!campo||!Object.prototype.hasOwnProperty.call(defaults,id))return;
+campo.value=defaults[id]||"";
+campo.dispatchEvent(new Event("input",{bubbles:true}));
+});
+});
+})();
+</script>
+
+{% include "shared/navigation.html" %}
 </body>
 </html>
