@@ -1,0 +1,69 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
+<link rel="apple-touch-icon" href="{% static 'brand/apple-touch-icon.png' %}">
+<link rel="stylesheet" href="{% static 'brand/brand.css' %}">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Historial · {{ cliente.nombre }}</title>
+<style>
+:root{--bg:var(--dv-bg,#f5f6f8);--surface:var(--dv-surface,#fff);--soft:var(--dv-surface-soft,#f8f9fb);--text:var(--dv-text,#25282d);--muted:var(--dv-muted,#777d86);--line:var(--dv-border,#e3e6ea);--blue:var(--dv-brand-blue,#134a9a);--ok-bg:var(--dv-success-soft,#eaf7ee);--ok:var(--dv-success-text,#28633c);--warn-bg:var(--dv-warning-soft,#fff5d8);--warn:var(--dv-warning-text,#775a13);--danger-bg:var(--dv-danger-soft,#fdeaea);--danger:var(--dv-danger-text,#913b3b)}
+*{box-sizing:border-box}body{margin:0;padding-bottom:100px;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}.c{width:min(980px,100%);margin:auto;padding:20px 14px}.h{display:grid;gap:10px;margin-bottom:13px}h1{margin:0;font-size:28px}.sub{color:var(--muted);font-size:10px}.acciones{display:flex;gap:8px}.btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 13px;border:1px solid var(--blue);border-radius:11px;background:var(--surface);color:var(--text);text-decoration:none;font-size:9px;font-weight:900}.tabs{display:flex;gap:7px;overflow-x:auto;margin-bottom:12px}.tabs .btn.activo{background:var(--blue);color:#fff}.lista{display:grid;gap:9px}.card{padding:13px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}.top{display:flex;justify-content:space-between;gap:10px}.identidad{display:grid;grid-template-columns:44px minmax(0,1fr);gap:9px;align-items:center}.thumb{width:44px;height:44px;object-fit:cover;border:1px solid var(--line);border-radius:10px;background:var(--soft)}.thumb.vacia{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:7px;font-weight:900}.title{font-size:11px;font-weight:900}.meta{margin-top:4px;color:var(--muted);font-size:8px;line-height:1.4}.badge{display:inline-flex;min-height:23px;align-items:center;padding:0 7px;border-radius:999px;background:var(--soft);font-size:7px;font-weight:900}.badge.ok{background:var(--ok-bg);color:var(--ok)}.badge.warn{background:var(--warn-bg);color:var(--warn)}.badge.danger{background:var(--danger-bg);color:var(--danger)}.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px}.num{padding:8px;border-radius:9px;background:var(--soft)}.num small{display:block;color:var(--muted);font-size:7px;font-weight:900}.num strong{display:block;margin-top:3px;font-size:10px}.pager{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:14px}.pager span{color:var(--muted);font-size:9px}.empty{padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px;background:var(--surface)}
+@media(max-width:620px){.c{padding:14px 10px}.acciones .btn{width:100%}.top{flex-direction:column}.nums{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<div class="c">
+<header class="h">
+  <div>{% include "shared/brand_bar.html" %}<h1>{{ cliente.nombre }}</h1><div class="sub">Historial paginado · {{ cliente.codigo }}</div></div>
+  <div class="acciones"><a class="btn" href="{% url 'clientes:detalle' cliente.id %}">← VOLVER AL CLIENTE</a></div>
+</header>
+
+<nav class="tabs">
+  <a class="btn {% if tipo == 'pedidos' %}activo{% endif %}" href="?tipo=pedidos">PEDIDOS</a>
+  <a class="btn {% if tipo == 'presupuestos' %}activo{% endif %}" href="?tipo=presupuestos">PRESUPUESTOS</a>
+  <a class="btn {% if tipo == 'contactos' %}activo{% endif %}" href="?tipo=contactos">WHATSAPP</a>
+</nav>
+
+<div class="lista">
+{% if tipo == "pedidos" %}
+  {% for item in elementos %}
+  <article class="card">
+    <div class="top">
+      <div class="identidad">{% if item.pedido.imagen_resumen_url %}<img class="thumb" src="{{ item.pedido.imagen_resumen_url }}" alt="" loading="lazy">{% else %}<span class="thumb vacia">3D</span>{% endif %}<div><div class="title">{{ item.pedido.codigo }}</div><div class="meta">{{ item.pedido.fecha|date:"d/m/Y" }}{% if item.pedido.fecha_entrega %} · entrega {{ item.pedido.fecha_entrega|date:"d/m/Y" }}{% endif %}</div></div></div>
+      <span class="badge {% if item.cancelado %}danger{% elif item.entregado %}ok{% else %}warn{% endif %}">{{ item.pedido.get_estado_display|upper }}</span>
+    </div>
+    <div class="nums"><div class="num"><small>TOTAL</small><strong>$ {{ item.total|floatformat:0 }}</strong></div><div class="num"><small>PAGADO</small><strong>$ {{ item.pagado|floatformat:0 }}</strong></div><div class="num"><small>SALDO</small><strong>$ {{ item.saldo|floatformat:0 }}</strong></div></div>
+    <div style="margin-top:9px"><a class="btn" href="{% url 'pedidos:detalle' item.pedido.id %}">VER DETALLE</a></div>
+  </article>
+  {% empty %}<div class="empty">No hay pedidos.</div>{% endfor %}
+{% elif tipo == "presupuestos" %}
+  {% for presupuesto in elementos %}
+  <article class="card">
+    <div class="top">
+      <div class="identidad">{% if presupuesto.imagen_resumen_url %}<img class="thumb" src="{{ presupuesto.imagen_resumen_url }}" alt="" loading="lazy">{% else %}<span class="thumb vacia">3D</span>{% endif %}<div><div class="title">{{ presupuesto.codigo }}</div><div class="meta">{{ presupuesto.fecha|date:"d/m/Y" }} · $ {{ presupuesto.total|floatformat:0 }}</div></div></div>
+      <span class="badge {% if presupuesto.estado == 'APROBADO' %}ok{% elif presupuesto.estado == 'RECHAZADO' %}danger{% else %}warn{% endif %}">{{ presupuesto.get_estado_display|upper }}</span>
+    </div>
+    <div style="margin-top:9px"><a class="btn" href="{% url 'pedidos:presupuesto_detalle' presupuesto.id %}">VER DETALLE</a></div>
+  </article>
+  {% empty %}<div class="empty">No hay presupuestos.</div>{% endfor %}
+{% else %}
+  {% for contacto in elementos %}
+  <article class="card"><div class="title">{{ contacto.get_motivo_display }}{% if contacto.referencia %} · {{ contacto.referencia }}{% endif %}</div><div class="meta">{{ contacto.iniciado_en|date:"d/m/Y H:i" }} · WhatsApp abierto</div><div class="meta">{{ contacto.mensaje }}</div></article>
+  {% empty %}<div class="empty">No hay contactos registrados.</div>{% endfor %}
+{% endif %}
+</div>
+
+{% if pagina.paginator.num_pages > 1 %}
+<div class="pager">
+  <div>{% if pagina.has_previous %}<a class="btn" href="?tipo={{ tipo }}&page={{ pagina.previous_page_number }}">← ANTERIOR</a>{% endif %}</div>
+  <span>Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+  <div>{% if pagina.has_next %}<a class="btn" href="?tipo={{ tipo }}&page={{ pagina.next_page_number }}">SIGUIENTE →</a>{% endif %}</div>
+</div>
+{% endif %}
+</div>
+{% include "shared/navigation.html" %}
+</body>
+</html>
