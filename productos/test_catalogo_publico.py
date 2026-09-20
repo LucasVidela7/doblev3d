@@ -405,8 +405,10 @@ class CatalogoPublicoTests(TestCase):
                 "3 a 10 días hábiles desde la confirmación",
             )
 
-        self.assertContains(productos, "delivery-card-note")
-        self.assertContains(kits, "delivery-card-note")
+        self.assertContains(productos, "delivery-banner")
+        self.assertContains(kits, "delivery-banner")
+        self.assertNotContains(productos, "delivery-card-note")
+        self.assertNotContains(kits, "delivery-card-note")
         self.assertContains(detalle, "Plazo de entrega")
 
     def test_producto_tiene_detalle_publico_y_ayuda_de_compra(self):
