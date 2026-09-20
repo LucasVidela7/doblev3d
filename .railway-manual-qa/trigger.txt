@@ -1,6 +1,9 @@
-Deploy QA: reforma integral de Kits en 4 etapas
-1) Centro de Kits compacto con filtros, métricas, salud y detalle individual.
-2) Editor reorganizado en Identidad, Composición, Precio/Rentabilidad y Catálogo.
-3) KitEngine centraliza opciones, validación, precio libre, volumen, salud y snapshots reutilizando las fórmulas vigentes.
-4) Catálogo, carrito, solicitud web, presupuesto y pedido consumen el motor y conservan snapshot histórico de cada kit vendido.
-Incluye migración 0014 para kit_snapshot en solicitud web, presupuesto y pedido.
+Deploy QA: segunda reforma de Clientes + WhatsApp asistido
+- Listado escalable con métricas agregadas sin precargar historiales completos.
+- Ficha con abiertos separados de recientes y historial paginado.
+- Seguimiento comercial con acciones sugeridas.
+- Preferencias de compra.
+- Detección y fusión segura de duplicados históricos.
+- WhatsApp asistido con mensajes por pedido listo, saldo, presupuesto, reactivación y contacto general.
+- Registro explícito de "WhatsApp abierto", sin marcar el mensaje como enviado.
+Incluye migración clientes.0002_contactocliente.
