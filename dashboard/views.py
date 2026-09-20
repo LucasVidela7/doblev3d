@@ -756,16 +756,6 @@ def inicio(request):
         )[:4]
     )
 
-    asignar_miniaturas_productos(
-        [
-            produccion.producto
-            for produccion in (
-                producciones_actuales_dashboard
-                + planificaciones_dashboard
-            )
-        ]
-    )
-
     # Próximas entregas: primero atrasadas y luego las más cercanas.
     proximas_entregas = (
         pedidos_activos_qs
@@ -797,6 +787,22 @@ def inicio(request):
     )
 
     top_impresion = necesidad_impresion[:5]
+
+    productos_dashboard = [
+        produccion.producto
+        for produccion in (
+            producciones_actuales_dashboard
+            + planificaciones_dashboard
+        )
+    ]
+    productos_dashboard.extend(
+        item["producto"]
+        for item in top_impresion
+        if item.get("producto")
+    )
+    asignar_miniaturas_productos(
+        productos_dashboard
+    )
 
     # Productos activos sin stock. Es una alerta simple y útil;
     # no supone un "stock mínimo" porque ese campo aún no existe.
