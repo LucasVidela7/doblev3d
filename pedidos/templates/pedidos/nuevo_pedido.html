@@ -98,6 +98,7 @@ input:focus,select:focus,textarea:focus{
     gap:11px;align-items:end
 }
 .selector-producto-normal{display:block}.selector-kit{display:none}
+.seleccion-preview{display:none;grid-template-columns:46px minmax(0,1fr);gap:9px;align-items:center;margin-top:8px;padding:8px;border:1px solid var(--borde);border-radius:11px;background:white}.seleccion-preview.activo{display:grid}.seleccion-preview img{width:46px;height:46px;border-radius:9px;object-fit:cover;border:1px solid var(--borde)}.seleccion-preview .vacia{width:46px;height:46px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:#f1f3f5;color:var(--muted);font-size:8px;font-weight:900}.seleccion-preview strong{font-size:10px}.seleccion-preview span{display:block;margin-top:3px;color:var(--muted);font-size:8px}
 
 /* KIT */
 .componentes-kit{
@@ -811,13 +812,14 @@ button{font-family:Arial,sans-serif}
 
                         {% for producto in productos %}
 
-                            <option value="{{ producto.id }}">
+                            <option value="{{ producto.id }}" data-image="{{ producto.imagen_produccion_url|default:'' }}">
                                 {{ producto.codigo }} - {{ producto.nombre }}
                             </option>
 
                         {% endfor %}
 
                     </select>
+                    <div class="seleccion-preview" id="preview_producto_${indice}"></div>
 
                 </div>
 
@@ -958,6 +960,7 @@ button{font-family:Arial,sans-serif}
                                 </option>
                             {% endfor %}
                         </select>
+                        <div class="seleccion-preview" id="preview_personalizado_${indice}"></div>
                     </div>
 
                     <div class="campo">
@@ -1126,6 +1129,38 @@ button{font-family:Arial,sans-serif}
 
 
 
+    function actualizarPreviewProductoPedido(indice, personalizado = false) {
+        const select = document.getElementById(
+            personalizado
+                ? \`producto_personalizado_\${indice}\`
+                : \`producto_\${indice}\`
+        );
+        const preview = document.getElementById(
+            personalizado
+                ? \`preview_personalizado_\${indice}\`
+                : \`preview_producto_\${indice}\`
+        );
+        if (!select || !preview) return;
+
+        const opcion = select.options[select.selectedIndex];
+        const imagen = opcion?.dataset?.image || "";
+        const texto = opcion?.textContent?.trim() || "";
+
+        if (!select.value) {
+            preview.classList.remove("activo");
+            preview.innerHTML = "";
+            return;
+        }
+
+        preview.classList.add("activo");
+        preview.innerHTML =
+            (imagen
+                ? \`<img src="\${imagen}" alt="" loading="lazy">\`
+                : '<div class="vacia">3D</div>')
+            + \`<div><strong>\${texto}</strong><span>Vista previa del producto</span></div>\`;
+    }
+
+
     /* PRECIO PRODUCTO / MAYORISTA */
     const datosPrecioPorItem = {};
     const timerPrecioPorItem = {};
@@ -1208,6 +1243,7 @@ button{font-family:Arial,sans-serif}
     }
 
     function cambioProductoPedido(indice) {
+        actualizarPreviewProductoPedido(indice, false);
         const precioInput =
             document.getElementById(
                 `precio_unitario_${indice}`
@@ -1392,6 +1428,7 @@ button{font-family:Arial,sans-serif}
     const timerPrecioPersonalizado = {};
 
     function cambioProductoPersonalizado(indice) {
+        actualizarPreviewProductoPedido(indice, true);
         const totalInput =
             document.getElementById(
                 `precio_total_personalizado_${indice}`
