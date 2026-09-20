@@ -35,7 +35,9 @@ def buscar_cliente_por_telefono(telefono, excluir_id=None):
     if not clave:
         return None
 
-    queryset = Cliente.objects.exclude(telefono="")
+    queryset = Cliente.objects.filter(
+        activo=True,
+    ).exclude(telefono="")
     if excluir_id:
         queryset = queryset.exclude(id=excluir_id)
 
