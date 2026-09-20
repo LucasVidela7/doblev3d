@@ -308,6 +308,11 @@
             box-shadow: 0 15px 36px rgba(19, 74, 154, .11);
         }
 
+        .catalog-media-link{display:block;color:inherit;text-decoration:none}
+        .catalog-title-link{color:inherit;text-decoration:none}
+        .catalog-title-link:hover{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+        .product-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px}
+        .product-actions .catalog-detail-link{min-height:38px}
         .media {
             position: relative;
             aspect-ratio: 4 / 3;
@@ -725,7 +730,7 @@
             <div class="section-head">
                 <h2>Productos</h2>
                 <span class="count">{{ productos|length }} disponibles</span>
-                <p>Piezas individuales disponibles en el catálogo.</p>
+                <p>Entrá al detalle para conocer cada producto o agregalo directamente al carrito.</p>
             </div>
 
             {% if productos %}
@@ -737,17 +742,19 @@
                             data-category="{{ producto.tipo.nombre|lower }}"
                             data-search="{{ producto.nombre|lower }} {{ producto.tipo.nombre|lower }}"
                         >
-                            <div class="media">
-                                <span class="badge">{{ producto.tipo.nombre }}</span>
-                                {% if producto.catalogo_imagen %}
-                                    <img src="{{ producto.catalogo_imagen.url }}" alt="{{ producto.nombre }}" loading="lazy">
-                                {% else %}
-                                    <div class="placeholder" aria-hidden="true">{{ producto.nombre|slice:":1"|upper }}</div>
-                                {% endif %}
-                            </div>
+                            <a class="catalog-media-link" href="{% url 'catalogo_producto_detalle' producto.id %}" aria-label="Ver {{ producto.nombre }}">
+                                <div class="media">
+                                    <span class="badge">{{ producto.tipo.nombre }}</span>
+                                    {% if producto.catalogo_imagen %}
+                                        <img src="{{ producto.catalogo_imagen.url }}" alt="{{ producto.nombre }}" loading="lazy">
+                                    {% else %}
+                                        <div class="placeholder" aria-hidden="true">{{ producto.nombre|slice:":1"|upper }}</div>
+                                    {% endif %}
+                                </div>
+                            </a>
                             <div class="content">
                                 <div class="meta">Producto</div>
-                                <h3 class="title">{{ producto.nombre }}</h3>
+                                <h3 class="title"><a class="catalog-title-link" href="{% url 'catalogo_producto_detalle' producto.id %}">{{ producto.nombre }}</a></h3>
                                 <p class="detail">
                                     {% if producto.personalizable %}Personalizable{% else %}Impresión 3D{% endif %}
                                 </p>
@@ -756,7 +763,7 @@
                                 {% endif %}
                                 <div class="price-row">
                                     <div>
-                                        <span class="price-label">Precio</span>
+                                        <span class="price-label">Precio unitario</span>
                                         {% if producto.catalogo_precio %}
                                             <span class="price">$ {{ producto.catalogo_precio|floatformat:"0g" }}</span>
                                         {% else %}
@@ -764,6 +771,8 @@
                                         {% endif %}
                                     </div>
                                     {% if producto.catalogo_precio %}
+                                        <div class="product-actions">
+                                            <a class="catalog-detail-link" href="{% url 'catalogo_producto_detalle' producto.id %}">VER</a>
                                         <div
                                             class="dv-cart-card-control"
                                             data-dv-product-control
@@ -784,6 +793,7 @@
                                                 <button type="button" data-dv-product-inline-plus aria-label="Aumentar cantidad">+</button>
                                             </div>
                                         </div>
+                                        </div>
                                     {% endif %}
                                 </div>
                             </div>
@@ -802,7 +812,7 @@
             <div class="section-head">
                 <h2>Kits</h2>
                 <span class="count">{{ kits|length }} disponibles</span>
-                <p>Combinaciones armadas o configurables según cada propuesta.</p>
+                <p>Los kits fijos vienen listos; los configurables te permiten elegir sus piezas antes de agregarlos.</p>
             </div>
 
             {% if kits %}
@@ -888,7 +898,7 @@
                                 {% endif %}
                                 <div class="price-row">
                                     <div>
-                                        <span class="price-label">Precio del kit</span>
+                                        <span class="price-label">{% if kit.modalidad == "LIBRE_CATEGORIA" %}Precio base{% else %}Precio del kit{% endif %}</span>
                                         {% if kit.precio %}
                                             <span class="price">$ {{ kit.precio|floatformat:"0g" }}</span>
                                         {% else %}
@@ -915,6 +925,7 @@
         {% endif %}
 
         <div class="shell no-results empty" id="no-results">No encontramos resultados con esos filtros.</div>
+        <div class="shell">{% include "productos/_catalogo_consulta_especial.html" %}</div>
     </main>
 
     <footer class="shell">
