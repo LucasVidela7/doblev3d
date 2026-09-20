@@ -1,0 +1,92 @@
+{% load static %}
+{% load l10n %}
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="{{ producto.nombre }} · Doble V 3D">
+<title>{{ producto.nombre }} | Doble V 3D</title>
+<link rel="icon" href="{% static 'brand/favicon.ico' %}">
+<style>
+:root{--blue:#134a9a;--blue-dark:#0d376f;--blue-soft:#eef4ff;--red:#f0393b;--text:#17233a;--muted:#667085;--line:#dfe5ef;--bg:#f5f7fb;--card:#fff}
+*{box-sizing:border-box}
+body{margin:0;padding-bottom:110px;background:radial-gradient(circle at top right,rgba(240,57,59,.08),transparent 28rem),radial-gradient(circle at 5% 18%,rgba(19,74,154,.08),transparent 26rem),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.shell{width:min(1120px,calc(100% - 28px));margin:auto}.back{display:inline-flex;margin:20px 0 12px;color:var(--blue-dark);text-decoration:none;font-size:.78rem;font-weight:900}
+.product{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(320px,.95fr);gap:18px;align-items:start}.gallery,.info{border:1px solid var(--line);border-radius:24px;background:#fff;box-shadow:0 10px 30px rgba(19,74,154,.06)}
+.gallery{overflow:hidden}.main-photo{aspect-ratio:1/1;display:grid;place-items:center;background:linear-gradient(135deg,#eef4ff,#fff1f2)}.main-photo img{width:100%;height:100%;object-fit:cover}.placeholder{font-size:5rem;font-weight:950;color:rgba(19,74,154,.35)}
+.thumbs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px}.thumb{overflow:hidden;border:1px solid var(--line);border-radius:12px;background:#fff;aspect-ratio:1.35/1}.thumb img{width:100%;height:100%;object-fit:cover}
+.info{padding:24px}.eyebrow{margin:0;color:var(--red);font-size:.72rem;font-weight:950;letter-spacing:.1em;text-transform:uppercase}.info h1{margin:8px 0 0;color:var(--blue-dark);font-size:clamp(2rem,5vw,3.2rem);line-height:1;letter-spacing:-.045em}.intro{margin:13px 0 0;color:var(--muted);font-size:.92rem;line-height:1.55}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}.tag{padding:6px 8px;border-radius:999px;background:var(--blue-soft);color:var(--blue-dark);font-size:.7rem;font-weight:850}.tag.custom{background:#fff1f2;color:#a92c34}
+.pricebox{margin-top:18px;padding:16px;border:1px solid #d4e1f5;border-radius:16px;background:#f8fbff}.pricebox small{display:block;color:var(--muted);font-size:.7rem;font-weight:800}.pricebox strong{display:block;margin-top:3px;color:var(--blue-dark);font-size:1.8rem}.pricebox span{display:block;margin-top:5px;color:var(--muted);font-size:.7rem;line-height:1.4}
+.delivery{display:flex;gap:9px;margin-top:12px;padding:12px 13px;border:1px solid #cdddf4;border-radius:13px;background:var(--blue-soft);color:#345f91;font-size:.76rem;line-height:1.4}.delivery strong{color:var(--blue-dark)}
+.buy{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}.buy-help{margin:0 0 9px;color:var(--muted);font-size:.73rem;line-height:1.4}.dv-cart-card-control{justify-content:flex-start!important}.dv-cart-add-btn{min-height:48px!important;min-width:180px!important;font-size:.82rem!important}
+.note{margin-top:13px;color:var(--muted);font-size:.7rem;line-height:1.45}
+@media(max-width:780px){.product{grid-template-columns:1fr}.info{padding:18px}.gallery,.info{border-radius:18px}.info h1{font-size:2rem}.dv-cart-card-control,.dv-cart-add-btn{width:100%!important}}
+</style>
+</head>
+<body>
+{% include "productos/_catalogo_mantenimiento_admin.html" %}
+<main class="shell">
+<a class="back" href="{% url 'catalogo_productos' %}">← VOLVER A PRODUCTOS</a>
+<div class="product">
+<section class="gallery" aria-label="Fotos de {{ producto.nombre }}">
+  <div class="main-photo">
+    {% if imagenes %}<img src="{{ imagenes.0.url }}" alt="{{ producto.nombre }}">{% else %}<div class="placeholder">{{ producto.nombre|slice:":1"|upper }}</div>{% endif %}
+  </div>
+  {% if imagenes|length > 1 %}
+  <div class="thumbs">
+    {% for imagen in imagenes %}<div class="thumb"><img src="{{ imagen.url }}" alt="{{ producto.nombre }}" loading="lazy"></div>{% endfor %}
+  </div>
+  {% endif %}
+</section>
+
+<section class="info">
+  <p class="eyebrow">{{ producto.tipo.nombre }}</p>
+  <h1>{{ producto.nombre }}</h1>
+  <p class="intro">Producto impreso en 3D. Revisá el precio, agregalo al carrito y al final enviá tu solicitud para confirmar disponibilidad y entrega.</p>
+  <div class="tags">
+    <span class="tag">Producto individual</span>
+    {% if producto.personalizable %}<span class="tag custom">Personalizable</span>{% endif %}
+  </div>
+
+  <div class="pricebox">
+    <small>PRECIO UNITARIO DE REFERENCIA</small>
+    {% if producto.catalogo_precio %}
+      <strong>$ {{ producto.catalogo_precio|floatformat:"0g" }}</strong>
+      <span>El carrito recalcula automáticamente el precio final según la cantidad.</span>
+    {% else %}
+      <strong>Consultar</strong>
+      <span>Consultanos por disponibilidad y precio.</span>
+    {% endif %}
+  </div>
+
+  {% if mensaje_plazo_entrega %}
+  <div class="delivery"><span aria-hidden="true">⏱</span><div><strong>Plazo estimado</strong><br>{{ mensaje_plazo_entrega }}</div></div>
+  {% endif %}
+
+  {% if producto.catalogo_precio %}
+  <div class="buy">
+    <p class="buy-help">Al agregarlo vas a ver inmediatamente el producto dentro del carrito y podrás ajustar la cantidad.</p>
+    <div class="dv-cart-card-control" data-dv-product-control data-product-id="{{ producto.id }}">
+      <button class="dv-cart-add-btn" type="button" data-dv-cart-product data-product-id="{{ producto.id }}" data-product-name="{{ producto.nombre }}" data-product-price="{{ producto.catalogo_precio|unlocalize }}" data-product-image="{{ producto.catalogo_imagen_url }}">AGREGAR AL CARRITO</button>
+      <div class="dv-cart-inline-stepper" data-dv-product-stepper hidden aria-label="Cantidad en carrito">
+        <button type="button" data-dv-product-inline-minus aria-label="Disminuir cantidad">−</button>
+        <span data-dv-product-inline-qty>1</span>
+        <button type="button" data-dv-product-inline-plus aria-label="Aumentar cantidad">+</button>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <p class="note">La solicitud del catálogo no confirma ni cobra el pedido. Primero revisamos disponibilidad, precio final y forma de entrega con vos.</p>
+</section>
+</div>
+
+{% include "productos/_catalogo_consulta_especial.html" %}
+</main>
+
+{% include "productos/_catalogo_carrito.html" %}
+{% include "productos/_catalogo_como_comprar.html" %}
+</body>
+</html>
