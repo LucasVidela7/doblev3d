@@ -77,6 +77,7 @@ a,button,input,select{touch-action:manipulation}.c{width:min(1280px,100%);margin
           <div class="estado">
             {% if fila.pedidos_activos_count %}<span class="badge ok">{{ fila.pedidos_activos_count }} pedido{{ fila.pedidos_activos_count|pluralize }} activo{{ fila.pedidos_activos_count|pluralize }}</span>{% endif %}
             {% if fila.presupuestos_pendientes_count %}<span class="badge warn">{{ fila.presupuestos_pendientes_count }} presupuesto{{ fila.presupuestos_pendientes_count|pluralize }} pendiente{{ fila.presupuestos_pendientes_count|pluralize }}</span>{% endif %}
+            {% if fila.para_contactar %}<span class="badge warn">PARA CONTACTAR</span>{% endif %}
             {% if not fila.pedidos_activos_count and not fila.presupuestos_pendientes_count %}<span class="badge">Sin actividad abierta</span>{% endif %}
           </div>
         </div>
