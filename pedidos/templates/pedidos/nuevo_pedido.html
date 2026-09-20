@@ -955,7 +955,7 @@ button{font-family:Arial,sans-serif}
                             </option>
 
                             {% for producto in productos %}
-                                <option value="{{ producto.id }}">
+                                <option value="{{ producto.id }}" data-image="{{ producto.imagen_produccion_url|default:'' }}">
                                     {{ producto.codigo }} - {{ producto.nombre }}
                                 </option>
                             {% endfor %}
