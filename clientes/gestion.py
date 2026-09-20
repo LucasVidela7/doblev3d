@@ -29,6 +29,7 @@ from pedidos.models import (
 )
 
 from .models import Cliente
+from .telefonos import normalizar_telefono
 
 
 DINERO = DecimalField(
@@ -345,10 +346,8 @@ def preferencias_cliente(cliente, limite=5):
 
 def candidatos_fusion(cliente, limite=10):
     """Sugiere duplicados por teléfono, email o nombre."""
-    telefono = "".join(
-        caracter
-        for caracter in (cliente.telefono or "")
-        if caracter.isdigit()
+    telefono = normalizar_telefono(
+        cliente.telefono
     )
     email = (cliente.email or "").strip().lower()
     nombre = (cliente.nombre or "").strip().lower()
@@ -360,10 +359,8 @@ def candidatos_fusion(cliente, limite=10):
         .exclude(id=cliente.id)
         .order_by("nombre")
     ):
-        otro_telefono = "".join(
-            caracter
-            for caracter in (otro.telefono or "")
-            if caracter.isdigit()
+        otro_telefono = normalizar_telefono(
+            otro.telefono
         )
         coincide = bool(
             (telefono and otro_telefono == telefono)
