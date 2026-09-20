@@ -24,6 +24,7 @@ from pedidos.impresiones_stock import obtener_impresiones_por_producto
 from produccion import views as produccion_views
 from produccion.models import Impresora, Produccion
 from productos.models import ConfiguracionCatalogo, Producto
+from productos.miniaturas import asignar_miniaturas_productos
 
 
 def _webpush_habilitado():
@@ -240,6 +241,31 @@ DASHBOARD_PRODUCCION_STYLE = r"""
     font-size:11px;
     font-weight:800;
 }
+.dv-producto-linea{
+    display:grid;
+    grid-template-columns:40px minmax(0,1fr);
+    gap:8px;
+    align-items:center;
+    min-width:0;
+}
+.dv-producto-thumb{
+    width:40px;
+    height:40px;
+    border:1px solid var(--dv-border,#e5e7eb);
+    border-radius:9px;
+    background:var(--dv-surface-soft,#f2f4f7);
+    object-fit:cover;
+    display:block;
+}
+.dv-producto-thumb.vacia{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--dv-muted,#73777f);
+    font-size:7px;
+    font-weight:900;
+    letter-spacing:.04em;
+}
 .dv-maquina-meta{
     margin-top:4px;
     color:#73777f;
@@ -303,6 +329,14 @@ DASHBOARD_PRODUCCION_STYLE = r"""
     font-size:10px;
     font-weight:900;
 }
+.dv-plan .dv-producto-linea{
+    grid-template-columns:36px minmax(0,1fr);
+}
+.dv-plan .dv-producto-thumb{
+    width:36px;
+    height:36px;
+    border-radius:8px;
+}
 .dv-plan-meta{
     margin-top:3px;
     color:#73777f;
@@ -346,6 +380,29 @@ DASHBOARD_PRODUCCION_STYLE = r"""
 """
 
 
+def _miniatura_producto_dashboard(producto):
+    url = escape(
+        getattr(
+            producto,
+            "imagen_produccion_url",
+            "",
+        )
+        or ""
+    )
+
+    if url:
+        return (
+            '<img class="dv-producto-thumb" '
+            f'src="{url}" alt="" loading="lazy">'
+        )
+
+    return (
+        '<span class="dv-producto-thumb vacia">'
+        '3D'
+        '</span>'
+    )
+
+
 def _panel_produccion_dashboard(
     request,
     impresoras,
@@ -374,6 +431,9 @@ def _panel_produccion_dashboard(
 
         if produccion:
             producto = escape(produccion.producto.nombre)
+            miniatura = _miniatura_producto_dashboard(
+                produccion.producto
+            )
             fin = produccion.fin_estimado
             fin_texto = (
                 timezone.localtime(fin).strftime("%H:%M")
@@ -395,9 +455,14 @@ def _panel_produccion_dashboard(
                         <div class="dv-maquina-nombre">🖨 {nombre}</div>
                         <span class="dv-maquina-estado imprimiendo">IMPRIMIENDO</span>
                     </div>
-                    <div class="dv-maquina-producto">{producto} × {produccion.cantidad}</div>
-                    <div class="dv-maquina-meta">
-                        Termina {fin_texto} · ⚖ {peso}
+                    <div class="dv-producto-linea">
+                        {miniatura}
+                        <div>
+                            <div class="dv-maquina-producto">{producto} × {produccion.cantidad}</div>
+                            <div class="dv-maquina-meta">
+                                Termina {fin_texto} · ⚖ {peso}
+                            </div>
+                        </div>
                     </div>
                     <div class="dv-maquina-acciones">
                         <form method="post" action="{listo_url}">
@@ -436,6 +501,9 @@ def _panel_produccion_dashboard(
 
     for produccion in planificaciones:
         producto = escape(produccion.producto.nombre)
+        miniatura = _miniatura_producto_dashboard(
+            produccion.producto
+        )
         peso = escape(produccion.peso_total_formateado)
         inicio = produccion.inicio_impresion
 
@@ -482,10 +550,13 @@ def _panel_produccion_dashboard(
         planes_html.append(
             f"""
             <div class="dv-plan">
-                <div>
-                    <div class="dv-plan-producto">{producto} × {produccion.cantidad}</div>
-                    <div class="dv-plan-meta">
-                        {inicio_texto} · {escape(produccion.tiempo_impresion_formateado)} · ⚖ {peso}
+                <div class="dv-producto-linea">
+                    {miniatura}
+                    <div>
+                        <div class="dv-plan-producto">{producto} × {produccion.cantidad}</div>
+                        <div class="dv-plan-meta">
+                            {inicio_texto} · {escape(produccion.tiempo_impresion_formateado)} · ⚖ {peso}
+                        </div>
                     </div>
                 </div>
                 {accion}
@@ -683,6 +754,16 @@ def inicio(request):
             "inicio_impresion",
             "id",
         )[:4]
+    )
+
+    asignar_miniaturas_productos(
+        [
+            produccion.producto
+            for produccion in (
+                producciones_actuales_dashboard
+                + planificaciones_dashboard
+            )
+        ]
     )
 
     # Próximas entregas: primero atrasadas y luego las más cercanas.
