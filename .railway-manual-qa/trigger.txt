@@ -1,6 +1,10 @@
-Deploy QA: aviso de plazo de entrega en catálogo
-- Mensaje configurable desde Configuración > Tienda pública.
-- Texto base: 3 a 10 días hábiles desde la confirmación del presupuesto.
-- Visible en portada, Productos/Kits, detalle de kit, Cómo comprar y checkout.
-- Aviso compacto dentro de las tarjetas para no cargar mobile.
-Incluye migración productos.0013_configuracioncatalogo_mensaje_plazo_entrega.
+Deploy QA: reforma integral de experiencia del catálogo
+- Recorrido guiado Inicio -> Carrito -> Datos -> Confirmación.
+- Ficha pública de producto con precio, fotos, plazo y agregar al carrito.
+- Tarjetas con VER/AGREGAR y precios más claros.
+- Carrito abre al agregar producto, feedback visual y total estimado.
+- Checkout guiado, editable, sin pago online y con miniaturas.
+- Pedido especial para productos fuera del catálogo: Observaciones o WhatsApp.
+- Confirmación final con próximos pasos y plazo de entrega.
+- Ayudas de confianza y Cómo comprar actualizado.
+Sin cambios de modelos ni migraciones en esta tanda.
