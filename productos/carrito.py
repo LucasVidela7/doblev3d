@@ -518,12 +518,19 @@ def _validar_turnstile(request):
 
 
 def _contexto_checkout(error=""):
+    config = (
+        ConfiguracionCatalogo.objects.first()
+        or ConfiguracionCatalogo()
+    )
     return {
         "error": error,
         "turnstile_site_key": getattr(
             settings,
             "TURNSTILE_SITE_KEY",
             "",
+        ),
+        "mensaje_plazo_entrega": (
+            config.mensaje_plazo_entrega
         ),
     }
 
