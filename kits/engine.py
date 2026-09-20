@@ -301,7 +301,10 @@ class KitEngine:
     def _decimal_json(valor):
         if valor is None:
             return None
-        return str(Decimal(str(valor)))
+        return format(
+            Decimal(str(valor)).normalize(),
+            "f",
+        )
 
     @classmethod
     def snapshot(
@@ -342,8 +345,9 @@ class KitEngine:
                     "codigo": producto.codigo,
                     "nombre": producto.nombre,
                     "cantidad_total": cantidad_total,
-                    "cantidad_por_kit": str(
-                        cantidad_por_kit.normalize()
+                    "cantidad_por_kit": format(
+                        cantidad_por_kit.normalize(),
+                        "f",
                     ),
                 }
             )
