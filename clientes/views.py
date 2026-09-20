@@ -652,9 +652,13 @@ def detalle_cliente(request, cliente_id):
             ),
             "duplicados_sugeridos": duplicados,
             "eventos": eventos,
-            "whatsapp_url": url_contacto(
-                cliente,
-                "GENERICO",
+            "whatsapp_url": (
+                url_contacto(
+                    cliente,
+                    "GENERICO",
+                )
+                if numero_whatsapp(cliente)
+                else ""
             ),
             "hay_mas_pedidos": (
                 resumen["cantidad_pedidos"]
