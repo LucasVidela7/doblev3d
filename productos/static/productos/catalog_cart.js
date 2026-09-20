@@ -4,6 +4,8 @@
     if (!root) return;
 
     const pricingUrl = root.dataset.pricingUrl || '';
+    const productsUrl = root.dataset.productsUrl || '/productos/';
+    const kitsUrl = root.dataset.kitsUrl || '/kits/';
     const fab = root.querySelector('[data-dv-cart-open]');
     const drawer = root.querySelector('[data-dv-cart-drawer]');
     const overlay = root.querySelector('[data-dv-cart-overlay]');
@@ -21,6 +23,7 @@
     let lockedScrollY = 0;
     let bodyWasLocked = false;
     let navigationPending = false;
+    let lastCartCount = null;
 
     const showSiteLoader = () => {
         if (!siteLoader) return;
@@ -135,7 +138,17 @@
         );
         countNodes.forEach((node) => {
             node.textContent = String(count);
+            if (lastCartCount !== null && count !== lastCartCount) {
+                node.classList.remove('is-pulse');
+                void node.offsetWidth;
+                node.classList.add('is-pulse');
+                window.setTimeout(
+                    () => node.classList.remove('is-pulse'),
+                    420,
+                );
+            }
         });
+        lastCartCount = count;
     };
 
     const setRaw = (items) => {
@@ -214,6 +227,7 @@
                 button.disabled = false;
                 button.textContent = original;
                 addItem(incoming, null);
+                window.setTimeout(open, 90);
             }, 240);
         }, 360);
     };
@@ -252,7 +266,10 @@
         write(items);
         render();
         buttonLoading(button, 'AGREGADO ✓', loadingOptions);
-        showToast('Agregado al carrito');
+        showToast(
+            (incoming.name || 'Producto')
+            + ' · agregado al carrito',
+        );
     };
 
     const skeleton = () => {
@@ -299,8 +316,11 @@
                 + '<circle cx="9" cy="19" r="1.6"></circle>'
                 + '<circle cx="17" cy="19" r="1.6"></circle></svg>'
                 + '</div><strong>Tu carrito está vacío</strong>'
-                + '<p>Agregá productos o configurá un kit para comenzar.</p>'
-                + '</div>';
+                + '<p>Elegí productos individuales o armá un kit para comenzar.</p>'
+                + '<div class="dv-cart-empty-actions">'
+                + '<a href="' + escapeHtml(productsUrl) + '">VER PRODUCTOS</a>'
+                + '<a href="' + escapeHtml(kitsUrl) + '">VER KITS</a>'
+                + '</div></div>';
             totalNode.textContent = money(0);
             checkout.classList.add('is-disabled');
             checkout.setAttribute('aria-disabled', 'true');
@@ -689,9 +709,11 @@
         if (index < 0) return;
 
         if (event.target.closest('[data-cart-remove]')) {
+            const removedName = items[index]?.name || 'Producto';
             items.splice(index, 1);
             write(items);
             render();
+            showToast(removedName + ' · eliminado');
             return;
         }
 
