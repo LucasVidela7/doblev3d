@@ -1,10 +1,8 @@
-Deploy QA: términos, privacidad y arrepentimiento
-- Centro legal público con Términos de compra y Política de privacidad.
-- BOTÓN DE ARREPENTIMIENTO visible y directo en todo el catálogo.
-- Formulario público sin registro previo, con código de solicitud.
-- Solicitudes visibles y resolubles desde Configuración > Legal.
-- Datos legales del responsable configurables sin inventar información.
-- Acceso legal también durante mantenimiento.
-- Integración legal discreta en checkout.
-- Plazo de entrega eliminado de las tarjetas de Productos y Kits; se conserva como aviso general y en detalles/checkout.
-Incluye migración productos.0014_datos_legales_y_arrepentimiento.
+Deploy QA: corrección visual de tarjetas y portada
+- Botones VER / AGREGAR corregidos y legibles en mobile.
+- Acciones balanceadas dentro de cada tarjeta de producto.
+- Inicio mantiene 2x2 para Productos y Kits en mobile.
+- Productos destacados muestran hasta dos fotos cuando existen.
+- Kits destacados usan collage cuando hay varias imágenes.
+- Botón de arrepentimiento mobile más compacto para no tapar productos.
+Sin migraciones.
