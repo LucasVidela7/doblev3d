@@ -453,7 +453,40 @@
                 padding-bottom: 126px;
             }
         }
-    </style>
+    
+.dv-kit-builder .dv-kit-cart-panel--simple{
+  grid-template-columns:minmax(0,1fr) minmax(220px,auto);gap:10px;align-items:center
+}
+.dv-kit-builder .dv-kit-cart-panel--simple .dv-kit-cart-price{
+  grid-column:1;grid-row:1;text-align:left;min-width:0;padding-left:2px
+}
+.dv-kit-builder .dv-kit-cart-panel--simple .dv-kit-cart-action{
+  grid-column:2;grid-row:1;justify-content:flex-end;min-width:0
+}
+.dv-kit-builder .dv-kit-cart-panel--simple .dv-kit-cart-add{
+  width:100%;min-width:220px;min-height:48px;font-size:.82rem
+}
+.dv-kit-builder .dv-kit-cart-panel--simple .dv-kit-progress{
+  grid-column:1 / -1;grid-row:2
+}
+@media(max-width:680px){
+  .dv-kit-builder .dv-kit-cart-panel--simple{
+    grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:8px;padding:9px 10px
+  }
+  .dv-kit-builder .dv-kit-cart-panel--simple .dv-kit-cart-price{
+    grid-column:1;grid-row:1;text-align:left
+  }
+  .dv-kit-builder .dv-kit-cart-panel--simple .dv-kit-cart-price strong{font-size:1.05rem}
+  .dv-kit-builder .dv-kit-cart-panel--simple .dv-kit-cart-action{
+    grid-column:2;grid-row:1;width:100%
+  }
+  .dv-kit-builder .dv-kit-cart-panel--simple .dv-kit-cart-add{min-width:0;width:100%}
+  .dv-kit-builder .dv-kit-cart-panel--simple .dv-kit-progress{
+    grid-column:1 / -1;grid-row:2
+  }
+}
+
+</style>
 </head>
 <body class="dv-kit-configurable-page">\n{% include "productos/_catalogo_mantenimiento_admin.html" %}
     <header class="shell topbar">
@@ -531,6 +564,10 @@
         >
             {% if kit.modalidad == "LIBRE_CATEGORIA" %}
                 <div class="dv-kit-cart-panel dv-kit-cart-panel--simple">
+                    <div class="dv-kit-cart-price">
+                        <span>SUBTOTAL</span>
+                        <strong data-dv-kit-total>{% if kit.precio %}$ {{ kit.precio|floatformat:"0g" }}{% else %}Consultar{% endif %}</strong>
+                    </div>
                     <div class="dv-kit-cart-action is-ready" data-dv-kit-cart-action>
                         <button class="dv-kit-cart-add" type="button" data-dv-kit-add disabled>
                             ELEGÍ {{ kit.cantidad_productos }} MÁS
@@ -543,6 +580,10 @@
             {% else %}
                 <div class="dv-kit-cart-panel dv-kit-cart-panel--simple dv-kit-cart-panel--fixed-simple">
                     <input data-dv-kit-qty type="hidden" value="1">
+                    <div class="dv-kit-cart-price">
+                        <span>SUBTOTAL</span>
+                        <strong data-dv-kit-total>{% if kit.precio %}$ {{ kit.precio|floatformat:"0g" }}{% else %}Consultar{% endif %}</strong>
+                    </div>
                     <div class="dv-kit-cart-action is-ready" data-dv-kit-cart-action>
                         <button class="dv-kit-cart-add" type="button" data-dv-kit-add>
                             AGREGAR AL CARRITO
