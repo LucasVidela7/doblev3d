@@ -1072,6 +1072,20 @@ def configuracion(request):
     )
 
 
+
+@require_POST
+def resolver_arrepentimiento(request, solicitud_id):
+    SolicitudArrepentimiento.objects.filter(
+        id=solicitud_id,
+    ).update(
+        estado="RESUELTA",
+    )
+    return redirect(
+        reverse("dashboard:configuracion")
+        + "#legal"
+    )
+
+
 def iniciar_produccion_dashboard(
     request,
     produccion_id,
