@@ -1,0 +1,28 @@
+{% extends "productos/legal_base.html" %}
+{% block title %}Botón de arrepentimiento{% endblock %}
+{% block eyebrow %}Derecho del consumidor{% endblock %}
+{% block heading %}Botón de arrepentimiento{% endblock %}
+{% block intro %}Usá este formulario para solicitar la revocación de una compra a distancia. No necesitás registrarte ni iniciar sesión.{% endblock %}
+{% block content %}
+<section class="legal-card">
+<h2>Antes de enviar</h2>
+<p>La normativa argentina reconoce el derecho de revocación en contrataciones a distancia dentro del plazo legal aplicable. La solicitud no tiene costo.</p>
+<div class="legal-warning"><strong>Productos personalizados:</strong> existe una excepción legal para productos confeccionados según tus especificaciones o claramente personalizados. Si no sabés si aplica a tu caso, podés enviar la solicitud igualmente para que la revisemos.</div>
+</section>
+
+<section class="legal-card">
+<h2>Solicitar arrepentimiento</h2>
+{% if error %}<div class="legal-error">{{ error }}</div>{% endif %}
+<form method="post" novalidate>
+{% csrf_token %}
+<div class="honeypot" aria-hidden="true"><label for="website">Sitio web</label><input id="website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+<div class="form-grid">
+<div class="field"><label for="nombre">NOMBRE <span style="font-weight:500">(opcional)</span></label><input id="nombre" name="nombre" maxlength="150" value="{{ request.POST.nombre|default:'' }}" autocomplete="name"></div>
+<div class="field"><label for="contacto">WHATSAPP O EMAIL *</label><input id="contacto" name="contacto" maxlength="180" required value="{{ request.POST.contacto|default:'' }}" placeholder="Ej. +54 11... o email@..." autocomplete="email"><small>Lo necesitamos únicamente para identificarte y responder la solicitud.</small></div>
+<div class="field full"><label for="referencia">NÚMERO DE PEDIDO / PRESUPUESTO <span style="font-weight:500">(si lo conocés)</span></label><input id="referencia" name="referencia" maxlength="80" value="{{ request.POST.referencia|default:'' }}" placeholder="Ej. PED0012"></div>
+<div class="field full"><label for="detalle">DETALLE <span style="font-weight:500">(opcional)</span></label><textarea id="detalle" name="detalle" maxlength="3000" placeholder="Podés indicar el producto o cualquier información que ayude a identificar la compra.">{{ request.POST.detalle|default:'' }}</textarea></div>
+</div>
+<div class="legal-actions"><button class="legal-btn danger" type="submit">ENVIAR SOLICITUD DE ARREPENTIMIENTO</button><a class="legal-btn" href="{% url 'catalogo_terminos' %}">VER TÉRMINOS</a></div>
+</form>
+</section>
+{% endblock %}
