@@ -1,2 +1,6 @@
-Deploy QA: fotos en todos los flujos de pedidos
-Incluye cabecera corregida del detalle de pedido; miniaturas en preparación y detalle comercial; presupuestos y solicitudes web en lista/detalle; ficha de cliente; previews en nuevo/editar presupuesto o pedido; fallback representativo para kits y carga en lote para evitar N+1.
+Deploy QA: reforma integral de Kits en 4 etapas
+1) Centro de Kits compacto con filtros, métricas, salud y detalle individual.
+2) Editor reorganizado en Identidad, Composición, Precio/Rentabilidad y Catálogo.
+3) KitEngine centraliza opciones, validación, precio libre, volumen, salud y snapshots reutilizando las fórmulas vigentes.
+4) Catálogo, carrito, solicitud web, presupuesto y pedido consumen el motor y conservan snapshot histórico de cada kit vendido.
+Incluye migración 0014 para kit_snapshot en solicitud web, presupuesto y pedido.
