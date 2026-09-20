@@ -154,6 +154,30 @@ class ConfiguracionCatalogo(models.Model):
         ),
     )
 
+    razon_social = models.CharField(
+        max_length=180,
+        blank=True,
+        default="",
+        verbose_name="Razón social / nombre del responsable",
+    )
+    cuit = models.CharField(
+        max_length=20,
+        blank=True,
+        default="",
+        verbose_name="CUIT",
+    )
+    domicilio_legal = models.CharField(
+        max_length=240,
+        blank=True,
+        default="",
+        verbose_name="Domicilio comercial / legal",
+    )
+    email_legal = models.EmailField(
+        blank=True,
+        default="",
+        verbose_name="Email de contacto legal",
+    )
+
     class Meta:
         verbose_name = "Configuración del catálogo"
         verbose_name_plural = "Configuración del catálogo"
@@ -168,6 +192,48 @@ class ConfiguracionCatalogo(models.Model):
         self.whatsapp_numero = re.sub(r"\D+", "", self.whatsapp_numero or "")
         super().save(*args, **kwargs)
 
+
+
+class SolicitudArrepentimiento(models.Model):
+    ESTADOS = [
+        ("NUEVA", "Nueva"),
+        ("RESUELTA", "Resuelta"),
+    ]
+
+    nombre = models.CharField(
+        max_length=150,
+        blank=True,
+    )
+    contacto = models.CharField(
+        max_length=180,
+        help_text="WhatsApp o email para responder la solicitud.",
+    )
+    referencia = models.CharField(
+        max_length=80,
+        blank=True,
+        help_text="Pedido, presupuesto o comprobante si el cliente lo conoce.",
+    )
+    detalle = models.TextField(
+        blank=True,
+    )
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADOS,
+        default="NUEVA",
+    )
+    creada_en = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    class Meta:
+        ordering = ["-creada_en", "-id"]
+
+    @property
+    def codigo(self):
+        return f"ARR{self.id:04d}" if self.id else "ARR-NUEVA"
+
+    def __str__(self):
+        return f"{self.codigo} · {self.contacto}"
 
 class TipoProducto(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
