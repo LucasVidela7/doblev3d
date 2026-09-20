@@ -701,6 +701,11 @@ def lista_produccion(request):
         for trabajo in trabajos_imprimiendo.values()
         if getattr(trabajo, "producto", None)
     )
+    productos_visibles.extend(
+        produccion.producto
+        for produccion in historial_reciente
+        if getattr(produccion, "producto", None)
+    )
 
     asignar_miniaturas_productos(
         productos_visibles
