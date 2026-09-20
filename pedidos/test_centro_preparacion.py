@@ -6,6 +6,7 @@ from django.urls import reverse
 
 from clientes.models import Cliente
 from productos.models import Producto, TipoProducto
+from productos.image_models import ProductoImagen
 
 from .models import DetallePedido, EstadoImpresionPedido, Pedido
 
@@ -257,5 +258,60 @@ class CentroPreparacionTests(TestCase):
         self.assertEqual(
             respuesta.url,
             reverse("pedidos:impresiones") + "?estado=CANCELADOS",
+        )
+
+    def test_preparacion_muestra_miniatura_del_producto(self):
+        ProductoImagen.objects.create(
+            producto=self.producto,
+            file_id="prep-thumb-activo",
+            url="https://example.com/preparacion.jpg",
+            thumbnail_url="https://example.com/preparacion-thumb.jpg",
+            orden=1,
+        )
+
+        respuesta = self.client.get(
+            reverse("pedidos:impresiones")
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(
+            respuesta,
+            "https://example.com/preparacion-thumb.jpg",
+        )
+        self.assertContains(
+            respuesta,
+            'class="producto-thumb"',
+        )
+
+    def test_cancelados_muestran_miniatura_del_producto(self):
+        ProductoImagen.objects.create(
+            producto=self.producto,
+            file_id="prep-thumb-cancelado",
+            url="https://example.com/cancelado.jpg",
+            thumbnail_url="https://example.com/cancelado-thumb.jpg",
+            orden=1,
+        )
+        cancelado = Pedido.objects.create(
+            cliente=self.cliente,
+            estado="CANCELADO",
+        )
+        DetallePedido.objects.create(
+            pedido=cancelado,
+            tipo_item="PRODUCTO",
+            producto=self.producto,
+            cantidad=2,
+            precio_unitario=Decimal("1000"),
+            estado="CANCELADO",
+        )
+
+        respuesta = self.client.get(
+            reverse("pedidos:impresiones"),
+            {"estado": "CANCELADOS"},
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(
+            respuesta,
+            "https://example.com/cancelado-thumb.jpg",
         )
 
