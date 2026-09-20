@@ -22,6 +22,19 @@ class ConfiguracionCatalogo(models.Model):
         ),
         verbose_name="Mensaje de mantenimiento",
     )
+    mensaje_plazo_entrega = models.CharField(
+        max_length=300,
+        blank=True,
+        default=(
+            "Plazo de entrega: entre 3 y 10 días hábiles desde la confirmación "
+            "del presupuesto. El tiempo puede variar según stock, personalización "
+            "y disponibilidad de materiales."
+        ),
+        verbose_name="Plazo de entrega del catálogo",
+        help_text=(
+            "Se muestra en la tienda, productos, kits y revisión de la solicitud."
+        ),
+    )
     notificaciones_pedidos_web_activas = models.BooleanField(
         default=True,
         verbose_name="Notificaciones de pedidos web",
