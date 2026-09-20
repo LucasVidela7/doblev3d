@@ -291,6 +291,7 @@ def convertir_solicitud_web(request, solicitud_id):
             # Al convertirlo congelamos ese valor para respetar lo visto
             # por el cliente.
             precio_kit_manual=True,
+            kit_snapshot=item.kit_snapshot or {},
         )
 
         for componente in item.productos_kit.all():
