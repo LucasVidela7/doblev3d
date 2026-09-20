@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from pedidos.detalle_views import _armar_preparacion
+from pedidos.miniaturas import asignar_miniatura_resumen
 from pedidos.models import Pedido, Presupuesto
 
 from .models import Cliente
@@ -374,6 +375,9 @@ def detalle_cliente(request, cliente_id):
         pedidos,
         presupuestos,
     )
+
+    asignar_miniatura_resumen(pedidos, "detalles")
+    asignar_miniatura_resumen(presupuestos, "detalles")
 
     filas_pedidos = []
     for pedido in pedidos:
