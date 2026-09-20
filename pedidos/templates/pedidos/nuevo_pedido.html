@@ -1132,13 +1132,13 @@ button{font-family:Arial,sans-serif}
     function actualizarPreviewProductoPedido(indice, personalizado = false) {
         const select = document.getElementById(
             personalizado
-                ? \`producto_personalizado_\${indice}\`
-                : \`producto_\${indice}\`
+                ? `producto_personalizado_${indice}`
+                : `producto_${indice}`
         );
         const preview = document.getElementById(
             personalizado
-                ? \`preview_personalizado_\${indice}\`
-                : \`preview_producto_\${indice}\`
+                ? `preview_personalizado_${indice}`
+                : `preview_producto_${indice}`
         );
         if (!select || !preview) return;
 
@@ -1155,9 +1155,9 @@ button{font-family:Arial,sans-serif}
         preview.classList.add("activo");
         preview.innerHTML =
             (imagen
-                ? \`<img src="\${imagen}" alt="" loading="lazy">\`
+                ? `<img src="${imagen}" alt="" loading="lazy">`
                 : '<div class="vacia">3D</div>')
-            + \`<div><strong>\${texto}</strong><span>Vista previa del producto</span></div>\`;
+            + `<div><strong>${texto}</strong><span>Vista previa del producto</span></div>`;
     }
 
 
