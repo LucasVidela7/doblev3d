@@ -3,31 +3,65 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="icon" href="{% static 'brand/favicon.ico' %}">
 <title>Solicitud recibida | Doble V 3D</title>
 <style>
-:root{--blue:#134a9a;--blue-dark:#0d376f;--red:#f0393b;--text:#17233a;--muted:#667085;--line:#dfe5ef;--bg:#f5f7fb}
-*{box-sizing:border-box}body{min-height:100vh;margin:0;display:grid;place-items:center;padding:22px;background:radial-gradient(circle at top right,rgba(240,57,59,.09),transparent 28rem),radial-gradient(circle at bottom left,rgba(19,74,154,.09),transparent 28rem),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.card{width:min(520px,100%);padding:32px;border:1px solid var(--line);border-radius:28px;background:#fff;text-align:center;box-shadow:0 24px 65px rgba(18,31,52,.12)}.logo{width:86px;height:auto}.check{width:62px;height:62px;display:grid;place-items:center;margin:16px auto;border-radius:50%;background:#eaf7ee;color:#28633c}.check svg{width:32px;height:32px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}h1{margin:0;color:var(--blue-dark);font-size:clamp(1.8rem,6vw,2.6rem);letter-spacing:-.04em}p{margin:10px auto 0;max-width:390px;color:var(--muted);font-size:.9rem;line-height:1.55}.code{display:inline-flex;margin-top:15px;padding:8px 12px;border-radius:999px;background:#eef4ff;color:var(--blue-dark);font-size:.78rem;font-weight:900}.actions{display:grid;gap:9px;margin-top:22px}.btn{min-height:47px;display:flex;align-items:center;justify-content:center;border-radius:14px;text-decoration:none;font-size:.8rem;font-weight:900}.btn.primary{background:var(--blue);color:#fff}.btn.whatsapp{background:#25d366;color:#fff}.btn.secondary{border:1px solid var(--line);color:var(--blue-dark);background:#fff}
+:root{--blue:#134a9a;--blue-dark:#0d376f;--red:#f0393b;--text:#17233a;--muted:#667085;--line:#dfe5ef;--bg:#f5f7fb;--green:#28633c}
+*{box-sizing:border-box}
+body{min-height:100vh;margin:0;padding:24px 14px 110px;background:radial-gradient(circle at top right,rgba(240,57,59,.09),transparent 28rem),radial-gradient(circle at bottom left,rgba(19,74,154,.09),transparent 28rem),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.wrap{width:min(760px,100%);margin:0 auto}.card{padding:28px;border:1px solid var(--line);border-radius:28px;background:#fff;box-shadow:0 24px 65px rgba(18,31,52,.10)}
+.progress{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:22px}.progress span{display:flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:6px;border:1px solid #dbe5f4;border-radius:11px;background:#f6f9ff;color:#537198;font-size:.67rem;font-weight:850}.progress b{width:21px;height:21px;display:grid;place-items:center;border-radius:50%;background:var(--blue);color:#fff;font-size:.63rem}
+.hero{text-align:center}.logo{width:82px;height:auto}.check{width:62px;height:62px;display:grid;place-items:center;margin:14px auto;border-radius:50%;background:#eaf7ee;color:var(--green)}.check svg{width:32px;height:32px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+h1{margin:0;color:var(--blue-dark);font-size:clamp(1.9rem,6vw,2.7rem);letter-spacing:-.04em}.lead{margin:10px auto 0;max-width:560px;color:var(--muted);font-size:.9rem;line-height:1.55}.code{display:inline-flex;margin-top:15px;padding:8px 12px;border-radius:999px;background:#eef4ff;color:var(--blue-dark);font-size:.78rem;font-weight:900}
+.next{margin-top:24px;padding:18px;border:1px solid var(--line);border-radius:18px;background:#fbfcfe}.next h2{margin:0;color:var(--blue-dark);font-size:1rem}.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:12px}.step{padding:12px;border:1px solid #e7ebf1;border-radius:13px;background:#fff}.step small{display:block;color:var(--red);font-size:.6rem;font-weight:950;letter-spacing:.07em}.step strong{display:block;margin-top:4px;font-size:.8rem}.step p{margin:4px 0 0;color:var(--muted);font-size:.68rem;line-height:1.4}
+.leadtime{display:flex;align-items:flex-start;gap:8px;margin-top:12px;padding:11px 12px;border:1px solid #cdddf4;border-radius:12px;background:#eef4ff;color:#345f91;font-size:.72rem;line-height:1.45}.leadtime strong{color:var(--blue-dark)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:20px}.btn{min-height:48px;display:flex;align-items:center;justify-content:center;padding:0 12px;border-radius:14px;text-decoration:none;font-size:.78rem;font-weight:900;text-align:center}.btn.primary{background:var(--blue);color:#fff}.btn.whatsapp{background:#25d366;color:#fff}.helper{margin:12px 0 0;color:var(--muted);font-size:.68rem;line-height:1.45;text-align:center}
+@media(max-width:620px){.card{padding:20px 15px;border-radius:22px}.progress span{font-size:.58rem}.steps{grid-template-columns:1fr}.actions{grid-template-columns:1fr}}
 </style>
 </head>
-<body>\n{% include "productos/_catalogo_mantenimiento_admin.html" %}
-<main class="card">
-    <img class="logo" src="{% static 'brand/logo.png' %}" alt="Doble V 3D">
-    <div class="check" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"></path></svg>
+<body>
+{% include "productos/_catalogo_mantenimiento_admin.html" %}
+<main class="wrap">
+<section class="card">
+    <div class="progress" aria-label="Progreso de compra">
+        <span><b>✓</b> Carrito</span>
+        <span><b>✓</b> Tus datos</span>
+        <span><b>3</b> Confirmación</span>
     </div>
-    <h1>¡Solicitud recibida!</h1>
-    <p>Nos vamos a comunicar por WhatsApp para revisar todo con vos antes de confirmar el pedido.</p>
-    {% if solicitud %}<span class="code">{{ solicitud.codigo }}</span>{% endif %}
+
+    <div class="hero">
+        <img class="logo" src="{% static 'brand/logo.png' %}" alt="Doble V 3D">
+        <div class="check" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"></path></svg>
+        </div>
+        <h1>¡Recibimos tu solicitud!</h1>
+        <p class="lead">No necesitás hacer ningún pago ahora. Vamos a revisar disponibilidad, cantidades, personalizaciones y entrega antes de confirmar el pedido con vos por WhatsApp.</p>
+        {% if solicitud %}<span class="code">{{ solicitud.codigo }}</span>{% endif %}
+    </div>
+
+    <section class="next">
+        <h2>¿Qué pasa ahora?</h2>
+        <div class="steps">
+            <div class="step"><small>1 · REVISIÓN</small><strong>Chequeamos tu solicitud</strong><p>Validamos productos, kits, stock y materiales necesarios.</p></div>
+            <div class="step"><small>2 · WHATSAPP</small><strong>Te confirmamos el presupuesto</strong><p>Coordinamos total final, detalles y forma de entrega.</p></div>
+            <div class="step"><small>3 · PREPARACIÓN</small><strong>Comenzamos después de tu OK</strong><p>El pedido entra en preparación una vez confirmado el presupuesto.</p></div>
+        </div>
+        {% if mensaje_plazo_entrega %}
+        <div class="leadtime"><span aria-hidden="true">⏱</span><div><strong>Plazo estimado</strong><br>{{ mensaje_plazo_entrega }}</div></div>
+        {% endif %}
+    </section>
+
     <div class="actions">
         {% if whatsapp_confirmacion_url %}
-            <a class="btn whatsapp" href="{{ whatsapp_confirmacion_url }}" target="_blank" rel="noopener">ENVIAR DETALLE POR WHATSAPP</a>
+        <a class="btn whatsapp" href="{{ whatsapp_confirmacion_url }}" target="_blank" rel="noopener">ENVIAR DETALLE POR WHATSAPP</a>
         {% endif %}
-        <a class="btn primary" href="{% url 'catalogo' %}">VOLVER AL CATÁLOGO</a>
-        <button class="btn secondary" type="button" onclick="window.history.back()">VOLVER ATRÁS</button>
+        <a class="btn primary" href="{% url 'catalogo_productos' %}">SEGUIR VIENDO PRODUCTOS</a>
     </div>
+    <p class="helper">Si olvidaste mencionar un producto que no aparece en la tienda, podés escribirnos por WhatsApp y agregar la referencia.</p>
+</section>
 </main>
+
 <script>
 try { localStorage.removeItem('dv-catalog-cart-v1'); } catch (_) {}
 </script>
