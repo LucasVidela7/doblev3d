@@ -961,38 +961,99 @@ def inicio(request):
 
 @never_cache
 def configuracion(request):
-    config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
+    config, _ = ConfiguracionCatalogo.objects.get_or_create(
+        pk=1
+    )
+
+    campos_texto = {
+        "mensaje_mantenimiento": 240,
+        "instagram_usuario": 100,
+        "whatsapp_numero": 30,
+        "whatsapp_mensaje": 240,
+        "whatsapp_mensaje_respuesta_solicitud": 4000,
+        "whatsapp_mensaje_post_solicitud": 4000,
+        "whatsapp_mensaje_cliente_generico": 2000,
+        "whatsapp_mensaje_cliente_pedido_listo": 2000,
+        "whatsapp_mensaje_cliente_saldo": 2000,
+        "whatsapp_mensaje_cliente_presupuesto": 2000,
+        "whatsapp_mensaje_cliente_reactivacion": 2000,
+    }
+    campos_booleanos = [
+        "catalogo_activo",
+        "notificaciones_pedidos_web_activas",
+        "mostrar_instagram",
+        "mostrar_whatsapp",
+    ]
 
     if request.method == "POST":
-        config.catalogo_activo = (
-            request.POST.get("catalogo_activo") == "on"
-        )
-        config.notificaciones_pedidos_web_activas = (
-            request.POST.get("notificaciones_pedidos_web_activas") == "on"
-        )
-        config.mensaje_mantenimiento = (
-            request.POST.get("mensaje_mantenimiento") or ""
-        ).strip()[:240]
+        actualizados = []
+
+        for campo in campos_booleanos:
+            setattr(
+                config,
+                campo,
+                request.POST.get(campo) == "on",
+            )
+            actualizados.append(campo)
+
+        for campo, limite in campos_texto.items():
+            valor = (
+                request.POST.get(campo)
+                or ""
+            ).strip()[:limite]
+            setattr(config, campo, valor)
+            actualizados.append(campo)
+
         config.save(
-            update_fields=[
-                "catalogo_activo",
-                "notificaciones_pedidos_web_activas",
-                "mensaje_mantenimiento",
-            ]
+            update_fields=actualizados,
         )
         return redirect(
-            reverse("dashboard:configuracion") + "?guardado=1"
+            reverse("dashboard:configuracion")
+            + "?guardado=1"
         )
+
+    whatsapp_defaults = {}
+    for campo in [
+        "whatsapp_mensaje_cliente_generico",
+        "whatsapp_mensaje_cliente_pedido_listo",
+        "whatsapp_mensaje_cliente_saldo",
+        "whatsapp_mensaje_cliente_presupuesto",
+        "whatsapp_mensaje_cliente_reactivacion",
+        "whatsapp_mensaje_respuesta_solicitud",
+        "whatsapp_mensaje_post_solicitud",
+    ]:
+        default = (
+            ConfiguracionCatalogo
+            ._meta
+            .get_field(campo)
+            .default
+        )
+        whatsapp_defaults[campo] = (
+            default()
+            if callable(default)
+            else default
+        )
+
+    webpush_habilitado = _webpush_habilitado()
 
     return render(
         request,
         "dashboard/configuracion.html",
         {
             "config": config,
-            "webpush_configurado": _webpush_habilitado(),
-            "dispositivos_push_activos": (
-                WebPushSubscription.objects.filter(activa=True).count()
+            "webpush_configurado": webpush_habilitado,
+            "webpush_habilitado": webpush_habilitado,
+            "webpush_public_key": getattr(
+                settings,
+                "WEBPUSH_VAPID_PUBLIC_KEY",
+                "",
             ),
+            "dispositivos_push_activos": (
+                WebPushSubscription.objects
+                .filter(activa=True)
+                .count()
+            ),
+            "whatsapp_defaults": whatsapp_defaults,
         },
     )
 
