@@ -10,7 +10,7 @@ from costos.models import ConfiguracionCostos
 from kits.models import Kit, KitComponente
 
 from .image_models import ProductoImagen
-from .models import Producto, TipoProducto
+from .models import ConfiguracionCatalogo, Producto, TipoProducto
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
@@ -383,3 +383,29 @@ class CatalogoPublicoTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "¿Cómo comprar?")
         self.assertContains(response, "Entregas y retiro")
+
+    def test_catalogo_informa_plazo_de_entrega_configurado(self):
+        config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
+        config.mensaje_plazo_entrega = (
+            "Plazo de prueba: 3 a 10 días hábiles desde la confirmación."
+        )
+        config.save(update_fields=["mensaje_plazo_entrega"])
+
+        portada = self.client.get(reverse("catalogo"))
+        productos = self.client.get(reverse("catalogo_productos"))
+        kits = self.client.get(reverse("catalogo_kits"))
+        detalle = self.client.get(
+            reverse("catalogo_kit_detalle", args=[self.kit.id])
+        )
+
+        for respuesta in [portada, productos, kits, detalle]:
+            self.assertEqual(respuesta.status_code, 200)
+            self.assertContains(
+                respuesta,
+                "3 a 10 días hábiles desde la confirmación",
+            )
+
+        self.assertContains(productos, "delivery-card-note")
+        self.assertContains(kits, "delivery-card-note")
+        self.assertContains(detalle, "Plazo de entrega")
+
