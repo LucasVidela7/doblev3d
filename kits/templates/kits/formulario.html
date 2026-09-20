@@ -72,7 +72,7 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
     <nav class="secciones">
         <a href="#identidad">1 · IDENTIDAD</a>
         <a href="#composicion">2 · COMPOSICIÓN</a>
-        <a href="#precio">3 · PRECIO</a>
+        <a href="#recomendacion_precio">3 · PRECIO</a>
         <a href="#catalogo">4 · CATÁLOGO</a>
     </nav>
 
@@ -95,7 +95,7 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
             </div>
         </div>
 
-        <div class="card recomendacion" id="precio">
+        <div class="card recomendacion" id="recomendacion_precio">
             <div>
                 <div class="seccion-titulo">3 · PRECIO Y RENTABILIDAD</div>
                 <label>PRECIO ACTUAL</label>
@@ -110,14 +110,11 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
                     oninput="actualizarRecomendacion()"
                     style="margin-bottom:12px"
                 >
-                <div id="recomendacion_precio">
-                <div>
                 <div class="recomendacion-etiqueta">RECOMENDACIÓN DE PRECIO</div>
                 <div class="recomendacion-texto" id="recomendacion_detalle">
                     Elegí la modalidad y composición para calcularla.
                 </div>
                 <span class="recomendacion-estado" id="recomendacion_estado">CALCULANDO</span>
-                </div>
             </div>
             <div class="recomendacion-precio">
                 <span>PRECIO MÍNIMO SUGERIDO</span>
