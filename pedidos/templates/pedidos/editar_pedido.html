@@ -519,13 +519,13 @@ function moneda(valor, decimales = 2) {
 function actualizarPreviewProducto(i, personalizado = false) {
     const select = document.getElementById(
         personalizado
-            ? \`producto_personalizado_\${i}\`
-            : \`producto_\${i}\`
+            ? `producto_personalizado_${i}`
+            : `producto_${i}`
     );
     const preview = document.getElementById(
         personalizado
-            ? \`preview_personalizado_\${i}\`
-            : \`preview_producto_\${i}\`
+            ? `preview_personalizado_${i}`
+            : `preview_producto_${i}`
     );
 
     if (!select || !preview || !select.value) {
@@ -544,9 +544,9 @@ function actualizarPreviewProducto(i, personalizado = false) {
     preview.classList.add("activo");
     preview.innerHTML =
         (producto.imagen
-            ? \`<img src="\${producto.imagen}" alt="" loading="lazy">\`
+            ? `<img src="${producto.imagen}" alt="" loading="lazy">`
             : '<div class="vacia">3D</div>')
-        + \`<div><strong>\${producto.codigo} · \${producto.nombre}</strong><span>Vista previa del producto</span></div>\`;
+        + `<div><strong>${producto.codigo} · ${producto.nombre}</strong><span>Vista previa del producto</span></div>`;
 }
 
 
