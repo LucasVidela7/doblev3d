@@ -1,5 +1,5 @@
-Deploy QA: tipografía ampliada en Clientes
-- Aumenta fuente en lista, detalle e historial de clientes.
-- Mejora nombres, contacto, métricas, badges, pedidos, presupuestos, seguimiento, actividad y botones.
-- Mantiene responsive y sube inputs móviles a 16px.
+Deploy QA: loader de Preparación
+- Evita activar el loader global de Gestión en formularios AJAX del Kanban.
+- La tarjeta puede cambiar de columna sin dejar un loader infinito.
+- Mantiene el loader normal para navegaciones y submits reales.
 Sin migraciones.
