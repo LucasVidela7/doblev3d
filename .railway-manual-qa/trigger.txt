@@ -1,6 +1,5 @@
-Deploy QA: corregir precio y selector de cantidad en tarjetas
-- El selector − 1 + conserva el ancho necesario y ya no recorta el botón +.
-- La placa de precio se ajusta al ancho de las tarjetas de 4 columnas.
-- “PRECIO UNITARIO” se compacta para no sobresalir.
-- El importe mantiene jerarquía y queda en una sola línea.
+Deploy QA: mantener descuento en una sola línea
+- El badge de descuento de las tarjetas de productos no hace salto de línea.
+- Se evita wrap, word-break y compresión horizontal.
+- Se ajusta mínimamente la tipografía para mantener el badge compacto.
 Sin migraciones.
