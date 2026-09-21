@@ -352,7 +352,16 @@
             }
         },true);
 
-        document.addEventListener("submit",function(){
+        document.addEventListener("submit",function(event){
+            const form=event.target;
+            if(
+                form
+                && form.matches(
+                    "[data-dv-no-page-loader],[data-kanban-post]"
+                )
+            ){
+                return;
+            }
             mostrarLoader();
         },true);
 
