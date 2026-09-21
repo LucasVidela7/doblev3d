@@ -2616,3 +2616,184 @@ body.dv-management-menu-ready .dv-kanban-column.is-neutral{--dv-kanban-accent:#8
         scroll-snap-align:start;
     }
 }
+
+
+/* =========================================================
+   CLIENTES · ESCALA AMPLIADA
+   Mayor legibilidad específica para lista, detalle e historial.
+   ========================================================= */
+body.dv-management-menu-ready.dv-clientes-page{
+    font-size:16px!important;
+}
+
+/* Encabezados y textos introductorios */
+body.dv-management-menu-ready.dv-clientes-page h1{
+    font-size:clamp(31px,4vw,40px)!important;
+}
+body.dv-management-menu-ready.dv-clientes-page :is(.sub,.panel-sub){
+    font-size:13px!important;
+    line-height:1.45!important;
+}
+
+/* Botones, tabs y acciones */
+body.dv-management-menu-ready.dv-clientes-page :is(
+    .btn,.tabs .btn,.pedido-acciones .btn,.mini-actions .btn
+){
+    font-size:12px!important;
+}
+
+/* Métricas */
+body.dv-management-menu-ready.dv-clientes-page .metrica small{
+    font-size:10.5px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .metrica strong{
+    font-size:24px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .metrica span{
+    font-size:10.5px!important;
+    line-height:1.4!important;
+}
+
+/* Lista de clientes */
+body.dv-management-menu-ready.dv-clientes-page .nombre{
+    font-size:16px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .codigo{
+    font-size:10.5px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .contacto{
+    font-size:12px!important;
+    line-height:1.45!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .badge{
+    font-size:10px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .saldo small{
+    font-size:10px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .saldo strong{
+    font-size:17px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .dato small{
+    font-size:10px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .dato strong,
+body.dv-management-menu-ready.dv-clientes-page .dato div{
+    font-size:12.5px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .atencion,
+body.dv-management-menu-ready.dv-clientes-page .foot span,
+body.dv-management-menu-ready.dv-clientes-page .ver,
+body.dv-management-menu-ready.dv-clientes-page .resultado span{
+    font-size:11px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .resultado strong{
+    font-size:13px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .campo label{
+    font-size:10.5px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page :is(
+    .campo input,.campo select,.campo textarea
+){
+    font-size:14px!important;
+}
+
+/* Detalle del cliente */
+body.dv-management-menu-ready.dv-clientes-page .panel-title{
+    font-size:13.5px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .accion-title{
+    font-size:13.5px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .accion-meta{
+    font-size:11.5px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .pedido-code{
+    font-size:14px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .pedido-meta{
+    font-size:11px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .numero small{
+    font-size:10px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .numero strong{
+    font-size:12.5px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .compra-detail summary{
+    font-size:11px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .compra-nombre,
+body.dv-management-menu-ready.dv-clientes-page .compra-precio{
+    font-size:12px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .compra-meta,
+body.dv-management-menu-ready.dv-clientes-page .personalizacion,
+body.dv-management-menu-ready.dv-clientes-page .kit-mini{
+    font-size:11px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .presupuesto-title{
+    font-size:13px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .presupuesto-meta{
+    font-size:11px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .presupuesto-total{
+    font-size:14px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .evento-fecha,
+body.dv-management-menu-ready.dv-clientes-page .evento-detail{
+    font-size:10.5px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .evento-title{
+    font-size:12px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .preferencia strong,
+body.dv-management-menu-ready.dv-clientes-page .contacto-item strong{
+    font-size:12px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .preferencia span,
+body.dv-management-menu-ready.dv-clientes-page .contacto-item span,
+body.dv-management-menu-ready.dv-clientes-page .merge-box p,
+body.dv-management-menu-ready.dv-clientes-page .cuenta-row{
+    font-size:11px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .cuenta-row strong{
+    font-size:12.5px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .modal-title{
+    font-size:14px!important;
+}
+
+/* Historial */
+body.dv-management-menu-ready.dv-clientes-page .title{
+    font-size:13px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .meta{
+    font-size:11px!important;
+    line-height:1.45!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .num small{
+    font-size:10px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .num strong{
+    font-size:12px!important;
+}
+body.dv-management-menu-ready.dv-clientes-page .pager span{
+    font-size:11px!important;
+}
+
+@media(max-width:720px){
+    body.dv-management-menu-ready.dv-clientes-page{
+        font-size:15px!important;
+    }
+    body.dv-management-menu-ready.dv-clientes-page h1{
+        font-size:30px!important;
+    }
+    body.dv-management-menu-ready.dv-clientes-page :is(
+        .campo input,.campo select,.campo textarea
+    ){
+        font-size:16px!important;
+    }
+}
