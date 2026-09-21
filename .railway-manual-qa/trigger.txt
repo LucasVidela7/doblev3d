@@ -1,5 +1,6 @@
-Deploy QA: restaurar botón de arrepentimiento flotante
-- Se quita el acceso del header.
-- Vuelve como botón fijo abajo a la derecha en páginas comerciales.
-- Se desplaza hacia arriba en detalles de producto y kit para no tapar la barra de compra.
+Deploy QA: cierre pre-lanzamiento puntos 1, 2 y 4
+- Legales: privacidad con plazos AAIP y arrepentimiento reforzado.
+- Anti-spam: Turnstile opcional + honeypot + deduplicación + límite por contacto.
+- Rendimiento: reutilización de prefetch en productos compuestos.
+- Mantiene botón de arrepentimiento flotante.
 Sin migraciones.
