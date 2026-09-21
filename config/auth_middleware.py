@@ -27,6 +27,7 @@ class LoginRequiredMiddleware:
         "catalogo_privacidad",
         "catalogo_arrepentimiento",
         "catalogo_arrepentimiento_gracias",
+    "healthcheck",
     }
 
     def __init__(self, get_response):

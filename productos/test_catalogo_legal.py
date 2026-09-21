@@ -49,13 +49,18 @@ class CatalogoLegalTests(TestCase):
             reverse("catalogo_arrepentimiento"),
         )
 
-    def test_boton_flotante_solo_aparece_en_inicio(self):
-        for nombre_ruta in ("catalogo_productos", "catalogo_kits"):
+    def test_boton_de_arrepentimiento_visible_en_paginas_comerciales(self):
+        for nombre_ruta in (
+            "catalogo",
+            "catalogo_productos",
+            "catalogo_kits",
+            "catalogo_carrito",
+        ):
             response = self.client.get(reverse(nombre_ruta))
 
             self.assertEqual(response.status_code, 200)
             self.assertContains(response, "Cambios y arrepentimiento")
-            self.assertNotContains(
+            self.assertContains(
                 response,
                 "BOTÓN DE ARREPENTIMIENTO",
             )

@@ -1,6 +1,7 @@
 from decimal import Decimal, ROUND_CEILING
 import re
 
+from django.core.cache import cache
 from django.db import models
 
 from costos.models import ConfiguracionCostos
@@ -391,12 +392,21 @@ class Producto(models.Model):
             self.sincronizar_productos_padre()
 
     def obtener_configuracion(self):
-        return (
-            ConfiguracionCostos.objects
-            .filter(activa=True)
-            .order_by("-fecha_desde")
-            .first()
-        )
+        # La configuración de costos se consulta muchas veces al renderizar
+        # el catálogo. Un TTL corto evita repetir la misma query por producto
+        # sin dejar precios desactualizados durante más de unos segundos.
+        cache_key = "dv-configuracion-costos-activa-v1"
+        sentinel = object()
+        config = cache.get(cache_key, sentinel)
+        if config is sentinel:
+            config = (
+                ConfiguracionCostos.objects
+                .filter(activa=True)
+                .order_by("-fecha_desde")
+                .first()
+            )
+            cache.set(cache_key, config, 15)
+        return config
 
     @property
     def costo(self):
