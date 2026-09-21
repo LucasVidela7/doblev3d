@@ -15,6 +15,7 @@ body{margin:0;padding-bottom:120px;background:radial-gradient(circle at top righ
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{display:grid;gap:5px}.field.full{grid-column:1/-1}.field label{font-size:.67rem;font-weight:900}.field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--text);font:inherit;font-size:.82rem;outline:none}.field input{min-height:44px;padding:8px 10px}.field textarea{min-height:110px;padding:10px;resize:vertical}.field small{color:var(--muted);font-size:.65rem;line-height:1.4}.field input:focus,.field textarea:focus{border-color:#7ba4dc;box-shadow:0 0 0 3px rgba(19,74,154,.08)}.legal-error{margin-bottom:12px;padding:10px 11px;border:1px solid #efc0c0;border-radius:11px;background:#fff2f2;color:#903535;font-size:.75rem;font-weight:800}.honeypot{position:absolute;left:-9999px}
 @media(max-width:680px){.legal-card{padding:16px;border-radius:16px}.legal-grid,.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.legal-actions{display:grid;grid-template-columns:1fr}.legal-btn{width:100%}}
 </style>
+{% block head_extra %}{% endblock %}
 </head>
 <body>
 <main class="shell">
