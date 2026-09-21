@@ -1,6 +1,6 @@
-Deploy QA: descuento visible en listado de Productos
-- El precio unitario de cada tarjeta se actualiza al precio final según cantidad.
-- Si aplica descuento, se muestra el porcentaje real como badge junto al precio.
-- Si no aplica descuento, no se muestra badge.
-- Usa la misma respuesta de pricing del carrito/backend.
+Deploy QA: corregir precio y selector de cantidad en tarjetas
+- El selector − 1 + conserva el ancho necesario y ya no recorta el botón +.
+- La placa de precio se ajusta al ancho de las tarjetas de 4 columnas.
+- “PRECIO UNITARIO” se compacta para no sobresalir.
+- El importe mantiene jerarquía y queda en una sola línea.
 Sin migraciones.

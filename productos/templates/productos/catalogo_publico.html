@@ -313,7 +313,7 @@
         .catalog-title-link:hover{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
         .product-actions{
             display:grid;
-            grid-template-columns:minmax(54px,.66fr) minmax(84px,1.34fr);
+            grid-template-columns:44px minmax(104px,1fr);
             align-items:stretch;
             gap:6px;
             width:100%;
@@ -468,13 +468,14 @@
         /* Precio de producto más legible en desktop: evita separar "$" y valor. */
         .catalog-item[data-kind="producto"] .price-row{
             display:grid;
-            grid-template-columns:minmax(92px,.76fr) minmax(0,1.24fr);
+            grid-template-columns:82px minmax(0,1fr);
             align-items:end;
             gap:8px;
         }
         .catalog-item[data-kind="producto"] .price-block{
-            min-width:0;
-            padding:7px 8px 6px;
+            width:82px;
+            min-width:82px;
+            padding:7px 6px 6px;
             border:1px solid #e2eaf6;
             border-radius:11px;
             background:#f7faff;
@@ -482,9 +483,9 @@
         .catalog-item[data-kind="producto"] .price-label{
             margin-bottom:4px;
             color:#6b7890;
-            font-size:.58rem;
+            font-size:.49rem;
             font-weight:900;
-            letter-spacing:.055em;
+            letter-spacing:.015em;
             line-height:1;
             text-transform:uppercase;
             white-space:nowrap;
@@ -492,7 +493,7 @@
         .catalog-item[data-kind="producto"] .price{
             display:block;
             color:var(--brand-blue-strong);
-            font-size:1.22rem;
+            font-size:1.08rem;
             font-weight:950;
             line-height:1.05;
             letter-spacing:-.025em;
