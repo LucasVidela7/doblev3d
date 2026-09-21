@@ -1,7 +1,8 @@
-Deploy QA: swipe horizontal en Kanban mobile
-- Preparación, Solicitudes web, Presupuestos y Producción permiten deslizar horizontalmente entre columnas.
-- Separa overscroll horizontal y vertical para evitar que la columna bloquee el gesto.
-- Scroll táctil nativo con snap por columna.
-- Una columna casi completa por pantalla en mobile, dejando una pequeña pista de la siguiente.
-- Oculta scrollbar horizontal en mobile.
+Deploy QA: tipografía legible global en Gestión
+- Normaliza toda la suite interna con cuerpo base de 16px.
+- Textos secundarios 12.5px, botones 13px, badges 11.5px e inputs 15/16px.
+- Ajusta navegación inferior, menú lateral, Configuración, Métricas y Kanban.
+- Corrige controles inyectados de Productos/Planificación que usaban 7–10px.
+- Refuerza Clientes para no heredar overrides históricos más pequeños.
+- Mantiene jerarquías y responsive sin tocar el catálogo público.
 Sin migraciones.
