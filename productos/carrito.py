@@ -19,6 +19,8 @@ from django.views.decorators.http import require_POST
 from calculadora.precios import calcular_precio_catalogo_producto
 from kits.engine import KitEngine
 from kits.models import Kit
+from metricas.models import EventoCatalogo
+from metricas.services import registrar_evento_request
 from pedidos.models import (
     SolicitudWeb,
     SolicitudWebItem,
@@ -667,6 +669,13 @@ def carrito_checkout(request):
         ip_hash=ip_hash,
         fingerprint=fingerprint,
         user_agent=(request.META.get("HTTP_USER_AGENT") or "")[:250],
+    )
+
+    registrar_evento_request(
+        request,
+        EventoCatalogo.SOLICITUD,
+        pagina="checkout",
+        ruta=request.path,
     )
 
     for linea in lineas:
