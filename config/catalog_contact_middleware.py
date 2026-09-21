@@ -138,12 +138,6 @@ header.shell.top{display:none!important}
 }
 .dv-catalog-withdrawal:hover{background:#fff5f5}
 
-/* En detalles de producto/kit hay una barra de compra fija abajo.
-   El acceso legal se eleva para no tapar subtotal, cantidad ni CTA. */
-body:has(.dv-product-builder) .dv-catalog-withdrawal,
-body:has(.dv-kit-builder) .dv-catalog-withdrawal{
-    display:none!important
-}
 
 @media(max-width:640px){
     .dv-catalog-legal-footer{margin-top:22px;padding-bottom:72px}
@@ -152,10 +146,6 @@ body:has(.dv-kit-builder) .dv-catalog-withdrawal{
     .dv-catalog-withdrawal{
         right:8px;bottom:8px;min-height:31px;max-width:158px;
         padding:0 8px;font-size:.49rem;box-shadow:0 4px 12px rgba(25,35,50,.12)
-    }
-    body:has(.dv-product-builder) .dv-catalog-withdrawal,
-    body:has(.dv-kit-builder) .dv-catalog-withdrawal{
-        display:none!important
     }
 }
 </style>
@@ -259,7 +249,7 @@ def _header_html(view_name=""):
 
 
 
-def _legal_footer_html():
+def _legal_footer_html(view_name=""):
     terminos_url = html.escape(
         reverse("catalogo_terminos"),
         quote=True,
@@ -273,7 +263,7 @@ def _legal_footer_html():
         quote=True,
     )
 
-    return (
+    contenido = (
         '<footer class="dv-catalog-legal-footer" id="dv-catalog-legal-footer">'
         '<div class="dv-catalog-legal-footer__inner">'
         '<div class="dv-catalog-legal-footer__brand">Doble V 3D · Catálogo online</div>'
@@ -282,9 +272,15 @@ def _legal_footer_html():
         f'<a href="{privacidad_url}">Privacidad</a>'
         f'<a href="{arrepentimiento_url}">Cambios y arrepentimiento</a>'
         '</nav></div></footer>'
-        f'<a class="dv-catalog-withdrawal" href="{arrepentimiento_url}">'
-        'BOTÓN DE ARREPENTIMIENTO</a>'
     )
+
+    if view_name in {"catalogo", "catalogo_legacy"}:
+        contenido += (
+            f'<a class="dv-catalog-withdrawal" href="{arrepentimiento_url}">'
+            'BOTÓN DE ARREPENTIMIENTO</a>'
+        )
+
+    return contenido
 
 
 def _legal_insertado(contenido):
@@ -374,7 +370,7 @@ class CatalogContactMiddleware:
                 )
 
         if not _legal_insertado(contenido):
-            legal = _legal_footer_html()
+            legal = _legal_footer_html(view_name)
             if "</body>" in contenido:
                 contenido = contenido.replace(
                     "</body>",
