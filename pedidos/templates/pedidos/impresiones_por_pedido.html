@@ -653,7 +653,7 @@
     <section class="seccion" id="para-preparar">
         <div class="seccion-head">
             <div><h2>Para preparar</h2><div class="seccion-ayuda">Pedidos que hoy tienen todo el stock necesario. Al empezar, el stock queda reservado para ese paquete.</div></div>
-            <span class="seccion-contador">{{ total_para_preparar }} pedido{{ total_para_preparar|pluralize:"s" }}</span>
+            <span class="seccion-contador" title="{{ total_para_preparar }} pedido{{ total_para_preparar|pluralize:"s" }}">{{ total_para_preparar }}</span>
         </div>
         <div class="lista">
             {% for item_pedido in para_preparar %}
@@ -718,7 +718,7 @@
     <section class="seccion" id="en-preparacion">
         <div class="seccion-head">
             <div><h2>En preparación</h2><div class="seccion-ayuda">El stock ya está reservado. Marcá cada producto a medida que lo colocás en el paquete.</div></div>
-            <span class="seccion-contador">{{ total_en_preparacion }} pedido{{ total_en_preparacion|pluralize:"s" }}</span>
+            <span class="seccion-contador" title="{{ total_en_preparacion }} pedido{{ total_en_preparacion|pluralize:"s" }}">{{ total_en_preparacion }}</span>
         </div>
         <div class="lista">
             {% for item_pedido in en_preparacion %}
@@ -821,7 +821,7 @@
     <section class="seccion" id="falta-stock">
         <div class="seccion-head">
             <div><h2>Falta stock</h2><div class="seccion-ayuda">Pedidos que todavía necesitan producción antes de poder armarse.</div></div>
-            <span class="seccion-contador">{{ total_falta_stock }} pedido{{ total_falta_stock|pluralize:"s" }}</span>
+            <span class="seccion-contador" title="{{ total_falta_stock }} pedido{{ total_falta_stock|pluralize:"s" }}">{{ total_falta_stock }}</span>
         </div>
         <div class="lista">
             {% for item_pedido in falta_stock %}
@@ -887,7 +887,7 @@
     <section class="seccion" id="listos">
         <div class="seccion-head">
             <div><h2>Listos</h2><div class="seccion-ayuda">Paquetes terminados que ya pueden salir del taller.</div></div>
-            <span class="seccion-contador">{{ total_listos }} pedido{{ total_listos|pluralize:"s" }}</span>
+            <span class="seccion-contador" title="{{ total_listos }} pedido{{ total_listos|pluralize:"s" }}">{{ total_listos }}</span>
         </div>
         <div class="lista">
             {% for item_pedido in listos %}
