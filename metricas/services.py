@@ -64,7 +64,6 @@ def _es_bot(request):
         "headless",
         "lighthouse",
         "facebookexternalhit",
-        "whatsapp",
     )
     return any(marca in ua for marca in marcas)
 
