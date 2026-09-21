@@ -1,10 +1,6 @@
-Deploy QA: Preparación en vista Kanban
-- Cuatro columnas operativas: Falta stock, Para preparar, En preparación y Listos.
-- Tarjetas compactas con productos colapsados.
-- Encabezados y contadores fijos por columna.
-- Responsive: cuatro columnas en PC y navegación horizontal por etapas en tablet/móvil.
-- Iniciar preparación y liberar pendientes actualizan el tablero sin recargar la página.
-- Al completar el último check, el pedido pasa visualmente a Listos sin recarga.
-- Se conserva la lógica actual de reserva, liberación y descuento de stock.
-- Incluye también los ajustes QA pendientes de contraste en presupuestos y métricas dark mode.
+Deploy QA: ajuste mobile Kanban Preparación
+- Agrega espacio inferior seguro dentro de cada columna para que la navbar fija no tape la última tarea.
+- La barra superior de estados ahora entra completa en mobile en 4 columnas.
+- Reduce tipografía y contador de estados sin perder legibilidad.
+- Mantiene navegación horizontal del Kanban y scroll independiente por columna.
 Sin migraciones.
