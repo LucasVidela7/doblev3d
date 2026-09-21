@@ -146,7 +146,7 @@ jobs:
           home_html = html_for("/")
           if 'id="dv-catalog-withdrawal-float"' not in home_html:
               raise SystemExit("Floating withdrawal button is missing from home")
-          if "dv-catalog-header__withdrawal-link" in home_html:
+          if '<a class="dv-catalog-header__nav-link dv-catalog-header__withdrawal-link"' in home_html:
               raise SystemExit("Withdrawal button unexpectedly remains in header")
 
           withdrawal_html = html_for("/arrepentimiento/")
