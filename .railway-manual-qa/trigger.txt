@@ -1,6 +1,6 @@
-Deploy QA: mejorar bloque de precio en Productos desktop
-- Precio unitario se muestra en una placa compacta y legible.
-- El rótulo no se corta y el importe completo queda en una sola línea.
-- Se compactan VER / AGREGAR para convivir mejor con el precio en tarjetas de 4 columnas.
-- Mobile mantiene su estructura actual sin placa extra.
+Deploy QA: descuento visible en listado de Productos
+- El precio unitario de cada tarjeta se actualiza al precio final según cantidad.
+- Si aplica descuento, se muestra el porcentaje real como badge junto al precio.
+- Si no aplica descuento, no se muestra badge.
+- Usa la misma respuesta de pricing del carrito/backend.
 Sin migraciones.

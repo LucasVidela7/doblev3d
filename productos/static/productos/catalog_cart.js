@@ -574,12 +574,51 @@
                 const qty = control.querySelector(
                     '[data-dv-product-inline-qty]',
                 );
+                const card = control.closest(
+                    '.catalog-item[data-kind="producto"]',
+                );
+                const priceNode = card?.querySelector(
+                    '[data-dv-product-list-price]',
+                );
+                const discountNode = card?.querySelector(
+                    '[data-dv-product-list-discount]',
+                );
+                const listPrice = Number(
+                    add?.dataset.productPrice
+                    ?? item?.listUnitPrice
+                    ?? item?.unitPrice
+                    ?? 0,
+                );
 
                 if (add) add.hidden = Boolean(item);
                 if (stepper) stepper.hidden = !item;
                 if (qty && item) {
                     qty.textContent = String(item.qty || 1);
                 }
+
+                if (priceNode) {
+                    const unit = item && !item.pricingPending
+                        ? Number(
+                            item.unitPrice
+                            ?? item.listUnitPrice
+                            ?? listPrice,
+                        )
+                        : listPrice;
+                    priceNode.textContent = money(unit);
+                }
+
+                if (discountNode) {
+                    const discount = item && !item.pricingPending
+                        ? Number(item.discountPercent || 0)
+                        : 0;
+                    discountNode.hidden = !(discount > 0);
+                    discountNode.textContent = discount > 0
+                        ? discount.toLocaleString('es-AR', {
+                            maximumFractionDigits: 1,
+                        }) + '% DESC.'
+                        : '';
+                }
+
                 control.classList.add('is-ready');
             });
     };

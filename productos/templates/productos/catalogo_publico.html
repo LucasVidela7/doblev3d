@@ -498,6 +498,22 @@
             letter-spacing:-.025em;
             white-space:nowrap;
         }
+        .catalog-item[data-kind="producto"] .price-discount{
+            display:inline-flex;
+            align-items:center;
+            margin-top:5px;
+            padding:3px 6px;
+            border-radius:999px;
+            background:#e9f7ee;
+            color:#216e39;
+            font-size:.56rem;
+            font-weight:950;
+            line-height:1;
+            white-space:nowrap;
+        }
+        .catalog-item[data-kind="producto"] .price-discount[hidden]{
+            display:none!important;
+        }
 
         .catalog-detail-link {
             flex: 0 0 auto;
@@ -841,7 +857,8 @@
                                     <div class="price-block">
                                         <span class="price-label">Precio unitario</span>
                                         {% if producto.catalogo_precio %}
-                                            <span class="price">$ {{ producto.catalogo_precio|floatformat:"0g" }}</span>
+                                            <span class="price" data-dv-product-list-price>$ {{ producto.catalogo_precio|floatformat:"0g" }}</span>
+                                            <span class="price-discount" data-dv-product-list-discount hidden></span>
                                         {% else %}
                                             <span class="price">Consultar</span>
                                         {% endif %}
