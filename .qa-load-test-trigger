@@ -1,0 +1,4 @@
+QA load test trigger
+50 concurrent virtual users
+Flow: home -> products -> kits -> product detail -> cart pricing
+Target: no failed requests and overall p95 <= 5000ms

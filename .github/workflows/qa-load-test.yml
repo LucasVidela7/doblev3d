@@ -1,0 +1,188 @@
+name: QA load test
+
+on:
+  push:
+    branches:
+      - qa
+    paths:
+      - ".qa-load-test-trigger"
+      - ".github/workflows/qa-load-test.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  load:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 50 concurrent catalog users
+        env:
+          BASE_URL: https://doblev3d-qa.up.railway.app
+        run: |
+          python - <<'PY'
+          import concurrent.futures
+          import json
+          import os
+          import re
+          import statistics
+          import threading
+          import time
+          import urllib.error
+          import urllib.request
+
+          BASE = os.environ["BASE_URL"].rstrip("/")
+          UA = "DobleV3D-QA-LoadTest/1.0"
+          USERS = 50
+          TIMEOUT = 30
+
+          def request(path, method="GET", payload=None):
+              url = BASE + path
+              data = None
+              headers = {"User-Agent": UA}
+              if payload is not None:
+                  data = json.dumps(payload).encode("utf-8")
+                  headers["Content-Type"] = "application/json"
+              req = urllib.request.Request(
+                  url,
+                  data=data,
+                  headers=headers,
+                  method=method,
+              )
+              start = time.perf_counter()
+              try:
+                  with urllib.request.urlopen(req, timeout=TIMEOUT) as response:
+                      response.read()
+                      status = response.status
+                      error = ""
+              except urllib.error.HTTPError as exc:
+                  exc.read()
+                  status = exc.code
+                  error = f"HTTP {exc.code}"
+              except Exception as exc:
+                  status = 0
+                  error = f"{type(exc).__name__}: {exc}"
+              elapsed = (time.perf_counter() - start) * 1000
+              return {
+                  "path": path,
+                  "method": method,
+                  "status": status,
+                  "ms": elapsed,
+                  "error": error,
+              }
+
+          # Wait for the deploy and wake the sleeping QA app.
+          health = None
+          for attempt in range(20):
+              health = request("/healthz/")
+              if health["status"] == 200:
+                  break
+              time.sleep(3)
+          if not health or health["status"] != 200:
+              raise SystemExit(f"healthcheck failed: {health}")
+
+          # Warm the expensive public routes and their short-lived caches.
+          for path in ("/", "/productos/", "/kits/"):
+              for _ in range(3):
+                  result = request(path)
+                  if result["status"] != 200:
+                      raise SystemExit(
+                          f"QA catalog not publicly available at {path}: {result}"
+                      )
+
+          # Discover a real product to exercise a detail and pricing request.
+          req = urllib.request.Request(
+              BASE + "/productos/",
+              headers={"User-Agent": UA},
+          )
+          with urllib.request.urlopen(req, timeout=TIMEOUT) as response:
+              html = response.read().decode("utf-8", "ignore")
+          ids = re.findall(r'data-product-id=["\'](\d+)["\']', html)
+          if not ids:
+              raise SystemExit("No public product id found in /productos/")
+          product_id = int(ids[0])
+
+          barrier = threading.Barrier(USERS)
+
+          def virtual_user(index):
+              barrier.wait()
+              results = []
+              for path in (
+                  "/",
+                  "/productos/",
+                  "/kits/",
+                  f"/productos/{product_id}/",
+              ):
+                  results.append(request(path))
+              results.append(
+                  request(
+                      "/carrito/precios/",
+                      method="POST",
+                      payload=[
+                          {
+                              "kind": "product",
+                              "id": product_id,
+                              "qty": 5,
+                              "key": f"load-{index}",
+                          }
+                      ],
+                  )
+              )
+              return results
+
+          started = time.perf_counter()
+          all_results = []
+          with concurrent.futures.ThreadPoolExecutor(max_workers=USERS) as pool:
+              futures = [pool.submit(virtual_user, i) for i in range(USERS)]
+              for future in concurrent.futures.as_completed(futures):
+                  all_results.extend(future.result())
+          wall = time.perf_counter() - started
+
+          def percentile(values, p):
+              values = sorted(values)
+              if not values:
+                  return 0
+              index = max(0, min(len(values) - 1, int(round((len(values)-1) * p))))
+              return values[index]
+
+          statuses = {}
+          for row in all_results:
+              statuses[row["status"]] = statuses.get(row["status"], 0) + 1
+
+          latencies = [row["ms"] for row in all_results]
+          failures = [row for row in all_results if not (200 <= row["status"] < 300)]
+
+          print(f"USERS={USERS}")
+          print(f"REQUESTS={len(all_results)}")
+          print(f"WALL_SECONDS={wall:.2f}")
+          print(f"RPS={len(all_results)/wall:.2f}")
+          print(f"STATUS_COUNTS={statuses}")
+          print(f"P50_MS={percentile(latencies, .50):.0f}")
+          print(f"P95_MS={percentile(latencies, .95):.0f}")
+          print(f"P99_MS={percentile(latencies, .99):.0f}")
+          print(f"MAX_MS={max(latencies):.0f}")
+
+          by_path = {}
+          for row in all_results:
+              key = row["method"] + " " + row["path"]
+              by_path.setdefault(key, []).append(row["ms"])
+          for key, values in sorted(by_path.items()):
+              print(
+                  f"{key}: count={len(values)} "
+                  f"p50={percentile(values,.50):.0f}ms "
+                  f"p95={percentile(values,.95):.0f}ms "
+                  f"max={max(values):.0f}ms"
+              )
+
+          if failures:
+              print("FAILURES:")
+              for row in failures[:20]:
+                  print(row)
+              raise SystemExit(f"{len(failures)} requests failed")
+
+          p95 = percentile(latencies, .95)
+          if p95 > 5000:
+              raise SystemExit(f"p95 too high for launch target: {p95:.0f} ms")
+
+          print("LOAD_TEST_PASS")
+          PY
