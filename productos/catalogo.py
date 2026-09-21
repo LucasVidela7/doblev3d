@@ -27,6 +27,7 @@ def _catalogo_publico(request, vista_catalogo):
             solo_produccion=False,
         )
         .select_related("tipo")
+        .prefetch_related("componentes__componente")
         .order_by("tipo__nombre", "nombre")
     )
 
@@ -209,7 +210,8 @@ def catalogo_producto_detalle(request, producto_id):
             activo=True,
             solo_produccion=False,
         )
-        .select_related("tipo"),
+        .select_related("tipo")
+        .prefetch_related("componentes__componente"),
         id=producto_id,
     )
     producto.catalogo_precio = producto.subtotal
