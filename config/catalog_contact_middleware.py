@@ -150,7 +150,48 @@ header.shell.top{display:none!important}
 }
 .dv-catalog-legal-footer__links a:hover{text-decoration:underline}
 
+.dv-catalog-withdrawal-float{
+    position:fixed;right:max(14px,env(safe-area-inset-right));
+    bottom:max(14px,env(safe-area-inset-bottom));z-index:76;
+    min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:0 14px;border:1px solid #b92f36;border-radius:14px;
+    background:#c63838;color:#fff;text-decoration:none;
+    box-shadow:0 12px 28px rgba(117,26,31,.25);
+    font-size:.68rem;font-weight:950;letter-spacing:.015em;
+    transition:transform .15s ease,box-shadow .15s ease,background .15s ease;
+    -webkit-tap-highlight-color:transparent
+}
+.dv-catalog-withdrawal-float__icon{
+    width:23px;height:23px;display:grid;place-items:center;flex:0 0 auto;
+    border-radius:999px;background:rgba(255,255,255,.16);
+    font-size:1rem;line-height:1
+}
+@media(hover:hover){
+    .dv-catalog-withdrawal-float:hover{
+        transform:translateY(-1px);background:#b72f35;
+        box-shadow:0 15px 32px rgba(117,26,31,.3)
+    }
+}
+.dv-catalog-withdrawal-float:focus-visible{
+    outline:3px solid rgba(198,56,56,.24);outline-offset:3px
+}
+body:has(.dv-product-builder) .dv-catalog-withdrawal-float,
+body:has(.dv-kit-builder) .dv-catalog-withdrawal-float{
+    bottom:88px
+}
+
 @media(max-width:640px){
+    .dv-catalog-withdrawal-float{
+        right:max(10px,env(safe-area-inset-right));
+        bottom:max(10px,env(safe-area-inset-bottom));
+        min-height:42px;padding:0 11px;border-radius:12px;
+        font-size:.61rem
+    }
+    .dv-catalog-withdrawal-float__icon{width:21px;height:21px;font-size:.9rem}
+    body:has(.dv-product-builder) .dv-catalog-withdrawal-float,
+    body:has(.dv-kit-builder) .dv-catalog-withdrawal-float{
+        bottom:88px
+    }
     .dv-catalog-legal-footer{margin-top:22px;padding-bottom:72px}
     .dv-catalog-legal-footer__inner{display:grid;grid-template-columns:1fr}
     .dv-catalog-legal-footer__links{display:grid;grid-template-columns:1fr 1fr}
@@ -247,22 +288,6 @@ def _header_html(view_name=""):
         f'<a class="dv-catalog-header__nav-link{inicio_class}" href="{catalogo_url}">INICIO</a>'
         f'<a class="dv-catalog-header__nav-link{productos_class}" href="{productos_url}">PRODUCTOS</a>'
         f'<a class="dv-catalog-header__nav-link{kits_class}" href="{kits_url}">KITS</a>'
-        + (
-            f'<a class="dv-catalog-header__nav-link dv-catalog-header__withdrawal-link" '
-            f'href="{html.escape(reverse("catalogo_arrepentimiento"), quote=True)}">'
-            'BOTÓN DE ARREPENTIMIENTO</a>'
-            if view_name in {
-                "catalogo",
-                "catalogo_legacy",
-                "catalogo_productos",
-                "catalogo_producto_detalle",
-                "catalogo_kits",
-                "catalogo_kit_detalle",
-                "catalogo_carrito",
-                "catalogo_carrito_gracias",
-            }
-            else ""
-        )
         + '</nav>'
         f'<nav id="{CONTACT_NAV_ID}" class="dv-catalog-header__actions" '
         'aria-label="Acciones del catálogo">'
@@ -286,8 +311,28 @@ def _legal_footer_html(view_name=""):
         quote=True,
     )
 
+    mostrar_flotante = view_name in {
+        "catalogo",
+        "catalogo_legacy",
+        "catalogo_productos",
+        "catalogo_producto_detalle",
+        "catalogo_kits",
+        "catalogo_kit_detalle",
+        "catalogo_carrito",
+        "catalogo_carrito_gracias",
+    }
+    flotante = ""
+    if mostrar_flotante:
+        flotante = (
+            f'<a id="dv-catalog-withdrawal-float" class="dv-catalog-withdrawal-float" '
+            f'href="{arrepentimiento_url}" aria-label="Botón de arrepentimiento">'
+            '<span class="dv-catalog-withdrawal-float__icon" aria-hidden="true">↩</span>'
+            '<span>BOTÓN DE ARREPENTIMIENTO</span></a>'
+        )
+
     contenido = (
-        '<footer class="dv-catalog-legal-footer" id="dv-catalog-legal-footer">'
+        flotante
+        + '<footer class="dv-catalog-legal-footer" id="dv-catalog-legal-footer">'
         '<div class="dv-catalog-legal-footer__inner">'
         '<div class="dv-catalog-legal-footer__brand">Doble V 3D · Catálogo online</div>'
         '<nav class="dv-catalog-legal-footer__links" aria-label="Información legal">'
