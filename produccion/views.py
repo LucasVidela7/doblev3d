@@ -569,17 +569,27 @@ def lista_produccion(request):
     )
 
     impresoras = list(impresoras)
+    trabajos_imprimiendo_lista = list(
+        Produccion.objects
+        .filter(
+            estado="IMPRIMIENDO",
+            impresora__in=impresoras,
+        )
+        .select_related(
+            "producto",
+            "impresora",
+            "pedido",
+            "pedido__cliente",
+        )
+        .order_by(
+            "inicio_impresion",
+            "id",
+        )
+    )
+
     trabajos_imprimiendo = {
         trabajo.impresora_id: trabajo
-        for trabajo in (
-            Produccion.objects
-            .filter(
-                estado="IMPRIMIENDO",
-                impresora__in=impresoras,
-            )
-            .select_related("producto", "impresora")
-            .order_by("id")
-        )
+        for trabajo in trabajos_imprimiendo_lista
         if trabajo.impresora_id
     }
 
@@ -752,6 +762,7 @@ def lista_produccion(request):
             "necesidades": necesidades,
             "necesidades_pendientes": necesidades_pendientes,
             "cola_pendiente": cola_pendiente,
+            "trabajos_imprimiendo_lista": trabajos_imprimiendo_lista,
             "historial_reciente": historial_reciente,
             "impresoras_libres_lista": impresoras_libres_lista,
             "sugerencia_actual": sugerencia_actual,
