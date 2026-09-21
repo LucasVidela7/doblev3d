@@ -1,7 +1,5 @@
-Deploy QA: botón de arrepentimiento compacto + login CSRF
-- Botón legal completo durante 5 segundos y luego pastilla compacta conservando el texto.
-- Se expande al hover/foco y vuelve a compactarse.
-- Login bloquea doble envío y muestra INGRESANDO.
-- Fallback CSRF: si el primer login ya autenticó, un segundo POST obsoleto redirige a Gestión.
-- Smoke incluye regresión de doble submit.
-Sin migraciones nuevas.
+Deploy QA: mejorar legibilidad de Configuración
+- Aumenta tipografía de títulos, descripciones, tabs, labels, inputs y botones.
+- Escala también textos auxiliares, legales y métricas.
+- Mantiene responsive en tablet y mobile.
+Sin migraciones.
