@@ -11,19 +11,23 @@
 :root{--blue:#134a9a;--blue-dark:#0d376f;--blue-soft:#eef4ff;--red:#f0393b;--red-soft:#fff1f2;--text:#17233a;--muted:#667085;--line:#dfe5ef;--bg:#f5f7fb;--card:#fff}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top right,rgba(240,57,59,.08),transparent 28rem),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .shell{width:min(1080px,calc(100% - 28px));margin:auto}.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 0}.brand{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none}.brand img{width:58px;height:58px;object-fit:contain}.brand strong{display:block;color:var(--blue-dark)}.brand span{display:block;margin-top:2px;color:var(--muted);font-size:.76rem}.back{color:var(--blue-dark);text-decoration:none;font-size:.8rem;font-weight:850}
-.hero{padding:18px 0 20px}.hero h1{margin:0;color:var(--blue-dark);font-size:clamp(2rem,6vw,3.4rem);letter-spacing:-.045em}.hero p{max-width:680px;margin:9px 0 0;color:var(--muted);font-size:.93rem;line-height:1.55}
+.hero{padding:18px 0 20px}.step-eyebrow{margin:0 0 5px;color:var(--red);font-size:.68rem;font-weight:950;letter-spacing:.08em}.hero h1{margin:0;color:var(--blue-dark);font-size:clamp(2rem,6vw,3.4rem);letter-spacing:-.045em}.hero p{max-width:680px;margin:9px 0 0;color:var(--muted);font-size:.93rem;line-height:1.55}
 .checkout-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(310px,410px);gap:16px;align-items:start;padding-bottom:48px}.card{border:1px solid var(--line);border-radius:22px;background:var(--card);box-shadow:0 9px 28px rgba(19,74,154,.06)}.card-head{padding:18px 19px 13px;border-bottom:1px solid #edf0f5}.card-head h2{margin:0;color:var(--blue-dark);font-size:1.08rem}.card-head p{margin:4px 0 0;color:var(--muted);font-size:.73rem}.card-body{padding:17px 19px}
 .checkout-skeleton{display:grid;gap:9px}.checkout-skeleton span{height:64px;border-radius:14px;background:linear-gradient(90deg,#f1f3f6 25%,#fafbfd 42%,#f1f3f6 62%);background-size:320% 100%;animation:checkoutShimmer 1.15s infinite}@keyframes checkoutShimmer{0%{background-position:100% 0}100%{background-position:0 0}}
-.checkout-line{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid #edf0f5}.checkout-line:last-child{border-bottom:0}.checkout-line strong{display:block;font-size:.85rem}.checkout-line span{display:block;margin-top:3px;color:var(--muted);font-size:.69rem;line-height:1.35}.checkout-line .checkout-extra{color:#79500f;font-weight:800}.checkout-line .checkout-discount{display:inline-flex;margin-top:5px;padding:4px 7px;border-radius:999px;background:#eaf7ee;color:#28633c;font-size:.64rem;font-weight:900}.checkout-line-money{text-align:right;flex:0 0 auto}.checkout-line-money b{display:block;color:var(--blue-dark);font-size:.86rem}.checkout-line-money span{font-size:.65rem}.checkout-empty{display:grid;gap:5px;padding:30px 10px;text-align:center}.checkout-empty span{color:var(--muted);font-size:.76rem}
+.checkout-line{display:grid;grid-template-columns:48px minmax(0,1fr) auto;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #edf0f5}.checkout-line:last-child{border-bottom:0}.checkout-thumb{width:48px;height:48px;display:grid;place-items:center;object-fit:cover;border:1px solid var(--line);border-radius:11px;background:linear-gradient(135deg,#eef4ff,#fff1f2);color:var(--blue);font-size:.9rem;font-weight:950}.checkout-line-main{min-width:0}.checkout-line strong{display:block;font-size:.85rem}.checkout-line span{display:block;margin-top:3px;color:var(--muted);font-size:.69rem;line-height:1.35}.checkout-line .checkout-extra{color:#79500f;font-weight:800}.checkout-line .checkout-discount{display:inline-flex;margin-top:5px;padding:4px 7px;border-radius:999px;background:#eaf7ee;color:#28633c;font-size:.64rem;font-weight:900}.checkout-line-money{text-align:right;flex:0 0 auto}.checkout-line-money b{display:block;color:var(--blue-dark);font-size:.86rem}.checkout-line-money span{font-size:.65rem}.checkout-empty{display:grid;gap:5px;padding:30px 10px;text-align:center}.checkout-empty span{color:var(--muted);font-size:.76rem}
 .checkout-total{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-top:13px;padding-top:13px;border-top:1px solid var(--line)}.checkout-total span{color:var(--muted);font-size:.72rem;font-weight:800}.checkout-total strong{color:var(--blue-dark);font-size:1.5rem}.delivery-note{margin:8px 0 0;color:#8a93a3;font-size:.67rem;text-align:right}
 .error{margin-bottom:12px;padding:11px 12px;border-radius:13px;background:#fdeaea;color:#913b3b;font-size:.78rem;line-height:1.4}
 .field{display:grid;gap:6px;margin-bottom:12px}.field label{color:#45546d;font-size:.72rem;font-weight:850}.field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:13px;background:#fff;color:var(--text);font:inherit;font-size:.86rem;outline:none}.field input{height:46px;padding:0 12px}.field textarea{min-height:88px;padding:11px 12px;resize:vertical}.field input:focus,.field textarea:focus{border-color:rgba(19,74,154,.65);box-shadow:0 0 0 4px rgba(19,74,154,.09)}.field small{color:#8a93a3;font-size:.65rem}
 .honeypot{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;overflow:hidden!important}
+.leadtime-note{margin:0 0 12px;padding:11px 12px;border:1px solid #cdddf4;border-radius:12px;background:var(--blue-soft);color:#345f91;font-size:.76rem;line-height:1.45}.leadtime-note strong{display:block;margin-bottom:3px;color:var(--blue-dark);font-size:.72rem;text-transform:uppercase;letter-spacing:.03em}
+.legal-consent{margin:10px 0 0;color:var(--muted);font-size:.65rem;line-height:1.45}.legal-consent a{color:var(--blue);font-weight:850;text-decoration:none}.legal-consent a:hover{text-decoration:underline}
 .request-note{margin:4px 0 13px;padding:11px 12px;border-radius:13px;background:var(--blue-soft);color:#345f91;font-size:.72rem;line-height:1.45}.request-note strong{color:var(--blue-dark)}
 .submit{width:100%;min-height:49px;display:flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:14px;background:var(--blue);color:#fff;cursor:pointer;font:inherit;font-size:.8rem;font-weight:950;letter-spacing:.02em}.submit:disabled{opacity:.5;cursor:not-allowed}.checkout-submit-spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:checkoutSpin .65s linear infinite}@keyframes checkoutSpin{to{transform:rotate(360deg)}}
 .security{display:flex;align-items:center;justify-content:center;gap:6px;margin:10px 0 0;color:#8a93a3;font-size:.65rem}.security svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2}
 .checkout-loader{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px;background:rgba(245,247,251,.88);backdrop-filter:blur(7px);opacity:0;pointer-events:none;transition:.18s ease}.checkout-loader.is-visible{opacity:1;pointer-events:auto}.checkout-loader-card{width:min(330px,100%);padding:26px;border:1px solid var(--line);border-radius:22px;background:#fff;text-align:center;box-shadow:0 25px 70px rgba(18,31,52,.18)}.checkout-loader-card img{width:82px;height:auto}.checkout-loader-card strong{display:block;margin-top:12px;color:var(--blue-dark);font-size:1rem}.checkout-loader-card p{margin:5px 0 14px;color:var(--muted);font-size:.75rem}.checkout-loader-bar{height:6px;overflow:hidden;border-radius:999px;background:#e7edf7}.checkout-loader-bar span{display:block;width:45%;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--blue),var(--red));animation:checkoutBar 1s ease-in-out infinite}@keyframes checkoutBar{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
-@media(max-width:780px){.checkout-grid{grid-template-columns:1fr}.top{align-items:flex-start}.brand span{display:none}}
+.purchase-progress{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:2px 0 18px}.purchase-progress span{display:flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:6px;border:1px solid var(--line);border-radius:11px;background:#fff;color:#8a93a3;font-size:.69rem;font-weight:850}.purchase-progress b{width:21px;height:21px;display:grid;place-items:center;border-radius:50%;background:#e9edf3;color:#667085;font-size:.65rem}.purchase-progress .done{color:#28633c;background:#f3fbf5}.purchase-progress .done b{background:#28633c;color:#fff}.purchase-progress .active{color:var(--blue-dark);background:var(--blue-soft);border-color:#cdddf4}.purchase-progress .active b{background:var(--blue);color:#fff}
+.card-head-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.edit-cart{border:0;background:transparent;color:var(--blue);font-size:.7rem;font-weight:900;cursor:pointer;padding:3px 0}.checkout-assurance{display:grid;gap:7px;margin:0 0 13px;padding:11px 12px;border:1px solid #dfe5ef;border-radius:13px;background:#fbfcfe}.checkout-assurance strong{color:var(--blue-dark);font-size:.77rem}.checkout-assurance span{color:var(--muted);font-size:.7rem;line-height:1.4}.special-help{margin-top:-2px;margin-bottom:12px;padding:11px 12px;border:1px dashed #e2c47c;border-radius:12px;background:#fffaf0}.special-help strong{display:block;color:#765719;font-size:.74rem}.special-help p{margin:4px 0 8px;color:#7c6b45;font-size:.68rem;line-height:1.4}.special-actions{display:flex;flex-wrap:wrap;gap:6px}.special-actions button,.special-actions a{min-height:36px;display:inline-flex;align-items:center;justify-content:center;padding:0 9px;border:1px solid #d8b45f;border-radius:9px;background:#fff;color:#71511b;text-decoration:none;font:inherit;font-size:.65rem;font-weight:900;cursor:pointer}.special-actions a{border-color:#25d366;background:#25d366;color:#fff}
+@media(max-width:780px){.checkout-grid{grid-template-columns:1fr}.top{align-items:flex-start}.brand span{display:none}.purchase-progress span{font-size:.61rem}.special-actions>*{flex:1 1 100%}}@media(max-width:430px){.checkout-line{grid-template-columns:42px minmax(0,1fr);align-items:start}.checkout-thumb{width:42px;height:42px}.checkout-line-money{grid-column:2;text-align:left}.checkout-line-money span{display:inline;margin-left:5px}}
 </style>
 {% if turnstile_site_key %}
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
@@ -40,24 +44,31 @@
 
 <main class="shell">
     <section class="hero">
-        <h1>Revisá tu solicitud</h1>
-        <p>Completá tus datos y nos comunicamos por WhatsApp para confirmar disponibilidad, total y entrega antes de preparar el pedido.</p>
+        <p class="step-eyebrow">PASO 2 DE 3</p>
+        <h1>Revisá y pedí tu presupuesto</h1>
+        <p>Este paso no cobra ni confirma el pedido. Revisás tu selección, dejás tus datos y después confirmamos disponibilidad, total final y entrega por WhatsApp.</p>
     </section>
+
+    <div class="purchase-progress" aria-label="Progreso de compra">
+        <span class="done"><b>✓</b> Carrito</span>
+        <span class="active"><b>2</b> Tus datos</span>
+        <span><b>3</b> Confirmación</span>
+    </div>
 
     <div class="checkout-grid">
         <section class="card">
-            <div class="card-head"><h2>Tu carrito</h2><p>El total se vuelve a validar al enviar.</p></div>
+            <div class="card-head"><div class="card-head-row"><div><h2>Tu selección</h2><p>Precios estimados. El sistema vuelve a validarlos al enviar.</p></div><button class="edit-cart" type="button" data-dv-cart-open>EDITAR CARRITO</button></div></div>
             <div class="card-body">
                 <div data-checkout-summary>
                     <div class="checkout-skeleton"><span></span><span></span><span></span></div>
                 </div>
-                <div class="checkout-total"><span>TOTAL PRODUCTOS</span><strong data-checkout-total>$ 0</strong></div>
-                <p class="delivery-note">Entrega a coordinar · no incluida.</p>
+                <div class="checkout-total"><span>TOTAL ESTIMADO</span><strong data-checkout-total>$ 0</strong></div>
+                <p class="delivery-note">Entrega a coordinar · no incluida en este total.</p>
             </div>
         </section>
 
         <section class="card">
-            <div class="card-head"><h2>Tus datos</h2><p>Usamos estos datos solo para gestionar esta solicitud.</p></div>
+            <div class="card-head"><h2>Tus datos</h2><p>Los usamos únicamente para enviarte y confirmar el presupuesto.</p></div>
             <div class="card-body">
                 {% if error %}<div class="error">{{ error }}</div>{% endif %}
                 <form id="dv-checkout-form" method="post" novalidate>
@@ -84,19 +95,52 @@
                     </div>
                     <div class="field">
                         <label for="observaciones">OBSERVACIONES <span style="font-weight:500">(opcional)</span></label>
-                        <textarea id="observaciones" name="observaciones" maxlength="2000" placeholder="Colores, detalles o cualquier aclaración...">{{ request.POST.observaciones|default:'' }}</textarea>
+                        <textarea id="observaciones" name="observaciones" maxlength="2000" placeholder="Colores, personalizaciones, entrega o cualquier aclaración...">{{ request.POST.observaciones|default:'' }}</textarea>
+                        <small>Si buscabas algo que no está publicado, escribilo acá para que lo revisemos junto con el presupuesto.</small>
+                    </div>
+
+                    <div class="special-help">
+                        <strong>¿No encontraste un producto en la tienda?</strong>
+                        <p>Podés agregar una nota al presupuesto o consultarnos directamente para saber si podemos hacerlo, personalizarlo o conseguirlo.</p>
+                        <div class="special-actions">
+                            <button type="button" data-special-observation>AGREGAR NOTA EN OBSERVACIONES</button>
+                            <a href="{% url 'catalogo_contacto' 'whatsapp' %}?motivo=producto_especial" target="_blank" rel="noopener">CONSULTAR POR WHATSAPP</a>
+                        </div>
                     </div>
 
                     {% if turnstile_site_key %}
                         <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}"></div>
                     {% endif %}
 
-                    <div class="request-note">
-                        <strong>Esto todavía no confirma el pedido.</strong>
-                        Te contactamos antes de comenzar la preparación.
+                    <div class="checkout-assurance">
+                        <strong>No pagás nada ahora.</strong>
+                        <span>✓ Revisamos disponibilidad real.</span>
+                        <span>✓ Confirmamos el total final y la entrega por WhatsApp.</span>
+                        <span>✓ La preparación comienza después de tu confirmación.</span>
                     </div>
 
-                    <button class="submit" type="submit" data-checkout-submit>SOLICITAR PRESUPUESTO</button>
+                    {% if mensaje_plazo_entrega %}
+                    <div class="leadtime-note">
+                        <strong>⏱ Plazo estimado de entrega</strong>
+                        {{ mensaje_plazo_entrega }}
+                    </div>
+                    {% endif %}
+
+                    <div class="request-note">
+                        <strong>Esto todavía no confirma el pedido.</strong>
+                        Te contactamos antes de comenzar la preparación. El plazo comienza una vez confirmado el presupuesto.
+                    </div>
+
+                    <button class="submit" type="submit" data-checkout-submit>ENVIAR SOLICITUD DE PRESUPUESTO</button>
+                    <p class="legal-consent">
+                        Al enviar esta solicitud confirmás que revisaste la selección y la información ingresada.
+                        Esto todavía no constituye la confirmación del pedido.
+                        Podés consultar nuestros
+                        <a href="{% url 'catalogo_terminos' %}" target="_blank" rel="noopener">Términos de compra</a>,
+                        <a href="{% url 'catalogo_privacidad' %}" target="_blank" rel="noopener">Política de privacidad</a>
+                        y el
+                        <a href="{% url 'catalogo_arrepentimiento' %}" target="_blank" rel="noopener">Botón de arrepentimiento</a>.
+                    </p>
                     <div class="security">
                         <svg viewBox="0 0 24 24"><path d="M6 10V7a6 6 0 0 1 12 0v3"></path><rect x="4" y="10" width="16" height="11" rx="3"></rect></svg>
                         Precios y productos validados nuevamente por el sistema.

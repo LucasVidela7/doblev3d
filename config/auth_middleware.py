@@ -23,6 +23,10 @@ class LoginRequiredMiddleware:
         "catalogo_carrito_precios",
         "catalogo_carrito_gracias",
         "catalogo_contacto",
+        "catalogo_terminos",
+        "catalogo_privacidad",
+        "catalogo_arrepentimiento",
+        "catalogo_arrepentimiento_gracias",
     }
 
     def __init__(self, get_response):

@@ -115,6 +115,49 @@ header.shell.top{display:none!important}
         border:1px solid #e3e8ef;background:#fff;font-size:.7rem
     }
 }
+.dv-catalog-legal-footer{
+    width:min(1180px,calc(100% - 24px));margin:30px auto 0;padding:18px 0 8px;
+    border-top:1px solid #dfe5ef;color:#667085
+}
+.dv-catalog-legal-footer__inner{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap
+}
+.dv-catalog-legal-footer__brand{font-size:.72rem;font-weight:900;color:#0d376f}
+.dv-catalog-legal-footer__links{display:flex;flex-wrap:wrap;gap:8px 14px}
+.dv-catalog-legal-footer__links a{
+    color:#56657a;text-decoration:none;font-size:.68rem;font-weight:800
+}
+.dv-catalog-legal-footer__links a:hover{text-decoration:underline}
+.dv-catalog-withdrawal{
+    position:fixed;right:14px;bottom:14px;z-index:104;
+    min-height:38px;display:inline-flex;align-items:center;justify-content:center;
+    padding:0 11px;border:1px solid #b83232;border-radius:999px;
+    background:#fff;color:#9b2d2d;text-decoration:none;
+    box-shadow:0 7px 20px rgba(25,35,50,.14);
+    font-size:.62rem;font-weight:950;letter-spacing:.03em
+}
+.dv-catalog-withdrawal:hover{background:#fff5f5}
+
+/* En detalles de producto/kit hay una barra de compra fija abajo.
+   El acceso legal se eleva para no tapar subtotal, cantidad ni CTA. */
+body:has(.dv-product-builder) .dv-catalog-withdrawal,
+body:has(.dv-kit-builder) .dv-catalog-withdrawal{
+    display:none!important
+}
+
+@media(max-width:640px){
+    .dv-catalog-legal-footer{margin-top:22px;padding-bottom:72px}
+    .dv-catalog-legal-footer__inner{display:grid;grid-template-columns:1fr}
+    .dv-catalog-legal-footer__links{display:grid;grid-template-columns:1fr 1fr}
+    .dv-catalog-withdrawal{
+        right:8px;bottom:8px;min-height:31px;max-width:158px;
+        padding:0 8px;font-size:.49rem;box-shadow:0 4px 12px rgba(25,35,50,.12)
+    }
+    body:has(.dv-product-builder) .dv-catalog-withdrawal,
+    body:has(.dv-kit-builder) .dv-catalog-withdrawal{
+        display:none!important
+    }
+}
 </style>
 """
 
@@ -195,7 +238,7 @@ def _header_html(view_name=""):
     kits_url = html.escape(reverse("catalogo_kits"), quote=True)
 
     inicio_class = " is-active" if view_name in {"catalogo", "catalogo_legacy"} else ""
-    productos_class = " is-active" if view_name == "catalogo_productos" else ""
+    productos_class = " is-active" if view_name in {"catalogo_productos", "catalogo_producto_detalle"} else ""
     kits_class = " is-active" if view_name in {"catalogo_kits", "catalogo_kit_detalle"} else ""
 
     return (
@@ -213,6 +256,39 @@ def _header_html(view_name=""):
         + "".join(actions)
         + "</nav></div></header>"
     )
+
+
+
+def _legal_footer_html():
+    terminos_url = html.escape(
+        reverse("catalogo_terminos"),
+        quote=True,
+    )
+    privacidad_url = html.escape(
+        reverse("catalogo_privacidad"),
+        quote=True,
+    )
+    arrepentimiento_url = html.escape(
+        reverse("catalogo_arrepentimiento"),
+        quote=True,
+    )
+
+    return (
+        '<footer class="dv-catalog-legal-footer" id="dv-catalog-legal-footer">'
+        '<div class="dv-catalog-legal-footer__inner">'
+        '<div class="dv-catalog-legal-footer__brand">Doble V 3D · Catálogo online</div>'
+        '<nav class="dv-catalog-legal-footer__links" aria-label="Información legal">'
+        f'<a href="{terminos_url}">Términos de compra</a>'
+        f'<a href="{privacidad_url}">Privacidad</a>'
+        f'<a href="{arrepentimiento_url}">Cambios y arrepentimiento</a>'
+        '</nav></div></footer>'
+        f'<a class="dv-catalog-withdrawal" href="{arrepentimiento_url}">'
+        'BOTÓN DE ARREPENTIMIENTO</a>'
+    )
+
+
+def _legal_insertado(contenido):
+    return 'id="dv-catalog-legal-footer"' in contenido
 
 
 def _header_insertado(contenido):
@@ -243,14 +319,22 @@ class CatalogContactMiddleware:
                 "catalogo",
                 "catalogo_legacy",
                 "catalogo_productos",
+                "catalogo_producto_detalle",
                 "catalogo_kits",
                 "catalogo_kit_detalle",
                 "catalogo_carrito",
                 "catalogo_carrito_gracias",
+                "catalogo_terminos",
+                "catalogo_privacidad",
+                "catalogo_arrepentimiento",
+                "catalogo_arrepentimiento_gracias",
             }
             or path in {"/", "/catalogo/", "/productos/", "/kits/"}
             or path.startswith("/kits/")
             or path.startswith("/carrito/")
+            or path.startswith("/terminos/")
+            or path.startswith("/privacidad/")
+            or path.startswith("/arrepentimiento/")
         )
 
         if (
@@ -286,6 +370,15 @@ class CatalogContactMiddleware:
                 contenido = contenido.replace(
                     "</header>",
                     "</header>\n" + header,
+                    1,
+                )
+
+        if not _legal_insertado(contenido):
+            legal = _legal_footer_html()
+            if "</body>" in contenido:
+                contenido = contenido.replace(
+                    "</body>",
+                    legal + "\n</body>",
                     1,
                 )
 

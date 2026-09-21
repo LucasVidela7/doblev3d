@@ -404,6 +404,9 @@ class DashboardProduccionTests(TestCase):
                 "mostrar_instagram": "on",
                 "mostrar_whatsapp": "on",
                 "mensaje_mantenimiento": "Volvemos pronto.",
+                "mensaje_plazo_entrega": (
+                    "Entrega entre 3 y 10 días hábiles desde la confirmación."
+                ),
                 "instagram_usuario": "@doblev3d_nuevo",
                 "whatsapp_numero": "+54 9 11 1234-5678",
                 "whatsapp_mensaje": "Hola catálogo",
@@ -428,6 +431,10 @@ class DashboardProduccionTests(TestCase):
                 "whatsapp_mensaje_cliente_reactivacion": (
                     "{nombre}: pasaron {dias_sin_actividad} días"
                 ),
+                "razon_social": "Responsable Doble V 3D",
+                "cuit": "20-12345678-9",
+                "domicilio_legal": "Domicilio de prueba",
+                "email_legal": "legal@example.com",
             },
         )
 
@@ -437,6 +444,10 @@ class DashboardProduccionTests(TestCase):
         )
 
         config = ConfiguracionCatalogo.objects.get(pk=1)
+        self.assertEqual(
+            config.mensaje_plazo_entrega,
+            "Entrega entre 3 y 10 días hábiles desde la confirmación.",
+        )
         self.assertEqual(
             config.instagram_usuario,
             "doblev3d_nuevo",
@@ -452,5 +463,17 @@ class DashboardProduccionTests(TestCase):
         self.assertEqual(
             config.whatsapp_mensaje_cliente_saldo,
             "{nombre}: saldo {saldo}",
+        )
+        self.assertEqual(
+            config.razon_social,
+            "Responsable Doble V 3D",
+        )
+        self.assertEqual(
+            config.cuit,
+            "20-12345678-9",
+        )
+        self.assertEqual(
+            config.email_legal,
+            "legal@example.com",
         )
 

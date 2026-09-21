@@ -278,6 +278,21 @@
     font-weight:700;
     text-align:center;
 }
+.dv-how-buy-leadtime{
+    display:flex;
+    align-items:flex-start;
+    gap:8px;
+    margin-top:12px;
+    padding:10px 11px;
+    border:1px solid #cdddf4;
+    border-radius:12px;
+    background:#eef4ff;
+    color:#345f91;
+    font-size:.72rem;
+    font-weight:700;
+    line-height:1.4;
+}
+.dv-how-buy-leadtime strong{color:#0d376f}
 .dv-how-buy-note svg{
     width:16px;
     height:16px;
@@ -376,7 +391,7 @@
         <div class="dv-how-buy-head">
             <p class="dv-how-buy-eyebrow">Guía rápida · Doble V 3D</p>
             <h2 class="dv-how-buy-title" id="dv-how-buy-title">¿Cómo comprar?</h2>
-            <p class="dv-how-buy-intro">Cuatro pasos simples para hacer tu pedido.</p>
+            <p class="dv-how-buy-intro">Cuatro pasos simples. El catálogo no cobra ni confirma automáticamente.</p>
             <button
                 class="dv-how-buy-close"
                 type="button"
@@ -416,8 +431,8 @@
                         </svg>
                     </span>
                     <div class="dv-how-buy-step-copy">
-                        <strong>Enviá tu selección</strong>
-                        <p>Indicá productos, kits y cantidades.</p>
+                        <strong>Armá tu carrito</strong>
+                        <p>Agregá productos, configurá kits y ajustá cantidades.</p>
                     </div>
                 </div>
 
@@ -431,8 +446,8 @@
                         </svg>
                     </span>
                     <div class="dv-how-buy-step-copy">
-                        <strong>Confirmamos por WhatsApp</strong>
-                        <p>Validamos pedido, total y entrega.</p>
+                        <strong>Solicitá el presupuesto</strong>
+                        <p>Dejá tus datos y cualquier aclaración en Observaciones.</p>
                     </div>
                 </div>
 
@@ -448,8 +463,8 @@
                         </svg>
                     </span>
                     <div class="dv-how-buy-step-copy">
-                        <strong>Preparamos tu pedido</strong>
-                        <p>Comenzamos una vez confirmado.</p>
+                        <strong>Confirmamos y preparamos</strong>
+                        <p>Validamos disponibilidad, total y entrega por WhatsApp. Recién ahí comienza la preparación.</p>
                     </div>
                 </div>
             </div>
@@ -510,6 +525,21 @@
             <p class="dv-how-buy-retire-note">
                 La dirección exacta y el horario se informan al confirmar.
             </p>
+
+            {% if mensaje_plazo_entrega %}
+            <div class="dv-how-buy-leadtime">
+                <span aria-hidden="true">⏱</span>
+                <div><strong>Plazo estimado</strong><br>{{ mensaje_plazo_entrega }}</div>
+            </div>
+            {% endif %}
+
+            <div class="dv-how-buy-note" style="background:#fff7e8;color:#72551d;">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 8v5M12 16h.01"></path>
+                </svg>
+                <span><strong>¿No aparece en el catálogo?</strong> Escribilo en Observaciones al pedir presupuesto o consultanos por WhatsApp para ver si podemos hacerlo o conseguirlo.</span>
+            </div>
 
             <div class="dv-how-buy-note">
                 <svg viewBox="0 0 24 24" aria-hidden="true">

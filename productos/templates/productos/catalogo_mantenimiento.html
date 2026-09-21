@@ -86,6 +86,25 @@
             font-size:.72rem;
             font-weight:900;
         }
+        .legal-links{
+            display:flex;
+            flex-wrap:wrap;
+            justify-content:center;
+            gap:7px 12px;
+            margin-top:16px;
+        }
+        .legal-links a{
+            color:var(--blue);
+            font-size:.68rem;
+            font-weight:850;
+            text-decoration:none;
+        }
+        .legal-links a.withdrawal{
+            padding:6px 9px;
+            border:1px solid #b83232;
+            border-radius:999px;
+            color:#9b2d2d;
+        }
         @media(max-width:640px){
             .card{
                 width:min(560px,100%);
@@ -147,6 +166,11 @@
             {{ mensaje_mantenimiento|default:"La tienda está temporalmente en mantenimiento. Volvé a visitarnos en unos minutos." }}
         </p>
         <div class="status">VOLVEMOS PRONTO</div>
+        <nav class="legal-links" aria-label="Información legal">
+            <a href="{% url 'catalogo_terminos' %}">Términos</a>
+            <a href="{% url 'catalogo_privacidad' %}">Privacidad</a>
+            <a class="withdrawal" href="{% url 'catalogo_arrepentimiento' %}">BOTÓN DE ARREPENTIMIENTO</a>
+        </nav>
     </main>
 </body>
 </html>

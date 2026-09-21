@@ -10,7 +10,7 @@ from costos.models import ConfiguracionCostos
 from kits.models import Kit, KitComponente
 
 from .image_models import ProductoImagen
-from .models import Producto, TipoProducto
+from .models import ConfiguracionCatalogo, Producto, TipoProducto
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
@@ -361,8 +361,8 @@ class CatalogoPublicoTests(TestCase):
         self.assertContains(response, "¿Cómo comprar?")
         self.assertContains(response, "¿Cómo comprar?")
         self.assertContains(response, "Explorá productos y/o kits")
-        self.assertContains(response, "Confirmamos por WhatsApp")
-        self.assertContains(response, "Preparamos tu pedido")
+        self.assertContains(response, "Solicitá el presupuesto")
+        self.assertContains(response, "Confirmamos y preparamos")
         self.assertContains(response, "Correo")
         self.assertContains(response, "Motomensajería")
         self.assertContains(response, "Coordinado en domicilio")
@@ -383,3 +383,138 @@ class CatalogoPublicoTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "¿Cómo comprar?")
         self.assertContains(response, "Entregas y retiro")
+
+    def test_catalogo_informa_plazo_de_entrega_configurado(self):
+        config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
+        config.mensaje_plazo_entrega = (
+            "Plazo de prueba: 3 a 10 días hábiles desde la confirmación."
+        )
+        config.save(update_fields=["mensaje_plazo_entrega"])
+
+        portada = self.client.get(reverse("catalogo"))
+        productos = self.client.get(reverse("catalogo_productos"))
+        kits = self.client.get(reverse("catalogo_kits"))
+        detalle = self.client.get(
+            reverse("catalogo_kit_detalle", args=[self.kit.id])
+        )
+
+        for respuesta in [portada, productos, kits, detalle]:
+            self.assertEqual(respuesta.status_code, 200)
+            self.assertContains(
+                respuesta,
+                "3 a 10 días hábiles desde la confirmación",
+            )
+
+        self.assertContains(productos, "delivery-banner")
+        self.assertContains(kits, "delivery-banner")
+        self.assertNotContains(productos, "delivery-card-note")
+        self.assertNotContains(kits, "delivery-card-note")
+        self.assertContains(detalle, "Plazo de entrega")
+
+    def test_producto_tiene_detalle_publico_y_ayuda_de_compra(self):
+        response = self.client.get(
+            reverse(
+                "catalogo_producto_detalle",
+                args=[self.producto.id],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.producto.nombre)
+        self.assertContains(response, self.tipo.nombre)
+        self.assertContains(
+            response,
+            "https://example.com/qa-pina.jpg",
+        )
+        self.assertNotContains(
+            response,
+            "https://example.com/prod-pina.jpg",
+        )
+        self.assertContains(response, "¿No encontrás lo que buscás?")
+        self.assertContains(
+            response,
+            "?motivo=producto_especial",
+        )
+        self.assertContains(response, "data-dv-cart-root")
+        self.assertContains(response, "data-dv-how-buy-open")
+
+    def test_producto_inactivo_no_tiene_detalle_publico(self):
+        self.producto.activo = False
+        self.producto.save(update_fields=["activo"])
+
+        response = self.client.get(
+            reverse(
+                "catalogo_producto_detalle",
+                args=[self.producto.id],
+            )
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_listado_producto_enlaza_a_su_detalle(self):
+        response = self.client.get(
+            reverse("catalogo_productos")
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            reverse(
+                "catalogo_producto_detalle",
+                args=[self.producto.id],
+            ),
+        )
+        self.assertContains(response, "Precio unitario")
+
+    def test_inicio_mantiene_dos_columnas_y_muestra_dos_fotos_del_producto(self):
+        ProductoImagen.objects.create(
+            producto=self.producto,
+            ambiente="qa",
+            file_id="qa-pina-2",
+            url="https://example.com/qa-pina-2.jpg",
+            thumbnail_url="https://example.com/qa-pina-2-thumb.jpg",
+            orden=2,
+        )
+
+        response = self.client.get(reverse("catalogo"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "grid-template-columns:repeat(2,minmax(0,1fr))",
+        )
+        self.assertContains(
+            response,
+            "https://example.com/qa-pina.jpg",
+        )
+        self.assertContains(
+            response,
+            "https://example.com/qa-pina-2.jpg",
+        )
+        self.assertContains(response, "preview-media dual")
+
+    def test_tarjeta_producto_muestra_ver_y_agregar_legibles(self):
+        response = self.client.get(
+            reverse("catalogo_productos")
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            'class="product-actions"',
+        )
+        self.assertContains(
+            response,
+            ">VER</a>",
+            html=True,
+        )
+        self.assertContains(
+            response,
+            ">AGREGAR</button>",
+            html=True,
+        )
+        self.assertContains(
+            response,
+            "grid-template-columns:minmax(58px,.7fr) minmax(0,1.3fr)",
+        )
+

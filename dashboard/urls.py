@@ -18,6 +18,11 @@ urlpatterns = [
         views.configuracion,
         name="configuracion",
     ),
+    path(
+        "configuracion/arrepentimiento/<int:solicitud_id>/resolver/",
+        views.resolver_arrepentimiento,
+        name="arrepentimiento_resolver",
+    ),
 
     path(
         "sw.js",

@@ -33,8 +33,16 @@
         h1{max-width:800px;margin:0;color:var(--blue-dark);font-size:clamp(2.35rem,7vw,5.5rem);line-height:.94;letter-spacing:-.055em}
         .hero-copy{max-width:670px;margin:20px 0 0;color:var(--muted);font-size:clamp(.98rem,2vw,1.15rem);line-height:1.6}
         .hero-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:25px}
+        .delivery-banner{display:flex;align-items:flex-start;gap:10px;margin:0 auto 4px;padding:14px 16px;border:1px solid #cdddf4;border-radius:16px;background:#eef4ff;color:#345f91;font-size:.86rem;line-height:1.5}
+        .delivery-banner strong{display:block;color:var(--blue-dark);font-size:.79rem;text-transform:uppercase;letter-spacing:.04em}
+        .delivery-banner span{display:block;margin-top:2px}
         .btn{min-height:48px;display:inline-flex;align-items:center;justify-content:center;padding:0 18px;border-radius:14px;text-decoration:none;font-weight:950}
         .btn-primary{background:var(--blue);color:#fff}.btn-secondary{border:1px solid var(--line);background:#fff;color:var(--blue-dark)}
+        .buy-flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px auto 18px}
+        .buy-step{padding:15px;border:1px solid var(--line);border-radius:17px;background:#fff;box-shadow:0 6px 18px rgba(18,31,52,.045)}
+        .buy-step small{display:block;color:var(--red);font-size:.63rem;font-weight:950;letter-spacing:.08em;text-transform:uppercase}
+        .buy-step strong{display:block;margin-top:5px;color:var(--blue-dark);font-size:.95rem}
+        .buy-step span{display:block;margin-top:5px;color:var(--muted);font-size:.76rem;line-height:1.4}
         .shop-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:18px 0 34px}
         .choice{
             min-height:220px;display:flex;flex-direction:column;justify-content:flex-end;
@@ -52,8 +60,13 @@
         .section-head a{color:var(--blue);font-size:.78rem;font-weight:900;text-decoration:none}
         .preview-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
         .preview{overflow:hidden;border:1px solid var(--line);border-radius:18px;background:#fff;text-decoration:none;box-shadow:0 6px 18px rgba(18,31,52,.045);transition:.18s ease}
-        .preview-media{aspect-ratio:1/1;display:grid;place-items:center;overflow:hidden;background:linear-gradient(135deg,#eef4ff,#fff1f2)}
+        .preview-media{position:relative;aspect-ratio:1/1;display:grid;place-items:center;overflow:hidden;background:linear-gradient(135deg,#eef4ff,#fff1f2)}
         .preview-media img{width:100%;height:100%;object-fit:cover;display:block}
+        .preview-media.dual{grid-template-columns:1fr 1fr;gap:2px}
+        .preview-media.dual img{min-width:0}
+        .preview-media .kit-collage{width:100%;height:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px}
+        .preview-media .kit-collage .tile{min-width:0;height:100%;overflow:hidden}
+        .preview-media .kit-collage .tile:only-child{grid-column:1/-1}
         .preview-placeholder{color:rgba(19,74,154,.45);font-size:2rem;font-weight:950}
         .preview-copy{padding:12px}
         .preview-copy small{display:block;color:var(--red);font-size:.6rem;font-weight:950;text-transform:uppercase}
@@ -68,7 +81,7 @@
         .kit-banner .btn{background:#fff;color:var(--blue-dark)}
         footer{padding:10px 0 44px;color:var(--muted);font-size:.78rem;text-align:center}
         @media(hover:hover){.choice:hover,.preview:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(18,31,52,.09)}}
-        @media(max-width:760px){.preview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.shop-choices{gap:9px}.choice{min-height:175px;padding:18px}.kit-banner{grid-template-columns:1fr}}
+        @media(max-width:760px){.buy-flow{grid-template-columns:1fr}.preview-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.preview-media{aspect-ratio:1/1}.shop-choices{gap:9px}.choice{min-height:175px;padding:18px}.kit-banner{grid-template-columns:1fr}}
         @media(max-width:520px){
             .shell{width:min(100% - 16px,1180px)}.hero{padding:18px 0 10px}.hero-card{padding:25px 20px;border-radius:24px}
             .hero-actions{display:grid;grid-template-columns:1fr 1fr}.btn{min-height:44px;padding:0 10px;font-size:.78rem}
@@ -96,6 +109,19 @@
             </div>
         </section>
 
+        {% if mensaje_plazo_entrega %}
+        <div class="shell delivery-banner" role="note">
+            <div aria-hidden="true">⏱</div>
+            <div><strong>Antes de comprar</strong><span>{{ mensaje_plazo_entrega }}</span></div>
+        </div>
+        {% endif %}
+
+        <section class="shell buy-flow" aria-label="Cómo comprar">
+            <div class="buy-step"><small>Paso 1</small><strong>Elegí</strong><span>Explorá productos y kits con precios visibles.</span></div>
+            <div class="buy-step"><small>Paso 2</small><strong>Armá tu carrito</strong><span>Agregá, revisá cantidades y configurá tus kits.</span></div>
+            <div class="buy-step"><small>Paso 3</small><strong>Pedí presupuesto</strong><span>Te confirmamos disponibilidad, total y entrega por WhatsApp.</span></div>
+        </section>
+
         <section class="shell shop-choices" aria-label="Comprar por sección">
             <a class="choice products" href="{% url 'catalogo_productos' %}">
                 <small>Tienda</small>
@@ -117,8 +143,8 @@
             </div>
             <div class="preview-grid">
                 {% for producto in productos_inicio|slice:":4" %}
-                <a class="preview" href="{% url 'catalogo_productos' %}?q={{ producto.nombre|urlencode }}">
-                    <div class="preview-media">
+                <a class="preview catalog-item" data-kind="producto" data-product-id="{{ producto.id }}" data-category="{{ producto.tipo.nombre|lower }}" href="{% url 'catalogo_producto_detalle' producto.id %}">
+                    <div class="preview-media media">
                         {% if producto.catalogo_imagen %}
                             <img src="{{ producto.catalogo_imagen.url }}" alt="{{ producto.nombre }}" loading="lazy">
                         {% else %}
@@ -144,6 +170,8 @@
             <a class="btn" href="{% url 'catalogo_kits' %}">EXPLORAR KITS</a>
         </section>
 
+        <div class="shell">{% include "productos/_catalogo_consulta_especial.html" %}</div>
+
         {% if kits_inicio %}
         <section class="shell section">
             <div class="section-head">
@@ -152,9 +180,17 @@
             </div>
             <div class="preview-grid">
                 {% for kit in kits_inicio|slice:":4" %}
-                <a class="preview" href="{% url 'catalogo_kit_detalle' kit.id %}">
-                    <div class="preview-media">
-                        {% if kit.catalogo_imagen_url %}
+                <a class="preview catalog-item" data-kind="kit" data-kit-id="{{ kit.id }}" data-category="{% if kit.tipo_producto %}{{ kit.tipo_producto.nombre|lower }}{% endif %}" href="{% url 'catalogo_kit_detalle' kit.id %}">
+                    <div class="preview-media media">
+                        {% if kit.productos_visuales_collage %}
+                            <div class="kit-collage">
+                                {% for visual in kit.productos_visuales_collage|slice:":4" %}
+                                    <div class="tile">
+                                        <img src="{{ visual.imagen_url }}" alt="{{ visual.producto.nombre }}" loading="lazy">
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% elif kit.catalogo_imagen_url %}
                             <img src="{{ kit.catalogo_imagen_url }}" alt="{{ kit.nombre }}" loading="lazy">
                         {% else %}
                             <span class="preview-placeholder">K</span>

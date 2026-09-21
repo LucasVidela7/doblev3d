@@ -20,7 +20,7 @@ body{margin:0;padding-bottom:110px;background:var(--bg);color:var(--text);font-f
 .cfg-btn{min-height:46px;display:inline-flex;align-items:center;justify-content:center;padding:0 15px;border:1px solid var(--blue);border-radius:12px;background:var(--surface);color:var(--text);text-decoration:none;font-size:9px;font-weight:900;cursor:pointer}
 .cfg-btn.principal{margin-left:auto;min-width:220px;background:var(--blue);color:#fff}
 .cfg-saved{margin-bottom:12px;padding:11px 13px;border:1px solid #b9dec5;border-radius:12px;background:var(--ok-bg);color:var(--ok);font-size:10px;font-weight:900}
-.cfg-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:13px}
+.cfg-nav{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:13px}
 .cfg-nav a{min-height:43px;display:flex;align-items:center;justify-content:center;padding:0 8px;border:1px solid var(--line);border-radius:11px;background:var(--surface);color:var(--text);text-decoration:none;font-size:8px;font-weight:900;text-align:center}
 .cfg-section{scroll-margin-top:12px;margin-bottom:13px;padding:18px;border:1px solid var(--line);border-radius:18px;background:var(--surface);box-shadow:var(--dv-shadow,0 7px 24px rgba(20,25,35,.05))}
 .cfg-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:15px}
@@ -40,7 +40,7 @@ body{margin:0;padding-bottom:110px;background:var(--bg);color:var(--text);font-f
 .cfg-vars{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}.cfg-var{padding:4px 6px;border-radius:999px;background:var(--soft);color:var(--muted);font:700 7px monospace}
 .cfg-preview{margin-top:8px;padding:9px 10px;border:1px dashed var(--line);border-radius:10px;background:var(--soft);white-space:pre-wrap;color:var(--text);font-size:8px;line-height:1.45}.cfg-preview:before{content:"VISTA PREVIA";display:block;margin-bottom:5px;color:var(--muted);font-size:6px;font-weight:900;letter-spacing:.07em}
 .cfg-device{width:100%;min-height:56px;display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--text);font:inherit;text-align:left;cursor:pointer}.cfg-device-icon{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:var(--soft)}.cfg-device-copy{min-width:0;flex:1}.cfg-device-copy strong{display:block;font-size:10px}.cfg-device-copy span{display:block;margin-top:3px;color:var(--muted);font-size:8px}.cfg-device.is-active{border-color:#b6dcc0;background:#e8f6ec;color:#24633a}.cfg-device.is-blocked{border-color:#efc3c3;background:#fff2f2;color:#9a3030}.cfg-device:disabled{opacity:.58;cursor:not-allowed}
-.cfg-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:13px}
+.cfg-legal-list{display:grid;gap:7px}.cfg-legal-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:10px;border:1px solid var(--line);border-radius:11px;background:var(--surface)}.cfg-legal-item strong{display:block;font-size:9px}.cfg-legal-item span{display:block;margin-top:3px;color:var(--muted);font-size:8px}.cfg-legal-badge{align-self:start;display:inline-flex;min-height:24px;align-items:center;padding:0 7px;border-radius:999px;background:var(--warn-bg);color:var(--warn);font-size:7px;font-weight:900}.cfg-legal-badge.ok{background:var(--ok-bg);color:var(--ok)}.cfg-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:13px}
 html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc8}html[data-dv-theme="dark"] .cfg-device.is-blocked{background:#3b2024;color:#ffc4c4}
 @media(max-width:760px){.cfg-shell{width:calc(100% - 20px);padding-top:14px}.actions .cfg-btn{flex:1 1 0}.actions .principal{margin-left:0;min-width:0;flex:1.15}.cfg-nav{grid-template-columns:1fr 1fr}.cfg-section{padding:14px;border-radius:15px}.cfg-grid,.cfg-message-grid{grid-template-columns:1fr}.cfg-box.full,.cfg-message.wide{grid-column:auto}.cfg-section-head{margin-bottom:12px}.cfg-footer{display:grid;grid-template-columns:1fr}.cfg-footer .cfg-btn{width:100%}}
 </style>
@@ -65,7 +65,8 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 <a href="#tienda">1 · TIENDA</a>
 <a href="#whatsapp">2 · WHATSAPP</a>
 <a href="#avisos">3 · NOTIFICACIONES</a>
-<a href="#apariencia">4 · APARIENCIA</a>
+<a href="#legal">4 · LEGAL</a>
+<a href="#apariencia">5 · APARIENCIA</a>
 </nav>
 
 <form method="post" id="configForm">
@@ -81,6 +82,12 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 <div class="cfg-box">
 <label class="cfg-label" for="mensaje_mantenimiento"><span>MENSAJE DE MANTENIMIENTO</span><span data-count-for="mensaje_mantenimiento"></span></label>
 <textarea class="cfg-textarea" id="mensaje_mantenimiento" name="mensaje_mantenimiento" maxlength="240" data-counter>{{ config.mensaje_mantenimiento }}</textarea>
+</div>
+
+<div class="cfg-box full">
+<label class="cfg-label" for="mensaje_plazo_entrega"><span>PLAZO DE ENTREGA INFORMADO EN EL CATÁLOGO</span><span data-count-for="mensaje_plazo_entrega"></span></label>
+<textarea class="cfg-textarea" id="mensaje_plazo_entrega" name="mensaje_plazo_entrega" maxlength="300" data-counter>{{ config.mensaje_plazo_entrega }}</textarea>
+<div class="cfg-note">Se muestra en la portada, como aviso general en los listados, en detalles, “Cómo comprar”, checkout y confirmación. No ocupa espacio dentro de cada tarjeta de producto o kit.</div>
 </div>
 
 <div class="cfg-box">
@@ -186,6 +193,61 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 {% if webpush_configurado %}
 <button type="button" id="dvGlobalPushToggle" class="cfg-device" data-public-key="{{ webpush_public_key }}" data-worker="{% url 'dashboard:push_service_worker' %}" data-subscribe="{% url 'dashboard:push_suscribir' %}" data-unsubscribe="{% url 'dashboard:push_desuscribir' %}" aria-label="Activar notificaciones en este dispositivo" aria-pressed="false"><span class="cfg-device-icon">🔔</span><span class="cfg-device-copy"><strong data-push-label>Activar avisos</strong><span>Este navegador · {{ dispositivos_push_activos }} dispositivo{{ dispositivos_push_activos|pluralize }} activo{{ dispositivos_push_activos|pluralize }}</span></span></button>
 {% else %}<div class="cfg-note">Web Push todavía no tiene las claves VAPID configuradas en este entorno.</div>{% endif %}
+</div>
+</div>
+</section>
+
+<section class="cfg-section" id="legal">
+<div class="cfg-section-head"><div><h2>Información legal</h2><p>Datos públicos del responsable, páginas legales y solicitudes de arrepentimiento.</p></div><div class="cfg-icon">⚖</div></div>
+<div class="cfg-grid">
+<div class="cfg-box">
+<div class="cfg-box-title">Datos del responsable</div>
+<div class="cfg-box-copy">Completá sólo información real. Si un campo queda vacío, no se inventa ni se publica.</div>
+<label class="cfg-label" for="razon_social"><span>RAZÓN SOCIAL / RESPONSABLE</span></label>
+<input class="cfg-input" id="razon_social" name="razon_social" maxlength="180" value="{{ config.razon_social }}" placeholder="Nombre o razón social">
+<label class="cfg-label" for="cuit"><span>CUIT</span></label>
+<input class="cfg-input" id="cuit" name="cuit" maxlength="20" value="{{ config.cuit }}" placeholder="XX-XXXXXXXX-X">
+</div>
+<div class="cfg-box">
+<div class="cfg-box-title">Contacto legal</div>
+<div class="cfg-box-copy">Se muestra en Términos y Privacidad cuando está informado.</div>
+<label class="cfg-label" for="domicilio_legal"><span>DOMICILIO COMERCIAL / LEGAL</span></label>
+<input class="cfg-input" id="domicilio_legal" name="domicilio_legal" maxlength="240" value="{{ config.domicilio_legal }}" placeholder="Domicilio">
+<label class="cfg-label" for="email_legal"><span>EMAIL</span></label>
+<input class="cfg-input" id="email_legal" name="email_legal" maxlength="254" type="email" value="{{ config.email_legal }}" placeholder="contacto@...">
+</div>
+
+<div class="cfg-box full">
+<div class="cfg-box-title">Páginas públicas</div>
+<div class="cfg-box-copy">Accesos visibles desde todo el catálogo. El Botón de Arrepentimiento permanece accesible sin iniciar sesión.</div>
+<div class="cfg-footer" style="justify-content:flex-start">
+<a class="cfg-btn" href="{% url 'catalogo_terminos' %}" target="_blank" rel="noopener">TÉRMINOS</a>
+<a class="cfg-btn" href="{% url 'catalogo_privacidad' %}" target="_blank" rel="noopener">PRIVACIDAD</a>
+<a class="cfg-btn" href="{% url 'catalogo_arrepentimiento' %}" target="_blank" rel="noopener">ARREPENTIMIENTO</a>
+</div>
+</div>
+
+<div class="cfg-box full">
+<div class="cfg-box-title">Solicitudes de arrepentimiento {% if arrepentimientos_nuevos %}<span class="cfg-status warn">{{ arrepentimientos_nuevos }} NUEVA{{ arrepentimientos_nuevos|pluralize }}</span>{% endif %}</div>
+<div class="cfg-box-copy">Últimas solicitudes recibidas desde el catálogo.</div>
+<div class="cfg-legal-list" style="margin-top:10px">
+{% for item in arrepentimientos_recientes %}
+<div class="cfg-legal-item">
+<div><strong>{{ item.codigo }} · {{ item.nombre|default:item.contacto }}</strong><span>{{ item.creada_en|date:"d/m/Y H:i" }}{% if item.referencia %} · Ref. {{ item.referencia }}{% endif %}<br>{{ item.contacto }}</span></div>
+<div style="display:grid;gap:6px;justify-items:end">
+<span class="cfg-legal-badge {% if item.estado == 'RESUELTA' %}ok{% endif %}">{{ item.get_estado_display|upper }}</span>
+{% if item.estado == "NUEVA" %}
+<form method="post" action="{% url 'dashboard:arrepentimiento_resolver' item.id %}">
+{% csrf_token %}
+<button class="cfg-btn" type="submit" style="min-height:32px;padding:0 8px">MARCAR RESUELTA</button>
+</form>
+{% endif %}
+</div>
+</div>
+{% empty %}
+<div class="cfg-note">No hay solicitudes registradas.</div>
+{% endfor %}
+</div>
 </div>
 </div>
 </section>

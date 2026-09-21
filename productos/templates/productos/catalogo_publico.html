@@ -308,6 +308,28 @@
             box-shadow: 0 15px 36px rgba(19, 74, 154, .11);
         }
 
+        .catalog-media-link{display:block;color:inherit;text-decoration:none}
+        .catalog-title-link{color:inherit;text-decoration:none}
+        .catalog-title-link:hover{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+        .product-actions{
+            display:grid;
+            grid-template-columns:minmax(72px,.72fr) minmax(118px,1.28fr);
+            align-items:stretch;
+            gap:7px;
+            width:min(100%,270px)
+        }
+        .product-actions .catalog-detail-link{
+            width:100%;
+            min-width:0;
+            min-height:40px;
+            border-color:#b9cbea;
+            background:#eef4ff;
+            color:#0d376f;
+            font-weight:900
+        }
+        .product-actions .dv-cart-card-control{width:100%;min-width:0}
+        .product-actions .dv-cart-add-btn,
+        .product-actions .dv-cart-inline-stepper{width:100%;min-width:0}
         .media {
             position: relative;
             aspect-ratio: 4 / 3;
@@ -370,6 +392,24 @@
             background: rgba(240, 57, 59, .94);
             box-shadow: 0 6px 16px rgba(240, 57, 59, .18);
         }
+
+        .delivery-banner {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: -10px auto 22px;
+            padding: 13px 15px;
+            border: 1px solid #cdddf4;
+            border-radius: 15px;
+            background: var(--brand-blue-soft);
+            color: #345f91;
+            font-size: .84rem;
+            line-height: 1.45;
+        }
+
+        .delivery-banner strong { color: var(--brand-blue-strong); }
+        .catalog-confidence{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:-10px auto 18px}
+        .catalog-confidence span{min-height:42px;display:flex;align-items:center;justify-content:center;padding:7px 9px;border:1px solid var(--line);border-radius:11px;background:#fff;color:#56657a;font-size:.7rem;font-weight:800;text-align:center}
 
         .content { padding: 18px; }
 
@@ -526,6 +566,7 @@
             .hero { padding-top: 18px; }
             .hero-card { border-radius: 24px; }
 
+            .catalog-confidence{grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:12px}
             .grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
                 gap: 8px;
@@ -562,7 +603,7 @@
             }
 
             .detail { display: none; }
-
+            .delivery-banner{margin-top:0;margin-bottom:14px;padding:10px 11px;font-size:.72rem}
             .mini-list {
                 gap: 4px;
                 margin: 7px 0 9px;
@@ -595,18 +636,32 @@
                 justify-content: stretch;
             }
 
-            .dv-cart-add-btn,
-            .dv-cart-inline-stepper,
-            .catalog-detail-link {
-                width: 100%;
+            .product-actions{
+                width:100%;
+                grid-template-columns:minmax(58px,.7fr) minmax(0,1.3fr);
+                gap:6px
             }
 
-            .dv-cart-add-btn,
-            .catalog-detail-link {
-                min-height: 34px;
-                padding: 0 7px;
-                border-radius: 9px;
-                font-size: .66rem;
+            .product-actions .catalog-detail-link,
+            .product-actions .dv-cart-add-btn,
+            .product-actions .dv-cart-inline-stepper {
+                width:100%;
+                min-width:0;
+                min-height:40px;
+                border-radius:10px;
+                font-size:.64rem;
+            }
+
+            .product-actions .catalog-detail-link{
+                padding:0 6px;
+                background:#eef4ff;
+                color:#0d376f !important;
+                border-color:#b9cbea;
+                white-space:nowrap
+            }
+
+            .product-actions .dv-cart-add-btn{
+                padding:0 7px
             }
 
             .dv-cart-inline-stepper {
@@ -663,6 +718,20 @@
             </div>
         </section>
 
+        {% if mensaje_plazo_entrega %}
+        <div class="shell delivery-banner" role="note">
+            <span aria-hidden="true">⏱</span>
+            <div><strong>Plazo estimado.</strong> {{ mensaje_plazo_entrega }}</div>
+        </div>
+        {% endif %}
+
+        <div class="shell catalog-confidence" aria-label="Cómo funciona la compra">
+            <span>✓ Precios visibles</span>
+            <span>✓ Carrito editable</span>
+            <span>✓ Sin pago online</span>
+            <span>✓ Confirmación por WhatsApp</span>
+        </div>
+
         <div class="toolbar">
             <div class="shell toolbar-inner">
                 <label class="search">
@@ -686,7 +755,7 @@
             <div class="section-head">
                 <h2>Productos</h2>
                 <span class="count">{{ productos|length }} disponibles</span>
-                <p>Piezas individuales disponibles en el catálogo.</p>
+                <p>Entrá al detalle para conocer cada producto o agregalo directamente al carrito.</p>
             </div>
 
             {% if productos %}
@@ -695,26 +764,29 @@
                         <article
                             class="card catalog-item"
                             data-kind="producto"
+                            data-product-id="{{ producto.id }}"
                             data-category="{{ producto.tipo.nombre|lower }}"
                             data-search="{{ producto.nombre|lower }} {{ producto.tipo.nombre|lower }}"
                         >
-                            <div class="media">
-                                <span class="badge">{{ producto.tipo.nombre }}</span>
-                                {% if producto.catalogo_imagen %}
-                                    <img src="{{ producto.catalogo_imagen.url }}" alt="{{ producto.nombre }}" loading="lazy">
-                                {% else %}
-                                    <div class="placeholder" aria-hidden="true">{{ producto.nombre|slice:":1"|upper }}</div>
-                                {% endif %}
-                            </div>
+                            <a class="catalog-media-link" href="{% url 'catalogo_producto_detalle' producto.id %}" aria-label="Ver {{ producto.nombre }}">
+                                <div class="media">
+                                    <span class="badge">{{ producto.tipo.nombre }}</span>
+                                    {% if producto.catalogo_imagen %}
+                                        <img src="{{ producto.catalogo_imagen.url }}" alt="{{ producto.nombre }}" loading="lazy">
+                                    {% else %}
+                                        <div class="placeholder" aria-hidden="true">{{ producto.nombre|slice:":1"|upper }}</div>
+                                    {% endif %}
+                                </div>
+                            </a>
                             <div class="content">
                                 <div class="meta">Producto</div>
-                                <h3 class="title">{{ producto.nombre }}</h3>
+                                <h3 class="title"><a class="catalog-title-link" href="{% url 'catalogo_producto_detalle' producto.id %}">{{ producto.nombre }}</a></h3>
                                 <p class="detail">
                                     {% if producto.personalizable %}Personalizable{% else %}Impresión 3D{% endif %}
                                 </p>
                                 <div class="price-row">
                                     <div>
-                                        <span class="price-label">Precio</span>
+                                        <span class="price-label">Precio unitario</span>
                                         {% if producto.catalogo_precio %}
                                             <span class="price">$ {{ producto.catalogo_precio|floatformat:"0g" }}</span>
                                         {% else %}
@@ -722,6 +794,8 @@
                                         {% endif %}
                                     </div>
                                     {% if producto.catalogo_precio %}
+                                        <div class="product-actions">
+                                            <a class="catalog-detail-link" href="{% url 'catalogo_producto_detalle' producto.id %}" aria-label="Ver detalle de {{ producto.nombre }}">VER</a>
                                         <div
                                             class="dv-cart-card-control"
                                             data-dv-product-control
@@ -742,6 +816,7 @@
                                                 <button type="button" data-dv-product-inline-plus aria-label="Aumentar cantidad">+</button>
                                             </div>
                                         </div>
+                                        </div>
                                     {% endif %}
                                 </div>
                             </div>
@@ -760,7 +835,7 @@
             <div class="section-head">
                 <h2>Kits</h2>
                 <span class="count">{{ kits|length }} disponibles</span>
-                <p>Combinaciones armadas o configurables según cada propuesta.</p>
+                <p>Los kits fijos vienen listos; los configurables te permiten elegir sus piezas antes de agregarlos.</p>
             </div>
 
             {% if kits %}
@@ -769,6 +844,7 @@
                         <article
                             class="card catalog-item"
                             data-kind="kit"
+                            data-kit-id="{{ kit.id }}"
                             data-category="{% if kit.tipo_producto %}{{ kit.tipo_producto.nombre|lower }}{% endif %}"
                             data-search="{{ kit.nombre|lower }} {% if kit.tipo_producto %}{{ kit.tipo_producto.nombre|lower }}{% endif %} {{ kit.catalogo_busqueda_productos|default:''|lower }}"
                         >
@@ -843,7 +919,7 @@
 
                                 <div class="price-row">
                                     <div>
-                                        <span class="price-label">Precio del kit</span>
+                                        <span class="price-label">{% if kit.modalidad == "LIBRE_CATEGORIA" %}Precio base{% else %}Precio del kit{% endif %}</span>
                                         {% if kit.precio %}
                                             <span class="price">$ {{ kit.precio|floatformat:"0g" }}</span>
                                         {% else %}
@@ -870,6 +946,7 @@
         {% endif %}
 
         <div class="shell no-results empty" id="no-results">No encontramos resultados con esos filtros.</div>
+        <div class="shell">{% include "productos/_catalogo_consulta_especial.html" %}</div>
     </main>
 
     <footer class="shell">

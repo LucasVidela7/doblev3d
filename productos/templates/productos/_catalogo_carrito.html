@@ -8,15 +8,26 @@
         <small>Preparando la tienda</small>
     </div>
 </div>
-<div data-dv-cart-root data-pricing-url="{% url 'catalogo_carrito_precios' %}">
+<div
+    data-dv-cart-root
+    data-pricing-url="{% url 'catalogo_carrito_precios' %}"
+    data-products-url="{% url 'catalogo_productos' %}"
+    data-kits-url="{% url 'catalogo_kits' %}"
+>
     <div class="dv-cart-overlay" data-dv-cart-overlay></div>
     <aside class="dv-cart-drawer" data-dv-cart-drawer aria-label="Carrito de compras">
         <div class="dv-cart-head">
             <div class="dv-cart-head-copy">
+                <span class="dv-cart-step-label">PASO 1 DE 3</span>
                 <h2>Tu carrito</h2>
-                <p>Revisá productos, kits y cantidades.</p>
+                <p>Revisá qué estás solicitando antes de pedir presupuesto.</p>
             </div>
             <button class="dv-cart-close" type="button" data-dv-cart-close aria-label="Cerrar carrito">×</button>
+        </div>
+        <div class="dv-cart-progress" aria-label="Progreso de compra">
+            <span class="is-active"><b>1</b> Carrito</span>
+            <span><b>2</b> Tus datos</span>
+            <span><b>3</b> Confirmación</span>
         </div>
         <div class="dv-cart-body" data-dv-cart-body>
             <div class="dv-cart-skeleton">
@@ -26,14 +37,21 @@
         </div>
         <div class="dv-cart-foot">
             <div class="dv-cart-total">
-                <span>TOTAL PRODUCTOS</span>
+                <span>TOTAL ESTIMADO</span>
                 <strong data-dv-cart-total>$ 0</strong>
             </div>
             <div class="dv-cart-total-saving is-empty" data-dv-cart-saving aria-live="polite"></div>
+            <div class="dv-cart-explainer">
+                <strong>No pagás nada ahora.</strong>
+                En el siguiente paso enviás una solicitud y confirmamos por WhatsApp disponibilidad, total final y entrega.
+            </div>
             <a class="dv-cart-checkout is-disabled" data-dv-cart-checkout href="{% url 'catalogo_carrito' %}">
-                CONTINUAR
+                REVISAR Y PEDIR PRESUPUESTO
             </a>
             <p class="dv-cart-delivery-note">Entrega a coordinar · no incluida en este total.</p>
+            <a class="dv-cart-special-link" href="{% url 'catalogo_contacto' 'whatsapp' %}?motivo=producto_especial" target="_blank" rel="noopener">
+                ¿No encontraste un producto? Consultanos por WhatsApp
+            </a>
         </div>
         <div class="dv-cart-toast" data-dv-cart-toast role="status" aria-live="polite"></div>
     </aside>

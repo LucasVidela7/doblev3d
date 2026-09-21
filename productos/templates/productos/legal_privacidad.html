@@ -1,0 +1,53 @@
+{% extends "productos/legal_base.html" %}
+{% block title %}Política de privacidad{% endblock %}
+{% block eyebrow %}Datos personales{% endblock %}
+{% block heading %}Política de privacidad{% endblock %}
+{% block intro %}Te contamos qué datos usa Doble V 3D cuando navegás el catálogo o enviás una solicitud y para qué se utilizan.{% endblock %}
+{% block content %}
+<section class="legal-card">
+<h2>1. Datos que podemos recibir</h2>
+<ul>
+<li>Nombre y número de WhatsApp.</li>
+<li>Email, cuando decidís informarlo.</li>
+<li>Productos, kits, cantidades, personalizaciones y observaciones de una solicitud.</li>
+<li>Información vinculada con presupuestos, pedidos, pagos y entregas cuando se concreta una operación.</li>
+<li>Datos técnicos limitados para seguridad y prevención de abuso, como identificadores derivados de la conexión y navegador.</li>
+</ul>
+</section>
+
+<section class="legal-card">
+<h2>2. Para qué usamos los datos</h2>
+<p>Los datos se utilizan para responder consultas, preparar presupuestos, confirmar pedidos, coordinar producción y entrega, registrar pagos, brindar atención posterior y proteger el catálogo frente a usos automatizados o abusivos.</p>
+<p>No utilizamos el formulario de presupuesto como autorización automática para enviar publicidad masiva.</p>
+</section>
+
+<section class="legal-card">
+<h2>3. Servicios externos</h2>
+<p>Para operar el sitio pueden intervenir proveedores técnicos de alojamiento, seguridad y comunicaciones. Si elegís continuar una conversación por WhatsApp o Instagram, esa interacción también queda sujeta a las condiciones y políticas de esas plataformas.</p>
+<p>Doble V 3D no vende bases de datos personales.</p>
+</section>
+
+<section class="legal-card">
+<h2>4. Conservación y seguridad</h2>
+<p>Los datos se conservan durante el tiempo necesario para gestionar solicitudes, presupuestos, pedidos, atención posterior y obligaciones legales o contables aplicables. Se aplican medidas razonables para limitar accesos no autorizados.</p>
+</section>
+
+<section class="legal-card">
+<h2>5. Tus derechos</h2>
+<p>La Ley 25.326 reconoce, según corresponda, derechos de acceso, rectificación, actualización y supresión de datos personales. Podés solicitar su ejercicio contactando a Doble V 3D por los canales publicados en el sitio.</p>
+{% if config.email_legal %}<div class="legal-highlight"><strong>Contacto para datos personales:</strong> {{ config.email_legal }}</div>{% endif %}
+<p>También podés consultar información oficial de la <a href="https://www.argentina.gob.ar/aaip/datospersonales/derechos" target="_blank" rel="noopener">Agencia de Acceso a la Información Pública</a>.</p>
+</section>
+
+<section class="legal-card">
+<h2>6. Responsable</h2>
+<div class="legal-grid">
+<div class="legal-data"><small>NOMBRE COMERCIAL</small><strong>Doble V 3D</strong></div>
+{% if config.razon_social %}<div class="legal-data"><small>RESPONSABLE / RAZÓN SOCIAL</small><strong>{{ config.razon_social }}</strong></div>{% endif %}
+{% if config.cuit %}<div class="legal-data"><small>CUIT</small><strong>{{ config.cuit }}</strong></div>{% endif %}
+{% if config.domicilio_legal %}<div class="legal-data"><small>DOMICILIO</small><strong>{{ config.domicilio_legal }}</strong></div>{% endif %}
+{% if config.email_legal %}<div class="legal-data"><small>EMAIL</small><strong>{{ config.email_legal }}</strong></div>{% endif %}
+</div>
+<div class="legal-actions"><a class="legal-btn" href="{% url 'catalogo_terminos' %}">TÉRMINOS DE COMPRA</a><a class="legal-btn primary" href="{% url 'catalogo' %}">VOLVER A LA TIENDA</a></div>
+</section>
+{% endblock %}

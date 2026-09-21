@@ -1,0 +1,96 @@
+<style>
+.dv-special-request{
+    width:min(1120px,100%);
+    margin:22px auto 6px;
+    padding:18px;
+    border:1px solid #dfe5ef;
+    border-radius:18px;
+    background:linear-gradient(135deg,#ffffff,#f7faff);
+    box-shadow:0 8px 24px rgba(19,74,154,.05);
+}
+.dv-special-request__grid{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:14px;
+    align-items:center;
+}
+.dv-special-request__eyebrow{
+    margin:0 0 5px;
+    color:#f0393b;
+    font-size:.68rem;
+    font-weight:950;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+}
+.dv-special-request h2{
+    margin:0;
+    color:#0d376f;
+    font-size:clamp(1.15rem,3vw,1.55rem);
+    letter-spacing:-.025em;
+}
+.dv-special-request p{
+    max-width:700px;
+    margin:7px 0 0;
+    color:#667085;
+    font-size:.8rem;
+    line-height:1.5;
+}
+.dv-special-request__actions{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+    gap:8px;
+}
+.dv-special-request__btn{
+    min-height:43px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 13px;
+    border:1px solid #134a9a;
+    border-radius:12px;
+    background:#fff;
+    color:#0d376f;
+    text-decoration:none;
+    font-size:.74rem;
+    font-weight:900;
+}
+.dv-special-request__btn.whatsapp{
+    border-color:#25d366;
+    background:#25d366;
+    color:#fff;
+}
+@media(max-width:720px){
+    .dv-special-request{padding:15px;border-radius:15px}
+    .dv-special-request__grid{grid-template-columns:1fr}
+    .dv-special-request__actions{justify-content:stretch}
+    .dv-special-request__btn{flex:1 1 100%}
+}
+</style>
+
+<section class="dv-special-request" aria-label="Consultas por productos especiales">
+    <div class="dv-special-request__grid">
+        <div>
+            <p class="dv-special-request__eyebrow">Pedido especial</p>
+            <h2>¿No encontrás lo que buscás?</h2>
+            <p>
+                Podés escribirlo en <strong>Observaciones</strong> cuando solicites el presupuesto.
+                También podés consultarnos por WhatsApp para saber si existe la posibilidad de
+                hacerlo, personalizarlo o conseguirlo.
+            </p>
+        </div>
+        <div class="dv-special-request__actions">
+            <button class="dv-special-request__btn" type="button" data-dv-how-buy-open>
+                CÓMO PEDIRLO
+            </button>
+            <a
+                class="dv-special-request__btn whatsapp"
+                href="{% url 'catalogo_contacto' 'whatsapp' %}?motivo=producto_especial"
+                target="_blank"
+                rel="noopener"
+            >
+                CONSULTAR POR WHATSAPP
+            </a>
+        </div>
+    </div>
+</section>

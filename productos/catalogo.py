@@ -8,13 +8,17 @@ from kits.models import Kit
 
 from .image_environment import entorno_imagenes
 from .image_models import ProductoImagen
-from .models import Producto
+from .models import ConfiguracionCatalogo, Producto
 
 
 def _catalogo_publico(request, vista_catalogo):
     """Construye el contexto público compartido de la tienda."""
 
     ambiente = entorno_imagenes()
+    config_catalogo = (
+        ConfiguracionCatalogo.objects.first()
+        or ConfiguracionCatalogo()
+    )
 
     productos = list(
         Producto.objects
@@ -26,21 +30,27 @@ def _catalogo_publico(request, vista_catalogo):
         .order_by("tipo__nombre", "nombre")
     )
 
-    imagenes_principales = {
-        imagen.producto_id: imagen
-        for imagen in (
-            ProductoImagen.objects
-            .filter(
-                producto_id__in=[producto.id for producto in productos],
-                ambiente=ambiente,
-                orden=1,
-            )
-            .order_by("producto_id", "id")
+    imagenes_por_producto = defaultdict(list)
+    for imagen in (
+        ProductoImagen.objects
+        .filter(
+            producto_id__in=[producto.id for producto in productos],
+            ambiente=ambiente,
         )
-    }
+        .order_by("producto_id", "orden", "id")
+    ):
+        if len(imagenes_por_producto[imagen.producto_id]) < 2:
+            imagenes_por_producto[imagen.producto_id].append(imagen)
 
     for producto in productos:
-        producto.catalogo_imagen = imagenes_principales.get(producto.id)
+        producto.catalogo_imagenes_preview = (
+            imagenes_por_producto.get(producto.id, [])
+        )
+        producto.catalogo_imagen = (
+            producto.catalogo_imagenes_preview[0]
+            if producto.catalogo_imagenes_preview
+            else None
+        )
         producto.catalogo_precio = producto.subtotal
 
     # En el catálogo priorizamos los productos que ya tienen foto principal.
@@ -161,6 +171,9 @@ def _catalogo_publico(request, vista_catalogo):
             "vista_catalogo": vista_catalogo,
             "ambiente_catalogo": ambiente,
             "es_ambiente_no_productivo": ambiente != "production",
+            "mensaje_plazo_entrega": (
+                config_catalogo.mensaje_plazo_entrega
+            ),
         },
     )
 
@@ -181,10 +194,63 @@ def catalogo_kits(request):
     return _catalogo_publico(request, "kits")
 
 
+def catalogo_producto_detalle(request, producto_id):
+    """Detalle público de un producto activo del catálogo."""
+
+    ambiente = entorno_imagenes()
+    config_catalogo = (
+        ConfiguracionCatalogo.objects.first()
+        or ConfiguracionCatalogo()
+    )
+
+    producto = get_object_or_404(
+        Producto.objects
+        .filter(
+            activo=True,
+            solo_produccion=False,
+        )
+        .select_related("tipo"),
+        id=producto_id,
+    )
+    producto.catalogo_precio = producto.subtotal
+
+    imagenes = list(
+        ProductoImagen.objects
+        .filter(
+            producto=producto,
+            ambiente=ambiente,
+        )
+        .order_by("orden", "id")[:2]
+    )
+    producto.catalogo_imagen_url = (
+        imagenes[0].url
+        if imagenes
+        else ""
+    )
+
+    return render(
+        request,
+        "productos/catalogo_producto_detalle.html",
+        {
+            "producto": producto,
+            "imagenes": imagenes,
+            "ambiente_catalogo": ambiente,
+            "es_ambiente_no_productivo": ambiente != "production",
+            "mensaje_plazo_entrega": (
+                config_catalogo.mensaje_plazo_entrega
+            ),
+        },
+    )
+
+
 def catalogo_kit_detalle(request, kit_id):
     """Detalle público de un kit activo, sin exponer la gestión interna."""
 
     ambiente = entorno_imagenes()
+    config_catalogo = (
+        ConfiguracionCatalogo.objects.first()
+        or ConfiguracionCatalogo()
+    )
 
     kit = get_object_or_404(
         Kit.objects
@@ -305,5 +371,8 @@ def catalogo_kit_detalle(request, kit_id):
             "analisis_opciones": analisis,
             "ambiente_catalogo": ambiente,
             "es_ambiente_no_productivo": ambiente != "production",
+            "mensaje_plazo_entrega": (
+                config_catalogo.mensaje_plazo_entrega
+            ),
         },
     )

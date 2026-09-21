@@ -14,7 +14,7 @@ CANALES = {
 }
 
 
-def _destino_contacto(config, canal):
+def _destino_contacto(config, canal, motivo=""):
     if canal == "instagram":
         usuario = (config.instagram_usuario or "").strip().lstrip("@")
         if not config.mostrar_instagram or not usuario:
@@ -27,7 +27,15 @@ def _destino_contacto(config, canal):
             return ""
 
         destino = f"https://wa.me/{numero}"
-        mensaje = (config.whatsapp_mensaje or "").strip()
+        if motivo == "producto_especial":
+            mensaje = (
+                "Hola! 👋 No encontré en el catálogo el producto que estoy buscando. "
+                "Quisiera consultar si existe la posibilidad de hacerlo, personalizarlo "
+                "o conseguirlo."
+            )
+        else:
+            mensaje = (config.whatsapp_mensaje or "").strip()
+
         if mensaje:
             destino += f"?text={quote(mensaje)}"
         return destino
@@ -63,7 +71,8 @@ def catalogo_contacto(request, canal):
         raise Http404("Canal de contacto inexistente")
 
     config = ConfiguracionCatalogo.objects.first() or ConfiguracionCatalogo()
-    destino = _destino_contacto(config, canal)
+    motivo = (request.GET.get("motivo") or "").strip().lower()
+    destino = _destino_contacto(config, canal, motivo=motivo)
     if not destino:
         raise Http404("Canal de contacto no disponible")
 

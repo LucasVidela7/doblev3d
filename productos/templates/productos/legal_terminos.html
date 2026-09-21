@@ -1,0 +1,65 @@
+{% extends "productos/legal_base.html" %}
+{% block title %}Términos de compra{% endblock %}
+{% block eyebrow %}Compras y pedidos{% endblock %}
+{% block heading %}Términos de compra{% endblock %}
+{% block intro %}Estas condiciones explican cómo funciona el catálogo de Doble V 3D, la solicitud de presupuesto, la confirmación del pedido, la entrega y los derechos del consumidor.{% endblock %}
+{% block content %}
+<section class="legal-card">
+<h2>1. Cómo funciona la compra</h2>
+<p>El catálogo permite seleccionar productos y kits y enviar una <strong>solicitud de presupuesto</strong>. Enviar esa solicitud no implica pago ni inicio automático de producción.</p>
+<p>Doble V 3D revisa disponibilidad, cantidades, personalizaciones, materiales, precio final y modalidad de entrega. El pedido comienza a prepararse una vez que el presupuesto y sus condiciones fueron confirmados con el cliente.</p>
+<div class="legal-highlight"><strong>Importante:</strong> el total mostrado en el carrito es estimado y se vuelve a validar al enviar la solicitud. Cualquier modificación posterior debe ser informada antes de la confirmación del pedido.</div>
+</section>
+
+<section class="legal-card">
+<h2>2. Precios, stock y productos</h2>
+<p>Los precios publicados corresponden a los productos y configuraciones informados en el catálogo. Los kits configurables pueden incluir adicionales claramente identificados según las piezas elegidas.</p>
+<p>La disponibilidad puede depender de stock terminado, capacidad de impresión, color, filamento, componentes o personalización. Si un producto publicado no pudiera ofrecerse en las condiciones solicitadas, se informará antes de confirmar el presupuesto.</p>
+<p>Cuando un producto no se encuentre publicado, el cliente puede mencionarlo en Observaciones o consultarlo por WhatsApp. Esa consulta no garantiza que pueda fabricarse o conseguirse.</p>
+</section>
+
+<section class="legal-card">
+<h2>3. Impresión 3D y personalización</h2>
+<p>Los productos se fabrican mediante impresión 3D. Por la naturaleza del proceso pueden existir pequeñas líneas de capa, uniones o variaciones menores de tono entre partidas de material. Estas características normales no deben confundirse con defectos que afecten la identidad, funcionalidad o condiciones ofrecidas del producto.</p>
+<p>Cuando el cliente solicita nombres, textos, colores, medidas, diseños, accesorios u otras especificaciones particulares, es responsable de revisar y confirmar esas indicaciones antes del inicio de producción.</p>
+</section>
+
+<section class="legal-card">
+<h2>4. Plazo y entrega</h2>
+<p>{{ config.mensaje_plazo_entrega }}</p>
+<p>El plazo comienza desde la confirmación del presupuesto. Si surgiera una demora excepcional por materiales, personalización o producción, se informará al cliente para coordinar una nueva fecha.</p>
+<p>El costo y la modalidad de entrega se coordinan por separado salvo que el presupuesto indique expresamente lo contrario.</p>
+</section>
+
+<section class="legal-card">
+<h2>5. Cambios, garantía y problemas con el producto</h2>
+<p>Los derechos legales del consumidor no quedan limitados por estos términos. Para bienes nuevos, la Ley 24.240 establece garantía legal por defectos o vicios que afecten la identidad entre lo ofrecido y lo entregado o su correcto funcionamiento.</p>
+<p>Ante un inconveniente, el cliente debe contactar a Doble V 3D indicando el pedido y, cuando resulte útil, fotografías o una descripción del problema para poder evaluar la solución correspondiente.</p>
+</section>
+
+<section class="legal-card">
+<h2>6. Derecho de arrepentimiento</h2>
+<p>En las contrataciones a distancia, el consumidor dispone del derecho de revocación previsto por la normativa argentina vigente, que contempla un plazo de diez (10) días corridos en los supuestos alcanzados. El sitio ofrece acceso directo al <strong>BOTÓN DE ARREPENTIMIENTO</strong> sin necesidad de crear una cuenta.</p>
+<div class="legal-warning"><strong>Productos personalizados:</strong> el Código Civil y Comercial contempla una excepción para productos confeccionados según especificaciones del consumidor o claramente personalizados. Si tenés dudas sobre si tu compra está alcanzada, podés enviar igualmente la solicitud para que sea revisada.</div>
+<div class="legal-actions"><a class="legal-btn danger" href="{% url 'catalogo_arrepentimiento' %}">BOTÓN DE ARREPENTIMIENTO</a></div>
+</section>
+
+<section class="legal-card">
+<h2>7. Datos del proveedor</h2>
+<div class="legal-grid">
+<div class="legal-data"><small>NOMBRE COMERCIAL</small><strong>Doble V 3D</strong></div>
+{% if config.razon_social %}<div class="legal-data"><small>RESPONSABLE / RAZÓN SOCIAL</small><strong>{{ config.razon_social }}</strong></div>{% endif %}
+{% if config.cuit %}<div class="legal-data"><small>CUIT</small><strong>{{ config.cuit }}</strong></div>{% endif %}
+{% if config.domicilio_legal %}<div class="legal-data"><small>DOMICILIO</small><strong>{{ config.domicilio_legal }}</strong></div>{% endif %}
+{% if config.email_legal %}<div class="legal-data"><small>EMAIL</small><strong>{{ config.email_legal }}</strong></div>{% endif %}
+</div>
+<p>También podés utilizar los canales de WhatsApp e Instagram publicados en el catálogo.</p>
+</section>
+
+<section class="legal-card">
+<h2>8. Normativa y atención al consumidor</h2>
+<p>Estas condiciones se interpretan de acuerdo con la normativa argentina de defensa del consumidor y el Código Civil y Comercial. Ninguna cláusula busca excluir derechos irrenunciables del consumidor.</p>
+<p>Información oficial: <a href="https://www.argentina.gob.ar/produccion/defensadelconsumidor" target="_blank" rel="noopener">Defensa del Consumidor</a>.</p>
+<div class="legal-actions"><a class="legal-btn" href="{% url 'catalogo_privacidad' %}">POLÍTICA DE PRIVACIDAD</a><a class="legal-btn primary" href="{% url 'catalogo' %}">VOLVER A LA TIENDA</a></div>
+</section>
+{% endblock %}

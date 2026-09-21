@@ -518,12 +518,19 @@ def _validar_turnstile(request):
 
 
 def _contexto_checkout(error=""):
+    config = (
+        ConfiguracionCatalogo.objects.first()
+        or ConfiguracionCatalogo()
+    )
     return {
         "error": error,
         "turnstile_site_key": getattr(
             settings,
             "TURNSTILE_SITE_KEY",
             "",
+        ),
+        "mensaje_plazo_entrega": (
+            config.mensaje_plazo_entrega
         ),
     }
 
@@ -732,9 +739,13 @@ def carrito_gracias(request):
                 .first()
             )
 
+    config = (
+        ConfiguracionCatalogo.objects.first()
+        or ConfiguracionCatalogo()
+    )
+
     whatsapp_confirmacion_url = ""
     if solicitud:
-        config = ConfiguracionCatalogo.objects.first() or ConfiguracionCatalogo()
         mensaje = renderizar_mensaje_solicitud(
             config.whatsapp_mensaje_post_solicitud,
             solicitud,
@@ -750,5 +761,8 @@ def carrito_gracias(request):
         {
             "solicitud": solicitud,
             "whatsapp_confirmacion_url": whatsapp_confirmacion_url,
+            "mensaje_plazo_entrega": (
+                config.mensaje_plazo_entrega
+            ),
         },
     )
