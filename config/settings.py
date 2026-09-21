@@ -275,6 +275,10 @@ SECURE_SSL_REDIRECT = _env_bool(
     IS_RAILWAY,
 )
 
+# Railway consulta el healthcheck por la red interna. Debe poder responder
+# 200 sin obligar a redirigir a HTTPS.
+SECURE_REDIRECT_EXEMPT = [r"^healthz/$"]
+
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
 

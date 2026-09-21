@@ -1,9 +1,4 @@
-Deploy QA: pre-lanzamiento legal performance healthcheck
-- BOTÓN DE ARREPENTIMIENTO visible en header de todas las páginas comerciales.
-- Footer mantiene “Cambios y arrepentimiento”; se elimina el flotante duplicado.
-- Términos explicitan garantía legal de 6 meses para bienes nuevos.
-- Healthcheck /healthz/ valida app + PostgreSQL.
-- Cache corto de configuración de costos evita queries repetidas por producto.
-- Cache de payload de rotación evita recalcular imágenes/kits en cada request.
-- QA usa Gunicorn 2 workers x 4 threads y healthcheck de Railway.
+Deploy QA: healthcheck compatible con Railway
+- /healthz/ queda exento de SECURE_SSL_REDIRECT para responder 200 en la red interna de Railway.
+- Mantiene validación de conexión a PostgreSQL.
 Sin migraciones.
