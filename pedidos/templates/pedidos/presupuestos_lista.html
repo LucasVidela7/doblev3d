@@ -1,66 +1,123 @@
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="{% static 'brand/favicon.ico' %}">
 <link rel="stylesheet" href="{% static 'brand/brand.css' %}">
+<link rel="stylesheet" href="{% static 'shared/theme.css' %}">
 <title>Presupuestos | Doble V 3D</title>
 <style>
-:root{
- --bg:var(--dv-bg,#f4f5f7);--card:var(--dv-surface,#fff);--soft:var(--dv-surface-soft,#f8f9fb);
- --text:var(--dv-text,#24272b);--muted:var(--dv-muted,#73777f);--border:var(--dv-border,#e3e6ea);
- --green:var(--dv-success-soft,#e5f5ea);--green-t:var(--dv-success-text,#26653c);
- --yellow:var(--dv-warning-soft,#fff3ce);--yellow-t:var(--dv-warning-text,#775b00);
- --red:var(--dv-danger-soft,#fde8e8);--red-t:var(--dv-danger-text,#963838);
- --blue:var(--dv-brand-blue,#134a9a)
+*{box-sizing:border-box}
+body{margin:0;padding-bottom:105px;background:var(--dv-bg,#f5f7fb);color:var(--dv-text,#17233a);font-family:Arial,sans-serif}
+.shell{width:min(1360px,calc(100% - 28px));margin:auto;padding:22px 0 55px}
+.head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
+h1{margin:0;font-size:clamp(28px,4vw,36px);letter-spacing:-.035em}
+.sub{margin-top:5px;color:var(--dv-muted,#667085);font-size:13px;line-height:1.45}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{min-height:42px;display:inline-flex;align-items:center;justify-content:center;padding:0 13px;border:1px solid var(--dv-border,#dfe5ef);border-radius:12px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);text-decoration:none;font-size:11px;font-weight:900}
+.btn.primary{background:var(--dv-brand-blue,#134a9a);border-color:var(--dv-brand-blue,#134a9a);color:#fff}
+.board-nav{display:none}
+.budget-card{cursor:pointer}
+.budget-card .dv-kanban-card__footer a{position:relative;z-index:2}
+.budget-order{background:var(--dv-success-soft,#eaf7ee);color:var(--dv-success-text,#28633c)}
+@media(max-width:760px){
+ .shell{width:calc(100% - 18px);padding-top:15px}
+ .head{display:block}
+ .actions{display:grid;grid-template-columns:1fr 1fr;margin-top:10px}
+ .actions .primary{grid-column:1/-1}
+ .board-nav{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px;padding-bottom:3px;scrollbar-width:none}
+ .board-nav::-webkit-scrollbar{display:none}
+ .board-nav a{flex:0 0 auto;min-height:36px;display:inline-flex;align-items:center;padding:0 11px;border:1px solid var(--dv-border);border-radius:999px;background:var(--dv-surface);color:var(--dv-text);text-decoration:none;font-size:10px;font-weight:900}
 }
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif;padding-bottom:105px}.shell{width:min(1180px,100%);margin:auto;padding:22px 16px 48px}.head{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px}h1{margin:0;font-size:30px}.sub{margin-top:5px;color:var(--muted);font-size:12px}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);text-decoration:none;font-size:10px;font-weight:900}.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}.stat{display:block;padding:14px;border:1px solid var(--border);border-radius:15px;background:var(--card);color:var(--text);text-decoration:none}.stat.activa{outline:2px solid var(--blue);outline-offset:-2px}.stat b{display:block;font-size:24px}.stat span{font-size:9px;font-weight:900;color:var(--muted)}.stat small{display:block;margin-top:4px;color:var(--muted);font-size:8px}
-.grid{display:grid;gap:11px}.card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:15px;border:1px solid var(--border);border-radius:17px;background:var(--card);box-shadow:var(--dv-shadow-soft,0 4px 14px rgba(20,25,35,.05));cursor:pointer}.card:hover{border-color:color-mix(in srgb,var(--blue) 28%,var(--border))}.card-main{display:grid;grid-template-columns:52px minmax(0,1fr);gap:11px;align-items:center;min-width:0}.card-thumb{width:52px;height:52px;border:1px solid var(--border);border-radius:12px;background:var(--soft);object-fit:cover;display:block}.card-thumb.vacia{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:8px;font-weight:900}.title{font-size:15px;font-weight:900}.meta{margin-top:5px;color:var(--muted);font-size:10px}.amount{margin-top:8px;font-size:18px;font-weight:900}.badge{display:inline-flex;margin-top:8px;padding:6px 9px;border-radius:999px;font-size:9px;font-weight:900}.PENDIENTE{background:var(--yellow);color:var(--yellow-t)}.APROBADO{background:var(--green);color:var(--green-t)}.RECHAZADO{background:var(--red);color:var(--red-t)}.card-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.card-actions a{display:inline-flex;min-height:38px;align-items:center;padding:0 11px;border:1px solid var(--border);border-radius:10px;color:var(--text);text-decoration:none;font-size:9px;font-weight:900}.card-actions a.primary{background:var(--blue);color:#fff;border-color:var(--blue)}.empty{padding:36px;text-align:center;color:var(--muted);background:var(--card);border:1px dashed var(--border);border-radius:17px}
-@media(max-width:700px){.shell{padding:16px 10px 36px}.head{align-items:flex-start;flex-direction:column}.actions{width:100%;display:grid;grid-template-columns:1fr 1fr}.actions .primary{grid-column:1/-1}.stats{grid-template-columns:repeat(3,1fr);gap:7px}.stat{padding:12px 10px}.stat b{font-size:21px}.stat small{display:none}.card{grid-template-columns:1fr;padding:14px}.card-actions{justify-content:flex-start}.card-actions a{flex:1}.title{font-size:14px}}
 </style>
 </head>
 <body>
 <div class="shell">
- <div class="head">
-  <div><h1>Presupuestos</h1><div class="sub">Consultas comerciales antes de convertirse en pedidos.</div></div>
+ <header class="head">
+  <div>
+   <h1>Presupuestos</h1>
+   <div class="sub">Seguimiento comercial desde la cotización hasta su aprobación o cierre.</div>
+  </div>
   <div class="actions">
    <a class="btn" href="{% url 'pedidos:solicitudes_web' %}">🛒 SOLICITUDES WEB</a>
    <a class="btn primary" href="{% url 'pedidos:nuevo' %}">＋ NUEVO PRESUPUESTO</a>
   </div>
- </div>
+ </header>
 
- <div class="stats">
-  <a class="stat {% if estado_seleccionado == 'PENDIENTE' %}activa{% endif %}" href="?estado=PENDIENTE"><b>{{ pendientes }}</b><span>PENDIENTES</span><small>Ver pendientes</small></a>
-  <a class="stat {% if estado_seleccionado == 'APROBADO' %}activa{% endif %}" href="?estado=APROBADO"><b>{{ aprobados }}</b><span>APROBADOS</span><small>Ver aprobados</small></a>
-  <a class="stat {% if estado_seleccionado == 'RECHAZADO' %}activa{% endif %}" href="?estado=RECHAZADO"><b>{{ rechazados }}</b><span>RECHAZADOS</span><small>Ver rechazados</small></a>
- </div>
+ <nav class="board-nav" aria-label="Estados de presupuestos">
+  <a href="#pre-pendientes">PENDIENTES · {{ pendientes }}</a>
+  <a href="#pre-aprobados">APROBADOS · {{ aprobados }}</a>
+  <a href="#pre-rechazados">RECHAZADOS · {{ rechazados }}</a>
+ </nav>
 
- {% if estado_seleccionado %}<div style="margin:0 0 10px"><a class="btn" href="{% url 'pedidos:presupuestos' %}">VER TODOS</a></div>{% endif %}
-
- {% if presupuestos %}
- <div class="grid">
-  {% for presupuesto in presupuestos %}
-  <div class="card" role="link" tabindex="0" onclick="if(!event.target.closest('a,button,form'))location.href='{% url 'pedidos:presupuesto_detalle' presupuesto.id %}'" onkeydown="if(event.key==='Enter')location.href='{% url 'pedidos:presupuesto_detalle' presupuesto.id %}'">
-   <div class="card-main">
-    {% if presupuesto.imagen_resumen_url %}<img class="card-thumb" src="{{ presupuesto.imagen_resumen_url }}" alt="" loading="lazy">{% else %}<span class="card-thumb vacia">3D</span>{% endif %}
-    <div>
-    <div class="title">{{ presupuesto.codigo }} · {{ presupuesto.cliente.nombre }}</div>
-    <div class="meta">{{ presupuesto.fecha|date:"d/m/Y" }}{% if presupuesto.fecha_entrega %} · entrega {{ presupuesto.fecha_entrega|date:"d/m/Y" }}{% endif %}</div>
-    <div class="amount">$ {{ presupuesto.total|floatformat:"0g" }}</div>
-    <span class="badge {{ presupuesto.estado }}">{{ presupuesto.get_estado_display|upper }}</span>
+ <div class="dv-kanban-shell">
+  <div class="dv-kanban-board" style="--dv-kanban-cols:3">
+   <section class="dv-kanban-column is-warning" id="pre-pendientes">
+    <header class="dv-kanban-column__head">
+     <div><h2>Pendientes</h2><p>Esperan definición del cliente.</p></div>
+     <span class="dv-kanban-count">{{ pendientes }}</span>
+    </header>
+    <div class="dv-kanban-list">
+     {% for presupuesto in presupuestos_pendientes %}
+      <article class="dv-kanban-card budget-card" tabindex="0" role="link" onclick="if(!event.target.closest('a,button,form'))location.href='{% url 'pedidos:presupuesto_detalle' presupuesto.id %}'" onkeydown="if(event.key==='Enter')location.href='{% url 'pedidos:presupuesto_detalle' presupuesto.id %}'">
+       <div class="dv-kanban-card__top">
+        <div style="min-width:0"><div class="dv-kanban-card__code">{{ presupuesto.codigo }}</div><div class="dv-kanban-card__title">{{ presupuesto.cliente.nombre }}</div></div>
+        {% if presupuesto.imagen_resumen_url %}<img class="dv-kanban-card__thumb" src="{{ presupuesto.imagen_resumen_url }}" alt="" loading="lazy">{% else %}<span class="dv-kanban-card__thumb is-empty">3D</span>{% endif %}
+       </div>
+       <div class="dv-kanban-card__meta">{{ presupuesto.fecha|date:"d/m/Y" }}{% if presupuesto.fecha_entrega %} · entrega {{ presupuesto.fecha_entrega|date:"d/m/Y" }}{% endif %}</div>
+       <div class="dv-kanban-card__amount">$ {{ presupuesto.total|floatformat:"0g" }}</div>
+       <div class="dv-kanban-card__footer"><span class="dv-kanban-badge">PENDIENTE</span><a class="btn primary" href="{% url 'pedidos:presupuesto_detalle' presupuesto.id %}">VER</a></div>
+      </article>
+     {% empty %}<div class="dv-kanban-empty">No hay presupuestos pendientes.</div>{% endfor %}
     </div>
-   </div>
-   <div class="card-actions">
-    {% if presupuesto.pedido_generado %}<a href="{% url 'pedidos:detalle' presupuesto.pedido_generado.id %}">VER {{ presupuesto.pedido_generado.codigo }}</a>{% endif %}
-    <a class="primary" href="{% url 'pedidos:presupuesto_detalle' presupuesto.id %}">VER PRESUPUESTO</a>
-   </div>
+   </section>
+
+   <section class="dv-kanban-column is-success" id="pre-aprobados">
+    <header class="dv-kanban-column__head">
+     <div><h2>Aprobados</h2><p>Ya se convirtieron en pedido.</p></div>
+     <span class="dv-kanban-count">{{ aprobados }}</span>
+    </header>
+    <div class="dv-kanban-list">
+     {% for presupuesto in presupuestos_aprobados %}
+      <article class="dv-kanban-card budget-card" tabindex="0" role="link" onclick="if(!event.target.closest('a,button,form'))location.href='{% url 'pedidos:presupuesto_detalle' presupuesto.id %}'" onkeydown="if(event.key==='Enter')location.href='{% url 'pedidos:presupuesto_detalle' presupuesto.id %}'">
+       <div class="dv-kanban-card__top">
+        <div style="min-width:0"><div class="dv-kanban-card__code">{{ presupuesto.codigo }}</div><div class="dv-kanban-card__title">{{ presupuesto.cliente.nombre }}</div></div>
+        {% if presupuesto.imagen_resumen_url %}<img class="dv-kanban-card__thumb" src="{{ presupuesto.imagen_resumen_url }}" alt="" loading="lazy">{% else %}<span class="dv-kanban-card__thumb is-empty">3D</span>{% endif %}
+       </div>
+       <div class="dv-kanban-card__meta">{{ presupuesto.fecha|date:"d/m/Y" }}{% if presupuesto.fecha_entrega %} · entrega {{ presupuesto.fecha_entrega|date:"d/m/Y" }}{% endif %}</div>
+       <div class="dv-kanban-card__amount">$ {{ presupuesto.total|floatformat:"0g" }}</div>
+       <div class="dv-kanban-card__footer">
+        {% if presupuesto.pedido_generado %}<a class="dv-kanban-badge budget-order" href="{% url 'pedidos:detalle' presupuesto.pedido_generado.id %}">{{ presupuesto.pedido_generado.codigo }}</a>{% else %}<span class="dv-kanban-badge">APROBADO</span>{% endif %}
+        <a class="btn" href="{% url 'pedidos:presupuesto_detalle' presupuesto.id %}">VER</a>
+       </div>
+      </article>
+     {% empty %}<div class="dv-kanban-empty">Todavía no hay presupuestos aprobados.</div>{% endfor %}
+    </div>
+   </section>
+
+   <section class="dv-kanban-column is-danger" id="pre-rechazados">
+    <header class="dv-kanban-column__head">
+     <div><h2>Rechazados</h2><p>Cotizaciones cerradas sin pedido.</p></div>
+     <span class="dv-kanban-count">{{ rechazados }}</span>
+    </header>
+    <div class="dv-kanban-list">
+     {% for presupuesto in presupuestos_rechazados %}
+      <article class="dv-kanban-card budget-card" tabindex="0" role="link" onclick="if(!event.target.closest('a,button,form'))location.href='{% url 'pedidos:presupuesto_detalle' presupuesto.id %}'" onkeydown="if(event.key==='Enter')location.href='{% url 'pedidos:presupuesto_detalle' presupuesto.id %}'">
+       <div class="dv-kanban-card__top">
+        <div style="min-width:0"><div class="dv-kanban-card__code">{{ presupuesto.codigo }}</div><div class="dv-kanban-card__title">{{ presupuesto.cliente.nombre }}</div></div>
+        {% if presupuesto.imagen_resumen_url %}<img class="dv-kanban-card__thumb" src="{{ presupuesto.imagen_resumen_url }}" alt="" loading="lazy">{% else %}<span class="dv-kanban-card__thumb is-empty">3D</span>{% endif %}
+       </div>
+       <div class="dv-kanban-card__meta">{{ presupuesto.fecha|date:"d/m/Y" }}{% if presupuesto.fecha_entrega %} · entrega {{ presupuesto.fecha_entrega|date:"d/m/Y" }}{% endif %}</div>
+       <div class="dv-kanban-card__amount">$ {{ presupuesto.total|floatformat:"0g" }}</div>
+       <div class="dv-kanban-card__footer"><span class="dv-kanban-badge">RECHAZADO</span><a class="btn" href="{% url 'pedidos:presupuesto_detalle' presupuesto.id %}">VER</a></div>
+      </article>
+     {% empty %}<div class="dv-kanban-empty">No hay presupuestos rechazados.</div>{% endfor %}
+    </div>
+   </section>
   </div>
-  {% endfor %}
  </div>
- {% else %}<div class="empty">No hay presupuestos en este estado.</div>{% endif %}
 </div>
 {% include "shared/navigation.html" %}
 </body>
