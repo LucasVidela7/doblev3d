@@ -1,6 +1,7 @@
-Deploy QA: cierre pre-lanzamiento puntos 1, 2 y 4
-- Legales: privacidad con plazos AAIP y arrepentimiento reforzado.
-- Anti-spam: Turnstile opcional + honeypot + deduplicación + límite por contacto.
-- Rendimiento: reutilización de prefetch en productos compuestos.
-- Mantiene botón de arrepentimiento flotante.
-Sin migraciones.
+Deploy QA: módulo de métricas del catálogo
+- Nueva app metricas con eventos anónimos y retención.
+- Dashboard completo dentro de Configuración.
+- Embudo, evolución, ranking, dispositivos y origen.
+- Tracking de vistas, carrito, checkout, solicitudes y contactos.
+- Legales adaptados a emprendimiento personal.
+Incluye migración metricas.0001_initial.
