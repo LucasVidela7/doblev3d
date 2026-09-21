@@ -1,4 +1,6 @@
-QA load test trigger
+QA load test trigger v2
 50 concurrent virtual users
+No commercial route may silently redirect to login.
+Exact BOTÓN DE ARREPENTIMIENTO must be visible on /productos/.
 Flow: home -> products -> kits -> product detail -> cart pricing
-Target: no failed requests and overall p95 <= 5000ms
+Target: 250/250 2xx and overall p95 <= 5000ms

@@ -54,13 +54,19 @@ jobs:
                   with urllib.request.urlopen(req, timeout=TIMEOUT) as response:
                       response.read()
                       status = response.status
+                      final_url = response.geturl()
                       error = ""
+                      if final_url.rstrip("/") != url.rstrip("/"):
+                          status = 0
+                          error = f"redirected to {final_url}"
               except urllib.error.HTTPError as exc:
                   exc.read()
                   status = exc.code
+                  final_url = url
                   error = f"HTTP {exc.code}"
               except Exception as exc:
                   status = 0
+                  final_url = url
                   error = f"{type(exc).__name__}: {exc}"
               elapsed = (time.perf_counter() - start) * 1000
               return {
@@ -69,6 +75,7 @@ jobs:
                   "status": status,
                   "ms": elapsed,
                   "error": error,
+                  "final_url": final_url,
               }
 
           # Wait for the deploy and wake the sleeping QA app.
@@ -96,7 +103,13 @@ jobs:
               headers={"User-Agent": UA},
           )
           with urllib.request.urlopen(req, timeout=TIMEOUT) as response:
+              if response.geturl().rstrip("/") != (BASE + "/productos").rstrip("/"):
+                  raise SystemExit(
+                      f"/productos redirected unexpectedly to {response.geturl()}"
+                  )
               html = response.read().decode("utf-8", "ignore")
+          if "BOTÓN DE ARREPENTIMIENTO" not in html:
+              raise SystemExit("Exact withdrawal button is missing from /productos/")
           ids = re.findall(r'data-product-id=["\'](\d+)["\']', html)
           if not ids:
               raise SystemExit("No public product id found in /productos/")
