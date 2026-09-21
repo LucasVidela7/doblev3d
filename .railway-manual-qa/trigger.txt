@@ -1,7 +1,6 @@
-Deploy QA: cards Kanban de Preparación
-- Estado y menú de tres puntos fijos arriba a la derecha de cada card.
-- Header compacto y texto protegido para no chocar con acciones.
-- Submenú convertido a panel flotante fixed fuera de la columna con scroll.
-- Cierre por click afuera, Escape, resize o scroll.
-- El menú se cierra correctamente antes de refrescar dinámicamente el Kanban.
+Deploy QA: escala tipográfica estándar de Gestión
+- Aumenta legibilidad global de textos secundarios, botones, badges, tablas e inputs.
+- Unifica Configuración, Métricas, menú lateral, menús contextuales y Preparación/Kanban.
+- Mantiene jerarquía visual y responsive.
+- Inputs móviles a 16px para evitar zoom automático y mejorar lectura.
 Sin migraciones.
