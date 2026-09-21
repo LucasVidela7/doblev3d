@@ -1,5 +1,5 @@
-Deploy QA: detalle de producto realmente público
-- catalogo_producto_detalle se agrega a PUBLIC_URL_NAMES.
-- Visitantes sin sesión pueden abrir enlaces directos a productos.
-- Se corrige formato de healthcheck en la whitelist pública.
+Deploy QA: restaurar botón de arrepentimiento flotante
+- Se quita el acceso del header.
+- Vuelve como botón fijo abajo a la derecha en páginas comerciales.
+- Se desplaza hacia arriba en detalles de producto y kit para no tapar la barra de compra.
 Sin migraciones.
