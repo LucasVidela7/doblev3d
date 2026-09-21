@@ -282,6 +282,252 @@
             .metrica strong{font-size:22px}
             .acciones{grid-template-columns:1fr}
         }
+
+        /* KANBAN DE PREPARACIÓN */
+        #preparacion-kanban-shell{min-width:0}
+        .kanban-board{
+            display:grid;
+            grid-template-columns:repeat(4,minmax(260px,1fr));
+            gap:10px;
+            align-items:start;
+            width:100%;
+            min-width:0;
+            overflow-x:auto;
+            padding:2px 2px 12px;
+            scroll-snap-type:x proximity;
+            scrollbar-width:thin;
+        }
+        .kanban-board>.seccion{
+            min-width:0;
+            max-height:calc(100vh - 226px);
+            margin:0;
+            padding:10px;
+            overflow-y:auto;
+            overscroll-behavior:contain;
+            scroll-snap-align:start;
+            border:1px solid var(--line);
+            border-radius:17px;
+            background:color-mix(in srgb,var(--surface) 94%,var(--soft));
+            box-shadow:var(--shadow);
+            scrollbar-width:thin;
+        }
+        .kanban-board>#falta-stock{order:1;border-top:4px solid #c65858}
+        .kanban-board>#para-preparar{order:2;border-top:4px solid #3e9558}
+        .kanban-board>#en-preparacion{order:3;border-top:4px solid #4b7fc0}
+        .kanban-board>#listos{order:4;border-top:4px solid #3e9558}
+        .kanban-board .seccion-head{
+            position:sticky;
+            top:-10px;
+            z-index:5;
+            align-items:flex-start;
+            margin:-10px -10px 9px;
+            padding:12px 10px 9px;
+            border-bottom:1px solid var(--line);
+            background:color-mix(in srgb,var(--surface) 96%,transparent);
+            backdrop-filter:blur(9px);
+        }
+        .kanban-board .seccion-head>div{min-width:0}
+        .kanban-board .seccion h2{font-size:15px;line-height:1.15}
+        .kanban-board .seccion-ayuda{
+            margin-top:4px;
+            font-size:8px;
+            line-height:1.35;
+        }
+        .kanban-board .seccion-contador{
+            flex:0 0 auto;
+            min-width:25px;
+            min-height:25px;
+            display:grid;
+            place-items:center;
+            padding:0 7px;
+            border-radius:999px;
+            background:var(--soft);
+            color:var(--text);
+            font-size:8px;
+        }
+        .kanban-board .lista{gap:8px}
+        .kanban-board .pedido{
+            border-radius:14px;
+            box-shadow:none;
+        }
+        .kanban-board .pedido-head{
+            grid-template-columns:minmax(0,1fr);
+            gap:8px;
+            padding:11px;
+        }
+        .kanban-board .pedido-linea{
+            align-items:flex-start;
+            justify-content:space-between;
+            gap:5px;
+        }
+        .kanban-board .codigo{font-size:11px}
+        .kanban-board .cliente{
+            width:100%;
+            margin-top:2px;
+            font-size:13px;
+            line-height:1.2;
+        }
+        .kanban-board .pedido-head-tools{
+            justify-content:space-between;
+            flex-direction:row-reverse;
+        }
+        .kanban-board .pedido-status{
+            min-height:25px;
+            padding:0 7px;
+            font-size:7px;
+        }
+        .kanban-board .meta{gap:4px;margin-top:6px}
+        .kanban-board .tag{
+            min-height:22px;
+            padding:0 6px;
+            font-size:7px;
+        }
+        .kanban-board .preparacion-aviso,
+        .kanban-board .falta-resumen{
+            margin:0 10px 9px;
+            padding:8px 9px;
+            font-size:8px;
+        }
+        .kanban-board .pedido-productos>summary{
+            min-height:40px;
+            padding:0 10px;
+            font-size:8px;
+        }
+        .kanban-board .pedido-productos-resumen{
+            min-height:20px;
+            padding:0 6px;
+            font-size:7px;
+        }
+        .kanban-board .producto{
+            grid-template-columns:36px minmax(0,1fr) 42px;
+            gap:7px;
+            padding:9px 10px;
+        }
+        .kanban-board .producto-thumb{
+            width:36px;
+            height:36px;
+            grid-column:1;
+            grid-row:1 / span 2;
+            border-radius:8px;
+        }
+        .kanban-board .producto>div:first-of-type{
+            grid-column:2;
+            grid-row:1;
+        }
+        .kanban-board .producto-nombre{font-size:9px}
+        .kanban-board .producto-detalle{font-size:7px}
+        .kanban-board .stock{
+            grid-column:2;
+            grid-row:2;
+            min-width:0;
+            width:fit-content;
+            max-width:100%;
+            padding:6px 7px;
+        }
+        .kanban-board .stock span{font-size:6px}
+        .kanban-board .stock strong{font-size:7px}
+        .kanban-board .check-form{
+            grid-column:3;
+            grid-row:1 / span 2;
+            align-self:center;
+        }
+        .kanban-board .check,
+        .kanban-board .check-ui{
+            width:38px;
+            height:34px;
+        }
+        .kanban-board .progreso{padding:8px 10px}
+        .kanban-board .progreso-head{font-size:7px}
+        .kanban-board .pedido-foot{
+            align-items:stretch;
+            flex-direction:column;
+            padding:9px 10px;
+        }
+        .kanban-board .saldo{font-size:8px}
+        .kanban-board .saldo strong{font-size:9px}
+        .kanban-board .acciones{
+            display:grid;
+            grid-template-columns:1fr;
+            gap:6px;
+            width:100%;
+        }
+        .kanban-board .acciones>*,
+        .kanban-board .acciones .btn,
+        .kanban-board .acciones form .btn{
+            width:100%;
+        }
+        .kanban-board .btn{
+            min-height:38px;
+            padding:0 9px;
+            font-size:8px;
+        }
+        .kanban-board .vacio{
+            min-height:105px;
+            display:grid;
+            place-items:center;
+            padding:15px 10px;
+            font-size:9px;
+        }
+        .kanban-card-moving{
+            opacity:.55;
+            transform:scale(.985);
+            pointer-events:none;
+            transition:.16s ease;
+        }
+        .kanban-action-loading{
+            position:relative;
+            color:transparent!important;
+        }
+        .kanban-action-loading::after{
+            content:"";
+            position:absolute;
+            width:14px;
+            height:14px;
+            border:2px solid currentColor;
+            border-right-color:transparent;
+            border-radius:50%;
+            animation:kanban-spin .7s linear infinite;
+            color:#fff;
+        }
+        @keyframes kanban-spin{to{transform:rotate(360deg)}}
+
+        @media(max-width:1050px){
+            .contenedor{width:min(100%,calc(100% - 2px));padding-left:10px;padding-right:10px}
+            .kanban-board{
+                grid-template-columns:none;
+                grid-auto-flow:column;
+                grid-auto-columns:min(86vw,360px);
+                justify-content:start;
+                scroll-snap-type:x mandatory;
+            }
+            .kanban-board>.seccion{
+                max-height:calc(100vh - 220px);
+                scroll-snap-align:start;
+            }
+            .resumen{display:none}
+            .flujo{
+                margin-bottom:10px;
+            }
+            .flujo a{
+                flex:0 0 auto;
+                min-width:132px;
+            }
+        }
+
+        @media(min-width:1051px){
+            .contenedor{width:min(1500px,100%);padding-left:14px;padding-right:14px}
+            .flujo{display:none}
+        }
+
+        html[data-dv-theme="dark"] .kanban-board>.seccion,
+        html[data-dv-theme="dark"] .kanban-board .seccion-head{
+            background:color-mix(in srgb,var(--dv-surface) 96%,transparent);
+            border-color:var(--dv-border);
+        }
+        html[data-dv-theme="dark"] .kanban-board .seccion-contador{
+            background:var(--dv-surface-soft);
+            color:var(--dv-text);
+        }
     </style>
 </head>
 <body>
@@ -388,20 +634,22 @@
     </section>
     {% else %}
 
+    <div id="preparacion-kanban-shell">
     <section class="resumen" aria-label="Resumen de preparación">
+        <a href="#falta-stock" class="metrica falta" style="text-decoration:none;color:inherit"><span>FALTA STOCK</span><strong>{{ total_falta_stock }}</strong></a>
         <a href="#para-preparar" class="metrica disponible" style="text-decoration:none;color:inherit"><span>PARA PREPARAR</span><strong>{{ total_para_preparar }}</strong></a>
         <a href="#en-preparacion" class="metrica preparando" style="text-decoration:none;color:inherit"><span>EN PREPARACIÓN</span><strong>{{ total_en_preparacion }}</strong></a>
-        <a href="#falta-stock" class="metrica falta" style="text-decoration:none;color:inherit"><span>FALTA STOCK</span><strong>{{ total_falta_stock }}</strong></a>
         <a href="#listos" class="metrica listo" style="text-decoration:none;color:inherit"><span>LISTOS</span><strong>{{ total_listos }}</strong></a>
     </section>
 
     <nav class="flujo" aria-label="Etapas de preparación">
+        <a href="#falta-stock">FALTA STOCK <b>{{ total_falta_stock }}</b></a>
         <a href="#para-preparar">PARA PREPARAR <b>{{ total_para_preparar }}</b></a>
         <a href="#en-preparacion">EN PREPARACIÓN <b>{{ total_en_preparacion }}</b></a>
-        <a href="#falta-stock">FALTA STOCK <b>{{ total_falta_stock }}</b></a>
         <a href="#listos">LISTOS <b>{{ total_listos }}</b></a>
     </nav>
 
+    <div class="kanban-board" id="preparacion-kanban-board" aria-label="Tablero de preparación">
     <section class="seccion" id="para-preparar">
         <div class="seccion-head">
             <div><h2>Para preparar</h2><div class="seccion-ayuda">Pedidos que hoy tienen todo el stock necesario. Al empezar, el stock queda reservado para ese paquete.</div></div>
@@ -454,7 +702,7 @@
                     <div class="saldo">Saldo <strong>${{ item_pedido.saldo_pendiente|floatformat:0 }}</strong> · {{ item_pedido.estado_pago_display }}</div>
                     <div class="acciones">
                         <a href="{% url 'pedidos:detalle' item_pedido.pedido.id %}" class="btn">Ver pedido</a>
-                        <form method="post" action="{% url 'pedidos:iniciar_preparacion' item_pedido.pedido.id %}">
+                        <form method="post" action="{% url 'pedidos:iniciar_preparacion' item_pedido.pedido.id %}" data-kanban-post data-kanban-target="en-preparacion">
                             {% csrf_token %}
                             <button type="submit" class="btn principal">PREPARAR PEDIDO</button>
                         </form>
@@ -556,7 +804,7 @@
                     <div class="acciones">
                         <a href="{% url 'pedidos:detalle' item_pedido.pedido.id %}" class="btn">Ver pedido</a>
                         {% if item_pedido.reservados %}
-                        <form method="post" action="{% url 'pedidos:liberar_preparacion' item_pedido.pedido.id %}" onsubmit="return confirm('¿Liberar el stock que todavía no fue preparado?');">
+                        <form method="post" action="{% url 'pedidos:liberar_preparacion' item_pedido.pedido.id %}" data-kanban-post onsubmit="return confirm('¿Liberar el stock que todavía no fue preparado?');">
                             {% csrf_token %}
                             <button type="submit" class="btn peligro">LIBERAR PENDIENTES</button>
                         </form>
@@ -674,6 +922,8 @@
             {% endfor %}
         </div>
     </section>
+    </div>
+    </div>
     {% endif %}
 </div>
 
@@ -850,10 +1100,18 @@ async function cambiarListo(checkbox){
         valor.value=data.listo?"1":"0";
         actualizarEstadoProducto(formulario,data);
         actualizarProgresoPedido(formulario,data);
-        mostrarToastPreparacion(
-            data.mensaje||"Preparación actualizada.",
-            false
-        );
+
+        if(data.pedido_estado==="LISTO"){
+            await refrescarKanbanDesdeServidor(
+                "listos",
+                data.mensaje||"Paquete listo."
+            );
+        }else{
+            mostrarToastPreparacion(
+                data.mensaje||"Preparación actualizada.",
+                false
+            );
+        }
     }catch(error){
         checkbox.checked=estadoAnterior;
         valor.value=estadoAnterior?"1":"0";
@@ -866,6 +1124,145 @@ async function cambiarListo(checkbox){
         checkbox.disabled=false;
     }
 }
+
+
+function mensajeDesdeDocumento(documento){
+    const error=documento.querySelector(".mensaje.error");
+    if(error)return {texto:error.textContent.trim(),error:true};
+
+    const warning=documento.querySelector(".mensaje.warning");
+    if(warning)return {texto:warning.textContent.trim(),error:false};
+
+    const success=documento.querySelector(".mensaje.success");
+    if(success)return {texto:success.textContent.trim(),error:false};
+
+    const info=documento.querySelector(".mensaje");
+    if(info)return {texto:info.textContent.trim(),error:false};
+
+    return null;
+}
+
+function enfocarColumnaKanban(id){
+    if(!id)return;
+    const columna=document.getElementById(id);
+    if(!columna)return;
+
+    columna.scrollIntoView({
+        behavior:"smooth",
+        block:"nearest",
+        inline:"start"
+    });
+}
+
+function reemplazarKanbanDesdeDocumento(documento,target,mensajeFallback){
+    const nuevo=documento.getElementById("preparacion-kanban-shell");
+    const actual=document.getElementById("preparacion-kanban-shell");
+    if(!nuevo||!actual)return false;
+
+    actual.replaceWith(nuevo);
+    iniciarProductosColapsables();
+
+    if(target){
+        requestAnimationFrame(function(){
+            enfocarColumnaKanban(target);
+        });
+    }
+
+    const mensaje=mensajeDesdeDocumento(documento);
+    if(mensaje){
+        mostrarToastPreparacion(mensaje.texto,mensaje.error);
+    }else if(mensajeFallback){
+        mostrarToastPreparacion(mensajeFallback,false);
+    }
+
+    return true;
+}
+
+async function refrescarKanbanDesdeServidor(target,mensajeFallback){
+    const respuesta=await fetch(window.location.href,{
+        method:"GET",
+        credentials:"same-origin",
+        headers:{
+            "X-Requested-With":"XMLHttpRequest"
+        }
+    });
+
+    if(!respuesta.ok){
+        throw new Error("No se pudo actualizar el tablero.");
+    }
+
+    const html=await respuesta.text();
+    const documento=new DOMParser().parseFromString(html,"text/html");
+    if(!reemplazarKanbanDesdeDocumento(documento,target,mensajeFallback)){
+        throw new Error("No se pudo actualizar el tablero.");
+    }
+}
+
+async function enviarAccionKanban(formulario){
+    const boton=formulario.querySelector("button[type='submit']");
+    const tarjeta=formulario.closest(".pedido");
+    const target=formulario.dataset.kanbanTarget||"";
+
+    if(boton){
+        boton.disabled=true;
+        boton.classList.add("kanban-action-loading");
+    }
+    if(tarjeta)tarjeta.classList.add("kanban-card-moving");
+
+    try{
+        const respuesta=await fetch(formulario.action,{
+            method:"POST",
+            body:new FormData(formulario),
+            credentials:"same-origin",
+            headers:{
+                "X-Requested-With":"XMLHttpRequest"
+            }
+        });
+
+        const html=await respuesta.text();
+        const documento=new DOMParser().parseFromString(html,"text/html");
+        const actualizado=reemplazarKanbanDesdeDocumento(
+            documento,
+            target,
+            "Tablero actualizado."
+        );
+
+        if(!respuesta.ok||!actualizado){
+            throw new Error("No se pudo actualizar la preparación.");
+        }
+    }catch(error){
+        if(boton){
+            boton.disabled=false;
+            boton.classList.remove("kanban-action-loading");
+        }
+        if(tarjeta)tarjeta.classList.remove("kanban-card-moving");
+        mostrarToastPreparacion(
+            error.message||"No se pudo actualizar la preparación.",
+            true
+        );
+    }
+}
+
+document.addEventListener("submit",function(evento){
+    const formulario=evento.target.closest("form[data-kanban-post]");
+    if(!formulario||evento.defaultPrevented)return;
+
+    evento.preventDefault();
+    enviarAccionKanban(formulario);
+});
+
+document.addEventListener("click",function(evento){
+    const enlace=evento.target.closest(
+        "#preparacion-kanban-shell .flujo a[href^='#']"
+    );
+    if(!enlace)return;
+
+    const id=(enlace.getAttribute("href")||"").replace("#","");
+    if(!id)return;
+
+    evento.preventDefault();
+    enfocarColumnaKanban(id);
+});
 
 function confirmarEntrega(saldoPendiente){
     const saldo=Number(saldoPendiente||0);
@@ -885,6 +1282,8 @@ function iniciarProductosColapsables(){
         if(sessionStorage.getItem(clave)==="1"){
             detalle.open=true;
         }
+        if(detalle.dataset.dvCollapseReady==="1")return;
+        detalle.dataset.dvCollapseReady="1";
         detalle.addEventListener("toggle",function(){
             sessionStorage.setItem(clave,detalle.open ? "1" : "0");
         });
