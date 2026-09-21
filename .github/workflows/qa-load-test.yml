@@ -37,6 +37,7 @@ jobs:
       - name: Public launch smoke tests
         run: |
           python manage.py test \
+            metricas.tests \
             productos.test_catalogo_legal \
             productos.test_catalogo_mantenimiento_admin \
             productos.test_healthcheck \
