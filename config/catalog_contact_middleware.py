@@ -9,6 +9,13 @@ from productos.models import ConfiguracionCatalogo
 
 HEADER_STYLE = r"""
 <style id="dv-catalog-contact-style">
+@font-face{
+    font-family:"AvantGardeMdITCTT";
+    src:url("/static/brand/fonts/AvantGardeMdITCTT-Bold.woff2") format("woff2");
+    font-weight:700;
+    font-style:normal;
+    font-display:swap
+}
 :root{
     --dv-catalog-header-height:68px;
     --dv-brand-font:"AvantGardeMdITCTT","ITC Avant Garde Gothic","Century Gothic",Arial,sans-serif
