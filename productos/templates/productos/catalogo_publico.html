@@ -313,10 +313,11 @@
         .catalog-title-link:hover{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
         .product-actions{
             display:grid;
-            grid-template-columns:minmax(72px,.72fr) minmax(118px,1.28fr);
+            grid-template-columns:minmax(54px,.66fr) minmax(84px,1.34fr);
             align-items:stretch;
-            gap:7px;
-            width:min(100%,270px)
+            gap:6px;
+            width:100%;
+            min-width:0
         }
         .product-actions .catalog-detail-link{
             width:100%;
@@ -462,6 +463,40 @@
             font-size: 1.28rem;
             font-weight: 900;
             letter-spacing: -.02em;
+        }
+
+        /* Precio de producto más legible en desktop: evita separar "$" y valor. */
+        .catalog-item[data-kind="producto"] .price-row{
+            display:grid;
+            grid-template-columns:minmax(92px,.76fr) minmax(0,1.24fr);
+            align-items:end;
+            gap:8px;
+        }
+        .catalog-item[data-kind="producto"] .price-block{
+            min-width:0;
+            padding:7px 8px 6px;
+            border:1px solid #e2eaf6;
+            border-radius:11px;
+            background:#f7faff;
+        }
+        .catalog-item[data-kind="producto"] .price-label{
+            margin-bottom:4px;
+            color:#6b7890;
+            font-size:.58rem;
+            font-weight:900;
+            letter-spacing:.055em;
+            line-height:1;
+            text-transform:uppercase;
+            white-space:nowrap;
+        }
+        .catalog-item[data-kind="producto"] .price{
+            display:block;
+            color:var(--brand-blue-strong);
+            font-size:1.22rem;
+            font-weight:950;
+            line-height:1.05;
+            letter-spacing:-.025em;
+            white-space:nowrap;
         }
 
         .catalog-detail-link {
@@ -629,6 +664,24 @@
 
             .price-label { font-size: .6rem; }
             .price { font-size: .98rem; }
+            .catalog-item[data-kind="producto"] .price-row{
+                grid-template-columns:1fr;
+                gap:7px
+            }
+            .catalog-item[data-kind="producto"] .price-block{
+                width:max-content;
+                max-width:100%;
+                padding:0;
+                border:0;
+                border-radius:0;
+                background:transparent
+            }
+            .catalog-item[data-kind="producto"] .price-label{
+                font-size:.58rem
+            }
+            .catalog-item[data-kind="producto"] .price{
+                font-size:.98rem
+            }
 
             .dv-cart-card-control {
                 width: 100%;
@@ -785,7 +838,7 @@
                                     {% if producto.personalizable %}Personalizable{% else %}Impresión 3D{% endif %}
                                 </p>
                                 <div class="price-row">
-                                    <div>
+                                    <div class="price-block">
                                         <span class="price-label">Precio unitario</span>
                                         {% if producto.catalogo_precio %}
                                             <span class="price">$ {{ producto.catalogo_precio|floatformat:"0g" }}</span>

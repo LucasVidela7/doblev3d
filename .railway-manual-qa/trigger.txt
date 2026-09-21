@@ -1,7 +1,6 @@
-Deploy QA: descuento en subtotales y arrepentimiento sólo en Inicio
-- Los subtotales flotantes de producto muestran el % de descuento cuando aplica.
-- Los subtotales flotantes de kit muestran el precio final descontado y el % cuando aplica.
-- El porcentaje usa el cálculo real del backend del carrito.
-- El botón flotante de arrepentimiento sólo se muestra en Inicio.
-- En Productos, Kits, detalles, checkout y páginas legales se mantiene el acceso del footer “Cambios y arrepentimiento”.
+Deploy QA: mejorar bloque de precio en Productos desktop
+- Precio unitario se muestra en una placa compacta y legible.
+- El rótulo no se corta y el importe completo queda en una sola línea.
+- Se compactan VER / AGREGAR para convivir mejor con el precio en tarjetas de 4 columnas.
+- Mobile mantiene su estructura actual sin placa extra.
 Sin migraciones.
