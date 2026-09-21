@@ -12,12 +12,14 @@
 <li>Productos, kits, cantidades, personalizaciones y observaciones de una solicitud.</li>
 <li>Información vinculada con presupuestos, pedidos, pagos y entregas cuando se concreta una operación.</li>
 <li>Datos técnicos limitados para seguridad y prevención de abuso, como identificadores derivados de la conexión y navegador.</li>
+<li>Métricas anónimas de uso del catálogo, como páginas vistas, productos o kits consultados, agregados al carrito, inicio del checkout y canal de origen.</li>
 </ul>
 </section>
 
 <section class="legal-card">
 <h2>2. Para qué usamos los datos</h2>
 <p>Los datos se utilizan para responder consultas, preparar presupuestos, confirmar pedidos, coordinar producción y entrega, registrar pagos, brindar atención posterior y proteger el catálogo frente a usos automatizados o abusivos.</p>
+<p>La analítica propia del catálogo se usa para entender el funcionamiento de la tienda y mejorar la experiencia de compra. No utiliza Google Analytics ni Meta Pixel, no guarda la dirección IP cruda y no crea perfiles publicitarios.</p>
 <p>No utilizamos el formulario de presupuesto como autorización automática para enviar publicidad masiva.</p>
 </section>
 
@@ -44,7 +46,8 @@
 <h2>6. Responsable</h2>
 <div class="legal-grid">
 <div class="legal-data"><small>NOMBRE COMERCIAL</small><strong>Doble V 3D</strong></div>
-{% if config.razon_social %}<div class="legal-data"><small>RESPONSABLE / RAZÓN SOCIAL</small><strong>{{ config.razon_social }}</strong></div>{% endif %}
+<div class="legal-data"><small>TIPO DE ACTIVIDAD</small><strong>Emprendimiento personal</strong></div>
+{% if config.razon_social %}<div class="legal-data"><small>RESPONSABLE / TITULAR</small><strong>{{ config.razon_social }}</strong></div>{% endif %}
 {% if config.cuit %}<div class="legal-data"><small>CUIT</small><strong>{{ config.cuit }}</strong></div>{% endif %}
 {% if config.domicilio_legal %}<div class="legal-data"><small>DOMICILIO</small><strong>{{ config.domicilio_legal }}</strong></div>{% endif %}
 {% if config.email_legal %}<div class="legal-data"><small>EMAIL</small><strong>{{ config.email_legal }}</strong></div>{% endif %}
