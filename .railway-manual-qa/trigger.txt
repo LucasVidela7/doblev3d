@@ -1,7 +1,6 @@
-Deploy QA: módulo de métricas del catálogo
-- Nueva app metricas con eventos anónimos y retención.
-- Dashboard completo dentro de Configuración.
-- Embudo, evolución, ranking, dispositivos y origen.
-- Tracking de vistas, carrito, checkout, solicitudes y contactos.
+Deploy QA: métricas + estado Turnstile final
+- Dashboard de métricas en Configuración.
+- Tracker anónimo y retención configurable.
+- Estado Turnstile visible: sin configurar / prueba / activo.
 - Legales adaptados a emprendimiento personal.
-Incluye migración metricas.0001_initial.
+Incluye metricas.0001_initial ya aplicada.
