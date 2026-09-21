@@ -1,6 +1,4 @@
-Deploy QA: arrepentimiento en footer y oculto en detalles
-- El footer muestra un acceso destacado “BOTÓN DE ARREPENTIMIENTO”.
-- En detalle de productos no se muestra el botón flotante.
-- En detalle de kits no se muestra el botón flotante.
-- En el resto del catálogo el acceso flotante se mantiene.
+Deploy QA: restaurar texto legal del footer
+- El footer vuelve a mostrar “Cambios y arrepentimiento”.
+- El botón flotante de arrepentimiento sigue oculto en detalle de productos y kits.
 Sin migraciones.
