@@ -1,5 +1,5 @@
-Deploy QA: permitir hostname de healthcheck Railway
-- Agrega healthcheck.railway.app a ALLOWED_HOSTS.
-- Mantiene /healthz/ exento de redirección HTTPS.
-- Healthcheck sigue validando conexión a PostgreSQL.
+Deploy QA: detalle de producto realmente público
+- catalogo_producto_detalle se agrega a PUBLIC_URL_NAMES.
+- Visitantes sin sesión pueden abrir enlaces directos a productos.
+- Se corrige formato de healthcheck en la whitelist pública.
 Sin migraciones.
