@@ -604,6 +604,18 @@ def lista_presupuestos(request):
         "pedidos/presupuestos_lista.html",
         {
             "presupuestos": presupuestos,
+            "presupuestos_pendientes": [
+                item for item in base
+                if item.estado == "PENDIENTE"
+            ],
+            "presupuestos_aprobados": [
+                item for item in base
+                if item.estado == "APROBADO"
+            ],
+            "presupuestos_rechazados": [
+                item for item in base
+                if item.estado == "RECHAZADO"
+            ],
             "estado_seleccionado": (
                 estado if estado in estados_validos else ""
             ),
