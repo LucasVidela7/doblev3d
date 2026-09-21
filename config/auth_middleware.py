@@ -29,6 +29,7 @@ class LoginRequiredMiddleware:
         "catalogo_arrepentimiento",
         "catalogo_arrepentimiento_gracias",
         "healthcheck",
+        "evento",
     }
 
     def __init__(self, get_response):
