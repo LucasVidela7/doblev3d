@@ -1,4 +1,6 @@
-Deploy QA: enlaces legales en mantenimiento
-- Términos, Privacidad y Botón de arrepentimiento con el mismo estilo textual.
-- Separadores discretos entre enlaces.
+Deploy QA: tipografía de marca y alineación
+- Alinear logo + texto en mantenimiento.
+- Preparar AvantGardeMdITCTT con fallbacks cercanos.
+- Aplicar la misma tipografía al nombre Doble V 3D del header.
+- Ajustar centrado vertical del texto junto al logo.
 Sin migraciones.
