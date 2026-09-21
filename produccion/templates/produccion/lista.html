@@ -8,6 +8,7 @@
 <link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
 <link rel="apple-touch-icon" href="{% static 'brand/apple-touch-icon.png' %}">
 <link rel="stylesheet" href="{% static 'brand/brand.css' %}">
+<link rel="stylesheet" href="{% static 'shared/theme.css' %}">
 <title>Centro de producción | Doble V 3D</title>
 <style>
 :root{
@@ -32,7 +33,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 .message{padding:11px 13px;border-radius:12px;margin-bottom:9px;font-size:10px;font-weight:800}
 .message.success{background:var(--green);color:var(--green-t)}.message.error{background:var(--red);color:var(--red-t)}
 
-.flow-nav{position:sticky;top:8px;z-index:12;display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:12px;padding:5px;border:1px solid rgba(225,229,235,.9);border-radius:16px;background:rgba(255,255,255,.94);box-shadow:var(--shadow);backdrop-filter:blur(8px)}
+.flow-nav{position:sticky;top:8px;z-index:12;display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:12px;padding:5px;border:1px solid rgba(225,229,235,.9);border-radius:16px;background:rgba(255,255,255,.94);box-shadow:var(--shadow);backdrop-filter:blur(8px)}
 .flow-nav a{min-height:39px;display:flex;align-items:center;justify-content:center;gap:5px;border-radius:11px;text-decoration:none;color:var(--muted);font-size:8px;font-weight:900}
 .flow-nav a:hover{background:#f2f4f7;color:var(--text)}
 
@@ -106,6 +107,35 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
     .queue-item{grid-template-columns:minmax(0,1fr) 75px minmax(240px,300px)}.queue-item .queue-schedule{display:none}
     .manual-grid{grid-template-columns:repeat(3,1fr)}.manual-grid .wide{grid-column:1/-1}
 }
+
+.production-kanban{margin-top:18px}
+.production-kanban .dv-kanban-card{padding:11px}
+.production-kanban .prod-kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:9px}
+.production-kanban .prod-kpi{padding:7px 5px;border-radius:9px;background:var(--dv-surface,#fff);text-align:center}
+.production-kanban .prod-kpi span{display:block;color:var(--dv-muted,#73777f);font-size:9px;font-weight:900}
+.production-kanban .prod-kpi b{display:block;margin-top:3px;font-size:14px}
+.production-kanban .prod-kpi.hot{background:var(--dv-danger-soft,#fde8e8);color:var(--dv-danger-text,#963737)}
+.production-kanban .prod-actions{display:grid;gap:6px;margin-top:9px}
+.production-kanban .prod-actions.two{grid-template-columns:1fr 1fr}
+.production-kanban .prod-actions select,
+.production-kanban .prod-actions input{width:100%;min-height:38px;border:1px solid var(--dv-border,#d7dce2);border-radius:10px;background:var(--dv-surface,#fff);color:var(--dv-text,#24272b);padding:6px 8px;font-size:11px}
+.production-kanban .prod-actions .btn{width:100%;min-height:38px;font-size:10.5px}
+.production-kanban .prod-note{margin-top:7px;color:var(--dv-muted,#73777f);font-size:10px;line-height:1.35}
+.production-kanban .prod-personal{margin-top:8px;padding:8px;border:1px solid var(--dv-border,#dbe7f5);border-radius:10px;background:var(--dv-surface,#fff)}
+.production-kanban .prod-personal summary{cursor:pointer;font-size:10px;font-weight:900}
+.production-kanban .prod-personal-item{padding-top:8px;margin-top:8px;border-top:1px solid var(--dv-border,#dbe7f5)}
+.production-kanban .prod-personal-item:first-of-type{border-top:0}
+.production-kanban .prod-card-image{display:grid;grid-template-columns:42px minmax(0,1fr);gap:9px;align-items:center}
+.production-kanban .prod-card-image .product-thumb{width:42px;height:42px}
+.production-kanban .dv-kanban-card__footer form{margin:0}
+.production-kanban .manual{margin-top:10px}
+.production-kanban .manual summary{font-size:11px}
+@media(max-width:650px){
+    .flow-nav{grid-template-columns:repeat(5,minmax(105px,1fr));overflow-x:auto;scrollbar-width:none}
+    .flow-nav::-webkit-scrollbar{display:none}
+    .production-kanban .prod-actions.two{grid-template-columns:1fr}
+    .production-kanban .prod-kpi-row{grid-template-columns:repeat(3,1fr)}
+}
 @media(max-width:650px){
     .shell{width:calc(100% - 16px);padding-top:14px}.header{display:block}.header-actions{margin-top:10px}.header-actions .btn{flex:1}
     .flow-nav{top:5px}.flow-nav a{font-size:7px;min-height:36px}
@@ -144,10 +174,11 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
     {% endif %}
 
     <nav class="flow-nav" aria-label="Flujo de producción">
-        <a href="#ahora">● AHORA</a>
-        <a href="#que-imprimir">↓ QUÉ IMPRIMIR</a>
-        <a href="#cola">≡ COLA</a>
-        <a href="#historial">✓ HISTORIAL</a>
+        <a href="#ahora">🖨 IMPRESORAS</a>
+        <a href="#prod-necesidad">↓ NECESIDAD</a>
+        <a href="#prod-cola">≡ COLA</a>
+        <a href="#prod-imprimiendo">● IMPRIMIENDO</a>
+        <a href="#prod-listos">✓ LISTOS</a>
     </nav>
 
     <div class="metrics">
@@ -273,20 +304,20 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         </div>
     </section>
 
-    <section class="section" id="que-imprimir">
+    <section class="section production-kanban" id="flujo-produccion">
         <div class="section-head">
             <div>
-                <h2 class="section-title">Qué imprimir</h2>
-                <div class="subtitle">El sistema agrupa la necesidad real. Elegís si va a la cola o si empieza ahora.</div>
+                <h2 class="section-title">Flujo de producción</h2>
+                <div class="subtitle">Necesidad real → cola → impresión → listo. Cada columna representa el estado operativo actual.</div>
             </div>
-            <div class="section-help">No hace falta elegir fecha ni horario para cada trabajo.</div>
+            <div class="section-help">Las acciones siguen usando la misma lógica de producción y stock.</div>
         </div>
 
         {% if sugerencia_actual %}
         <div class="recommendation">
             <div>
-                <strong>Primera sugerencia: {{ sugerencia_actual.producto.nombre }} × {{ sugerencia_actual.cantidad_sugerida|default:sugerencia_actual.falta_iniciar }}</strong>
-                <div class="meta">Es el faltante más alto hoy. Tiempo estimado: {{ sugerencia_actual.tiempo_sugerido_texto }}.</div>
+                <strong>Prioridad actual: {{ sugerencia_actual.producto.nombre }} × {{ sugerencia_actual.cantidad_sugerida|default:sugerencia_actual.falta_iniciar }}</strong>
+                <div class="meta">Tiempo estimado: {{ sugerencia_actual.tiempo_sugerido_texto }}.</div>
             </div>
             <span class="pill {% if sugerencia_actual.prioridad == 'ALTA' %}high{% elif sugerencia_actual.prioridad == 'MEDIA' %}medium{% else %}low{% endif %}">{{ sugerencia_actual.prioridad }}</span>
         </div>
@@ -295,102 +326,207 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         <form method="get" class="card toolbar">
             <input class="search" type="text" name="q" value="{{ busqueda }}" placeholder="Buscar producto o código...">
             <button class="btn dark" type="submit">BUSCAR</button>
-            {% if busqueda %}<a class="btn" href="{% url 'produccion:lista' %}#que-imprimir">LIMPIAR</a>{% endif %}
+            {% if busqueda %}<a class="btn" href="{% url 'produccion:lista' %}#flujo-produccion">LIMPIAR</a>{% endif %}
         </form>
 
-        <div class="need-list">
-            {% for item in necesidades_pendientes %}
-                <article class="need {% if item.es_recomendada %}recommended{% endif %}">
-                    <div class="need-top">
-                        <div class="need-product">
-                            <div class="product-visual compact">
+        <div class="dv-kanban-shell">
+            <div class="dv-kanban-board" style="--dv-kanban-cols:4">
+                <section class="dv-kanban-column is-danger" id="prod-necesidad">
+                    <header class="dv-kanban-column__head">
+                        <div><h2>Necesidad</h2><p>Faltantes que todavía no están cubiertos.</p></div>
+                        <span class="dv-kanban-count">{{ productos_con_necesidad }}</span>
+                    </header>
+                    <div class="dv-kanban-list">
+                        {% for item in necesidades_pendientes %}
+                        <article class="dv-kanban-card">
+                            <div class="prod-card-image">
                                 {% if item.producto.imagen_produccion_url %}
                                     <img class="product-thumb" src="{{ item.producto.imagen_produccion_url }}" alt="" loading="lazy">
                                 {% else %}
                                     <span class="product-thumb product-thumb-empty">3D</span>
                                 {% endif %}
                                 <div>
-                                    <div class="code">{{ item.producto.codigo }}{% if item.es_pieza %} · PIEZA{% endif %}</div>
-                                    <div class="product-name">{{ item.producto.nombre }}</div>
-                                    {% if item.origenes %}<div class="origin" title="{{ item.origenes|join:', ' }}">Origen: {{ item.origenes|join:", " }}</div>{% endif %}
+                                    <div class="dv-kanban-card__code">{{ item.producto.codigo }}{% if item.es_pieza %} · PIEZA{% endif %}</div>
+                                    <div class="dv-kanban-card__title">{{ item.producto.nombre }}</div>
+                                    {% if item.origenes %}<div class="dv-kanban-card__meta">Origen: {{ item.origenes|join:", " }}</div>{% endif %}
                                 </div>
                             </div>
-                        </div>
-                        <div class="nbox optional-mobile"><span>PEDIDO</span><b>{{ item.cantidad_pedida }}</b></div>
-                        <div class="nbox optional"><span>STOCK</span><b>{{ item.stock }}</b></div>
-                        <div class="nbox optional"><span>COLA + AHORA</span><b>{{ item.planificadas|add:item.en_produccion }}</b></div>
-                        <div class="nbox hot"><span>FALTA</span><b>{{ item.falta_iniciar }}</b></div>
-                    </div>
-
-                    {% if item.puede_planificar_rapido %}
-                    <form method="post" action="{% url 'produccion:accion_rapida' %}" class="need-action">
-                        {% csrf_token %}
-                        <input type="hidden" name="producto" value="{{ item.producto.id }}">
-                        <div class="field">
-                            <label>CANTIDAD</label>
-                            <input type="number" name="cantidad" min="1" value="{{ item.cantidad_sugerida }}" required>
-                        </div>
-                        <div class="field">
-                            <label>IMPRESORA PARA INICIAR</label>
-                            <select name="impresora">
-                                {% for impresora in impresoras_libres_lista %}
-                                    <option value="{{ impresora.id }}">{{ impresora.nombre }}</option>
-                                {% empty %}
-                                    <option value="">Sin impresoras libres</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <button class="btn dark" type="submit" name="accion" value="PLANIFICAR">＋ A LA COLA</button>
-                        <button class="btn green" type="submit" name="accion" value="INICIAR" {% if not impresoras_libres_lista %}disabled{% endif %}>▶ AHORA</button>
-                        <div class="action-info">
-                            {{ item.tiempo_sugerido_texto }} aprox. para la cantidad sugerida · faltan {{ item.falta_normal_planificar }} estándar por cubrir. Podés imprimir más: el excedente queda en stock.
-                        </div>
-                    </form>
-                    {% endif %}
-
-                    {% if item.personalizaciones %}
-                    <div class="personal-list">
-                        {% for personalizacion in item.personalizaciones %}
-                            {% if personalizacion.falta_planificar > 0 %}
-                            <div class="personal">
-                                <div class="personal-head">
-                                    <div>
-                                        <strong>{{ personalizacion.pedido_codigo }} · {{ personalizacion.producto_origen }}</strong>
-                                        <p>{{ personalizacion.detalle|default:"Sin detalle" }}{% if personalizacion.color %} · Color: {{ personalizacion.color }}{% endif %}</p>
-                                    </div>
-                                    <span class="pill busy">{{ personalizacion.falta_planificar }} faltan</span>
-                                </div>
-                                <form method="post" action="{% url 'produccion:accion_rapida' %}" class="need-action">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="producto" value="{{ item.producto.id }}">
-                                    <input type="hidden" name="personalizado_id" value="{{ personalizacion.detalle_id }}">
-                                    <div class="field">
-                                        <label>CANTIDAD</label>
-                                        <input type="number" name="cantidad" min="1" max="{{ personalizacion.falta_planificar }}" value="{{ personalizacion.falta_planificar }}" required>
-                                    </div>
-                                    <div class="field">
-                                        <label>IMPRESORA PARA INICIAR</label>
-                                        <select name="impresora">
-                                            {% for impresora in impresoras_libres_lista %}
-                                                <option value="{{ impresora.id }}">{{ impresora.nombre }}</option>
-                                            {% empty %}
-                                                <option value="">Sin impresoras libres</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    <button class="btn dark" type="submit" name="accion" value="PLANIFICAR">＋ A LA COLA</button>
+                            <div class="prod-kpi-row">
+                                <div class="prod-kpi"><span>PEDIDO</span><b>{{ item.cantidad_pedida }}</b></div>
+                                <div class="prod-kpi"><span>CUBIERTO</span><b>{{ item.planificadas|add:item.en_produccion }}</b></div>
+                                <div class="prod-kpi hot"><span>FALTA</span><b>{{ item.falta_iniciar }}</b></div>
+                            </div>
+                            {% if item.puede_planificar_rapido %}
+                            <form method="post" action="{% url 'produccion:accion_rapida' %}" class="prod-actions">
+                                {% csrf_token %}
+                                <input type="hidden" name="producto" value="{{ item.producto.id }}">
+                                <input type="number" name="cantidad" min="1" value="{{ item.cantidad_sugerida }}" required aria-label="Cantidad">
+                                <select name="impresora" aria-label="Impresora">
+                                    {% for impresora in impresoras_libres_lista %}
+                                        <option value="{{ impresora.id }}">{{ impresora.nombre }}</option>
+                                    {% empty %}
+                                        <option value="">Sin impresoras libres</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="prod-actions two" style="margin-top:0">
+                                    <button class="btn dark" type="submit" name="accion" value="PLANIFICAR">＋ A COLA</button>
                                     <button class="btn green" type="submit" name="accion" value="INICIAR" {% if not impresoras_libres_lista %}disabled{% endif %}>▶ AHORA</button>
-                                    <div class="action-info">Trabajo específico de {{ personalizacion.pedido_codigo }}. No se mezcla con stock.</div>
+                                </div>
+                            </form>
+                            <div class="prod-note">{{ item.tiempo_sugerido_texto }} aprox. para la cantidad sugerida.</div>
+                            {% endif %}
+
+                            {% if item.personalizaciones %}
+                            <details class="prod-personal">
+                                <summary>PERSONALIZADOS</summary>
+                                {% for personalizacion in item.personalizaciones %}
+                                    {% if personalizacion.falta_planificar > 0 %}
+                                    <div class="prod-personal-item">
+                                        <div class="dv-kanban-card__code">{{ personalizacion.pedido_codigo }} · {{ personalizacion.falta_planificar }} faltan</div>
+                                        <div class="dv-kanban-card__meta">{{ personalizacion.detalle|default:"Sin detalle" }}{% if personalizacion.color %} · {{ personalizacion.color }}{% endif %}</div>
+                                        <form method="post" action="{% url 'produccion:accion_rapida' %}" class="prod-actions">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="producto" value="{{ item.producto.id }}">
+                                            <input type="hidden" name="personalizado_id" value="{{ personalizacion.detalle_id }}">
+                                            <input type="number" name="cantidad" min="1" max="{{ personalizacion.falta_planificar }}" value="{{ personalizacion.falta_planificar }}" required>
+                                            <select name="impresora">
+                                                {% for impresora in impresoras_libres_lista %}
+                                                    <option value="{{ impresora.id }}">{{ impresora.nombre }}</option>
+                                                {% empty %}
+                                                    <option value="">Sin impresoras libres</option>
+                                                {% endfor %}
+                                            </select>
+                                            <div class="prod-actions two" style="margin-top:0">
+                                                <button class="btn dark" type="submit" name="accion" value="PLANIFICAR">＋ COLA</button>
+                                                <button class="btn green" type="submit" name="accion" value="INICIAR" {% if not impresoras_libres_lista %}disabled{% endif %}>▶ AHORA</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </details>
+                            {% endif %}
+                        </article>
+                        {% empty %}<div class="dv-kanban-empty">La necesidad de impresión está cubierta.</div>{% endfor %}
+                    </div>
+                </section>
+
+                <section class="dv-kanban-column is-warning" id="prod-cola">
+                    <header class="dv-kanban-column__head">
+                        <div><h2>Cola</h2><p>Trabajos planificados esperando impresora.</p></div>
+                        <span class="dv-kanban-count">{{ cola_pendiente|length }}</span>
+                    </header>
+                    <div class="dv-kanban-list">
+                        {% for produccion in cola_pendiente %}
+                        <article class="dv-kanban-card">
+                            <div class="prod-card-image">
+                                {% if produccion.producto.imagen_produccion_url %}
+                                    <img class="product-thumb" src="{{ produccion.producto.imagen_produccion_url }}" alt="" loading="lazy">
+                                {% else %}
+                                    <span class="product-thumb product-thumb-empty">3D</span>
+                                {% endif %}
+                                <div>
+                                    <div class="dv-kanban-card__code">{{ produccion.codigo }}</div>
+                                    <div class="dv-kanban-card__title">{{ produccion.producto.nombre }} × {{ produccion.cantidad }}</div>
+                                    <div class="dv-kanban-card__meta">{{ produccion.tiempo_impresion_formateado }}{% if produccion.pedido %}<br>{{ produccion.pedido.codigo }} · {{ produccion.pedido.cliente.nombre }}{% endif %}</div>
+                                </div>
+                            </div>
+                            <form method="post" action="{% url 'produccion:iniciar' produccion.id %}" class="prod-actions">
+                                {% csrf_token %}
+                                <select name="impresora" required>
+                                    {% for impresora in impresoras_libres_lista %}
+                                        <option value="{{ impresora.id }}">{{ impresora.nombre }}</option>
+                                    {% empty %}
+                                        <option value="">Sin impresoras libres</option>
+                                    {% endfor %}
+                                </select>
+                                <button class="btn green" type="submit" {% if not impresoras_libres_lista %}disabled{% endif %}>▶ INICIAR</button>
+                            </form>
+                            <div class="dv-kanban-card__footer">
+                                <span class="dv-kanban-badge">PENDIENTE</span>
+                                <form method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="estado" value="CANCELADO">
+                                    <button class="btn red" type="submit">QUITAR</button>
                                 </form>
                             </div>
-                            {% endif %}
-                        {% endfor %}
+                        </article>
+                        {% empty %}<div class="dv-kanban-empty">No hay trabajos en cola.</div>{% endfor %}
                     </div>
-                    {% endif %}
-                </article>
-            {% empty %}
-                <div class="card empty">No hay nada nuevo para imprimir. La necesidad está cubierta por stock, cola o trabajos en curso.</div>
-            {% endfor %}
+                </section>
+
+                <section class="dv-kanban-column is-info" id="prod-imprimiendo">
+                    <header class="dv-kanban-column__head">
+                        <div><h2>Imprimiendo</h2><p>Trabajos actualmente en máquina.</p></div>
+                        <span class="dv-kanban-count">{{ trabajos_imprimiendo_lista|length }}</span>
+                    </header>
+                    <div class="dv-kanban-list">
+                        {% for produccion in trabajos_imprimiendo_lista %}
+                        <article class="dv-kanban-card">
+                            <div class="prod-card-image">
+                                {% if produccion.producto.imagen_produccion_url %}
+                                    <img class="product-thumb" src="{{ produccion.producto.imagen_produccion_url }}" alt="" loading="lazy">
+                                {% else %}
+                                    <span class="product-thumb product-thumb-empty">3D</span>
+                                {% endif %}
+                                <div>
+                                    <div class="dv-kanban-card__code">{{ produccion.codigo }}{% if produccion.impresora %} · {{ produccion.impresora.nombre }}{% endif %}</div>
+                                    <div class="dv-kanban-card__title">{{ produccion.producto.nombre }} × {{ produccion.cantidad }}</div>
+                                    <div class="dv-kanban-card__meta">{{ produccion.tiempo_impresion_formateado }}{% if produccion.fin_estimado %}<br>Fin estimado {{ produccion.fin_estimado|date:"H:i" }}{% endif %}{% if produccion.pedido %}<br>{{ produccion.pedido.codigo }} · {{ produccion.pedido.cliente.nombre }}{% endif %}</div>
+                                </div>
+                            </div>
+                            <div class="dv-kanban-card__footer">
+                                <span class="dv-kanban-badge">IMPRIMIENDO</span>
+                                <div style="display:flex;gap:5px">
+                                    <form method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="estado" value="LISTO">
+                                        <button class="btn green" type="submit">✓ LISTO</button>
+                                    </form>
+                                    <form method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="estado" value="CANCELADO">
+                                        <button class="btn red" type="submit">CANCELAR</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </article>
+                        {% empty %}<div class="dv-kanban-empty">No hay impresiones activas.</div>{% endfor %}
+                    </div>
+                </section>
+
+                <section class="dv-kanban-column is-success" id="prod-listos">
+                    <header class="dv-kanban-column__head">
+                        <div><h2>Listos</h2><p>Últimas impresiones finalizadas.</p></div>
+                        <span class="dv-kanban-count">{{ historial_reciente|length }}</span>
+                    </header>
+                    <div class="dv-kanban-list">
+                        {% for produccion in historial_reciente %}
+                        <article class="dv-kanban-card">
+                            <div class="prod-card-image">
+                                {% if produccion.producto.imagen_produccion_url %}
+                                    <img class="product-thumb" src="{{ produccion.producto.imagen_produccion_url }}" alt="" loading="lazy">
+                                {% else %}
+                                    <span class="product-thumb product-thumb-empty">3D</span>
+                                {% endif %}
+                                <div>
+                                    <div class="dv-kanban-card__code">{{ produccion.codigo }} · {{ produccion.fecha|date:"d/m H:i" }}</div>
+                                    <div class="dv-kanban-card__title">{{ produccion.producto.nombre }} × {{ produccion.cantidad }}</div>
+                                    <div class="dv-kanban-card__meta">{% if produccion.impresora %}{{ produccion.impresora.nombre }}{% else %}Sin impresora{% endif %}{% if produccion.pedido %}<br>{{ produccion.pedido.codigo }} · {{ produccion.pedido.cliente.nombre }}{% endif %}</div>
+                                </div>
+                            </div>
+                            <div class="dv-kanban-card__footer">
+                                <span class="dv-kanban-badge">✓ LISTO</span>
+                                <form method="post" action="{% url 'produccion:repetir' produccion.id %}">
+                                    {% csrf_token %}
+                                    <button class="btn" type="submit">↻ REPETIR</button>
+                                </form>
+                            </div>
+                        </article>
+                        {% empty %}<div class="dv-kanban-empty">Todavía no hay trabajos finalizados.</div>{% endfor %}
+                    </div>
+                </section>
+            </div>
         </div>
 
         <details class="card manual">
@@ -407,14 +543,8 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="field">
-                        <label>CANT.</label>
-                        <input type="number" name="cantidad" min="1" value="1" required>
-                    </div>
-                    <div class="field">
-                        <label>INICIO</label>
-                        <input type="datetime-local" name="inicio_impresion" value="{{ ahora_input }}" required>
-                    </div>
+                    <div class="field"><label>CANT.</label><input type="number" name="cantidad" min="1" value="1" required></div>
+                    <div class="field"><label>INICIO</label><input type="datetime-local" name="inicio_impresion" value="{{ ahora_input }}" required></div>
                     <div class="field">
                         <label>DESTINO</label>
                         <select name="destino" id="manual-destino" required>
@@ -426,118 +556,15 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                         <label>PEDIDO</label>
                         <select name="pedido">
                             <option value="">Seleccionar pedido...</option>
-                            {% for pedido in pedidos %}
-                                <option value="{{ pedido.id }}">{{ pedido.codigo }} · {{ pedido.cliente.nombre }}</option>
-                            {% endfor %}
+                            {% for pedido in pedidos %}<option value="{{ pedido.id }}">{{ pedido.codigo }} · {{ pedido.cliente.nombre }}</option>{% endfor %}
                         </select>
                     </div>
-                    <div class="field">
-                        <label>HORAS</label>
-                        <input type="number" name="horas" min="0" value="0">
-                    </div>
-                    <div class="field">
-                        <label>MIN.</label>
-                        <input type="number" name="minutos" min="0" max="59" value="0">
-                    </div>
+                    <div class="field"><label>HORAS</label><input type="number" name="horas" min="0" value="0"></div>
+                    <div class="field"><label>MIN.</label><input type="number" name="minutos" min="0" max="59" value="0"></div>
                     <button class="btn dark" type="submit">AGREGAR A COLA</button>
                 </form>
             </div>
         </details>
-    </section>
-
-    <section class="section" id="cola">
-        <div class="section-head">
-            <div>
-                <h2 class="section-title">Cola</h2>
-                <div class="subtitle">Lo que decidiste imprimir después. No necesita impresora hasta que lo inicies.</div>
-            </div>
-            <div class="section-help">{{ cola_pendiente|length }} trabajos pendientes.</div>
-        </div>
-
-        <div class="queue-list">
-            {% for produccion in cola_pendiente %}
-                <article class="queue-item">
-                    <div class="queue-product">
-                        <div class="product-visual compact">
-                            {% if produccion.producto.imagen_produccion_url %}
-                                <img class="product-thumb" src="{{ produccion.producto.imagen_produccion_url }}" alt="" loading="lazy">
-                            {% else %}
-                                <span class="product-thumb product-thumb-empty">3D</span>
-                            {% endif %}
-                            <div>
-                                <div class="queue-title">{{ produccion.producto.codigo }} · {{ produccion.producto.nombre }}</div>
-                                <div class="queue-meta">{{ produccion.codigo }} · {{ produccion.tiempo_impresion_formateado }}{% if produccion.pedido %}<br>{{ produccion.pedido.codigo }} · {{ produccion.pedido.cliente.nombre }}{% endif %}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="queue-qty"><span class="code">CANT.</span><br><b>{{ produccion.cantidad }}</b></div>
-                    <div class="queue-schedule">
-                        <span class="code">SI EMPIEZA AHORA</span>
-                        <div class="queue-meta">{% if produccion.fin_si_inicia_ahora %}Termina aprox. {{ produccion.fin_si_inicia_ahora|date:"H:i" }}{% else %}{{ produccion.tiempo_impresion_formateado }}{% endif %}</div>
-                    </div>
-                    <div class="queue-actions">
-                        <form method="post" action="{% url 'produccion:iniciar' produccion.id %}" class="start-form">
-                            {% csrf_token %}
-                            <select name="impresora" required>
-                                {% for impresora in impresoras_libres_lista %}
-                                    <option value="{{ impresora.id }}">{{ impresora.nombre }}</option>
-                                {% empty %}
-                                    <option value="">Sin impresoras libres</option>
-                                {% endfor %}
-                            </select>
-                            <button class="btn green" type="submit" {% if not impresoras_libres_lista %}disabled{% endif %}>▶ INICIAR</button>
-                        </form>
-                        <form class="cancel-form" method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="estado" value="CANCELADO">
-                            <button class="btn red" type="submit">✕ QUITAR</button>
-                        </form>
-                    </div>
-                </article>
-            {% empty %}
-                <div class="card empty">La cola está vacía. Elegí “A LA COLA” en Qué imprimir o iniciá un trabajo directamente.</div>
-            {% endfor %}
-        </div>
-    </section>
-
-    <section class="section" id="historial">
-        <div class="section-head">
-            <div>
-                <h2 class="section-title">Historial</h2>
-                <div class="subtitle">Últimas impresiones finalizadas. Queda fuera del flujo principal para no cargar la pantalla.</div>
-            </div>
-        </div>
-
-        <div class="card history">
-            <details>
-                <summary>VER ÚLTIMAS {{ historial_reciente|length }} FINALIZADAS</summary>
-                {% for produccion in historial_reciente %}
-                    <div class="history-row">
-                        <div class="history-product">
-                            <div class="product-visual compact">
-                                {% if produccion.producto.imagen_produccion_url %}
-                                    <img class="product-thumb" src="{{ produccion.producto.imagen_produccion_url }}" alt="" loading="lazy">
-                                {% else %}
-                                    <span class="product-thumb product-thumb-empty">3D</span>
-                                {% endif %}
-                                <div>
-                                    <div class="history-title">{{ produccion.producto.nombre }} × {{ produccion.cantidad }}</div>
-                                    <div class="queue-meta">{{ produccion.codigo }} · {{ produccion.fecha|date:"d/m H:i" }}</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="history-hide"><span class="pill free">✓ LISTO</span></div>
-                        <div class="history-hide queue-meta">{% if produccion.impresora %}{{ produccion.impresora.nombre }}{% else %}Sin impresora{% endif %}</div>
-                        <form method="post" action="{% url 'produccion:repetir' produccion.id %}">
-                            {% csrf_token %}
-                            <button class="btn" type="submit">↻ REPETIR</button>
-                        </form>
-                    </div>
-                {% empty %}
-                    <div class="empty">Todavía no hay trabajos finalizados.</div>
-                {% endfor %}
-            </details>
-        </div>
     </section>
 </div>
 
