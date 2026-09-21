@@ -1,5 +1,5 @@
-Deploy QA: mejorar legibilidad de Configuración
-- Aumenta tipografía de títulos, descripciones, tabs, labels, inputs y botones.
-- Escala también textos auxiliares, legales y métricas.
-- Mantiene responsive en tablet y mobile.
+Deploy QA: corregir atribución UTM
+- utm_source explícito siempre tiene prioridad sobre la sesión previa.
+- Si cambia el origen, inicia una nueva sesión para no mezclar atribuciones.
+- Normaliza utm_source a minúsculas.
 Sin migraciones.
