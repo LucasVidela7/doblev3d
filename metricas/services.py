@@ -265,11 +265,17 @@ def resumen_metricas(periodo=30):
         visitas_dia = int(fila.get("sesiones") or 0)
         solicitudes_dia = int(fila.get("solicitudes") or 0)
         max_diario = max(max_diario, visitas_dia)
+        paso_label = 1 if periodo == 7 else (5 if periodo == 30 else 15)
         diarios.append(
             {
                 "dia": dia,
                 "sesiones": visitas_dia,
                 "solicitudes": solicitudes_dia,
+                "mostrar_label": (
+                    offset == 0
+                    or offset == periodo - 1
+                    or offset % paso_label == 0
+                ),
             }
         )
 
