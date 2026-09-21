@@ -48,7 +48,8 @@
 <h2>7. Datos del proveedor</h2>
 <div class="legal-grid">
 <div class="legal-data"><small>NOMBRE COMERCIAL</small><strong>Doble V 3D</strong></div>
-{% if config.razon_social %}<div class="legal-data"><small>RESPONSABLE / RAZÓN SOCIAL</small><strong>{{ config.razon_social }}</strong></div>{% endif %}
+<div class="legal-data"><small>TIPO DE ACTIVIDAD</small><strong>Emprendimiento personal</strong></div>
+{% if config.razon_social %}<div class="legal-data"><small>RESPONSABLE / TITULAR</small><strong>{{ config.razon_social }}</strong></div>{% endif %}
 {% if config.cuit %}<div class="legal-data"><small>CUIT</small><strong>{{ config.cuit }}</strong></div>{% endif %}
 {% if config.domicilio_legal %}<div class="legal-data"><small>DOMICILIO</small><strong>{{ config.domicilio_legal }}</strong></div>{% endif %}
 {% if config.email_legal %}<div class="legal-data"><small>EMAIL</small><strong>{{ config.email_legal }}</strong></div>{% endif %}
