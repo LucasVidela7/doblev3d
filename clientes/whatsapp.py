@@ -38,6 +38,127 @@ def _fecha(valor):
         return str(valor)
 
 
+
+def _nombre_detalle_pedido(detalle):
+    if detalle.tipo_item == "KIT":
+        if detalle.kit:
+            return detalle.kit.nombre
+        snapshot = detalle.kit_snapshot or {}
+        return snapshot.get("nombre") or "Kit"
+
+    if detalle.tipo_item == "PERSONALIZADO":
+        nombre = (
+            detalle.producto.nombre
+            if detalle.producto
+            else "Producto"
+        )
+        return f"{nombre} personalizado"
+
+    if detalle.producto:
+        return detalle.producto.nombre
+
+    return detalle.get_tipo_item_display()
+
+
+def _mensaje_pedidos_whatsapp(cliente, pedidos):
+    pedidos = list(pedidos)
+    nombre = (
+        cliente.nombre.strip()
+        if cliente.nombre
+        else "¿cómo estás?"
+    )
+
+    cantidad = len(pedidos)
+    listos = sum(
+        1
+        for pedido in pedidos
+        if pedido.estado == "LISTO"
+    )
+
+    if listos == cantidad:
+        intro = (
+            f"Te avisamos que tenés {cantidad} "
+            f"pedido{'s' if cantidad != 1 else ''} "
+            "listo"
+            f"{'s' if cantidad != 1 else ''} "
+            "para entregar en Doble V 3D:"
+        )
+    elif listos:
+        intro = (
+            f"Te escribimos por {cantidad} pedidos "
+            "que tenés activos en Doble V 3D:"
+        )
+    else:
+        intro = (
+            f"Te escribimos por {cantidad} "
+            f"pedido{'s' if cantidad != 1 else ''} "
+            "con saldo pendiente en Doble V 3D:"
+        )
+
+    lineas = [
+        f"Hola {nombre} 👋",
+        "",
+        intro,
+        "",
+    ]
+    saldo_total = Decimal("0")
+
+    for pedido in pedidos:
+        lineas.append(
+            f"*{pedido.codigo} · "
+            f"{pedido.get_estado_display()}*"
+        )
+
+        detalles = list(pedido.detalles.all())
+        if detalles:
+            for detalle in detalles:
+                lineas.append(
+                    f"• {detalle.cantidad} × "
+                    f"{_nombre_detalle_pedido(detalle)}"
+                )
+        else:
+            lineas.append("• Sin detalle de productos")
+
+        saldo = max(
+            Decimal(pedido.saldo_pendiente or 0),
+            Decimal("0"),
+        )
+        saldo_total += saldo
+        lineas.append(
+            "Total: $" + _dinero(pedido.total)
+        )
+        if saldo > 0:
+            lineas.append(
+                "Saldo pendiente: $" + _dinero(saldo)
+            )
+        else:
+            lineas.append("Pagado ✓")
+        lineas.append("")
+
+    if saldo_total > 0:
+        lineas.extend(
+            [
+                (
+                    "*Saldo total pendiente: $"
+                    + _dinero(saldo_total)
+                    + "*"
+                ),
+                "",
+            ]
+        )
+
+    if listos:
+        lineas.append(
+            "Cuando quieras podemos coordinar la entrega 😊"
+        )
+    else:
+        lineas.append(
+            "Cuando puedas, escribinos y coordinamos el pago 😊"
+        )
+
+    return "\n".join(lineas).strip()
+
+
 def _plantilla_config(config, nombre_campo):
     valor = (
         getattr(config, nombre_campo, "")
@@ -238,13 +359,31 @@ def url_contacto(
     motivo="GENERICO",
     *,
     pedido=None,
+    pedidos=None,
     presupuesto=None,
 ):
     params = {
         "motivo": motivo,
     }
-    if pedido:
+
+    if pedidos:
+        ids = []
+        for item in pedidos:
+            valor = getattr(item, "id", item)
+            try:
+                valor = int(valor)
+            except (TypeError, ValueError):
+                continue
+            if valor > 0 and valor not in ids:
+                ids.append(valor)
+        if ids:
+            params["pedidos"] = ",".join(
+                str(valor)
+                for valor in ids
+            )
+    elif pedido:
         params["pedido"] = pedido.id
+
     if presupuesto:
         params["presupuesto"] = presupuesto.id
 
@@ -258,23 +397,88 @@ def url_contacto(
     )
 
 
-def resolver_contexto(cliente, motivo, pedido_id=None, presupuesto_id=None):
-    motivo = motivo if motivo in MOTIVOS_VALIDOS else "GENERICO"
+def _normalizar_ids_pedidos(valor):
+    if not valor:
+        return []
 
-    pedido = None
-    presupuesto = None
+    if isinstance(valor, (list, tuple, set)):
+        partes = valor
+    else:
+        partes = str(valor).split(",")
 
-    if pedido_id:
+    ids = []
+    for parte in partes:
+        try:
+            pedido_id = int(str(parte).strip())
+        except (TypeError, ValueError):
+            continue
+        if pedido_id > 0 and pedido_id not in ids:
+            ids.append(pedido_id)
+
+    return ids
+
+
+def resolver_contexto(
+    cliente,
+    motivo,
+    pedido_id=None,
+    pedidos_ids=None,
+    presupuesto_id=None,
+):
+    motivo = (
+        motivo
+        if motivo in MOTIVOS_VALIDOS
+        else "GENERICO"
+    )
+
+    pedidos = []
+    ids = _normalizar_ids_pedidos(
+        pedidos_ids
+    )
+
+    if ids:
+        consulta = (
+            Pedido.objects
+            .filter(
+                id__in=ids,
+                cliente=cliente,
+            )
+            .select_related("cliente")
+            .prefetch_related(
+                "detalles__producto",
+                "detalles__kit",
+                "pagos",
+            )
+        )
+        por_id = {
+            pedido.id: pedido
+            for pedido in consulta
+        }
+        pedidos = [
+            por_id[pedido_id]
+            for pedido_id in ids
+            if pedido_id in por_id
+        ]
+
+    if not pedidos and pedido_id:
         pedido = (
             Pedido.objects
             .filter(
                 id=pedido_id,
                 cliente=cliente,
             )
-            .prefetch_related("detalles", "pagos")
+            .select_related("cliente")
+            .prefetch_related(
+                "detalles__producto",
+                "detalles__kit",
+                "pagos",
+            )
             .first()
         )
+        if pedido:
+            pedidos = [pedido]
 
+    presupuesto = None
     if presupuesto_id:
         presupuesto = (
             Presupuesto.objects
@@ -286,28 +490,50 @@ def resolver_contexto(cliente, motivo, pedido_id=None, presupuesto_id=None):
             .first()
         )
 
-    if motivo in {"PEDIDO_LISTO", "SALDO"} and not pedido:
+    if (
+        motivo in {"PEDIDO_LISTO", "SALDO"}
+        and not pedidos
+    ):
         motivo = "GENERICO"
 
-    if motivo == "PRESUPUESTO" and not presupuesto:
+    if (
+        motivo == "PRESUPUESTO"
+        and not presupuesto
+    ):
         motivo = "GENERICO"
 
-    mensaje = mensaje_whatsapp(
-        cliente,
-        motivo,
-        pedido=pedido,
-        presupuesto=presupuesto,
+    pedido = (
+        pedidos[0]
+        if len(pedidos) == 1
+        else None
     )
 
+    if len(pedidos) > 1:
+        mensaje = _mensaje_pedidos_whatsapp(
+            cliente,
+            pedidos,
+        )
+    else:
+        mensaje = mensaje_whatsapp(
+            cliente,
+            motivo,
+            pedido=pedido,
+            presupuesto=presupuesto,
+        )
+
     referencia = ""
-    if pedido:
-        referencia = pedido.codigo
+    if pedidos:
+        referencia = ", ".join(
+            pedido.codigo
+            for pedido in pedidos
+        )[:40]
     elif presupuesto:
         referencia = presupuesto.codigo
 
     return {
         "motivo": motivo,
         "pedido": pedido,
+        "pedidos": pedidos,
         "presupuesto": presupuesto,
         "mensaje": mensaje,
         "referencia": referencia,
