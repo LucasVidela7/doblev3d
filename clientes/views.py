@@ -154,57 +154,127 @@ def _seguimientos_cliente(
         numero_whatsapp(cliente)
     )
 
-    for fila in filas_activas:
-        pedido = fila["pedido"]
+    filas_contacto = [
+        fila
+        for fila in filas_activas
+        if (
+            fila["pedido"].estado == "LISTO"
+            or fila["saldo"] > 0
+        )
+    ]
 
-        if pedido.estado == "LISTO":
-            items.append(
-                {
-                    "prioridad": 1,
-                    "tipo": "PEDIDO_LISTO",
-                    "titulo": (
-                        f"{pedido.codigo} listo para entregar"
-                    ),
-                    "detalle": (
+    if filas_contacto:
+        pedidos_contacto = [
+            fila["pedido"]
+            for fila in filas_contacto
+        ]
+        cantidad = len(pedidos_contacto)
+        cantidad_listos = sum(
+            1
+            for pedido in pedidos_contacto
+            if pedido.estado == "LISTO"
+        )
+        saldo_total = sum(
+            (
+                Decimal(fila["saldo"] or 0)
+                for fila in filas_contacto
+            ),
+            Decimal("0"),
+        )
+
+        if cantidad == 1:
+            fila = filas_contacto[0]
+            pedido = fila["pedido"]
+
+            if pedido.estado == "LISTO":
+                titulo = (
+                    f"{pedido.codigo} listo para entregar"
+                )
+                accion = "AVISAR CLIENTE"
+                motivo = "PEDIDO_LISTO"
+                detalles = [
+                    (
                         "Avisale al cliente que ya puede "
                         "coordinar la entrega."
-                    ),
-                    "accion": "AVISAR CLIENTE",
-                    "url": (
-                        url_contacto(
-                            cliente,
-                            "PEDIDO_LISTO",
-                            pedido=pedido,
-                        )
-                        if tiene_whatsapp
-                        else ""
-                    ),
-                }
+                    )
+                ]
+            else:
+                titulo = (
+                    f"{pedido.codigo} tiene saldo pendiente"
+                )
+                accion = "RECORDAR PAGO"
+                motivo = "SALDO"
+                detalles = []
+
+            if fila["saldo"] > 0:
+                detalles.append(
+                    f"Saldo pendiente $ "
+                    f"{fila['saldo']:,.0f}."
+                )
+
+            detalle = " ".join(detalles)
+        else:
+            codigos = ", ".join(
+                pedido.codigo
+                for pedido in pedidos_contacto
             )
 
-        if fila["saldo"] > 0:
-            items.append(
-                {
-                    "prioridad": 2,
-                    "tipo": "SALDO",
-                    "titulo": (
-                        f"{pedido.codigo} tiene saldo pendiente"
-                    ),
-                    "detalle": (
-                        f"$ {fila['saldo']:,.0f} pendientes."
-                    ),
-                    "accion": "RECORDAR PAGO",
-                    "url": (
-                        url_contacto(
-                            cliente,
-                            "SALDO",
-                            pedido=pedido,
-                        )
-                        if tiene_whatsapp
-                        else ""
-                    ),
-                }
-            )
+            if cantidad_listos == cantidad:
+                titulo = (
+                    f"{cantidad} pedidos listos para entregar"
+                )
+                accion = "AVISAR CLIENTE"
+                motivo = "PEDIDO_LISTO"
+            elif cantidad_listos:
+                titulo = (
+                    f"{cantidad} pedidos requieren contacto"
+                )
+                accion = "AVISAR CLIENTE"
+                motivo = "PEDIDO_LISTO"
+            else:
+                titulo = (
+                    f"{cantidad} pedidos tienen saldo pendiente"
+                )
+                accion = "RECORDAR PAGO"
+                motivo = "SALDO"
+
+            detalles = [codigos]
+            if (
+                cantidad_listos
+                and cantidad_listos < cantidad
+            ):
+                detalles.append(
+                    f"{cantidad_listos} listo"
+                    f"{'s' if cantidad_listos != 1 else ''}"
+                )
+            if saldo_total > 0:
+                detalles.append(
+                    f"Saldo total $ {saldo_total:,.0f}"
+                )
+            detalle = " · ".join(detalles)
+
+        items.append(
+            {
+                "prioridad": 1,
+                "tipo": (
+                    "PEDIDO_LISTO"
+                    if cantidad_listos
+                    else "SALDO"
+                ),
+                "titulo": titulo,
+                "detalle": detalle,
+                "accion": accion,
+                "url": (
+                    url_contacto(
+                        cliente,
+                        motivo,
+                        pedidos=pedidos_contacto,
+                    )
+                    if tiene_whatsapp
+                    else ""
+                ),
+            }
+        )
 
     for presupuesto in presupuestos_pendientes:
         dias = max(
@@ -267,7 +337,6 @@ def _seguimientos_cliente(
         items,
         key=lambda item: item["prioridad"],
     )[:8]
-
 
 def _eventos_recientes(
     cliente,
@@ -813,6 +882,9 @@ def whatsapp_cliente(request, cliente_id):
         ),
         pedido_id=request.GET.get(
             "pedido",
+        ),
+        pedidos_ids=request.GET.get(
+            "pedidos",
         ),
         presupuesto_id=request.GET.get(
             "presupuesto",
