@@ -103,6 +103,7 @@ INSTALLED_APPS = [
     "dashboard",
     "calculadora",
     "auditoria.apps.AuditoriaConfig",
+    "metricas.apps.MetricasConfig",
 ]
 
 MIDDLEWARE = [
@@ -123,6 +124,7 @@ MIDDLEWARE = [
     "config.responsive_fixes_middleware.ResponsiveFixesMiddleware",
     "config.catalog_grid_middleware.CatalogGridMiddleware",
     "config.catalog_contact_middleware.CatalogContactMiddleware",
+    "metricas.middleware.CatalogMetricsMiddleware",
     "config.catalog_rotator_middleware.CatalogRotatorMiddleware",
     "config.product_images_ui_middleware.ProductImagesUIMiddleware",
     "config.operaciones_ui_middleware.OperacionesUIMiddleware",
@@ -196,6 +198,7 @@ SESSION_SAVE_EVERY_REQUEST = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
+CSRF_FAILURE_VIEW = "config.csrf.csrf_failure"
 
 # Protección opcional del checkout público. Si las claves quedan vacías,
 # el resto de defensas anti-spam sigue funcionando sin mostrar captcha.

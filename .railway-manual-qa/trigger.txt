@@ -1,6 +1,5 @@
-Deploy QA: cierre pre-lanzamiento puntos 1, 2 y 4
-- Legales: privacidad con plazos AAIP y arrepentimiento reforzado.
-- Anti-spam: Turnstile opcional + honeypot + deduplicación + límite por contacto.
-- Rendimiento: reutilización de prefetch en productos compuestos.
-- Mantiene botón de arrepentimiento flotante.
+Deploy QA: mejorar legibilidad de Configuración
+- Aumenta tipografía de títulos, descripciones, tabs, labels, inputs y botones.
+- Escala también textos auxiliares, legales y métricas.
+- Mantiene responsive en tablet y mobile.
 Sin migraciones.

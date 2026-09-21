@@ -4,6 +4,8 @@ from django.http import Http404, HttpResponseRedirect
 
 from auditoria.context import obtener_contexto
 from auditoria.models import RegistroAuditoria
+from metricas.models import EventoCatalogo
+from metricas.services import registrar_evento_request
 
 from .models import ConfiguracionCatalogo
 
@@ -80,5 +82,15 @@ def catalogo_contacto(request, canal):
     # contamos una interacción humana cuando realmente se solicita con GET.
     if request.method == "GET":
         _registrar_click(config, canal)
+        registrar_evento_request(
+            request,
+            (
+                EventoCatalogo.WHATSAPP
+                if canal == "whatsapp"
+                else EventoCatalogo.INSTAGRAM
+            ),
+            pagina="contacto",
+            ruta=request.path,
+        )
 
     return HttpResponseRedirect(destino)

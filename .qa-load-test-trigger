@@ -1,4 +1,5 @@
-QA load test trigger
-Run after pre-launch legal/performance/anti-spam deploy.
-Validate floating withdrawal button and Turnstile.
-Target: 50 concurrent users.
+QA final metrics validation
+- metricas.tests
+- legal/cart/health smoke
+- final deployed commit with metrics + Turnstile status
+- 50 concurrent users

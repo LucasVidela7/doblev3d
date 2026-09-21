@@ -23,6 +23,7 @@ from productos.carrito import carrito_checkout, carrito_gracias, carrito_precios
 
 urlpatterns = [
     path("healthz/", healthcheck, name="healthcheck"),
+    path("metricas/", include("metricas.urls")),
     # Sitio publico
     path(
         "",

@@ -13,36 +13,44 @@
 body{margin:0;padding-bottom:110px;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
 .cfg-shell{width:min(1120px,calc(100% - 28px));margin:auto;padding:24px 0 42px}
 .cfg-head{display:grid;grid-template-columns:minmax(0,1fr);gap:11px;margin-bottom:14px}
-.cfg-eyebrow{margin:0 0 5px;color:var(--blue);font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.cfg-eyebrow{margin:0 0 5px;color:var(--blue);font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
 .cfg-title{margin:0;font-size:clamp(28px,5vw,38px);letter-spacing:-.04em}
-.cfg-subtitle{max-width:730px;margin:7px 0 0;color:var(--muted);font-size:12px;line-height:1.5}
+.cfg-subtitle{max-width:780px;margin:7px 0 0;color:var(--muted);font-size:14px;line-height:1.5}
 .actions{display:flex;align-items:stretch;gap:8px;width:100%}
-.cfg-btn{min-height:46px;display:inline-flex;align-items:center;justify-content:center;padding:0 15px;border:1px solid var(--blue);border-radius:12px;background:var(--surface);color:var(--text);text-decoration:none;font-size:9px;font-weight:900;cursor:pointer}
+.cfg-btn{min-height:46px;display:inline-flex;align-items:center;justify-content:center;padding:0 15px;border:1px solid var(--blue);border-radius:12px;background:var(--surface);color:var(--text);text-decoration:none;font-size:11px;font-weight:900;cursor:pointer}
 .cfg-btn.principal{margin-left:auto;min-width:220px;background:var(--blue);color:#fff}
-.cfg-saved{margin-bottom:12px;padding:11px 13px;border:1px solid #b9dec5;border-radius:12px;background:var(--ok-bg);color:var(--ok);font-size:10px;font-weight:900}
-.cfg-nav{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:13px}
-.cfg-nav a{min-height:43px;display:flex;align-items:center;justify-content:center;padding:0 8px;border:1px solid var(--line);border-radius:11px;background:var(--surface);color:var(--text);text-decoration:none;font-size:8px;font-weight:900;text-align:center}
+.cfg-saved{margin-bottom:12px;padding:11px 13px;border:1px solid #b9dec5;border-radius:12px;background:var(--ok-bg);color:var(--ok);font-size:12px;font-weight:900}
+.cfg-nav{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-bottom:13px}
+.cfg-nav a{min-height:43px;display:flex;align-items:center;justify-content:center;padding:0 8px;border:1px solid var(--line);border-radius:11px;background:var(--surface);color:var(--text);text-decoration:none;font-size:10px;font-weight:900;text-align:center}
 .cfg-section{scroll-margin-top:12px;margin-bottom:13px;padding:18px;border:1px solid var(--line);border-radius:18px;background:var(--surface);box-shadow:var(--dv-shadow,0 7px 24px rgba(20,25,35,.05))}
 .cfg-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:15px}
-.cfg-section h2{margin:0;font-size:17px}.cfg-section-head p{margin:5px 0 0;color:var(--muted);font-size:10px;line-height:1.45}
+.cfg-section h2{margin:0;font-size:20px}.cfg-section-head p{margin:5px 0 0;color:var(--muted);font-size:12px;line-height:1.45}
 .cfg-icon{width:40px;height:40px;display:grid;place-items:center;flex:0 0 auto;border-radius:12px;background:var(--soft);font-size:18px}
 .cfg-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .cfg-box{min-width:0;padding:13px;border:1px solid var(--line);border-radius:14px;background:var(--soft)}
-.cfg-box.full{grid-column:1/-1}.cfg-box-title{font-size:10px;font-weight:900}.cfg-box-copy{margin-top:4px;color:var(--muted);font-size:8px;line-height:1.4}
+.cfg-box.full{grid-column:1/-1}.cfg-box-title{font-size:12px;font-weight:900}.cfg-box-copy{margin-top:5px;color:var(--muted);font-size:10px;line-height:1.4}
 .cfg-switch-row{display:flex;align-items:center;justify-content:space-between;gap:15px}
 .cfg-switch{position:relative;flex:0 0 auto;width:50px;height:29px}.cfg-switch input{position:absolute;opacity:0;pointer-events:none}.cfg-switch-track{position:absolute;inset:0;border-radius:999px;background:#c8ced8;cursor:pointer;transition:.16s}.cfg-switch-track::after{content:"";position:absolute;top:4px;left:4px;width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.16);transition:.16s}.cfg-switch input:checked+.cfg-switch-track{background:var(--blue)}.cfg-switch input:checked+.cfg-switch-track::after{transform:translateX(21px)}
-.cfg-label{display:flex;justify-content:space-between;gap:10px;margin:12px 0 6px;font-size:8px;font-weight:900}.cfg-label span:last-child{color:var(--muted);font-weight:700}
-.cfg-input,.cfg-textarea{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);font:inherit;font-size:11px;outline:none}.cfg-input{min-height:42px;padding:8px 10px}.cfg-textarea{min-height:92px;resize:vertical;padding:10px 11px;line-height:1.45}.cfg-input:focus,.cfg-textarea:focus{border-color:rgba(19,74,154,.55);box-shadow:0 0 0 3px rgba(19,74,154,.09)}
-.cfg-note{margin-top:9px;padding:9px 10px;border-radius:10px;background:var(--surface);color:var(--muted);font-size:8px;line-height:1.45}
-.cfg-status{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:0 8px;border-radius:999px;background:var(--ok-bg);color:var(--ok);font-size:7px;font-weight:900}.cfg-status.warn{background:var(--warn-bg);color:var(--warn)}
-.cfg-fold{border:1px solid var(--line);border-radius:14px;background:var(--soft);overflow:hidden}.cfg-fold+.cfg-fold{margin-top:10px}.cfg-fold>summary{list-style:none;cursor:pointer;padding:13px 14px;font-size:10px;font-weight:900}.cfg-fold>summary::-webkit-details-marker{display:none}.cfg-fold>summary:after{content:"＋";float:right;color:var(--muted)}.cfg-fold[open]>summary:after{content:"−"}.cfg-fold-body{padding:0 12px 12px}
-.cfg-message-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.cfg-message{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}.cfg-message.wide{grid-column:1/-1}.cfg-message-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.cfg-message h3{margin:0;font-size:10px}.cfg-message p{margin:4px 0 0;color:var(--muted);font-size:8px;line-height:1.4}.cfg-reset{border:0;background:transparent;color:var(--blue);font-size:7px;font-weight:900;cursor:pointer;padding:2px}
-.cfg-vars{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}.cfg-var{padding:4px 6px;border-radius:999px;background:var(--soft);color:var(--muted);font:700 7px monospace}
-.cfg-preview{margin-top:8px;padding:9px 10px;border:1px dashed var(--line);border-radius:10px;background:var(--soft);white-space:pre-wrap;color:var(--text);font-size:8px;line-height:1.45}.cfg-preview:before{content:"VISTA PREVIA";display:block;margin-bottom:5px;color:var(--muted);font-size:6px;font-weight:900;letter-spacing:.07em}
-.cfg-device{width:100%;min-height:56px;display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--text);font:inherit;text-align:left;cursor:pointer}.cfg-device-icon{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:var(--soft)}.cfg-device-copy{min-width:0;flex:1}.cfg-device-copy strong{display:block;font-size:10px}.cfg-device-copy span{display:block;margin-top:3px;color:var(--muted);font-size:8px}.cfg-device.is-active{border-color:#b6dcc0;background:#e8f6ec;color:#24633a}.cfg-device.is-blocked{border-color:#efc3c3;background:#fff2f2;color:#9a3030}.cfg-device:disabled{opacity:.58;cursor:not-allowed}
-.cfg-legal-list{display:grid;gap:7px}.cfg-legal-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:10px;border:1px solid var(--line);border-radius:11px;background:var(--surface)}.cfg-legal-item strong{display:block;font-size:9px}.cfg-legal-item span{display:block;margin-top:3px;color:var(--muted);font-size:8px}.cfg-legal-badge{align-self:start;display:inline-flex;min-height:24px;align-items:center;padding:0 7px;border-radius:999px;background:var(--warn-bg);color:var(--warn);font-size:7px;font-weight:900}.cfg-legal-badge.ok{background:var(--ok-bg);color:var(--ok)}.cfg-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:13px}
+.cfg-label{display:flex;justify-content:space-between;gap:10px;margin:13px 0 7px;font-size:10px;font-weight:900}.cfg-label span:last-child{color:var(--muted);font-weight:700}
+.cfg-input,.cfg-textarea{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);font:inherit;font-size:13px;outline:none}.cfg-input{min-height:42px;padding:8px 10px}.cfg-textarea{min-height:92px;resize:vertical;padding:10px 11px;line-height:1.45}.cfg-input:focus,.cfg-textarea:focus{border-color:rgba(19,74,154,.55);box-shadow:0 0 0 3px rgba(19,74,154,.09)}
+.cfg-note{margin-top:9px;padding:9px 10px;border-radius:10px;background:var(--surface);color:var(--muted);font-size:10px;line-height:1.5}
+.cfg-status{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:0 8px;border-radius:999px;background:var(--ok-bg);color:var(--ok);font-size:9px;font-weight:900}.cfg-status.warn{background:var(--warn-bg);color:var(--warn)}
+.cfg-fold{border:1px solid var(--line);border-radius:14px;background:var(--soft);overflow:hidden}.cfg-fold+.cfg-fold{margin-top:10px}.cfg-fold>summary{list-style:none;cursor:pointer;padding:14px 15px;font-size:12px;font-weight:900}.cfg-fold>summary::-webkit-details-marker{display:none}.cfg-fold>summary:after{content:"＋";float:right;color:var(--muted)}.cfg-fold[open]>summary:after{content:"−"}.cfg-fold-body{padding:0 12px 12px}
+.cfg-message-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.cfg-message{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}.cfg-message.wide{grid-column:1/-1}.cfg-message-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.cfg-message h3{margin:0;font-size:12px}.cfg-message p{margin:4px 0 0;color:var(--muted);font-size:10px;line-height:1.4}.cfg-reset{border:0;background:transparent;color:var(--blue);font-size:9px;font-weight:900;cursor:pointer;padding:2px}
+.cfg-vars{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}.cfg-var{padding:4px 6px;border-radius:999px;background:var(--soft);color:var(--muted);font:700 9px monospace}
+.cfg-preview{margin-top:8px;padding:9px 10px;border:1px dashed var(--line);border-radius:10px;background:var(--soft);white-space:pre-wrap;color:var(--text);font-size:10px;line-height:1.5}.cfg-preview:before{content:"VISTA PREVIA";display:block;margin-bottom:5px;color:var(--muted);font-size:8px;font-weight:900;letter-spacing:.07em}
+.cfg-device{width:100%;min-height:56px;display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--text);font:inherit;text-align:left;cursor:pointer}.cfg-device-icon{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:var(--soft)}.cfg-device-copy{min-width:0;flex:1}.cfg-device-copy strong{display:block;font-size:12px}.cfg-device-copy span{display:block;margin-top:3px;color:var(--muted);font-size:10px}.cfg-device.is-active{border-color:#b6dcc0;background:#e8f6ec;color:#24633a}.cfg-device.is-blocked{border-color:#efc3c3;background:#fff2f2;color:#9a3030}.cfg-device:disabled{opacity:.58;cursor:not-allowed}
+.cfg-legal-list{display:grid;gap:7px}.cfg-legal-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:10px;border:1px solid var(--line);border-radius:11px;background:var(--surface)}.cfg-legal-item strong{display:block;font-size:11px}.cfg-legal-item span{display:block;margin-top:3px;color:var(--muted);font-size:10px}.cfg-legal-badge{align-self:start;display:inline-flex;min-height:24px;align-items:center;padding:0 7px;border-radius:999px;background:var(--warn-bg);color:var(--warn);font-size:9px;font-weight:900}.cfg-legal-badge.ok{background:var(--ok-bg);color:var(--ok)}.cfg-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:13px}
+.metrics-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}.metrics-periods{display:flex;gap:5px;flex-wrap:wrap}.metrics-periods a{min-height:31px;display:inline-flex;align-items:center;padding:0 10px;border:1px solid var(--line);border-radius:9px;background:var(--soft);color:var(--muted);text-decoration:none;font-size:10px;font-weight:900}.metrics-periods a.active{border-color:var(--blue);background:var(--blue);color:#fff}.metrics-range{color:var(--muted);font-size:10px;font-weight:800}
+.metrics-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-bottom:10px}.metric-kpi{min-width:0;padding:12px;border:1px solid var(--line);border-radius:13px;background:var(--soft)}.metric-kpi span{display:block;color:var(--muted);font-size:9px;font-weight:900;letter-spacing:.04em}.metric-kpi strong{display:block;margin-top:5px;font-size:24px;letter-spacing:-.04em}.metric-kpi small{display:block;margin-top:4px;color:var(--muted);font-size:9px;line-height:1.35}.metric-kpi.primary{border-color:rgba(19,74,154,.24);background:rgba(19,74,154,.06)}.metric-kpi.success{border-color:#b9dec5;background:var(--ok-bg)}
+.metrics-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:10px;margin-bottom:10px}.metric-panel{min-width:0;padding:13px;border:1px solid var(--line);border-radius:14px;background:var(--soft)}.metric-panel h3{margin:0;font-size:13px}.metric-panel-sub{margin:4px 0 11px;color:var(--muted);font-size:10px;line-height:1.4}
+.metric-funnel{display:grid;gap:8px}.metric-funnel-row{display:grid;grid-template-columns:minmax(120px,.85fr) minmax(0,1.15fr) 48px;gap:8px;align-items:center}.metric-funnel-label{min-width:0;font-size:10px;font-weight:850}.metric-funnel-track{height:10px;overflow:hidden;border-radius:999px;background:var(--surface);border:1px solid var(--line)}.metric-funnel-track span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--blue),#4d78b8)}.metric-funnel-number{text-align:right;font-size:10px;font-weight:900}.metric-funnel-number small{display:block;color:var(--muted);font-size:8px;font-weight:800}
+.metric-chart{height:190px;display:flex;align-items:stretch;gap:2px;padding-top:7px;border-bottom:1px solid var(--line)}.metric-day{position:relative;flex:1;min-width:2px;display:flex;align-items:flex-end;justify-content:center;gap:1px}.metric-day-bar{width:min(8px,70%);min-width:2px;border-radius:4px 4px 0 0;background:var(--blue);opacity:.78}.metric-day-request{position:absolute;bottom:0;width:min(4px,38%);min-width:2px;border-radius:3px 3px 0 0;background:#2f8a4d}.metric-day-label{position:absolute;left:50%;bottom:-18px;transform:translateX(-50%);color:var(--muted);font-size:8px;white-space:nowrap}.metric-chart-legend{display:flex;gap:12px;margin-top:22px;color:var(--muted);font-size:9px}.metric-chart-legend span{display:inline-flex;align-items:center;gap:4px}.metric-dot{width:7px;height:7px;border-radius:2px;background:var(--blue)}.metric-dot.request{background:#2f8a4d}
+.metric-bars{display:grid;gap:9px}.metric-bar-row{display:grid;grid-template-columns:minmax(80px,.8fr) minmax(0,1.2fr) 52px;gap:8px;align-items:center}.metric-bar-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;font-weight:850}.metric-bar-track{height:8px;border-radius:999px;background:var(--surface);border:1px solid var(--line);overflow:hidden}.metric-bar-track span{display:block;height:100%;border-radius:inherit;background:var(--blue)}.metric-bar-value{text-align:right;font-size:10px;font-weight:900}
+.metric-table-wrap{overflow-x:auto}.metric-table{width:100%;border-collapse:collapse;font-size:10px}.metric-table th{padding:0 7px 7px;color:var(--muted);font-size:9px;text-align:left;white-space:nowrap}.metric-table td{padding:8px 7px;border-top:1px solid var(--line);vertical-align:middle}.metric-table td:not(:first-child),.metric-table th:not(:first-child){text-align:right}.metric-kind{display:inline-flex;margin-right:5px;padding:3px 5px;border-radius:999px;background:var(--surface);color:var(--muted);font-size:8px;font-weight:900}
+.metrics-secondary{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metric-empty{padding:22px 10px;color:var(--muted);font-size:11px;text-align:center}.metrics-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.metrics-meta span{display:inline-flex;padding:5px 7px;border-radius:999px;background:var(--surface);color:var(--muted);font-size:9px;font-weight:850}.metric-select{width:100%;min-height:42px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);font:inherit;font-size:12px}
 html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc8}html[data-dv-theme="dark"] .cfg-device.is-blocked{background:#3b2024;color:#ffc4c4}
-@media(max-width:760px){.cfg-shell{width:calc(100% - 20px);padding-top:14px}.actions .cfg-btn{flex:1 1 0}.actions .principal{margin-left:0;min-width:0;flex:1.15}.cfg-nav{grid-template-columns:1fr 1fr}.cfg-section{padding:14px;border-radius:15px}.cfg-grid,.cfg-message-grid{grid-template-columns:1fr}.cfg-box.full,.cfg-message.wide{grid-column:auto}.cfg-section-head{margin-bottom:12px}.cfg-footer{display:grid;grid-template-columns:1fr}.cfg-footer .cfg-btn{width:100%}}
+@media(max-width:900px){.metrics-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.metrics-grid{grid-template-columns:1fr}}@media(max-width:760px){.cfg-shell{width:calc(100% - 20px);padding-top:14px}.actions .cfg-btn{flex:1 1 0}.actions .principal{margin-left:0;min-width:0;flex:1.15}.cfg-nav{grid-template-columns:1fr 1fr}.cfg-section{padding:14px;border-radius:15px}.cfg-grid,.cfg-message-grid{grid-template-columns:1fr}.cfg-box.full,.cfg-message.wide{grid-column:auto}.cfg-section-head{margin-bottom:12px}.cfg-footer{display:grid;grid-template-columns:1fr}.cfg-footer .cfg-btn{width:100%}.metrics-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.metrics-secondary{grid-template-columns:1fr}.metric-funnel-row{grid-template-columns:minmax(105px,.9fr) minmax(0,1.1fr) 42px}.metric-chart{height:155px}.metric-bar-row{grid-template-columns:minmax(70px,.8fr) minmax(0,1.2fr) 44px}}
 </style>
 </head>
 <body>
@@ -51,7 +59,7 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 <div>
 <p class="cfg-eyebrow">Gestión</p>
 <h1 class="cfg-title">Configuración</h1>
-<p class="cfg-subtitle">Centralizá tienda pública, mensajes de WhatsApp, avisos y apariencia. Los cambios se aplican al guardar sin reiniciar Railway.</p>
+<p class="cfg-subtitle">Centralizá tienda pública, mensajes de WhatsApp, avisos, métricas y apariencia. Los cambios se aplican al guardar sin reiniciar Railway.</p>
 </div>
 <div class="actions">
 <a class="cfg-btn" href="{% url 'catalogo' %}" target="_blank" rel="noopener">VER CATÁLOGO</a>
@@ -66,7 +74,8 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 <a href="#whatsapp">2 · WHATSAPP</a>
 <a href="#avisos">3 · NOTIFICACIONES</a>
 <a href="#legal">4 · LEGAL</a>
-<a href="#apariencia">5 · APARIENCIA</a>
+<a href="#metricas">5 · MÉTRICAS</a>
+<a href="#apariencia">6 · APARIENCIA</a>
 </nav>
 
 <form method="post" id="configForm">
@@ -198,13 +207,13 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 </section>
 
 <section class="cfg-section" id="legal">
-<div class="cfg-section-head"><div><h2>Información legal</h2><p>Datos públicos del responsable, páginas legales y solicitudes de arrepentimiento.</p></div><div class="cfg-icon">⚖</div></div>
+<div class="cfg-section-head"><div><h2>Información legal</h2><p>Doble V 3D es un emprendimiento personal. Acá se informan datos reales del titular cuando correspondan, sin inventar una sociedad o razón social.</p></div><div class="cfg-icon">⚖</div></div>
 <div class="cfg-grid">
 <div class="cfg-box">
-<div class="cfg-box-title">Datos del responsable</div>
-<div class="cfg-box-copy">Completá sólo información real. Si un campo queda vacío, no se inventa ni se publica.</div>
-<label class="cfg-label" for="razon_social"><span>RAZÓN SOCIAL / RESPONSABLE</span></label>
-<input class="cfg-input" id="razon_social" name="razon_social" maxlength="180" value="{{ config.razon_social }}" placeholder="Nombre o razón social">
+<div class="cfg-box-title">Titular del emprendimiento</div>
+<div class="cfg-box-copy">No hace falta que Doble V 3D sea una sociedad. Completá únicamente los datos reales de la persona titular cuando los tengas definidos para la actividad.</div>
+<label class="cfg-label" for="razon_social"><span>RESPONSABLE / TITULAR</span></label>
+<input class="cfg-input" id="razon_social" name="razon_social" maxlength="180" value="{{ config.razon_social }}" placeholder="Nombre y apellido del titular">
 <label class="cfg-label" for="cuit"><span>CUIT</span></label>
 <input class="cfg-input" id="cuit" name="cuit" maxlength="20" value="{{ config.cuit }}" placeholder="XX-XXXXXXXX-X">
 </div>
@@ -224,6 +233,19 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 <a class="cfg-btn" href="{% url 'catalogo_terminos' %}" target="_blank" rel="noopener">TÉRMINOS</a>
 <a class="cfg-btn" href="{% url 'catalogo_privacidad' %}" target="_blank" rel="noopener">PRIVACIDAD</a>
 <a class="cfg-btn" href="{% url 'catalogo_arrepentimiento' %}" target="_blank" rel="noopener">ARREPENTIMIENTO</a>
+</div>
+</div>
+
+<div class="cfg-box full">
+<div class="cfg-box-title">Protección anti-spam</div>
+<div class="cfg-box-copy">Turnstile protege el envío de presupuestos y el formulario de arrepentimiento. La validación también se realiza en el servidor.</div>
+<div class="cfg-note">
+{% if turnstile_configurado %}
+{% if turnstile_prueba %}<span class="cfg-status warn">TURNSTILE · MODO PRUEBA</span> · Las claves actuales sirven para QA/testing, no para producción.
+{% else %}<span class="cfg-status">TURNSTILE ACTIVO</span> · Claves de producción configuradas.
+{% endif %}
+{% else %}<span class="cfg-status warn">TURNSTILE SIN CONFIGURAR</span> · El honeypot, límites y deduplicación siguen activos, pero falta la capa de Cloudflare.
+{% endif %}
 </div>
 </div>
 
@@ -248,6 +270,116 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 <div class="cfg-note">No hay solicitudes registradas.</div>
 {% endfor %}
 </div>
+</div>
+</div>
+</section>
+
+<section class="cfg-section" id="metricas">
+<div class="cfg-section-head"><div><h2>Métricas del catálogo</h2><p>Embudo comercial y comportamiento de la tienda con analítica propia. No usa Google Analytics ni guarda direcciones IP crudas.</p></div><div class="cfg-icon">↗</div></div>
+
+<div class="metrics-toolbar">
+<div class="metrics-periods" aria-label="Período de métricas">
+<a href="?periodo=7#metricas" class="{% if metricas.periodo == 7 %}active{% endif %}">7 DÍAS</a>
+<a href="?periodo=30#metricas" class="{% if metricas.periodo == 30 %}active{% endif %}">30 DÍAS</a>
+<a href="?periodo=90#metricas" class="{% if metricas.periodo == 90 %}active{% endif %}">90 DÍAS</a>
+</div>
+<div class="metrics-range">{{ metricas.desde|date:"d/m/Y" }} → {{ metricas.hasta|date:"d/m/Y" }} · {{ metricas.total_eventos }} eventos</div>
+</div>
+
+<div class="metrics-kpis">
+<div class="metric-kpi primary"><span>VISITANTES</span><strong>{{ metricas.visitantes }}</strong><small>Navegadores anónimos únicos.</small></div>
+<div class="metric-kpi"><span>SESIONES</span><strong>{{ metricas.sesiones }}</strong><small>Actividad agrupada en ventanas de 30 min.</small></div>
+<div class="metric-kpi"><span>VISTAS</span><strong>{{ metricas.vistas }}</strong><small>Páginas públicas vistas.</small></div>
+<div class="metric-kpi"><span>AGREGADOS</span><strong>{{ metricas.agregados }}</strong><small>{{ metricas.tasa_carrito }}% de sesiones agregó algo.</small></div>
+<div class="metric-kpi"><span>CHECKOUTS</span><strong>{{ metricas.checkouts }}</strong><small>Llegadas a “Revisar y pedir”.</small></div>
+<div class="metric-kpi success"><span>CONVERSIÓN</span><strong>{{ metricas.conversion }}%</strong><small>{{ metricas.solicitudes }} solicitud{{ metricas.solicitudes|pluralize:"es" }} enviada{{ metricas.solicitudes|pluralize:"s" }}.</small></div>
+</div>
+
+<div class="metrics-grid">
+<div class="metric-panel">
+<h3>Embudo de compra</h3>
+<p class="metric-panel-sub">Sesiones únicas que avanzaron por cada etapa. Permite ver exactamente dónde se pierde interés.</p>
+<div class="metric-funnel">
+{% for item in metricas.funnel %}
+<div class="metric-funnel-row">
+<div class="metric-funnel-label">{{ item.label }}</div>
+<div class="metric-funnel-track"><span style="width:{{ item.ancho }}%"></span></div>
+<div class="metric-funnel-number">{{ item.valor }}<small>{{ item.pct }}%</small></div>
+</div>
+{% endfor %}
+</div>
+<div class="metrics-meta"><span>WhatsApp: {{ metricas.whatsapp }}</span><span>Instagram: {{ metricas.instagram }}</span><span>Solicitudes: {{ metricas.solicitudes }}</span></div>
+</div>
+
+<div class="metric-panel">
+<h3>Evolución diaria</h3>
+<p class="metric-panel-sub">Sesiones y solicitudes por día. Las barras verdes son conversiones.</p>
+{% if metricas.total_eventos %}
+<div class="metric-chart">
+{% for dia in metricas.diarios %}
+<div class="metric-day" title="{{ dia.dia|date:'d/m' }} · {{ dia.sesiones }} sesiones · {{ dia.solicitudes }} solicitudes">
+<div class="metric-day-bar" style="height:{{ dia.alto }}%"></div>
+{% if dia.solicitudes %}<div class="metric-day-request" style="height:{{ dia.alto_solicitudes }}%"></div>{% endif %}
+{% if dia.mostrar_label %}<span class="metric-day-label">{{ dia.dia|date:"d/m" }}</span>{% endif %}
+</div>
+{% endfor %}
+</div>
+<div class="metric-chart-legend"><span><i class="metric-dot"></i> Sesiones</span><span><i class="metric-dot request"></i> Solicitudes</span></div>
+{% else %}<div class="metric-empty">Todavía no hay actividad registrada para este período.</div>{% endif %}
+</div>
+</div>
+
+<div class="metric-panel" style="margin-bottom:10px">
+<h3>Productos y kits con más intención</h3>
+<p class="metric-panel-sub">Combina vistas de detalle y agregados al carrito para detectar qué genera interés real.</p>
+{% if metricas.ranking %}
+<div class="metric-table-wrap"><table class="metric-table">
+<thead><tr><th>Producto / kit</th><th>Vistas</th><th>Agregados</th><th>Vista → carrito</th></tr></thead>
+<tbody>
+{% for item in metricas.ranking %}
+<tr><td><span class="metric-kind">{{ item.tipo|upper }}</span>{{ item.nombre }}</td><td>{{ item.vistas }}</td><td>{{ item.agregados }}</td><td>{{ item.tasa }}%</td></tr>
+{% endfor %}
+</tbody>
+</table></div>
+{% else %}<div class="metric-empty">El ranking se completa cuando empiecen a verse y agregarse productos o kits.</div>{% endif %}
+</div>
+
+<div class="metrics-secondary">
+<div class="metric-panel">
+<h3>Dispositivos</h3>
+<p class="metric-panel-sub">Dónde navegan los visitantes.</p>
+{% if metricas.dispositivos %}<div class="metric-bars">
+{% for item in metricas.dispositivos %}
+<div class="metric-bar-row"><div class="metric-bar-label">{{ item.label }}</div><div class="metric-bar-track"><span style="width:{{ item.pct }}%"></span></div><div class="metric-bar-value">{{ item.pct }}%</div></div>
+{% endfor %}
+</div>{% else %}<div class="metric-empty">Sin datos todavía.</div>{% endif %}
+</div>
+
+<div class="metric-panel">
+<h3>Origen de las sesiones</h3>
+<p class="metric-panel-sub">Directo, referencias externas o campañas con <code>utm_source</code>.</p>
+{% if metricas.origenes %}<div class="metric-bars">
+{% for item in metricas.origenes %}
+<div class="metric-bar-row"><div class="metric-bar-label" title="{{ item.label }}">{{ item.label }}</div><div class="metric-bar-track"><span style="width:{{ item.pct }}%"></span></div><div class="metric-bar-value">{{ item.total }}</div></div>
+{% endfor %}
+</div>{% else %}<div class="metric-empty">Sin fuentes registradas todavía.</div>{% endif %}
+</div>
+</div>
+
+<div class="cfg-grid" style="margin-top:10px">
+<div class="cfg-box">
+<div class="cfg-switch-row"><div><div class="cfg-box-title">Analítica propia activa</div><div class="cfg-box-copy">Registra eventos anónimos del catálogo. No usa cookies publicitarias ni guarda IP cruda.</div></div><label class="cfg-switch"><input type="checkbox" name="metricas_activas" {% if metricas_config.activas %}checked{% endif %}><span class="cfg-switch-track"></span></label></div>
+</div>
+<div class="cfg-box">
+<div class="cfg-box-title">Retención de eventos</div>
+<div class="cfg-box-copy">Los eventos más antiguos se eliminan automáticamente.</div>
+<label class="cfg-label" for="metricas_retencion_dias"><span>CONSERVAR</span></label>
+<select class="metric-select" id="metricas_retencion_dias" name="metricas_retencion_dias">
+<option value="30" {% if metricas_config.retencion_dias == 30 %}selected{% endif %}>30 días</option>
+<option value="90" {% if metricas_config.retencion_dias == 90 %}selected{% endif %}>90 días</option>
+<option value="180" {% if metricas_config.retencion_dias == 180 %}selected{% endif %}>180 días</option>
+<option value="365" {% if metricas_config.retencion_dias == 365 %}selected{% endif %}>365 días</option>
+</select>
 </div>
 </div>
 </section>

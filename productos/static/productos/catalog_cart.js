@@ -270,6 +270,11 @@
             (incoming.name || 'Producto')
             + ' · agregado al carrito',
         );
+        window.DVMetrics?.track('ADD_TO_CART', {
+            contenidoTipo:
+                incoming.kind === 'kit' ? 'KIT' : 'PRODUCTO',
+            contenidoId: Number(incoming.id || 0) || null,
+        });
     };
 
     const skeleton = () => {

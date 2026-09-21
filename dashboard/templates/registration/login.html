@@ -158,7 +158,7 @@
         </div>
     {% endif %}
 
-    <form method="post" novalidate>
+    <form method="post" novalidate id="dvLoginForm">
         {% csrf_token %}
 
         <div class="campo">
@@ -190,7 +190,7 @@
             <input type="hidden" name="next" value="{{ next }}">
         {% endif %}
 
-        <button type="submit" class="boton">
+        <button type="submit" class="boton" id="dvLoginButton">
             INGRESAR
         </button>
     </form>
@@ -199,6 +199,26 @@
         El acceso requiere una cuenta activa. La contraseña no se guarda en texto plano.
     </div>
 </main>
+
+<script>
+(function(){
+    const form = document.getElementById("dvLoginForm");
+    const button = document.getElementById("dvLoginButton");
+    if (!form || !button) return;
+
+    let enviado = false;
+    form.addEventListener("submit", function(event){
+        if (enviado) {
+            event.preventDefault();
+            return;
+        }
+        enviado = true;
+        button.disabled = true;
+        button.textContent = "INGRESANDO…";
+        button.setAttribute("aria-busy", "true");
+    });
+})();
+</script>
 
 </body>
 </html>
