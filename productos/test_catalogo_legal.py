@@ -132,6 +132,47 @@ class CatalogoLegalTests(TestCase):
         self.assertContains(gracias, solicitud.codigo)
         self.assertContains(gracias, "Solicitud recibida")
 
+    @override_settings(
+        TURNSTILE_SITE_KEY="1x00000000000000000000AA",
+        TURNSTILE_SECRET_KEY="",
+    )
+    def test_arrepentimiento_muestra_turnstile_si_hay_site_key(self):
+        response = self.client.get(
+            reverse("catalogo_arrepentimiento")
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "cf-turnstile")
+        self.assertContains(
+            response,
+            "1x00000000000000000000AA",
+        )
+
+    def test_arrepentimiento_no_duplica_envios_identicos_recientes(self):
+        datos = {
+            "nombre": "Cliente Prueba",
+            "contacto": "+54 11 5555 4444",
+            "referencia": "PED0012",
+            "detalle": "Quiero solicitar la revocación.",
+            "website": "",
+        }
+
+        primera = self.client.post(
+            reverse("catalogo_arrepentimiento"),
+            datos,
+        )
+        segunda = self.client.post(
+            reverse("catalogo_arrepentimiento"),
+            datos,
+        )
+
+        self.assertEqual(primera.status_code, 302)
+        self.assertEqual(segunda.status_code, 302)
+        self.assertEqual(
+            SolicitudArrepentimiento.objects.count(),
+            1,
+        )
+
     def test_paginas_legales_siguen_accesibles_en_mantenimiento(self):
         self.config.catalogo_activo = False
         self.config.save(update_fields=["catalogo_activo"])
