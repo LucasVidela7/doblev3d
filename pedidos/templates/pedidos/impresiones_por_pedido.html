@@ -499,18 +499,66 @@
                 grid-auto-columns:min(86vw,360px);
                 justify-content:start;
                 scroll-snap-type:x mandatory;
+                padding-bottom:calc(116px + env(safe-area-inset-bottom));
             }
             .kanban-board>.seccion{
                 max-height:calc(100vh - 220px);
                 scroll-snap-align:start;
+                padding-bottom:calc(126px + env(safe-area-inset-bottom));
+                scroll-padding-bottom:calc(126px + env(safe-area-inset-bottom));
+            }
+            .kanban-board>.seccion .lista{
+                padding-bottom:12px;
             }
             .resumen{display:none}
             .flujo{
+                display:grid;
+                grid-template-columns:repeat(4,minmax(0,1fr));
+                gap:4px;
+                width:100%;
                 margin-bottom:10px;
+                padding:4px;
+                overflow:visible;
             }
             .flujo a{
-                flex:0 0 auto;
-                min-width:132px;
+                min-width:0;
+                min-height:44px;
+                display:flex;
+                flex-direction:column;
+                align-items:center;
+                justify-content:center;
+                gap:2px;
+                padding:4px 2px;
+                font-size:7px;
+                line-height:1.05;
+                text-align:center;
+                white-space:normal;
+            }
+            .flujo b{
+                min-width:18px;
+                height:18px;
+                padding:0 4px;
+                font-size:7px;
+            }
+        }
+
+        @media(max-width:430px){
+            .flujo{
+                gap:3px;
+                padding:3px;
+            }
+            .flujo a{
+                min-height:42px;
+                padding:3px 1px;
+                font-size:6.5px;
+            }
+            .kanban-board{
+                grid-auto-columns:min(90vw,360px);
+                padding-bottom:calc(132px + env(safe-area-inset-bottom));
+            }
+            .kanban-board>.seccion{
+                padding-bottom:calc(142px + env(safe-area-inset-bottom));
+                scroll-padding-bottom:calc(142px + env(safe-area-inset-bottom));
             }
         }
 
