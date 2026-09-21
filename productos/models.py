@@ -304,6 +304,14 @@ class Producto(models.Model):
     def _relaciones_componentes(self):
         if not self.pk or not self.es_compuesto:
             return []
+
+        # El catálogo precarga componentes y sus productos. Reutilizar ese
+        # cache evita repetir queries cada vez que costo, seguro o subtotal
+        # vuelven a recorrer la composición del mismo producto.
+        prefetched = getattr(self, "_prefetched_objects_cache", {})
+        if "componentes" in prefetched:
+            return prefetched["componentes"]
+
         return self.componentes.select_related("componente").all()
 
     @property
