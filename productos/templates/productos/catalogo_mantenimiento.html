@@ -89,8 +89,9 @@
         .legal-links{
             display:flex;
             flex-wrap:wrap;
+            align-items:center;
             justify-content:center;
-            gap:7px 12px;
+            gap:6px 9px;
             margin-top:16px;
         }
         .legal-links a{
@@ -99,11 +100,16 @@
             font-weight:850;
             text-decoration:none;
         }
-        .legal-links a.withdrawal{
-            padding:6px 9px;
-            border:1px solid #b83232;
-            border-radius:999px;
-            color:#9b2d2d;
+        .legal-links a:hover,
+        .legal-links a:focus-visible{
+            text-decoration:underline;
+        }
+        .legal-separator{
+            color:#a8b0bd;
+            font-size:.72rem;
+            font-weight:800;
+            line-height:1;
+            user-select:none;
         }
         @media(max-width:640px){
             .card{
@@ -168,8 +174,10 @@
         <div class="status">VOLVEMOS PRONTO</div>
         <nav class="legal-links" aria-label="Información legal">
             <a href="{% url 'catalogo_terminos' %}">Términos</a>
+            <span class="legal-separator" aria-hidden="true">·</span>
             <a href="{% url 'catalogo_privacidad' %}">Privacidad</a>
-            <a class="withdrawal" href="{% url 'catalogo_arrepentimiento' %}">BOTÓN DE ARREPENTIMIENTO</a>
+            <span class="legal-separator" aria-hidden="true">·</span>
+            <a href="{% url 'catalogo_arrepentimiento' %}">BOTÓN DE ARREPENTIMIENTO</a>
         </nav>
     </main>
 </body>
