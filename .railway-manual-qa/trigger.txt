@@ -1,9 +1,5 @@
-Deploy QA: Kanban compartido en Gestión
-- Solicitudes web: Nuevas, Contactadas, Convertidas y Rechazadas.
-- Presupuestos: Pendientes, Aprobados y Rechazados.
-- Producción: Necesidad, Cola, Imprimiendo y Listos.
-- Producción conserva el panel superior de impresoras y la planificación manual.
-- Se reutiliza la escala tipográfica estándar de Gestión y un estilo Kanban compartido.
-- Responsive horizontal en tablet/móvil.
-- Se mantienen las reglas y acciones existentes; sólo cambia la representación operativa.
+Deploy QA: tipografía ampliada en Clientes
+- Aumenta fuente en lista, detalle e historial de clientes.
+- Mejora nombres, contacto, métricas, badges, pedidos, presupuestos, seguimiento, actividad y botones.
+- Mantiene responsive y sube inputs móviles a 16px.
 Sin migraciones.
