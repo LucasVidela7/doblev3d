@@ -303,7 +303,8 @@
             margin:0;
             padding:10px;
             overflow-y:auto;
-            overscroll-behavior:contain;
+            overscroll-behavior-y:contain;
+            overscroll-behavior-x:auto;
             scroll-snap-align:start;
             border:1px solid var(--line);
             border-radius:17px;
@@ -493,17 +494,41 @@
 
         @media(max-width:1050px){
             .contenedor{width:min(100%,calc(100% - 2px));padding-left:10px;padding-right:10px}
+            #preparacion-kanban-shell{
+                width:100%;
+                max-width:100%;
+                overflow:visible;
+            }
             .kanban-board{
                 grid-template-columns:none;
                 grid-auto-flow:column;
-                grid-auto-columns:min(86vw,360px);
+                grid-auto-columns:min(88vw,380px);
                 justify-content:start;
-                scroll-snap-type:x mandatory;
+                width:100%;
+                max-width:100%;
+                overflow-x:auto!important;
+                overflow-y:hidden;
+                padding-right:18px;
                 padding-bottom:calc(116px + env(safe-area-inset-bottom));
+                scroll-padding-inline:2px 18px;
+                scroll-snap-type:x mandatory;
+                overscroll-behavior-x:contain;
+                overscroll-behavior-y:auto;
+                -webkit-overflow-scrolling:touch;
+                scrollbar-width:none;
             }
+            .kanban-board::-webkit-scrollbar{display:none}
             .kanban-board>.seccion{
+                width:100%;
+                min-width:0;
                 max-height:calc(100vh - 220px);
+                overflow-x:hidden;
+                overflow-y:auto;
+                overscroll-behavior-x:auto;
+                overscroll-behavior-y:contain;
                 scroll-snap-align:start;
+                scroll-snap-stop:always;
+                -webkit-overflow-scrolling:touch;
                 padding-bottom:calc(126px + env(safe-area-inset-bottom));
                 scroll-padding-bottom:calc(126px + env(safe-area-inset-bottom));
             }
@@ -553,7 +578,7 @@
                 font-size:6.5px;
             }
             .kanban-board{
-                grid-auto-columns:min(90vw,360px);
+                grid-auto-columns:calc(100vw - 38px);
                 padding-bottom:calc(132px + env(safe-area-inset-bottom));
             }
             .kanban-board>.seccion{
