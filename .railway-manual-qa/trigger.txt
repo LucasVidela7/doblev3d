@@ -1,7 +1,8 @@
-Deploy QA: checks de Preparación sin recarga
-- Marcar/desmarcar productos por AJAX.
-- Mantiene posición exacta y details abierto.
-- Actualiza estado del producto, progreso X/Y y barra.
-- Muestra PAQUETE LISTO al completar.
-- Revierte el check y muestra error si backend rechaza el cambio.
+Deploy QA: seguimiento unificado por cliente y WhatsApp multi-pedido
+- Agrupa pedidos listos y saldos pendientes del mismo cliente en una sola acción.
+- Un único botón de WhatsApp incluye todos los pedidos relacionados.
+- El mensaje detalla código, estado, productos, cantidades, total y saldo de cada pedido.
+- Suma únicamente saldos pendientes reales y muestra el saldo total.
+- Mantiene las plantillas configurables para mensajes de un solo pedido.
+- Presupuestos y reactivación continúan funcionando sin cambios.
 Sin migraciones.
