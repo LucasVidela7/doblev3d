@@ -1,4 +1,5 @@
-QA metrics smoke + load
-- Run metricas.tests with legal/cart/health tests.
-- Verify deployed QA after metricas.0001_initial.
-- Re-run 50 concurrent public catalog users.
+QA final metrics validation
+- metricas.tests
+- legal/cart/health smoke
+- final deployed commit with metrics + Turnstile status
+- 50 concurrent users
