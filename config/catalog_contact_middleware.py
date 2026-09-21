@@ -9,7 +9,17 @@ from productos.models import ConfiguracionCatalogo
 
 HEADER_STYLE = r"""
 <style id="dv-catalog-contact-style">
-:root{--dv-catalog-header-height:68px}
+@font-face{
+    font-family:"AvantGardeMdITCTT";
+    src:url("/static/brand/fonts/AvantGardeMdITCTT-Bold.woff2") format("woff2");
+    font-weight:700;
+    font-style:normal;
+    font-display:swap
+}
+:root{
+    --dv-catalog-header-height:68px;
+    --dv-brand-font:"AvantGardeMdITCTT","ITC Avant Garde Gothic","Century Gothic",Arial,sans-serif
+}
 body{padding-top:var(--dv-catalog-header-height)!important}
 header.shell.topbar,
 header.shell.top{display:none!important}
@@ -54,13 +64,18 @@ header.shell.top{display:none!important}
     background:#fff0f0;color:#842222
 }
 .dv-catalog-header__brand{
-    min-width:0;display:inline-flex;align-items:center;gap:9px;
+    min-width:0;display:inline-flex;align-items:center;justify-content:flex-start;gap:9px;
     color:#0d376f;text-decoration:none
 }
-.dv-catalog-header__brand img{width:48px;height:48px;object-fit:contain;flex:0 0 auto}
+.dv-catalog-header__brand img{
+    width:48px;height:48px;display:block;object-fit:contain;flex:0 0 auto
+}
 .dv-catalog-header__brand strong{
+    min-height:48px;display:flex;align-items:center;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-    font-size:.92rem;font-weight:950
+    font-family:var(--dv-brand-font);
+    font-size:.9rem;font-weight:700;line-height:1;
+    letter-spacing:.045em;text-transform:uppercase
 }
 .dv-catalog-header__actions{display:flex;align-items:center;gap:6px}
 .dv-catalog-header__action{
@@ -112,7 +127,7 @@ header.shell.top{display:none!important}
     }
     .dv-catalog-header__brand{gap:6px}
     .dv-catalog-header__brand img{width:42px;height:42px}
-    .dv-catalog-header__brand strong{display:none}
+    .dv-catalog-header__brand strong{display:none;min-height:42px}
     .dv-catalog-header__actions{gap:4px;justify-self:end}
     .dv-catalog-header__action{width:38px;height:38px;border-radius:11px}
     .dv-catalog-header__action svg{width:19px;height:19px}
