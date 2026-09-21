@@ -237,6 +237,19 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 </div>
 
 <div class="cfg-box full">
+<div class="cfg-box-title">Protección anti-spam</div>
+<div class="cfg-box-copy">Turnstile protege el envío de presupuestos y el formulario de arrepentimiento. La validación también se realiza en el servidor.</div>
+<div class="cfg-note">
+{% if turnstile_configurado %}
+{% if turnstile_prueba %}<span class="cfg-status warn">TURNSTILE · MODO PRUEBA</span> · Las claves actuales sirven para QA/testing, no para producción.
+{% else %}<span class="cfg-status">TURNSTILE ACTIVO</span> · Claves de producción configuradas.
+{% endif %}
+{% else %}<span class="cfg-status warn">TURNSTILE SIN CONFIGURAR</span> · El honeypot, límites y deduplicación siguen activos, pero falta la capa de Cloudflare.
+{% endif %}
+</div>
+</div>
+
+<div class="cfg-box full">
 <div class="cfg-box-title">Solicitudes de arrepentimiento {% if arrepentimientos_nuevos %}<span class="cfg-status warn">{{ arrepentimientos_nuevos }} NUEVA{{ arrepentimientos_nuevos|pluralize }}</span>{% endif %}</div>
 <div class="cfg-box-copy">Últimas solicitudes recibidas desde el catálogo.</div>
 <div class="cfg-legal-list" style="margin-top:10px">
