@@ -764,6 +764,7 @@
                         <article
                             class="card catalog-item"
                             data-kind="producto"
+                            data-product-id="{{ producto.id }}"
                             data-category="{{ producto.tipo.nombre|lower }}"
                             data-search="{{ producto.nombre|lower }} {{ producto.tipo.nombre|lower }}"
                         >
@@ -843,6 +844,7 @@
                         <article
                             class="card catalog-item"
                             data-kind="kit"
+                            data-kit-id="{{ kit.id }}"
                             data-category="{% if kit.tipo_producto %}{{ kit.tipo_producto.nombre|lower }}{% endif %}"
                             data-search="{{ kit.nombre|lower }} {% if kit.tipo_producto %}{{ kit.tipo_producto.nombre|lower }}{% endif %} {{ kit.catalogo_busqueda_productos|default:''|lower }}"
                         >

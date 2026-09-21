@@ -1,4 +1,7 @@
-Deploy QA: restaurar texto legal del footer
-- El footer vuelve a mostrar “Cambios y arrepentimiento”.
-- El botón flotante de arrepentimiento sigue oculto en detalle de productos y kits.
+Deploy QA: misma lógica de imágenes en Inicio
+- Inicio reutiliza el mismo rotador de imágenes que Productos y Kits.
+- Productos destacados rotan sus fotos completas, igual que en Productos.
+- Kits sensoriales mantienen collage 2x2 y rotación por cuadrantes.
+- Kits no sensoriales usan rotación de imagen completa.
+- Los kits se vinculan por ID para evitar mezclar imágenes cuando algún kit no aparece en portada.
 Sin migraciones.

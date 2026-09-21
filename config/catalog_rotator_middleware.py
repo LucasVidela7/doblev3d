@@ -85,7 +85,9 @@ CATALOG_ROTATOR_STYLE = r"""
 
 @media(hover:hover){
     .card:hover .dv-catalog-rotator img.is-active,
-    .card:hover .dv-sensory-slot img.is-active{
+    .card:hover .dv-sensory-slot img.is-active,
+    .preview:hover .dv-catalog-rotator img.is-active,
+    .preview:hover .dv-sensory-slot img.is-active{
         transform:scale(1.025);
     }
 }
@@ -231,7 +233,11 @@ CATALOG_ROTATOR_SCRIPT = r"""
         const media = card.querySelector('.media');
         if (!media) return;
 
-        const pool = (kitImagePools[index] || []).map((item) => ({
+        const poolSource =
+            kitImagePools[String(card.dataset.kitId || '')]
+            || kitImagePools[index]
+            || [];
+        const pool = poolSource.map((item) => ({
             src: item.src,
             alt: item.alt || 'Foto del kit',
         }));
@@ -436,7 +442,7 @@ class CatalogRotatorMiddleware:
         view_name = match.view_name if match else ''
 
         if (
-            view_name not in {'catalogo_productos', 'catalogo_kits'}
+            view_name not in {'catalogo', 'catalogo_legacy', 'catalogo_productos', 'catalogo_kits'}
             or response.status_code != 200
             or getattr(response, 'streaming', False)
             or 'text/html' not in response.get('Content-Type', '')
@@ -461,8 +467,18 @@ class CatalogRotatorMiddleware:
                 _product_image_map(grouped),
                 ensure_ascii=False,
             ).replace('</', '<\\/')
+            kit_pools = _kit_image_pools(grouped)
+            kit_ids = list(
+                Kit.objects
+                .filter(activo=True)
+                .order_by('nombre')
+                .values_list('id', flat=True)
+            )
             kit_payload = json.dumps(
-                _kit_image_pools(grouped),
+                {
+                    str(kit_id): pool
+                    for kit_id, pool in zip(kit_ids, kit_pools)
+                },
                 ensure_ascii=False,
             ).replace('</', '<\\/')
 
