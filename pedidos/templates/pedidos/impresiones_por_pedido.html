@@ -576,6 +576,116 @@
             background:var(--dv-surface-soft);
             color:var(--dv-text);
         }
+
+
+        /* Cards Kanban: estado + menú siempre arriba a la derecha. */
+        .kanban-board .pedido{
+            position:relative;
+            overflow:visible;
+        }
+        .kanban-board .pedido-head{
+            position:relative;
+            display:block;
+            min-height:92px;
+            padding:11px 11px 10px;
+        }
+        .kanban-board .pedido-head > div:first-child{
+            min-width:0;
+            padding-right:6px;
+        }
+        .kanban-board .pedido-linea{
+            display:block;
+            min-width:0;
+            padding-right:0;
+        }
+        .kanban-board .codigo{
+            display:block;
+            padding-right:132px;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+        .kanban-board .cliente{
+            display:block;
+            width:auto;
+            max-width:100%;
+            margin-top:5px;
+            padding-right:0;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+        .kanban-board .meta{
+            max-width:100%;
+            padding-right:0;
+        }
+        .kanban-board .pedido-head-tools{
+            position:absolute;
+            top:9px;
+            right:9px;
+            z-index:7;
+            display:flex;
+            align-items:center;
+            justify-content:flex-end;
+            flex-direction:row;
+            gap:6px;
+            width:auto;
+            max-width:calc(100% - 18px);
+        }
+        .kanban-board .pedido-status{
+            max-width:105px;
+            overflow:hidden;
+            text-overflow:ellipsis;
+        }
+        .kanban-board .dv-order-menu{
+            position:relative;
+            z-index:8;
+        }
+        .kanban-board .dv-order-menu__toggle{
+            width:32px;
+            height:32px;
+            border-radius:9px;
+            font-size:19px;
+        }
+
+        /* El panel sale al body como fixed para que el scroll de la
+           columna Kanban no lo recorte ni lo desplace. */
+        body > .dv-order-menu__panel.dv-order-menu__panel--floating{
+            display:block!important;
+            position:fixed!important;
+            z-index:2400!important;
+            top:auto;
+            right:auto;
+            left:auto;
+            width:min(230px,calc(100vw - 20px));
+            max-height:min(380px,calc(100vh - 20px));
+            overflow-y:auto;
+            margin:0;
+            padding:6px;
+            border:1px solid var(--dv-border,#dfe5ef);
+            border-radius:13px;
+            background:var(--dv-surface,#fff);
+            color:var(--dv-text,#17233a);
+            box-shadow:0 18px 48px rgba(0,0,0,.28);
+        }
+        html[data-dv-theme="dark"] body > .dv-order-menu__panel.dv-order-menu__panel--floating{
+            background:var(--dv-surface)!important;
+            border-color:var(--dv-border)!important;
+            color:var(--dv-text)!important;
+        }
+
+        @media(max-width:430px){
+            .kanban-board .pedido-head{
+                min-height:88px;
+            }
+            .kanban-board .codigo{
+                padding-right:118px;
+            }
+            .kanban-board .pedido-status{
+                max-width:90px;
+                font-size:6.5px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1174,6 +1284,126 @@ async function cambiarListo(checkbox){
 }
 
 
+
+let dvKanbanOrderMenuActual=null;
+
+function dvCerrarOrderMenuKanban(){
+    const estado=dvKanbanOrderMenuActual;
+    if(!estado)return;
+
+    const {menu,panel,owner,button}=estado;
+
+    panel.classList.remove("dv-order-menu__panel--floating");
+    panel.style.removeProperty("top");
+    panel.style.removeProperty("left");
+    panel.style.removeProperty("right");
+    panel.style.removeProperty("visibility");
+    panel.style.removeProperty("display");
+
+    if(owner && owner.isConnected){
+        owner.appendChild(panel);
+    }else{
+        panel.remove();
+    }
+
+    if(menu)menu.classList.remove("is-open");
+    if(button)button.setAttribute("aria-expanded","false");
+
+    dvKanbanOrderMenuActual=null;
+}
+
+function dvPosicionarOrderMenuKanban(button,panel){
+    const rect=button.getBoundingClientRect();
+    const margen=10;
+    const separacion=6;
+
+    panel.style.visibility="hidden";
+    panel.style.display="block";
+    panel.style.top="0px";
+    panel.style.left="0px";
+
+    const panelRect=panel.getBoundingClientRect();
+    const ancho=panelRect.width||230;
+    const alto=panelRect.height||220;
+
+    let left=rect.right-ancho;
+    left=Math.max(margen,Math.min(left,window.innerWidth-ancho-margen));
+
+    let top=rect.bottom+separacion;
+    if(top+alto>window.innerHeight-margen){
+        top=rect.top-alto-separacion;
+    }
+    top=Math.max(margen,Math.min(top,window.innerHeight-alto-margen));
+
+    panel.style.left=Math.round(left)+"px";
+    panel.style.top=Math.round(top)+"px";
+    panel.style.visibility="visible";
+}
+
+window.dvToggleOrderMenu=function(event,button){
+    if(event){
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
+    const menu=button.closest(".dv-order-menu");
+    if(!menu)return;
+
+    const panel=menu.querySelector(".dv-order-menu__panel");
+    if(!panel)return;
+
+    if(
+        dvKanbanOrderMenuActual
+        && dvKanbanOrderMenuActual.button===button
+    ){
+        dvCerrarOrderMenuKanban();
+        return;
+    }
+
+    dvCerrarOrderMenuKanban();
+
+    const owner=menu;
+    document.body.appendChild(panel);
+    panel.classList.add("dv-order-menu__panel--floating");
+    menu.classList.add("is-open");
+    button.setAttribute("aria-expanded","true");
+
+    dvKanbanOrderMenuActual={
+        menu,
+        panel,
+        owner,
+        button
+    };
+
+    dvPosicionarOrderMenuKanban(button,panel);
+};
+
+document.addEventListener("click",function(evento){
+    if(!dvKanbanOrderMenuActual)return;
+
+    const {panel,button}=dvKanbanOrderMenuActual;
+    if(
+        panel.contains(evento.target)
+        || button.contains(evento.target)
+    ){
+        return;
+    }
+    dvCerrarOrderMenuKanban();
+});
+
+document.addEventListener("keydown",function(evento){
+    if(evento.key==="Escape"){
+        dvCerrarOrderMenuKanban();
+    }
+});
+
+window.addEventListener("resize",dvCerrarOrderMenuKanban);
+document.addEventListener("scroll",function(){
+    if(dvKanbanOrderMenuActual){
+        dvCerrarOrderMenuKanban();
+    }
+},true);
+
 function mensajeDesdeDocumento(documento){
     const error=documento.querySelector(".mensaje.error");
     if(error)return {texto:error.textContent.trim(),error:true};
@@ -1203,6 +1433,7 @@ function enfocarColumnaKanban(id){
 }
 
 function reemplazarKanbanDesdeDocumento(documento,target,mensajeFallback){
+    dvCerrarOrderMenuKanban();
     const nuevo=documento.getElementById("preparacion-kanban-shell");
     const actual=document.getElementById("preparacion-kanban-shell");
     if(!nuevo||!actual)return false;
