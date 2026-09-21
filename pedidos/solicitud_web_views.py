@@ -53,6 +53,22 @@ def lista_solicitudes_web(request):
         "pedidos/solicitudes_web_lista.html",
         {
             "solicitudes": solicitudes,
+            "solicitudes_nuevas": [
+                item for item in base
+                if item.estado == "NUEVA"
+            ],
+            "solicitudes_contactadas": [
+                item for item in base
+                if item.estado == "CONTACTADA"
+            ],
+            "solicitudes_convertidas": [
+                item for item in base
+                if item.estado == "CONVERTIDA"
+            ],
+            "solicitudes_rechazadas": [
+                item for item in base
+                if item.estado == "RECHAZADA"
+            ],
             "estado_seleccionado": (
                 estado if estado in estados_validos else ""
             ),
