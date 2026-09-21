@@ -1,6 +1,9 @@
-Deploy QA: escala tipográfica estándar de Gestión
-- Aumenta legibilidad global de textos secundarios, botones, badges, tablas e inputs.
-- Unifica Configuración, Métricas, menú lateral, menús contextuales y Preparación/Kanban.
-- Mantiene jerarquía visual y responsive.
-- Inputs móviles a 16px para evitar zoom automático y mejorar lectura.
+Deploy QA: Kanban compartido en Gestión
+- Solicitudes web: Nuevas, Contactadas, Convertidas y Rechazadas.
+- Presupuestos: Pendientes, Aprobados y Rechazados.
+- Producción: Necesidad, Cola, Imprimiendo y Listos.
+- Producción conserva el panel superior de impresoras y la planificación manual.
+- Se reutiliza la escala tipográfica estándar de Gestión y un estilo Kanban compartido.
+- Responsive horizontal en tablet/móvil.
+- Se mantienen las reglas y acciones existentes; sólo cambia la representación operativa.
 Sin migraciones.
