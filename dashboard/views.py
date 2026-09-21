@@ -1103,6 +1103,14 @@ def configuracion(request):
             ),
             "metricas_config": metricas_config,
             "metricas": resumen_metricas(periodo_metricas),
+            "turnstile_configurado": bool(
+                getattr(settings, "TURNSTILE_SITE_KEY", "")
+                and getattr(settings, "TURNSTILE_SECRET_KEY", "")
+            ),
+            "turnstile_prueba": (
+                getattr(settings, "TURNSTILE_SITE_KEY", "")
+                .startswith(("1x00000000000000000000", "2x00000000000000000000", "3x00000000000000000000"))
+            ),
         },
     )
 
