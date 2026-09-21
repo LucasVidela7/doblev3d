@@ -2442,7 +2442,8 @@ body.dv-management-menu-ready .dv-kanban-column{
     min-width:0;
     max-height:calc(100vh - 220px);
     overflow-y:auto;
-    overscroll-behavior:contain;
+    overscroll-behavior-y:contain;
+    overscroll-behavior-x:auto;
     scroll-snap-align:start;
     border:1px solid var(--dv-border);
     border-top:4px solid var(--dv-kanban-accent,var(--dv-brand-blue));
@@ -2604,16 +2605,49 @@ body.dv-management-menu-ready .dv-kanban-column.is-danger{--dv-kanban-accent:#c6
 body.dv-management-menu-ready .dv-kanban-column.is-neutral{--dv-kanban-accent:#8993a4}
 
 @media(max-width:1050px){
+    body.dv-management-menu-ready .dv-kanban-shell{
+        width:100%;
+        max-width:100%;
+        overflow:visible;
+    }
     body.dv-management-menu-ready .dv-kanban-board{
         grid-template-columns:none;
         grid-auto-flow:column;
-        grid-auto-columns:min(86vw,360px);
+        grid-auto-columns:min(88vw,380px);
         justify-content:start;
+        width:100%;
+        max-width:100%;
+        overflow-x:auto!important;
+        overflow-y:hidden;
+        padding-inline:2px 18px;
+        scroll-padding-inline:2px 18px;
         scroll-snap-type:x mandatory;
+        overscroll-behavior-x:contain;
+        overscroll-behavior-y:auto;
+        -webkit-overflow-scrolling:touch;
+        scrollbar-width:none;
+    }
+    body.dv-management-menu-ready .dv-kanban-board::-webkit-scrollbar{
+        display:none;
     }
     body.dv-management-menu-ready .dv-kanban-column{
+        width:100%;
+        min-width:0;
         max-height:calc(100vh - 210px);
+        overflow-x:hidden;
+        overflow-y:auto;
+        overscroll-behavior-x:auto;
+        overscroll-behavior-y:contain;
         scroll-snap-align:start;
+        scroll-snap-stop:always;
+        -webkit-overflow-scrolling:touch;
+    }
+}
+
+@media(max-width:480px){
+    body.dv-management-menu-ready .dv-kanban-board{
+        grid-auto-columns:calc(100vw - 38px);
+        gap:9px;
     }
 }
 
