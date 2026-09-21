@@ -1,6 +1,7 @@
-Deploy QA: fuente Avant Garde real
-- Agrega WOFF2 optimizado de AvantGardeMdITCTT Bold para la marca.
-- Mantenimiento usa la fuente real en “Doble V 3D”.
-- Header del catálogo usa la misma fuente real.
-- Mantiene alineación corregida de logo y texto.
+Deploy QA: checks de Preparación sin recarga
+- Marcar/desmarcar productos por AJAX.
+- Mantiene posición exacta y details abierto.
+- Actualiza estado del producto, progreso X/Y y barra.
+- Muestra PAQUETE LISTO al completar.
+- Revierte el check y muestra error si backend rechaza el cambio.
 Sin migraciones.
