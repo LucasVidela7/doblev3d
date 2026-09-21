@@ -1,4 +1,4 @@
-QA load test trigger
-Run after pre-launch legal/performance/anti-spam deploy.
-Validate floating withdrawal button and Turnstile.
-Target: 50 concurrent users.
+QA metrics smoke + load
+- Run metricas.tests with legal/cart/health tests.
+- Verify deployed QA after metricas.0001_initial.
+- Re-run 50 concurrent public catalog users.
