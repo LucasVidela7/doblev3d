@@ -607,6 +607,82 @@ html[data-dv-theme="dark"] body.dv-pedido-form-page .personalizado-recomendacion
     background:var(--dv-brand-blue-soft)!important;
 }
 
+
+/* Nuevo/Editar presupuesto · contraste completo en modo oscuro.
+   Los templates históricos todavía traen fondos blancos y textos oscuros
+   en previews y editores de precio. Esta capa común cubre ambos formularios. */
+html[data-dv-theme="dark"] body.dv-pedido-form-page .seleccion-preview{
+    background:var(--dv-surface-soft)!important;
+    border-color:var(--dv-border)!important;
+    color:var(--dv-text)!important;
+}
+
+html[data-dv-theme="dark"] body.dv-pedido-form-page .seleccion-preview strong,
+html[data-dv-theme="dark"] body.dv-pedido-form-page .precio-producto-titulo,
+html[data-dv-theme="dark"] body.dv-pedido-form-page .precio-titulo{
+    color:var(--dv-text)!important;
+}
+
+html[data-dv-theme="dark"] body.dv-pedido-form-page .seleccion-preview span,
+html[data-dv-theme="dark"] body.dv-pedido-form-page .precio-producto-ayuda,
+html[data-dv-theme="dark"] body.dv-pedido-form-page .precio-info,
+html[data-dv-theme="dark"] body.dv-pedido-form-page .recomendacion-detalle{
+    color:var(--dv-muted)!important;
+}
+
+html[data-dv-theme="dark"] body.dv-pedido-form-page .seleccion-preview .vacia{
+    background:var(--dv-surface-muted)!important;
+    color:var(--dv-muted)!important;
+    border-color:var(--dv-border)!important;
+}
+
+html[data-dv-theme="dark"] body.dv-pedido-form-page .recomendacion{
+    background:var(--dv-surface-soft)!important;
+    border-color:var(--dv-border)!important;
+    color:var(--dv-text)!important;
+}
+
+html[data-dv-theme="dark"] body.dv-pedido-form-page .recomendacion.recomendado{
+    background:var(--dv-brand-blue-soft)!important;
+    border-color:color-mix(
+        in srgb,
+        var(--dv-accent-blue-text) 24%,
+        var(--dv-border)
+    )!important;
+    color:var(--dv-accent-blue-text)!important;
+}
+
+html[data-dv-theme="dark"] body.dv-pedido-form-page .boton-usar-precio,
+html[data-dv-theme="dark"] body.dv-pedido-form-page .personalizado-boton-usar,
+html[data-dv-theme="dark"] body.dv-pedido-form-page .usar-precio{
+    background:var(--dv-surface-muted)!important;
+    border:1px solid var(--dv-border)!important;
+    color:var(--dv-text)!important;
+}
+
+html[data-dv-theme="dark"] body.dv-pedido-form-page .boton-usar-precio:hover,
+html[data-dv-theme="dark"] body.dv-pedido-form-page .personalizado-boton-usar:hover,
+html[data-dv-theme="dark"] body.dv-pedido-form-page .usar-precio:hover{
+    background:var(--dv-surface)!important;
+    border-color:color-mix(
+        in srgb,
+        var(--dv-accent-blue-text) 30%,
+        var(--dv-border)
+    )!important;
+}
+
+html[data-dv-theme="dark"] body.dv-pedido-form-page .dv-kit-price-title,
+html[data-dv-theme="dark"] body.dv-pedido-form-page .dv-kit-price-grid label{
+    color:var(--dv-text)!important;
+}
+
+html[data-dv-theme="dark"] body.dv-pedido-form-page .dv-kit-price-total,
+html[data-dv-theme="dark"] body.dv-pedido-form-page .dv-kit-reference{
+    background:var(--dv-surface-muted)!important;
+    border-color:var(--dv-border)!important;
+    color:var(--dv-text)!important;
+}
+
 @media(min-width:1180px){
     body.dv-management-menu-ready.dv-pedido-form-page .guardar{
         left:calc(50% - 154px);
