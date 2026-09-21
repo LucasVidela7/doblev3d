@@ -874,7 +874,7 @@ def accion_rapida_necesidad(request):
             "Ingresá una cantidad mayor a cero.",
         )
         return redirect(
-            reverse("produccion:lista") + "#que-imprimir"
+            reverse("produccion:lista") + "#prod-necesidad"
         )
 
     # Los trabajos personalizados están ligados a un pedido y no
@@ -887,7 +887,7 @@ def accion_rapida_necesidad(request):
             "Ese trabajo personalizado ya no tiene unidades por planificar.",
         )
         return redirect(
-            reverse("produccion:lista") + "#que-imprimir"
+            reverse("produccion:lista") + "#prod-necesidad"
         )
 
     if personalizado_id and cantidad > restante:
@@ -896,7 +896,7 @@ def accion_rapida_necesidad(request):
             f"Quedan {restante} unidad(es) personalizadas por cubrir.",
         )
         return redirect(
-            reverse("produccion:lista") + "#que-imprimir"
+            reverse("produccion:lista") + "#prod-necesidad"
         )
 
     tiempo_total = _tiempo_sugerido_produccion(
@@ -913,7 +913,7 @@ def accion_rapida_necesidad(request):
             ),
         )
         return redirect(
-            reverse("produccion:lista") + "#que-imprimir"
+            reverse("produccion:lista") + "#prod-necesidad"
         )
 
     impresora = None
@@ -931,7 +931,7 @@ def accion_rapida_necesidad(request):
                 "Elegí una impresora libre para iniciar.",
             )
             return redirect(
-                reverse("produccion:lista") + "#que-imprimir"
+                reverse("produccion:lista") + "#prod-necesidad"
             )
 
         impresora = get_object_or_404(
@@ -958,7 +958,7 @@ def accion_rapida_necesidad(request):
             "La acción solicitada no es válida.",
         )
         return redirect(
-            reverse("produccion:lista") + "#que-imprimir"
+            reverse("produccion:lista") + "#prod-necesidad"
         )
 
     produccion = Produccion.objects.create(
@@ -993,7 +993,7 @@ def accion_rapida_necesidad(request):
         ),
     )
     return redirect(
-        reverse("produccion:lista") + "#cola"
+        reverse("produccion:lista") + "#prod-cola"
     )
 
 
