@@ -1,7 +1,5 @@
-Deploy QA: contraste de Nuevo/Editar presupuesto
-- Corrige vista previa de producto en modo oscuro.
-- Corrige títulos y ayudas del bloque de precio.
-- Corrige botón "Usar precio catálogo" y base catálogo.
-- Unifica recomendaciones y referencias de precio en Nuevo/Editar.
-- Revisa también el bloque de precio de kits.
+Deploy QA: métricas en modo oscuro
+- Corrige la tarjeta de Conversión para usar fondo success oscuro.
+- Ajusta borde y contraste de textos.
+- Reutiliza variables semánticas success/warning en Configuración.
 Sin migraciones.
