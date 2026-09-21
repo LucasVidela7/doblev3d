@@ -1,5 +1,10 @@
-Deploy QA: métricas en modo oscuro
-- Corrige la tarjeta de Conversión para usar fondo success oscuro.
-- Ajusta borde y contraste de textos.
-- Reutiliza variables semánticas success/warning en Configuración.
+Deploy QA: Preparación en vista Kanban
+- Cuatro columnas operativas: Falta stock, Para preparar, En preparación y Listos.
+- Tarjetas compactas con productos colapsados.
+- Encabezados y contadores fijos por columna.
+- Responsive: cuatro columnas en PC y navegación horizontal por etapas en tablet/móvil.
+- Iniciar preparación y liberar pendientes actualizan el tablero sin recargar la página.
+- Al completar el último check, el pedido pasa visualmente a Listos sin recarga.
+- Se conserva la lógica actual de reserva, liberación y descuento de stock.
+- Incluye también los ajustes QA pendientes de contraste en presupuestos y métricas dark mode.
 Sin migraciones.
