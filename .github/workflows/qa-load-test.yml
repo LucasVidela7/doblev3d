@@ -129,6 +129,34 @@ jobs:
                           f"QA catalog not publicly available at {path}: {result}"
                       )
 
+          # Verify launch-only UI/security elements on the deployed QA app.
+          def html_for(path):
+              req = urllib.request.Request(
+                  BASE + path,
+                  headers={"User-Agent": UA},
+              )
+              with urllib.request.urlopen(req, timeout=TIMEOUT) as response:
+                  final = response.geturl()
+                  if final.rstrip("/") != (BASE + path).rstrip("/"):
+                      raise SystemExit(
+                          f"{path} redirected unexpectedly to {final}"
+                      )
+                  return response.read().decode("utf-8", "ignore")
+
+          home_html = html_for("/")
+          if 'id="dv-catalog-withdrawal-float"' not in home_html:
+              raise SystemExit("Floating withdrawal button is missing from home")
+          if "dv-catalog-header__withdrawal-link" in home_html:
+              raise SystemExit("Withdrawal button unexpectedly remains in header")
+
+          withdrawal_html = html_for("/arrepentimiento/")
+          if "cf-turnstile" not in withdrawal_html:
+              raise SystemExit("Turnstile widget is missing from withdrawal form")
+
+          checkout_html = html_for("/carrito/")
+          if "cf-turnstile" not in checkout_html:
+              raise SystemExit("Turnstile widget is missing from checkout")
+
           # Discover a real product to exercise a detail and pricing request.
           req = urllib.request.Request(
               BASE + "/productos/",
