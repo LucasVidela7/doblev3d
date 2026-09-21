@@ -38,6 +38,7 @@ jobs:
         run: |
           python manage.py test \
             metricas.tests \
+            dashboard.test_login_csrf \
             productos.test_catalogo_legal \
             productos.test_catalogo_mantenimiento_admin \
             productos.test_healthcheck \
