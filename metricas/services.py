@@ -1,5 +1,5 @@
 import hashlib
-from datetime import timedelta
+from datetime import datetime, time, timedelta
 
 from django.conf import settings
 from django.core.cache import cache
@@ -143,9 +143,9 @@ def resumen_metricas(periodo=30):
     hoy = timezone.localdate()
     desde_fecha = hoy - timedelta(days=periodo - 1)
     desde = timezone.make_aware(
-        timezone.datetime.combine(
+        datetime.combine(
             desde_fecha,
-            timezone.datetime.min.time(),
+            time.min,
         )
     )
 
