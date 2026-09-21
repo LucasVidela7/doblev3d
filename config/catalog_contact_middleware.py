@@ -158,13 +158,26 @@ header.shell.top{display:none!important}
     background:#c63838;color:#fff;text-decoration:none;
     box-shadow:0 12px 28px rgba(117,26,31,.25);
     font-size:.68rem;font-weight:950;letter-spacing:.015em;
-    transition:transform .15s ease,box-shadow .15s ease,background .15s ease;
+    white-space:nowrap;overflow:hidden;
+    transition:
+        min-height .24s ease,padding .24s ease,border-radius .24s ease,
+        font-size .24s ease,gap .24s ease,transform .15s ease,
+        box-shadow .24s ease,background .15s ease;
     -webkit-tap-highlight-color:transparent
+}
+.dv-catalog-withdrawal-float.is-compact{
+    min-height:36px;padding:0 9px;border-radius:999px;gap:5px;
+    font-size:.56rem;
+    box-shadow:0 8px 20px rgba(117,26,31,.20)
 }
 .dv-catalog-withdrawal-float__icon{
     width:23px;height:23px;display:grid;place-items:center;flex:0 0 auto;
     border-radius:999px;background:rgba(255,255,255,.16);
-    font-size:1rem;line-height:1
+    font-size:1rem;line-height:1;
+    transition:width .24s ease,height .24s ease,font-size .24s ease
+}
+.dv-catalog-withdrawal-float.is-compact .dv-catalog-withdrawal-float__icon{
+    width:20px;height:20px;font-size:.86rem
 }
 @media(hover:hover){
     .dv-catalog-withdrawal-float:hover{
@@ -187,7 +200,14 @@ body:has(.dv-kit-builder) .dv-catalog-withdrawal-float{
         min-height:42px;padding:0 11px;border-radius:12px;
         font-size:.61rem
     }
+    .dv-catalog-withdrawal-float.is-compact{
+        min-height:34px;padding:0 8px;border-radius:999px;
+        gap:4px;font-size:.52rem
+    }
     .dv-catalog-withdrawal-float__icon{width:21px;height:21px;font-size:.9rem}
+    .dv-catalog-withdrawal-float.is-compact .dv-catalog-withdrawal-float__icon{
+        width:19px;height:19px;font-size:.8rem
+    }
     body:has(.dv-product-builder) .dv-catalog-withdrawal-float,
     body:has(.dv-kit-builder) .dv-catalog-withdrawal-float{
         bottom:88px
@@ -328,6 +348,19 @@ def _legal_footer_html(view_name=""):
             f'href="{arrepentimiento_url}" aria-label="Botón de arrepentimiento">'
             '<span class="dv-catalog-withdrawal-float__icon" aria-hidden="true">↩</span>'
             '<span>BOTÓN DE ARREPENTIMIENTO</span></a>'
+            '<script>(function(){'
+            'var b=document.getElementById("dv-catalog-withdrawal-float");'
+            'if(!b)return;'
+            'var t=null;'
+            'function compact(){b.classList.add("is-compact");}'
+            'function expand(){clearTimeout(t);b.classList.remove("is-compact");}'
+            'function later(){clearTimeout(t);t=setTimeout(compact,900);}'
+            't=setTimeout(compact,5000);'
+            'b.addEventListener("pointerenter",expand);'
+            'b.addEventListener("pointerleave",later);'
+            'b.addEventListener("focus",expand);'
+            'b.addEventListener("blur",later);'
+            '})();</script>'
         )
 
     contenido = (
