@@ -613,9 +613,9 @@
                         : 0;
                     discountNode.hidden = !(discount > 0);
                     discountNode.textContent = discount > 0
-                        ? discount.toLocaleString('es-AR', {
-                            maximumFractionDigits: 1,
-                        }) + '% DESC.'
+                        ? '-' + discount.toLocaleString('es-AR', {
+                            maximumFractionDigits: 2,
+                        }) + '%'
                         : '';
                 }
 

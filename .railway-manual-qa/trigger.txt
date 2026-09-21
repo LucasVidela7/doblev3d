@@ -1,5 +1,6 @@
-Deploy QA: mantener descuento en una sola línea
-- El badge de descuento de las tarjetas de productos no hace salto de línea.
-- Se evita wrap, word-break y compresión horizontal.
-- Se ajusta mínimamente la tipografía para mantener el badge compacto.
+Deploy QA: descuento compacto junto al precio
+- El descuento deja de mostrarse como badge debajo del precio.
+- Se muestra en la misma línea del importe, por ejemplo: $ 6.734 -3,8%.
+- Usa hasta 2 decimales según el porcentaje real calculado por backend.
+- Se ajusta el ancho del bloque para evitar saltos de línea.
 Sin migraciones.
