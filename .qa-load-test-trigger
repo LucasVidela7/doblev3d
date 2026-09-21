@@ -1,8 +1,5 @@
-QA prelaunch smoke + load v3
-Run public Django smoke tests first:
-- legal
-- maintenance/admin bypass
-- healthcheck
-- public cart submission
-Then run 50 concurrent virtual users against deployed QA.
-No redirects to login allowed.
+QA prelaunch smoke + load v4
+- collectstatic before public smoke
+- current pricing rule validated: products 1-4 units at list price
+- legal, maintenance, healthcheck and cart smoke
+- 50 concurrent external users after smoke
