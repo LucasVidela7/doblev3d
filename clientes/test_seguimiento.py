@@ -323,3 +323,119 @@ class SeguimientoClientesTests(TestCase):
             contacto.mensaje,
         )
 
+    def test_seguimiento_unifica_dos_pedidos_y_whatsapp(self):
+        pedido_a = Pedido.objects.create(
+            cliente=self.cliente,
+            estado="LISTO",
+        )
+        DetallePedido.objects.create(
+            pedido=pedido_a,
+            tipo_item="PRODUCTO",
+            producto=self.producto,
+            cantidad=1,
+            precio_unitario=Decimal("5000"),
+        )
+
+        pedido_b = Pedido.objects.create(
+            cliente=self.cliente,
+            estado="LISTO",
+        )
+        DetallePedido.objects.create(
+            pedido=pedido_b,
+            tipo_item="PRODUCTO",
+            producto=self.producto,
+            cantidad=2,
+            precio_unitario=Decimal("7500"),
+        )
+
+        respuesta = self.client.get(
+            reverse(
+                "clientes:detalle",
+                args=[self.cliente.id],
+            )
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        seguimientos_pedidos = [
+            item
+            for item in respuesta.context["seguimientos"]
+            if item["tipo"] in {
+                "PEDIDO_LISTO",
+                "SALDO",
+            }
+        ]
+        self.assertEqual(
+            len(seguimientos_pedidos),
+            1,
+        )
+        seguimiento = seguimientos_pedidos[0]
+        self.assertEqual(
+            seguimiento["titulo"],
+            "2 pedidos listos para entregar",
+        )
+        self.assertIn(
+            pedido_a.codigo,
+            seguimiento["detalle"],
+        )
+        self.assertIn(
+            pedido_b.codigo,
+            seguimiento["detalle"],
+        )
+        self.assertIn(
+            "Saldo total $ 20,000",
+            seguimiento["detalle"],
+        )
+        self.assertIn(
+            "pedidos=",
+            seguimiento["url"],
+        )
+
+        respuesta_whatsapp = self.client.get(
+            reverse(
+                "clientes:whatsapp",
+                args=[self.cliente.id],
+            ),
+            {
+                "motivo": "PEDIDO_LISTO",
+                "pedidos": (
+                    f"{pedido_a.id},{pedido_b.id}"
+                ),
+            },
+        )
+
+        self.assertEqual(
+            respuesta_whatsapp.status_code,
+            302,
+        )
+        self.assertTrue(
+            respuesta_whatsapp.url.startswith(
+                "https://wa.me/"
+            )
+        )
+
+        contacto = ContactoCliente.objects.get()
+        self.assertEqual(
+            contacto.motivo,
+            "PEDIDO_LISTO",
+        )
+        self.assertIn(
+            pedido_a.codigo,
+            contacto.mensaje,
+        )
+        self.assertIn(
+            pedido_b.codigo,
+            contacto.mensaje,
+        )
+        self.assertIn(
+            "1 × Pepino sensorial",
+            contacto.mensaje,
+        )
+        self.assertIn(
+            "2 × Pepino sensorial",
+            contacto.mensaje,
+        )
+        self.assertIn(
+            "Saldo total pendiente: $20.000",
+            contacto.mensaje,
+        )
+
