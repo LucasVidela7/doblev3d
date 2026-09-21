@@ -13,6 +13,8 @@ from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 
+from metricas.models import MetricasConfiguracion
+from metricas.services import invalidar_configuracion_metricas, resumen_metricas
 from pedidos.models import (
     Pedido,
     Pago,
@@ -964,6 +966,15 @@ def configuracion(request):
     config, _ = ConfiguracionCatalogo.objects.get_or_create(
         pk=1
     )
+    metricas_config, _ = MetricasConfiguracion.objects.get_or_create(
+        pk=1
+    )
+    try:
+        periodo_metricas = int(request.GET.get("periodo", "30"))
+    except (TypeError, ValueError):
+        periodo_metricas = 30
+    if periodo_metricas not in {7, 30, 90}:
+        periodo_metricas = 30
 
     campos_texto = {
         "mensaje_mantenimiento": 240,
@@ -1012,9 +1023,31 @@ def configuracion(request):
         config.save(
             update_fields=actualizados,
         )
+
+        metricas_config.activas = (
+            request.POST.get("metricas_activas") == "on"
+        )
+        try:
+            retencion = int(
+                request.POST.get("metricas_retencion_dias")
+                or metricas_config.retencion_dias
+                or 180
+            )
+        except (TypeError, ValueError):
+            retencion = 180
+        metricas_config.retencion_dias = max(
+            30,
+            min(retencion, 365),
+        )
+        metricas_config.save(
+            update_fields=["activas", "retencion_dias"],
+        )
+        invalidar_configuracion_metricas()
+
         return redirect(
             reverse("dashboard:configuracion")
-            + "?guardado=1"
+            + "?guardado=1&periodo="
+            + str(periodo_metricas)
         )
 
     whatsapp_defaults = {}
@@ -1068,6 +1101,8 @@ def configuracion(request):
                 .filter(estado="NUEVA")
                 .count()
             ),
+            "metricas_config": metricas_config,
+            "metricas": resumen_metricas(periodo_metricas),
         },
     )
 
