@@ -1241,6 +1241,29 @@ def cambiar_listo_impresion(request):
             "pedidos:impresiones"
         )
 
+    es_ajax = (
+        request.headers.get("X-Requested-With")
+        == "XMLHttpRequest"
+    )
+
+    def responder_error(mensaje, status=409):
+        if es_ajax:
+            return JsonResponse(
+                {
+                    "ok": False,
+                    "mensaje": mensaje,
+                },
+                status=status,
+            )
+
+        messages.error(
+            request,
+            mensaje,
+        )
+        return redirect(
+            "pedidos:impresiones"
+        )
+
     marcar_listo = (
         request.POST.get("listo")
         == "1"
@@ -1285,16 +1308,11 @@ def cambiar_listo_impresion(request):
             "ENTREGADO",
             "CANCELADO",
         ]:
-            messages.error(
-                request,
+            return responder_error(
                 (
                     "No se puede modificar un pedido "
                     "entregado o cancelado."
-                ),
-            )
-
-            return redirect(
-                "pedidos:impresiones"
+                )
             )
 
         detalle.estado = (
@@ -1312,6 +1330,24 @@ def cambiar_listo_impresion(request):
         _actualizar_estado_general_pedido(
             pedido
         )
+
+        if es_ajax:
+            pedido.refresh_from_db(
+                fields=["estado"]
+            )
+            return JsonResponse(
+                {
+                    "ok": True,
+                    "listo": marcar_listo,
+                    "personalizado": True,
+                    "pedido_estado": pedido.estado,
+                    "mensaje": (
+                        "Personalizado preparado."
+                        if marcar_listo
+                        else "Personalizado vuelto a pendiente."
+                    ),
+                }
+            )
 
         return redirect(
             "pedidos:impresiones"
@@ -1371,35 +1407,23 @@ def cambiar_listo_impresion(request):
         )
 
         if cantidad_necesaria <= 0:
-
-            messages.error(
-                request,
+            return responder_error(
                 (
                     "No se encontró demanda pendiente "
                     f"para {producto.nombre}."
-                ),
-            )
-
-            return redirect(
-                "pedidos:impresiones"
+                )
             )
 
         if (
             not estado_impresion.reservado_stock
             and stock_disponible < cantidad_necesaria
         ):
-
-            messages.error(
-                request,
+            return responder_error(
                 (
                     f"No hay stock suficiente de {producto.nombre}. "
                     f"Este pedido necesita {cantidad_necesaria} y "
                     f"solo hay {stock_disponible} disponible."
-                ),
-            )
-
-            return redirect(
-                "pedidos:impresiones"
+                )
             )
 
         if estado_impresion.reservado_stock:
@@ -1408,15 +1432,13 @@ def cambiar_listo_impresion(request):
             )
 
             if cantidad_reservada != cantidad_necesaria:
-                messages.error(
-                    request,
+                return responder_error(
                     (
                         f"La reserva de {producto.nombre} no coincide con "
                         "la cantidad actual del pedido. Liberá la preparación "
                         "y volvé a iniciarla."
-                    ),
+                    )
                 )
-                return redirect("pedidos:impresiones")
 
             estado_impresion.cantidad_stock_descontada = cantidad_reservada
             estado_impresion.stock_descontado = True
@@ -1496,6 +1518,70 @@ def cambiar_listo_impresion(request):
     _actualizar_estado_general_pedido(
         pedido
     )
+
+    if es_ajax:
+        pedido.refresh_from_db(
+            fields=["estado"]
+        )
+        producto.refresh_from_db(
+            fields=["stock"]
+        )
+        estado_impresion.refresh_from_db(
+            fields=[
+                "listo",
+                "cantidad_stock_descontada",
+                "reservado_stock",
+                "cantidad_stock_reservada",
+            ]
+        )
+
+        cantidad_descontada = int(
+            estado_impresion.cantidad_stock_descontada
+            or 0
+        )
+
+        if estado_impresion.listo:
+            estado_texto = (
+                f"Preparado · {cantidad_descontada} descontado"
+                if cantidad_descontada
+                else "Preparado"
+            )
+        elif estado_impresion.reservado_stock:
+            reservado = int(
+                estado_impresion.cantidad_stock_reservada
+                or 0
+            )
+            estado_texto = (
+                f"Reservado · {reservado} "
+                f"unidad{'es' if reservado != 1 else ''}"
+            )
+        else:
+            estado_texto = (
+                f"Stock {int(producto.stock or 0)} · disponible"
+            )
+
+        return JsonResponse(
+            {
+                "ok": True,
+                "listo": bool(estado_impresion.listo),
+                "personalizado": False,
+                "pedido_estado": pedido.estado,
+                "stock_actual": int(producto.stock or 0),
+                "estado_texto": estado_texto,
+                "reservado_stock": bool(
+                    estado_impresion.reservado_stock
+                ),
+                "stock_reservado": int(
+                    estado_impresion.cantidad_stock_reservada
+                    or 0
+                ),
+                "mensaje": (
+                    f"{producto.nombre} preparado."
+                    if estado_impresion.listo
+                    else f"{producto.nombre} volvió a pendiente."
+                ),
+            }
+        )
 
     return redirect(
         "pedidos:impresiones"
