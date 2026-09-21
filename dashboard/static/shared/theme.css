@@ -181,6 +181,37 @@ h3,
     background:var(--dv-brand-blue-strong) !important;
 }
 
+
+/* Gestión: todas las acciones primarias conservan el mismo redondeo.
+   Algunos wrappers (form/details) recibían el fondo primario sin radius
+   y dejaban ver esquinas rectas alrededor del botón interior. */
+.btn.primary,
+.btn.principal,
+.btn.dark,
+.btn-cabecera.principal,
+.btn-principal,
+.boton-principal,
+.boton.principal,
+.fin-action.primary,
+.state-btn.start,
+.cobro-accion,
+.cfg-btn.principal,
+body.dv-pedido-form-page .boton-guardar,
+body.dv-pedido-form-page .guardar,
+body.dv-pedido-form-page .boton-inicio{
+    border-radius:12px !important;
+}
+
+.dv-page-actions > .dv-page-action-primary,
+.dv-page-actions > .dv-page-action-primary > button{
+    border-radius:12px !important;
+}
+
+.dv-page-actions > form.dv-page-action-primary,
+.dv-page-actions > details.dv-page-action-primary{
+    overflow:hidden;
+}
+
 .ver-todo,
 .fin-tab:hover,
 .link,
