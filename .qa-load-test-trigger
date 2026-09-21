@@ -1,6 +1,8 @@
-QA load test trigger v2
-50 concurrent virtual users
-No commercial route may silently redirect to login.
-Exact BOTÓN DE ARREPENTIMIENTO must be visible on /productos/.
-Flow: home -> products -> kits -> product detail -> cart pricing
-Target: 250/250 2xx and overall p95 <= 5000ms
+QA prelaunch smoke + load v3
+Run public Django smoke tests first:
+- legal
+- maintenance/admin bypass
+- healthcheck
+- public cart submission
+Then run 50 concurrent virtual users against deployed QA.
+No redirects to login allowed.

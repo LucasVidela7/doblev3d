@@ -12,7 +12,37 @@ permissions:
   contents: read
 
 jobs:
+  public-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SECRET_KEY: ci-only-secret-key
+      APP_ENV: test
+      DEBUG: "False"
+      SECURE_SSL_REDIRECT: "False"
+      SESSION_COOKIE_SECURE: "False"
+      CSRF_COOKIE_SECURE: "False"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Public launch smoke tests
+        run: |
+          python manage.py test \
+            productos.test_catalogo_legal \
+            productos.test_catalogo_mantenimiento_admin \
+            productos.test_healthcheck \
+            productos.test_carrito_publico \
+            --verbosity 2
+
   load:
+    needs: public-smoke
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
