@@ -42,10 +42,23 @@
     }
 
     const now = Date.now();
+    const params = new URLSearchParams(window.location.search);
+    const utmRaw = (params.get('utm_source') || '').trim();
+    const explicitSource = utmRaw
+        ? 'utm:' + utmRaw.toLowerCase().slice(0, 90)
+        : '';
+
     const expired = !session.id || !session.last || now - session.last > SESSION_TTL;
-    if (expired) {
-        let source = 'Directo';
-        if (document.referrer) {
+    const sourceChanged = Boolean(
+        explicitSource
+        && session.source
+        && session.source !== explicitSource
+    );
+
+    if (expired || sourceChanged || (explicitSource && !session.id)) {
+        let source = explicitSource || 'Directo';
+
+        if (!explicitSource && document.referrer) {
             try {
                 const ref = new URL(document.referrer);
                 if (ref.hostname && ref.hostname !== window.location.hostname) {
@@ -54,10 +67,6 @@
             } catch (_) {}
         }
 
-        const params = new URLSearchParams(window.location.search);
-        const utm = params.get('utm_source');
-        if (utm) source = 'utm:' + utm.slice(0, 90);
-
         session = {
             id: uuid(),
             last: now,
@@ -65,6 +74,9 @@
         };
     } else {
         session.last = now;
+        if (explicitSource) {
+            session.source = explicitSource;
+        }
     }
     safeStorage.set(SESSION_KEY, JSON.stringify(session));
 
