@@ -2131,3 +2131,289 @@ html[data-dv-theme="dark"] .photo{
         min-width:44px!important;
     }
 }
+
+/* =========================================================
+   GESTIÓN · ESCALA TIPOGRÁFICA ESTÁNDAR
+   Una sola escala para toda la suite interna.
+   Prioriza legibilidad sin cambiar la jerarquía visual.
+   ========================================================= */
+body.dv-management-menu-ready{
+    --dv-font-caption:10.5px;
+    --dv-font-small:11.5px;
+    --dv-font-control:12px;
+    --dv-font-body:13px;
+    --dv-font-input:14px;
+    font-size:15px!important;
+    line-height:1.48!important;
+}
+
+/* Texto secundario, ayudas y metadatos */
+body.dv-management-menu-ready :is(
+    .subtitle,.subtitulo,.panel-subtitulo,.section-help,.seccion-ayuda,
+    .metric-note,.metrica-nota,.meta,.origin,.queue-meta,.action-info,
+    .pago-fecha,.pago-observacion,.detalle-cuotas,.dato-label,
+    .campo label,.field label,.label,.code,.metrica-label,.metrica-etiqueta,
+    .metrica-ayuda,.que-imprimir-meta,.web-meta,.web-money span,
+    .entrega-cliente span,.item-tipo,.item-dato,.prep-contador,
+    .prep-personal,.prep-estado .label,.prep-estado .valor,
+    .personal p,.personal strong,.history-title,.queue-title,
+    .printer-name,.product-name,.pago-medio,.pago-monto
+){
+    font-size:var(--dv-font-small)!important;
+    line-height:1.45!important;
+}
+
+/* Botones y controles de acción */
+body.dv-management-menu-ready :is(
+    .btn,.boton,.fin-action,.fin-tab,.boton-mini,.cobro-accion,
+    .entrega-link,.web-link a,.dv-btn-listo,.dv-btn-cancelar,.dv-btn-iniciar,
+    .btn-head,.btn-cabecera,.cfg-btn
+){
+    font-size:var(--dv-font-control)!important;
+}
+
+/* Estados y badges */
+body.dv-management-menu-ready :is(
+    .badge,.pill,.estado,.web-status,.metrica-titulo,.pedido-status,
+    .tag,.cfg-status,.cfg-legal-badge,.metric-kind
+){
+    font-size:var(--dv-font-caption)!important;
+}
+
+/* Inputs */
+body.dv-management-menu-ready :is(
+    input,select,textarea,.cfg-input,.cfg-textarea,.metric-select
+){
+    font-size:var(--dv-font-input)!important;
+}
+
+/* Tablas */
+body.dv-management-menu-ready table{
+    font-size:var(--dv-font-control)!important;
+}
+body.dv-management-menu-ready table th{
+    font-size:11px!important;
+}
+body.dv-management-menu-ready table td{
+    font-size:12.5px!important;
+}
+
+/* Cabecera de acciones compartida */
+body.dv-management-menu-ready .dv-page-actions > a,
+body.dv-management-menu-ready .dv-page-actions > button,
+body.dv-management-menu-ready .dv-page-actions > form > button,
+body.dv-management-menu-ready .dv-page-actions > details > summary{
+    font-size:11.5px!important;
+}
+
+/* Menú lateral de Gestión */
+body.dv-management-menu-ready .dv-management-menu__label{
+    font-size:13px!important;
+}
+body.dv-management-menu-ready .dv-management-menu__description{
+    font-size:11px!important;
+}
+body.dv-management-menu-ready .dv-management-menu__title{
+    font-size:17px!important;
+}
+body.dv-management-menu-ready .dv-management-menu__hint{
+    font-size:10.5px!important;
+}
+body.dv-management-menu-ready .dv-management-menu__push-title{
+    font-size:12px!important;
+}
+body.dv-management-menu-ready .dv-management-menu__push-hint{
+    font-size:10.5px!important;
+}
+body.dv-management-menu-ready .dv-management-menu__settings-title{
+    font-size:12px!important;
+}
+body.dv-management-menu-ready .dv-management-menu__settings-hint{
+    font-size:10.5px!important;
+}
+body.dv-management-menu-ready .dv-management-menu__logout{
+    font-size:11.5px!important;
+}
+body.dv-management-menu-ready .dv-theme-control{
+    font-size:10.5px!important;
+}
+
+/* Menús contextuales */
+body.dv-management-menu-ready .dv-order-menu__panel a,
+body.dv-management-menu-ready .dv-order-menu__panel button,
+body.dv-management-menu-ready > .dv-order-menu__panel a,
+body.dv-management-menu-ready > .dv-order-menu__panel button{
+    font-size:11.5px!important;
+}
+
+/* Configuración */
+body.dv-management-menu-ready .cfg-nav a{
+    font-size:11.5px!important;
+}
+body.dv-management-menu-ready .cfg-section-head p{
+    font-size:12.5px!important;
+}
+body.dv-management-menu-ready .cfg-box-title{
+    font-size:13px!important;
+}
+body.dv-management-menu-ready .cfg-box-copy{
+    font-size:12px!important;
+    line-height:1.45!important;
+}
+body.dv-management-menu-ready .cfg-label{
+    font-size:11.5px!important;
+}
+body.dv-management-menu-ready .cfg-note{
+    font-size:11.5px!important;
+}
+body.dv-management-menu-ready .cfg-fold > summary{
+    font-size:13px!important;
+}
+body.dv-management-menu-ready .cfg-message h3{
+    font-size:13px!important;
+}
+body.dv-management-menu-ready .cfg-message p{
+    font-size:12px!important;
+}
+body.dv-management-menu-ready .cfg-reset{
+    font-size:10.5px!important;
+}
+body.dv-management-menu-ready .cfg-var{
+    font-size:10.5px!important;
+}
+body.dv-management-menu-ready .cfg-preview{
+    font-size:11.5px!important;
+}
+body.dv-management-menu-ready .cfg-preview::before{
+    font-size:9.5px!important;
+}
+body.dv-management-menu-ready .cfg-device-copy strong{
+    font-size:13px!important;
+}
+body.dv-management-menu-ready .cfg-device-copy span{
+    font-size:11.5px!important;
+}
+body.dv-management-menu-ready .cfg-legal-item strong{
+    font-size:12.5px!important;
+}
+body.dv-management-menu-ready .cfg-legal-item span{
+    font-size:11.5px!important;
+}
+
+/* Métricas */
+body.dv-management-menu-ready .metrics-periods a,
+body.dv-management-menu-ready .metrics-range{
+    font-size:11.5px!important;
+}
+body.dv-management-menu-ready .metric-kpi span{
+    font-size:11px!important;
+}
+body.dv-management-menu-ready .metric-kpi small{
+    font-size:10.5px!important;
+    line-height:1.4!important;
+}
+body.dv-management-menu-ready .metric-panel-sub{
+    font-size:11.5px!important;
+}
+body.dv-management-menu-ready :is(
+    .metric-funnel-label,.metric-funnel-number,
+    .metric-bar-label,.metric-bar-value
+){
+    font-size:11.5px!important;
+}
+body.dv-management-menu-ready .metric-funnel-number small{
+    font-size:9.5px!important;
+}
+body.dv-management-menu-ready .metric-day-label{
+    font-size:9.5px!important;
+}
+body.dv-management-menu-ready .metric-chart-legend,
+body.dv-management-menu-ready .metrics-meta span{
+    font-size:10.5px!important;
+}
+body.dv-management-menu-ready .metric-table{
+    font-size:11.5px!important;
+}
+body.dv-management-menu-ready .metric-table th{
+    font-size:10.5px!important;
+}
+
+/* Preparación / Kanban */
+body.dv-management-menu-ready .kanban-board .seccion-ayuda{
+    font-size:10.5px!important;
+}
+body.dv-management-menu-ready .kanban-board .seccion-contador{
+    font-size:10px!important;
+}
+body.dv-management-menu-ready .kanban-board .codigo{
+    font-size:12px!important;
+}
+body.dv-management-menu-ready .kanban-board .cliente{
+    font-size:14px!important;
+}
+body.dv-management-menu-ready .kanban-board .tag{
+    font-size:9.5px!important;
+}
+body.dv-management-menu-ready .kanban-board .pedido-status{
+    font-size:9px!important;
+}
+body.dv-management-menu-ready .kanban-board :is(
+    .preparacion-aviso,.falta-resumen
+){
+    font-size:10.5px!important;
+}
+body.dv-management-menu-ready .kanban-board .pedido-productos > summary{
+    font-size:10.5px!important;
+}
+body.dv-management-menu-ready .kanban-board .pedido-productos-resumen{
+    font-size:9.5px!important;
+}
+body.dv-management-menu-ready .kanban-board .producto-nombre{
+    font-size:11.5px!important;
+}
+body.dv-management-menu-ready .kanban-board .producto-detalle{
+    font-size:10px!important;
+}
+body.dv-management-menu-ready .kanban-board .stock span{
+    font-size:9px!important;
+}
+body.dv-management-menu-ready .kanban-board .stock strong{
+    font-size:10.5px!important;
+}
+body.dv-management-menu-ready .kanban-board .progreso-head{
+    font-size:10px!important;
+}
+body.dv-management-menu-ready .kanban-board .saldo{
+    font-size:10.5px!important;
+}
+body.dv-management-menu-ready .kanban-board .saldo strong{
+    font-size:12px!important;
+}
+body.dv-management-menu-ready .kanban-board .btn{
+    font-size:11px!important;
+}
+body.dv-management-menu-ready .kanban-board .vacio{
+    font-size:11px!important;
+}
+
+@media(max-width:720px){
+    body.dv-management-menu-ready{
+        --dv-font-caption:10px;
+        --dv-font-small:11px;
+        --dv-font-control:11.5px;
+        --dv-font-body:12.5px;
+        --dv-font-input:16px;
+    }
+
+    /* 16px en inputs evita zoom automático en iOS y mejora lectura. */
+    body.dv-management-menu-ready :is(input,select,textarea){
+        font-size:16px!important;
+    }
+
+    body.dv-management-menu-ready .dv-page-actions > a,
+    body.dv-management-menu-ready .dv-page-actions > button,
+    body.dv-management-menu-ready .dv-page-actions > form > button{
+        font-size:11px!important;
+    }
+}
+
