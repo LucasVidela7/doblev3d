@@ -85,19 +85,9 @@ class CarritoPublicoTests(TestCase):
 
         solicitud = SolicitudWeb.objects.get()
         item = solicitud.items.get()
-        calculo = calcular_escenarios_producto(self.producto, 2)
-        recomendado = Decimal(
-            str(
-                calculo["escenarios"]["recomendado"][
-                    "total_recomendado"
-                ]
-            )
-        )
-        lista_total = self.producto.subtotal * Decimal("2")
-        esperado_total = min(lista_total, recomendado)
-        esperado_unitario = (
-            esperado_total / Decimal("2")
-        ).quantize(Decimal("0.01"))
+        # La regla vigente mantiene precio de lista entre 1 y 4
+        # unidades; los descuentos de producto comienzan desde 5.
+        esperado_unitario = self.producto.subtotal
 
         self.assertEqual(item.precio_base_unitario, self.producto.subtotal)
         self.assertEqual(item.precio_unitario, esperado_unitario)

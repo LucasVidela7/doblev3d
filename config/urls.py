@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
+from config.health import healthcheck
+
 from productos.catalogo import (
     catalogo,
     catalogo_kits,
@@ -20,6 +22,7 @@ from productos.carrito import carrito_checkout, carrito_gracias, carrito_precios
 
 
 urlpatterns = [
+    path("healthz/", healthcheck, name="healthcheck"),
     # Sitio publico
     path(
         "",

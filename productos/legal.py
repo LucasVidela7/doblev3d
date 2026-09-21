@@ -1,3 +1,8 @@
+import json
+from datetime import timedelta
+from urllib import parse, request as urlrequest
+
+from django.conf import settings
 from django.db import transaction
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -16,10 +21,47 @@ def _config():
     )
 
 
+def _ip_cliente(request):
+    forwarded = (request.META.get("HTTP_X_FORWARDED_FOR") or "").split(",")[0]
+    return (forwarded or request.META.get("REMOTE_ADDR") or "").strip()
+
+
+def _validar_turnstile(request):
+    secret = getattr(settings, "TURNSTILE_SECRET_KEY", "")
+    site_key = getattr(settings, "TURNSTILE_SITE_KEY", "")
+    if not secret or not site_key:
+        return True
+
+    token = (request.POST.get("cf-turnstile-response") or "").strip()
+    if not token:
+        return False
+
+    body = parse.urlencode(
+        {
+            "secret": secret,
+            "response": token,
+            "remoteip": _ip_cliente(request),
+        }
+    ).encode("utf-8")
+
+    try:
+        req = urlrequest.Request(
+            "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+            data=body,
+            method="POST",
+        )
+        with urlrequest.urlopen(req, timeout=4) as response:
+            resultado = json.loads(response.read().decode("utf-8"))
+        return bool(resultado.get("success"))
+    except Exception:
+        return False
+
+
 def _contexto_legal(**extra):
     contexto = {
         "config": _config(),
         "hoy": timezone.localdate(),
+        "turnstile_site_key": getattr(settings, "TURNSTILE_SITE_KEY", ""),
     }
     contexto.update(extra)
     return contexto
@@ -63,7 +105,38 @@ def arrepentimiento(request):
                 "Indicá un WhatsApp o email para poder identificar "
                 "y responder tu solicitud."
             )
+        elif not _validar_turnstile(request):
+            error = (
+                "No pudimos validar la solicitud. "
+                "Actualizá la página e intentá nuevamente."
+            )
         else:
+            ahora = timezone.now()
+            recientes = SolicitudArrepentimiento.objects.filter(
+                contacto__iexact=contacto,
+                creada_en__gte=ahora - timedelta(hours=2),
+            )
+            duplicada = recientes.filter(
+                referencia=referencia,
+                detalle=detalle,
+                creada_en__gte=ahora - timedelta(minutes=15),
+            ).order_by("-id").first()
+
+            if duplicada:
+                request.session["arrepentimiento_ultimo_id"] = duplicada.id
+                return redirect("catalogo_arrepentimiento_gracias")
+
+            if recientes.count() >= 3:
+                error = (
+                    "Ya recibimos varias solicitudes con este contacto. "
+                    "Esperá un rato antes de enviar otra."
+                )
+                return render(
+                    request,
+                    "productos/legal_arrepentimiento.html",
+                    _contexto_legal(error=error),
+                )
+
             solicitud = SolicitudArrepentimiento.objects.create(
                 nombre=nombre,
                 contacto=contacto,

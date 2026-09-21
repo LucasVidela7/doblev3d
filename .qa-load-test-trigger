@@ -1,0 +1,4 @@
+QA load test trigger
+Run after pre-launch legal/performance/anti-spam deploy.
+Validate floating withdrawal button and Turnstile.
+Target: 50 concurrent users.

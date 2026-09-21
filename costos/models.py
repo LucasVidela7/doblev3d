@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.core.cache import cache
 from django.db import models
 
 
@@ -76,3 +77,15 @@ class ConfiguracionCostos(models.Model):
 
     def __str__(self):
         return f"{self.nombre} - {self.fecha_desde}"
+
+    def save(self, *args, **kwargs):
+        resultado = super().save(*args, **kwargs)
+        cache.delete("dv-configuracion-costos-activa-v1")
+        cache.delete("dv-catalog-rotator-payload-v1")
+        return resultado
+
+    def delete(self, *args, **kwargs):
+        resultado = super().delete(*args, **kwargs)
+        cache.delete("dv-configuracion-costos-activa-v1")
+        cache.delete("dv-catalog-rotator-payload-v1")
+        return resultado

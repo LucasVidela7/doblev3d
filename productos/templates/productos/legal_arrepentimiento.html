@@ -1,4 +1,5 @@
 {% extends "productos/legal_base.html" %}
+{% block head_extra %}{% if turnstile_site_key %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{% endif %}{% endblock %}
 {% block title %}Botón de arrepentimiento{% endblock %}
 {% block eyebrow %}Derecho del consumidor{% endblock %}
 {% block heading %}Botón de arrepentimiento{% endblock %}
@@ -22,6 +23,7 @@
 <div class="field full"><label for="referencia">NÚMERO DE PEDIDO / PRESUPUESTO <span style="font-weight:500">(si lo conocés)</span></label><input id="referencia" name="referencia" maxlength="80" value="{{ request.POST.referencia|default:'' }}" placeholder="Ej. PED0012"></div>
 <div class="field full"><label for="detalle">DETALLE <span style="font-weight:500">(opcional)</span></label><textarea id="detalle" name="detalle" maxlength="3000" placeholder="Podés indicar el producto o cualquier información que ayude a identificar la compra.">{{ request.POST.detalle|default:'' }}</textarea></div>
 </div>
+{% if turnstile_site_key %}<div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-action="withdrawal"></div>{% endif %}
 <div class="legal-actions"><button class="legal-btn danger" type="submit">ENVIAR SOLICITUD DE ARREPENTIMIENTO</button><a class="legal-btn" href="{% url 'catalogo_terminos' %}">VER TÉRMINOS</a></div>
 </form>
 </section>

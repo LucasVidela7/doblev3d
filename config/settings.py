@@ -78,6 +78,10 @@ railway_public_domain = os.getenv(
 if railway_public_domain and railway_public_domain not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(railway_public_domain)
 
+# Railway usa este hostname para los probes de salud de cada deploy.
+if "healthcheck.railway.app" not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append("healthcheck.railway.app")
+
 
 # Application definition
 
@@ -274,6 +278,10 @@ SECURE_SSL_REDIRECT = _env_bool(
     "SECURE_SSL_REDIRECT",
     IS_RAILWAY,
 )
+
+# Railway consulta el healthcheck por la red interna. Debe poder responder
+# 200 sin obligar a redirigir a HTTPS.
+SECURE_REDIRECT_EXEMPT = [r"^healthz/$"]
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"

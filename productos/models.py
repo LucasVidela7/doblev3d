@@ -1,6 +1,7 @@
 from decimal import Decimal, ROUND_CEILING
 import re
 
+from django.core.cache import cache
 from django.db import models
 
 from costos.models import ConfiguracionCostos
@@ -303,6 +304,14 @@ class Producto(models.Model):
     def _relaciones_componentes(self):
         if not self.pk or not self.es_compuesto:
             return []
+
+        # El catálogo precarga componentes y sus productos. Reutilizar ese
+        # cache evita repetir queries cada vez que costo, seguro o subtotal
+        # vuelven a recorrer la composición del mismo producto.
+        prefetched = getattr(self, "_prefetched_objects_cache", {})
+        if "componentes" in prefetched:
+            return prefetched["componentes"]
+
         return self.componentes.select_related("componente").all()
 
     @property
@@ -391,12 +400,21 @@ class Producto(models.Model):
             self.sincronizar_productos_padre()
 
     def obtener_configuracion(self):
-        return (
-            ConfiguracionCostos.objects
-            .filter(activa=True)
-            .order_by("-fecha_desde")
-            .first()
-        )
+        # La configuración de costos se consulta muchas veces al renderizar
+        # el catálogo. Un TTL corto evita repetir la misma query por producto
+        # sin dejar precios desactualizados durante más de unos segundos.
+        cache_key = "dv-configuracion-costos-activa-v1"
+        sentinel = object()
+        config = cache.get(cache_key, sentinel)
+        if config is sentinel:
+            config = (
+                ConfiguracionCostos.objects
+                .filter(activa=True)
+                .order_by("-fecha_desde")
+                .first()
+            )
+            cache.set(cache_key, config, 15)
+        return config
 
     @property
     def costo(self):

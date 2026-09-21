@@ -36,6 +36,7 @@ body{margin:0;padding-bottom:110px;background:radial-gradient(circle at top righ
 .dv-product-cart-price{text-align:left;min-width:0}
 .dv-product-cart-price span{display:block;color:var(--muted);font-size:.67rem;font-weight:800;letter-spacing:.04em}
 .dv-product-cart-price strong{display:block;margin-top:3px;color:var(--blue-dark);font-size:1.18rem}
+.dv-product-cart-discount{display:inline-flex;margin-top:4px;padding:3px 7px;border-radius:999px;background:#e9f7ee;color:#216e39;font-size:.61rem;font-weight:950;line-height:1}
 .dv-product-builder .dv-cart-card-control{width:100%;min-width:0;justify-content:flex-end!important}
 .dv-product-builder .dv-cart-add-btn{width:100%!important;min-width:220px!important;min-height:48px!important;font-size:.82rem!important}
 .dv-product-builder .dv-cart-inline-stepper{min-height:48px;grid-template-columns:44px 48px 44px}
@@ -108,6 +109,7 @@ body{margin:0;padding-bottom:110px;background:radial-gradient(circle at top righ
     <div class="dv-product-cart-price">
       <span>SUBTOTAL</span>
       <strong data-dv-product-subtotal>$ {{ producto.catalogo_precio|floatformat:"0g" }}</strong>
+      <span class="dv-product-cart-discount" data-dv-product-discount hidden></span>
     </div>
     <div class="dv-cart-card-control is-ready" data-dv-product-control data-product-id="{{ producto.id }}">
       <button class="dv-cart-add-btn" type="button" data-dv-cart-product data-product-id="{{ producto.id }}" data-product-name="{{ producto.nombre }}" data-product-price="{{ producto.catalogo_precio|unlocalize }}" data-product-image="{{ producto.catalogo_imagen_url }}">AGREGAR AL CARRITO</button>
@@ -131,6 +133,7 @@ body{margin:0;padding-bottom:110px;background:radial-gradient(circle at top righ
 (() => {
   const bar = document.querySelector('[data-dv-product-floating]');
   const subtotalNode = bar?.querySelector('[data-dv-product-subtotal]');
+  const discountNode = bar?.querySelector('[data-dv-product-discount]');
   if (!bar || !subtotalNode) return;
 
   const storageKey = 'dv-catalog-cart-v1';
@@ -154,6 +157,16 @@ body{margin:0;padding-bottom:110px;background:radial-gradient(circle at top righ
       ? Number(item.unitPrice ?? item.listUnitPrice ?? basePrice)
       : basePrice;
     subtotalNode.textContent = money(unit * qty);
+
+    if (discountNode) {
+      const discount = item && !item.pricingPending
+        ? Number(item.discountPercent || 0)
+        : 0;
+      discountNode.hidden = !(discount > 0);
+      discountNode.textContent = discount > 0
+        ? discount.toLocaleString('es-AR', { maximumFractionDigits: 1 }) + '% DESC.'
+        : '';
+    }
   };
 
   document.addEventListener('dv-cart-change', (event) => {

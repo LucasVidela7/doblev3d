@@ -43,6 +43,16 @@ header.shell.top{display:none!important}
 .dv-catalog-header__nav-link.is-active{
     background:#202328;color:#fff;border-color:#202328
 }
+.dv-catalog-header__withdrawal-link{
+    border:1px solid #d46a6a;
+    background:#fff7f7;
+    color:#9b2d2d;
+    font-size:.61rem;
+    letter-spacing:.02em
+}
+.dv-catalog-header__withdrawal-link:hover{
+    background:#fff0f0;color:#842222
+}
 .dv-catalog-header__brand{
     min-width:0;display:inline-flex;align-items:center;gap:9px;
     color:#0d376f;text-decoration:none
@@ -114,6 +124,17 @@ header.shell.top{display:none!important}
         flex:1 1 0;min-height:34px;padding:0 7px;
         border:1px solid #e3e8ef;background:#fff;font-size:.7rem
     }
+    .dv-catalog-header__nav-link.dv-catalog-header__withdrawal-link{
+        position:absolute;left:0;right:0;top:39px;
+        min-height:24px;border-radius:9px;
+        font-size:.58rem
+    }
+    body:has(.dv-catalog-header__withdrawal-link){
+        padding-top:128px!important
+    }
+    body:has(.dv-catalog-header__withdrawal-link) .toolbar{
+        top:128px!important
+    }
 }
 .dv-catalog-legal-footer{
     width:min(1180px,calc(100% - 24px));margin:30px auto 0;padding:18px 0 8px;
@@ -128,35 +149,52 @@ header.shell.top{display:none!important}
     color:#56657a;text-decoration:none;font-size:.68rem;font-weight:800
 }
 .dv-catalog-legal-footer__links a:hover{text-decoration:underline}
-.dv-catalog-withdrawal{
-    position:fixed;right:14px;bottom:14px;z-index:104;
-    min-height:38px;display:inline-flex;align-items:center;justify-content:center;
-    padding:0 11px;border:1px solid #b83232;border-radius:999px;
-    background:#fff;color:#9b2d2d;text-decoration:none;
-    box-shadow:0 7px 20px rgba(25,35,50,.14);
-    font-size:.62rem;font-weight:950;letter-spacing:.03em
-}
-.dv-catalog-withdrawal:hover{background:#fff5f5}
 
-/* En detalles de producto/kit hay una barra de compra fija abajo.
-   El acceso legal se eleva para no tapar subtotal, cantidad ni CTA. */
-body:has(.dv-product-builder) .dv-catalog-withdrawal,
-body:has(.dv-kit-builder) .dv-catalog-withdrawal{
-    display:none!important
+.dv-catalog-withdrawal-float{
+    position:fixed;right:max(14px,env(safe-area-inset-right));
+    bottom:max(14px,env(safe-area-inset-bottom));z-index:76;
+    min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:0 14px;border:1px solid #b92f36;border-radius:14px;
+    background:#c63838;color:#fff;text-decoration:none;
+    box-shadow:0 12px 28px rgba(117,26,31,.25);
+    font-size:.68rem;font-weight:950;letter-spacing:.015em;
+    transition:transform .15s ease,box-shadow .15s ease,background .15s ease;
+    -webkit-tap-highlight-color:transparent
+}
+.dv-catalog-withdrawal-float__icon{
+    width:23px;height:23px;display:grid;place-items:center;flex:0 0 auto;
+    border-radius:999px;background:rgba(255,255,255,.16);
+    font-size:1rem;line-height:1
+}
+@media(hover:hover){
+    .dv-catalog-withdrawal-float:hover{
+        transform:translateY(-1px);background:#b72f35;
+        box-shadow:0 15px 32px rgba(117,26,31,.3)
+    }
+}
+.dv-catalog-withdrawal-float:focus-visible{
+    outline:3px solid rgba(198,56,56,.24);outline-offset:3px
+}
+body:has(.dv-product-builder) .dv-catalog-withdrawal-float,
+body:has(.dv-kit-builder) .dv-catalog-withdrawal-float{
+    bottom:88px
 }
 
 @media(max-width:640px){
+    .dv-catalog-withdrawal-float{
+        right:max(10px,env(safe-area-inset-right));
+        bottom:max(10px,env(safe-area-inset-bottom));
+        min-height:42px;padding:0 11px;border-radius:12px;
+        font-size:.61rem
+    }
+    .dv-catalog-withdrawal-float__icon{width:21px;height:21px;font-size:.9rem}
+    body:has(.dv-product-builder) .dv-catalog-withdrawal-float,
+    body:has(.dv-kit-builder) .dv-catalog-withdrawal-float{
+        bottom:88px
+    }
     .dv-catalog-legal-footer{margin-top:22px;padding-bottom:72px}
     .dv-catalog-legal-footer__inner{display:grid;grid-template-columns:1fr}
     .dv-catalog-legal-footer__links{display:grid;grid-template-columns:1fr 1fr}
-    .dv-catalog-withdrawal{
-        right:8px;bottom:8px;min-height:31px;max-width:158px;
-        padding:0 8px;font-size:.49rem;box-shadow:0 4px 12px rgba(25,35,50,.12)
-    }
-    body:has(.dv-product-builder) .dv-catalog-withdrawal,
-    body:has(.dv-kit-builder) .dv-catalog-withdrawal{
-        display:none!important
-    }
 }
 </style>
 """
@@ -250,7 +288,7 @@ def _header_html(view_name=""):
         f'<a class="dv-catalog-header__nav-link{inicio_class}" href="{catalogo_url}">INICIO</a>'
         f'<a class="dv-catalog-header__nav-link{productos_class}" href="{productos_url}">PRODUCTOS</a>'
         f'<a class="dv-catalog-header__nav-link{kits_class}" href="{kits_url}">KITS</a>'
-        '</nav>'
+        + '</nav>'
         f'<nav id="{CONTACT_NAV_ID}" class="dv-catalog-header__actions" '
         'aria-label="Acciones del catálogo">'
         + "".join(actions)
@@ -259,7 +297,7 @@ def _header_html(view_name=""):
 
 
 
-def _legal_footer_html():
+def _legal_footer_html(view_name=""):
     terminos_url = html.escape(
         reverse("catalogo_terminos"),
         quote=True,
@@ -273,8 +311,28 @@ def _legal_footer_html():
         quote=True,
     )
 
-    return (
-        '<footer class="dv-catalog-legal-footer" id="dv-catalog-legal-footer">'
+    mostrar_flotante = view_name in {
+        "catalogo",
+        "catalogo_legacy",
+        "catalogo_productos",
+        "catalogo_producto_detalle",
+        "catalogo_kits",
+        "catalogo_kit_detalle",
+        "catalogo_carrito",
+        "catalogo_carrito_gracias",
+    }
+    flotante = ""
+    if mostrar_flotante:
+        flotante = (
+            f'<a id="dv-catalog-withdrawal-float" class="dv-catalog-withdrawal-float" '
+            f'href="{arrepentimiento_url}" aria-label="Botón de arrepentimiento">'
+            '<span class="dv-catalog-withdrawal-float__icon" aria-hidden="true">↩</span>'
+            '<span>BOTÓN DE ARREPENTIMIENTO</span></a>'
+        )
+
+    contenido = (
+        flotante
+        + '<footer class="dv-catalog-legal-footer" id="dv-catalog-legal-footer">'
         '<div class="dv-catalog-legal-footer__inner">'
         '<div class="dv-catalog-legal-footer__brand">Doble V 3D · Catálogo online</div>'
         '<nav class="dv-catalog-legal-footer__links" aria-label="Información legal">'
@@ -282,9 +340,9 @@ def _legal_footer_html():
         f'<a href="{privacidad_url}">Privacidad</a>'
         f'<a href="{arrepentimiento_url}">Cambios y arrepentimiento</a>'
         '</nav></div></footer>'
-        f'<a class="dv-catalog-withdrawal" href="{arrepentimiento_url}">'
-        'BOTÓN DE ARREPENTIMIENTO</a>'
     )
+
+    return contenido
 
 
 def _legal_insertado(contenido):
@@ -374,7 +432,7 @@ class CatalogContactMiddleware:
                 )
 
         if not _legal_insertado(contenido):
-            legal = _legal_footer_html()
+            legal = _legal_footer_html(view_name)
             if "</body>" in contenido:
                 contenido = contenido.replace(
                     "</body>",

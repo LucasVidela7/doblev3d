@@ -17,6 +17,7 @@ class LoginRequiredMiddleware:
         "catalogo",
         "catalogo_legacy",
         "catalogo_productos",
+        "catalogo_producto_detalle",
         "catalogo_kits",
         "catalogo_kit_detalle",
         "catalogo_carrito",
@@ -27,6 +28,7 @@ class LoginRequiredMiddleware:
         "catalogo_privacidad",
         "catalogo_arrepentimiento",
         "catalogo_arrepentimiento_gracias",
+        "healthcheck",
     }
 
     def __init__(self, get_response):

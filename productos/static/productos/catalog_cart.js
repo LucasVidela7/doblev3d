@@ -574,12 +574,51 @@
                 const qty = control.querySelector(
                     '[data-dv-product-inline-qty]',
                 );
+                const card = control.closest(
+                    '.catalog-item[data-kind="producto"]',
+                );
+                const priceNode = card?.querySelector(
+                    '[data-dv-product-list-price]',
+                );
+                const discountNode = card?.querySelector(
+                    '[data-dv-product-list-discount]',
+                );
+                const listPrice = Number(
+                    add?.dataset.productPrice
+                    ?? item?.listUnitPrice
+                    ?? item?.unitPrice
+                    ?? 0,
+                );
 
                 if (add) add.hidden = Boolean(item);
                 if (stepper) stepper.hidden = !item;
                 if (qty && item) {
                     qty.textContent = String(item.qty || 1);
                 }
+
+                if (priceNode) {
+                    const unit = item && !item.pricingPending
+                        ? Number(
+                            item.unitPrice
+                            ?? item.listUnitPrice
+                            ?? listPrice,
+                        )
+                        : listPrice;
+                    priceNode.textContent = money(unit);
+                }
+
+                if (discountNode) {
+                    const discount = item && !item.pricingPending
+                        ? Number(item.discountPercent || 0)
+                        : 0;
+                    discountNode.hidden = !(discount > 0);
+                    discountNode.textContent = discount > 0
+                        ? '-' + discount.toLocaleString('es-AR', {
+                            maximumFractionDigits: 2,
+                        }) + '%'
+                        : '';
+                }
+
                 control.classList.add('is-ready');
             });
     };
@@ -760,6 +799,7 @@
         const qtyInput = config.querySelector('[data-dv-kit-qty]');
         const status = config.querySelector('[data-dv-kit-status]');
         const priceNode = config.querySelector('[data-dv-kit-total]');
+        const discountNode = config.querySelector('[data-dv-kit-discount]');
         const addButton = config.querySelector('[data-dv-kit-add]');
         const panel = config.querySelector('.dv-kit-cart-panel');
         const qtyWrap = qtyInput?.closest('.dv-kit-qty');
@@ -822,12 +862,24 @@
             panel?.classList.remove('is-in-cart');
 
             if (item && priceNode) {
-                const listUnit = Number(
-                    item.listUnitPrice ?? item.unitPrice ?? base,
+                const unit = Number(
+                    item.unitPrice ?? item.listUnitPrice ?? base,
                 );
                 priceNode.textContent = money(
-                    listUnit * Number(item.qty || 1),
+                    unit * Number(item.qty || 1),
                 );
+            }
+
+            if (discountNode) {
+                const discount = item && !item.pricingPending
+                    ? Number(item.discountPercent || 0)
+                    : 0;
+                discountNode.hidden = !(discount > 0);
+                discountNode.textContent = discount > 0
+                    ? discount.toLocaleString('es-AR', {
+                        maximumFractionDigits: 1,
+                    }) + '% DESC.'
+                    : '';
             }
         };
 
@@ -852,6 +904,10 @@
             const unitListPrice = base + extras;
             if (priceNode) {
                 priceNode.textContent = money(unitListPrice * qty);
+            }
+            if (discountNode) {
+                discountNode.hidden = true;
+                discountNode.textContent = '';
             }
 
             const complete =

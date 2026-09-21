@@ -1,4 +1,6 @@
 import json
+
+from django.core.cache import cache
 from collections import defaultdict
 
 from kits.models import Kit
@@ -462,23 +464,35 @@ class CatalogRotatorMiddleware:
             )
 
         if 'dv-catalog-rotator-script' not in contenido and '</body>' in contenido:
-            grouped = _product_image_groups()
+            cache_key = (
+                "dv-catalog-rotator-payload-v1:"
+                + entorno_imagenes()
+            )
+            payloads = cache.get(cache_key)
+            if payloads is None:
+                grouped = _product_image_groups()
+                kit_pools = _kit_image_pools(grouped)
+                kit_ids = list(
+                    Kit.objects
+                    .filter(activo=True)
+                    .order_by('nombre')
+                    .values_list('id', flat=True)
+                )
+                payloads = {
+                    "productos": _product_image_map(grouped),
+                    "kits": {
+                        str(kit_id): pool
+                        for kit_id, pool in zip(kit_ids, kit_pools)
+                    },
+                }
+                cache.set(cache_key, payloads, 60)
+
             product_payload = json.dumps(
-                _product_image_map(grouped),
+                payloads["productos"],
                 ensure_ascii=False,
             ).replace('</', '<\\/')
-            kit_pools = _kit_image_pools(grouped)
-            kit_ids = list(
-                Kit.objects
-                .filter(activo=True)
-                .order_by('nombre')
-                .values_list('id', flat=True)
-            )
             kit_payload = json.dumps(
-                {
-                    str(kit_id): pool
-                    for kit_id, pool in zip(kit_ids, kit_pools)
-                },
+                payloads["kits"],
                 ensure_ascii=False,
             ).replace('</', '<\\/')
 

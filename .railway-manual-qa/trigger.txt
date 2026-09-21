@@ -1,7 +1,6 @@
-Deploy QA: misma lógica de imágenes en Inicio
-- Inicio reutiliza el mismo rotador de imágenes que Productos y Kits.
-- Productos destacados rotan sus fotos completas, igual que en Productos.
-- Kits sensoriales mantienen collage 2x2 y rotación por cuadrantes.
-- Kits no sensoriales usan rotación de imagen completa.
-- Los kits se vinculan por ID para evitar mezclar imágenes cuando algún kit no aparece en portada.
+Deploy QA: cierre pre-lanzamiento puntos 1, 2 y 4
+- Legales: privacidad con plazos AAIP y arrepentimiento reforzado.
+- Anti-spam: Turnstile opcional + honeypot + deduplicación + límite por contacto.
+- Rendimiento: reutilización de prefetch en productos compuestos.
+- Mantiene botón de arrepentimiento flotante.
 Sin migraciones.
