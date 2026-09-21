@@ -1,5 +1,7 @@
-Deploy QA: loader de Preparación
-- Evita activar el loader global de Gestión en formularios AJAX del Kanban.
-- La tarjeta puede cambiar de columna sin dejar un loader infinito.
-- Mantiene el loader normal para navegaciones y submits reales.
+Deploy QA: swipe horizontal en Kanban mobile
+- Preparación, Solicitudes web, Presupuestos y Producción permiten deslizar horizontalmente entre columnas.
+- Separa overscroll horizontal y vertical para evitar que la columna bloquee el gesto.
+- Scroll táctil nativo con snap por columna.
+- Una columna casi completa por pantalla en mobile, dejando una pequeña pista de la siguiente.
+- Oculta scrollbar horizontal en mobile.
 Sin migraciones.
