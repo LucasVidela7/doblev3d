@@ -2417,3 +2417,202 @@ body.dv-management-menu-ready .kanban-board .vacio{
     }
 }
 
+
+
+/* =========================================================
+   GESTIÓN · KANBAN COMPARTIDO
+   Solicitudes, presupuestos y producción.
+   ========================================================= */
+body.dv-management-menu-ready .dv-kanban-shell{
+    min-width:0;
+}
+body.dv-management-menu-ready .dv-kanban-board{
+    display:grid;
+    grid-template-columns:repeat(var(--dv-kanban-cols,4),minmax(250px,1fr));
+    gap:10px;
+    align-items:start;
+    width:100%;
+    min-width:0;
+    overflow-x:auto;
+    padding:2px 2px 12px;
+    scroll-snap-type:x proximity;
+    scrollbar-width:thin;
+}
+body.dv-management-menu-ready .dv-kanban-column{
+    min-width:0;
+    max-height:calc(100vh - 220px);
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    scroll-snap-align:start;
+    border:1px solid var(--dv-border);
+    border-top:4px solid var(--dv-kanban-accent,var(--dv-brand-blue));
+    border-radius:17px;
+    background:var(--dv-surface);
+    box-shadow:var(--dv-shadow-soft);
+    scrollbar-width:thin;
+}
+body.dv-management-menu-ready .dv-kanban-column__head{
+    position:sticky;
+    top:0;
+    z-index:4;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:10px;
+    padding:12px 12px 10px;
+    border-bottom:1px solid var(--dv-border);
+    background:color-mix(in srgb,var(--dv-surface) 96%,transparent);
+    backdrop-filter:blur(9px);
+}
+body.dv-management-menu-ready .dv-kanban-column__head h2{
+    margin:0;
+    font-size:15px;
+    line-height:1.15;
+}
+body.dv-management-menu-ready .dv-kanban-column__head p{
+    margin:4px 0 0;
+    color:var(--dv-muted);
+    font-size:10.5px;
+    line-height:1.35;
+}
+body.dv-management-menu-ready .dv-kanban-count{
+    flex:0 0 auto;
+    min-width:27px;
+    min-height:27px;
+    display:grid;
+    place-items:center;
+    padding:0 8px;
+    border-radius:999px;
+    background:var(--dv-surface-soft);
+    color:var(--dv-text);
+    font-size:10px;
+    font-weight:900;
+}
+body.dv-management-menu-ready .dv-kanban-list{
+    display:grid;
+    gap:8px;
+    padding:9px;
+}
+body.dv-management-menu-ready .dv-kanban-card{
+    position:relative;
+    display:block;
+    min-width:0;
+    padding:12px;
+    border:1px solid var(--dv-border);
+    border-radius:14px;
+    background:var(--dv-surface-soft);
+    color:var(--dv-text);
+    text-decoration:none;
+    box-shadow:none;
+}
+body.dv-management-menu-ready .dv-kanban-card:hover{
+    border-color:color-mix(in srgb,var(--dv-brand-blue) 30%,var(--dv-border));
+}
+body.dv-management-menu-ready .dv-kanban-card__top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:8px;
+}
+body.dv-management-menu-ready .dv-kanban-card__code{
+    color:var(--dv-muted);
+    font-size:10px;
+    font-weight:900;
+}
+body.dv-management-menu-ready .dv-kanban-card__title{
+    margin-top:4px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    font-size:14px;
+    font-weight:900;
+    line-height:1.22;
+}
+body.dv-management-menu-ready .dv-kanban-card__meta{
+    margin-top:5px;
+    color:var(--dv-muted);
+    font-size:11px;
+    line-height:1.4;
+}
+body.dv-management-menu-ready .dv-kanban-card__amount{
+    margin-top:8px;
+    font-size:17px;
+    font-weight:900;
+}
+body.dv-management-menu-ready .dv-kanban-card__thumb{
+    width:42px;
+    height:42px;
+    flex:0 0 auto;
+    border:1px solid var(--dv-border);
+    border-radius:10px;
+    background:var(--dv-surface);
+    object-fit:cover;
+}
+body.dv-management-menu-ready .dv-kanban-card__thumb.is-empty{
+    display:grid;
+    place-items:center;
+    color:var(--dv-muted);
+    font-size:9px;
+    font-weight:900;
+}
+body.dv-management-menu-ready .dv-kanban-card__footer{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:6px;
+    flex-wrap:wrap;
+    margin-top:10px;
+    padding-top:9px;
+    border-top:1px solid var(--dv-border);
+}
+body.dv-management-menu-ready .dv-kanban-badge{
+    display:inline-flex;
+    align-items:center;
+    min-height:24px;
+    padding:0 8px;
+    border-radius:999px;
+    background:var(--dv-surface);
+    color:var(--dv-muted);
+    font-size:9.5px;
+    font-weight:900;
+    white-space:nowrap;
+}
+body.dv-management-menu-ready .dv-kanban-empty{
+    min-height:105px;
+    display:grid;
+    place-items:center;
+    padding:18px 12px;
+    border:1px dashed var(--dv-border);
+    border-radius:13px;
+    color:var(--dv-muted);
+    font-size:11px;
+    text-align:center;
+}
+body.dv-management-menu-ready .dv-kanban-toolbar{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:10px;
+}
+body.dv-management-menu-ready .dv-kanban-toolbar .btn{
+    min-height:40px;
+}
+body.dv-management-menu-ready .dv-kanban-column.is-warning{--dv-kanban-accent:#d4a72c}
+body.dv-management-menu-ready .dv-kanban-column.is-info{--dv-kanban-accent:#4b7fc0}
+body.dv-management-menu-ready .dv-kanban-column.is-success{--dv-kanban-accent:#3e9558}
+body.dv-management-menu-ready .dv-kanban-column.is-danger{--dv-kanban-accent:#c65858}
+body.dv-management-menu-ready .dv-kanban-column.is-neutral{--dv-kanban-accent:#8993a4}
+
+@media(max-width:1050px){
+    body.dv-management-menu-ready .dv-kanban-board{
+        grid-template-columns:none;
+        grid-auto-flow:column;
+        grid-auto-columns:min(86vw,360px);
+        justify-content:start;
+        scroll-snap-type:x mandatory;
+    }
+    body.dv-management-menu-ready .dv-kanban-column{
+        max-height:calc(100vh - 210px);
+        scroll-snap-align:start;
+    }
+}
