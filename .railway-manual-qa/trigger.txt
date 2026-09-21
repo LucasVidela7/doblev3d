@@ -1,6 +1,7 @@
-Deploy QA: ajuste mobile Kanban Preparación
-- Agrega espacio inferior seguro dentro de cada columna para que la navbar fija no tape la última tarea.
-- La barra superior de estados ahora entra completa en mobile en 4 columnas.
-- Reduce tipografía y contador de estados sin perder legibilidad.
-- Mantiene navegación horizontal del Kanban y scroll independiente por columna.
+Deploy QA: cards Kanban de Preparación
+- Estado y menú de tres puntos fijos arriba a la derecha de cada card.
+- Header compacto y texto protegido para no chocar con acciones.
+- Submenú convertido a panel flotante fixed fuera de la columna con scroll.
+- Cierre por click afuera, Escape, resize o scroll.
+- El menú se cierra correctamente antes de refrescar dinámicamente el Kanban.
 Sin migraciones.
