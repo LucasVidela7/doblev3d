@@ -78,6 +78,10 @@ railway_public_domain = os.getenv(
 if railway_public_domain and railway_public_domain not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(railway_public_domain)
 
+# Railway usa este hostname para los probes de salud de cada deploy.
+if "healthcheck.railway.app" not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append("healthcheck.railway.app")
+
 
 # Application definition
 

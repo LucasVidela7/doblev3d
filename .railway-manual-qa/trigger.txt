@@ -1,4 +1,5 @@
-Deploy QA: healthcheck compatible con Railway
-- /healthz/ queda exento de SECURE_SSL_REDIRECT para responder 200 en la red interna de Railway.
-- Mantiene validación de conexión a PostgreSQL.
+Deploy QA: permitir hostname de healthcheck Railway
+- Agrega healthcheck.railway.app a ALLOWED_HOSTS.
+- Mantiene /healthz/ exento de redirección HTTPS.
+- Healthcheck sigue validando conexión a PostgreSQL.
 Sin migraciones.
