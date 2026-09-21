@@ -1,8 +1,5 @@
-Deploy QA: seguimiento unificado por cliente y WhatsApp multi-pedido
-- Agrupa pedidos listos y saldos pendientes del mismo cliente en una sola acción.
-- Un único botón de WhatsApp incluye todos los pedidos relacionados.
-- El mensaje detalla código, estado, productos, cantidades, total y saldo de cada pedido.
-- Suma únicamente saldos pendientes reales y muestra el saldo total.
-- Mantiene las plantillas configurables para mensajes de un solo pedido.
-- Presupuestos y reactivación continúan funcionando sin cambios.
+Deploy QA: redondeo consistente de botones primarios en Gestión
+- Unifica border-radius de acciones primarias compartidas.
+- Corrige wrappers form/details que dejaban ver esquinas rectas.
+- Aplica a botones primarios de clientes, kits, finanzas, producción, formularios y cabeceras compartidas.
 Sin migraciones.
