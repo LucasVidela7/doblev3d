@@ -1,5 +1,4 @@
-QA prelaunch smoke + load v4
-- collectstatic before public smoke
-- current pricing rule validated: products 1-4 units at list price
-- legal, maintenance, healthcheck and cart smoke
-- 50 concurrent external users after smoke
+QA load test trigger
+Run after pre-launch legal/performance/anti-spam deploy.
+Validate floating withdrawal button and Turnstile.
+Target: 50 concurrent users.
