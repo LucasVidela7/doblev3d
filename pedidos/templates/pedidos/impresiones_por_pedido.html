@@ -181,6 +181,46 @@
         }
         .check input:checked + .check-ui{background:#31824a;border-color:#31824a;color:#fff}
         .check input:disabled + .check-ui{opacity:.45;cursor:not-allowed}
+        .check.is-saving .check-ui{
+            opacity:.62;
+            cursor:wait;
+            transform:scale(.96);
+        }
+        .pedido.preparando.is-complete{
+            border-left-color:#3e9558;
+        }
+        .pedido.preparando.is-complete .pedido-status{
+            background:var(--green);
+            color:var(--green-text);
+        }
+        .preparacion-toast{
+            position:fixed;
+            left:50%;
+            bottom:calc(92px + env(safe-area-inset-bottom));
+            z-index:140;
+            max-width:min(420px,calc(100vw - 24px));
+            transform:translate(-50%,14px);
+            padding:10px 13px;
+            border:1px solid #bddfc8;
+            border-radius:12px;
+            background:#eef9f1;
+            color:#225f37;
+            box-shadow:0 12px 30px rgba(28,33,40,.16);
+            font-size:10px;
+            font-weight:900;
+            opacity:0;
+            pointer-events:none;
+            transition:opacity .18s ease,transform .18s ease;
+        }
+        .preparacion-toast.is-visible{
+            opacity:1;
+            transform:translate(-50%,0);
+        }
+        .preparacion-toast.is-error{
+            border-color:#efc4c4;
+            background:var(--red);
+            color:var(--red-text);
+        }
 
         .progreso{padding:10px 14px;border-top:1px solid var(--line);background:var(--soft)}
         .progreso-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:7px;color:var(--muted);font-size:9px;font-weight:900}
@@ -434,18 +474,18 @@
         </div>
         <div class="lista">
             {% for item_pedido in en_preparacion %}
-            <article class="pedido preparando">
+            <article class="pedido preparando" data-preparacion-pedido data-pedido-id="{{ item_pedido.pedido.id }}">
                 <header class="pedido-head">
                     <div>
                         <div class="pedido-linea"><span class="codigo">{{ item_pedido.pedido.codigo }}</span><span class="cliente">{{ item_pedido.pedido.cliente.nombre }}</span></div>
                         <div class="meta">
                             <span class="tag entrega {{ item_pedido.entrega_clase }}">Entrega {{ item_pedido.entrega_texto }}</span>
-                            <span class="tag">{{ item_pedido.preparacion_listos }}/{{ item_pedido.preparacion_total }} preparados</span>
+                            <span class="tag" data-preparacion-conteo>{{ item_pedido.preparacion_listos }}/{{ item_pedido.preparacion_total }} preparados</span>
                             {% if item_pedido.reservados %}<span class="tag">{{ item_pedido.reservados }} con stock reservado</span>{% endif %}
                         </div>
                     </div>
                     <div class="pedido-head-tools">
-                        <span class="pedido-status">ARMANDO PAQUETE</span>
+                        <span class="pedido-status" data-preparacion-status>ARMANDO PAQUETE</span>
                         {% include "pedidos/_pedido_menu.html" with pedido=item_pedido.pedido mostrar_detalle=1 %}
                     </div>
                 </header>
@@ -457,7 +497,7 @@
                 <details class="pedido-productos" id="productos-pedido-{{ item_pedido.pedido.id }}">
                     <summary>
                         <span>PRODUCTOS DEL PAQUETE</span>
-                        <span class="pedido-productos-resumen">{{ item_pedido.preparacion_listos }}/{{ item_pedido.preparacion_total }} listos</span>
+                        <span class="pedido-productos-resumen" data-preparacion-resumen>{{ item_pedido.preparacion_listos }}/{{ item_pedido.preparacion_total }} listos</span>
                     </summary>
                     <section class="productos">
                     {% for item in item_pedido.productos %}
@@ -488,7 +528,7 @@
                             <div class="stock ok"><span>DISPONIBLE</span><strong>Stock {{ item.stock_actual }}</strong></div>
                         {% endif %}
 
-                        <form method="post" action="{% url 'pedidos:cambiar_listo' %}" class="check-form">
+                        <form method="post" action="{% url 'pedidos:cambiar_listo' %}" class="check-form" data-preparacion-check-form>
                             {% csrf_token %}
                             {% if item.es_personalizado %}
                             <input type="hidden" name="detalle_personalizado_id" value="{{ item.detalle_personalizado_id }}">
@@ -507,8 +547,8 @@
                 </details>
 
                 <div class="progreso">
-                    <div class="progreso-head"><span>PROGRESO DEL PAQUETE</span><span>{{ item_pedido.preparacion_porcentaje }}%</span></div>
-                    <div class="barra"><span style="width:{{ item_pedido.preparacion_porcentaje }}%"></span></div>
+                    <div class="progreso-head"><span>PROGRESO DEL PAQUETE</span><span data-preparacion-porcentaje>{{ item_pedido.preparacion_porcentaje }}%</span></div>
+                    <div class="barra"><span data-preparacion-bar style="width:{{ item_pedido.preparacion_porcentaje }}%"></span></div>
                 </div>
 
                 <footer class="pedido-foot">
@@ -657,15 +697,174 @@ function restaurarPosicion(){
     });
 }
 
-function cambiarListo(checkbox){
+let temporizadorToastPreparacion=null;
+
+function mostrarToastPreparacion(mensaje,esError){
+    let toast=document.getElementById("dv-preparacion-toast");
+    if(!toast){
+        toast=document.createElement("div");
+        toast.id="dv-preparacion-toast";
+        toast.className="preparacion-toast";
+        toast.setAttribute("role","status");
+        toast.setAttribute("aria-live","polite");
+        document.body.appendChild(toast);
+    }
+
+    toast.textContent=mensaje||"Cambio guardado.";
+    toast.classList.toggle("is-error",Boolean(esError));
+    toast.classList.add("is-visible");
+
+    clearTimeout(temporizadorToastPreparacion);
+    temporizadorToastPreparacion=setTimeout(function(){
+        toast.classList.remove("is-visible");
+    },2200);
+}
+
+function actualizarProgresoPedido(formulario,data){
+    const pedido=formulario.closest("[data-preparacion-pedido]");
+    if(!pedido)return;
+
+    const checks=Array.from(
+        pedido.querySelectorAll(
+            "[data-preparacion-check-form] input[type='checkbox']"
+        )
+    );
+    const total=checks.length;
+    const listos=checks.filter(function(item){
+        return item.checked;
+    }).length;
+    const porcentaje=total
+        ? Math.round((listos*100)/total)
+        : 0;
+
+    const conteo=pedido.querySelector("[data-preparacion-conteo]");
+    const resumen=pedido.querySelector("[data-preparacion-resumen]");
+    const porcentajeNodo=pedido.querySelector("[data-preparacion-porcentaje]");
+    const barra=pedido.querySelector("[data-preparacion-bar]");
+    const estado=pedido.querySelector("[data-preparacion-status]");
+
+    if(conteo)conteo.textContent=listos+"/"+total+" preparados";
+    if(resumen)resumen.textContent=listos+"/"+total+" listos";
+    if(porcentajeNodo)porcentajeNodo.textContent=porcentaje+"%";
+    if(barra)barra.style.width=porcentaje+"%";
+
+    const completo=(
+        data
+        && data.pedido_estado==="LISTO"
+    ) || (total>0 && listos===total);
+
+    pedido.classList.toggle("is-complete",completo);
+    if(estado){
+        estado.textContent=completo
+            ? "PAQUETE LISTO"
+            : "ARMANDO PAQUETE";
+    }
+}
+
+function actualizarEstadoProducto(formulario,data){
+    const producto=formulario.closest(".producto");
+    if(!producto)return;
+
+    const stock=producto.querySelector(".stock");
+    if(!stock)return;
+
+    if(data.personalizado){
+        stock.className="stock manual";
+        stock.innerHTML=data.listo
+            ? "<span>PREPARADO</span><strong>Listo</strong>"
+            : "<span>PREPARACIÓN</span><strong>Manual</strong>";
+        return;
+    }
+
+    if(data.listo){
+        stock.className="stock ok";
+        stock.innerHTML=
+            "<span>PREPARADO</span><strong>"
+            +(data.estado_texto||"Preparado")
+            +"</strong>";
+        return;
+    }
+
+    if(data.reservado_stock){
+        stock.className="stock reservado";
+        stock.innerHTML=
+            "<span>RESERVADO</span><strong>"
+            +(data.stock_reservado||0)
+            +" unidad"
+            +((data.stock_reservado||0)!==1 ? "es" : "")
+            +"</strong>";
+        return;
+    }
+
+    stock.className="stock ok";
+    stock.innerHTML=
+        "<span>DISPONIBLE</span><strong>Stock "
+        +(data.stock_actual||0)
+        +" · disponible</strong>";
+}
+
+async function cambiarListo(checkbox){
     const formulario=checkbox.closest(".check-form");
     if(!formulario)return;
+
     const valor=formulario.querySelector(".valor-listo");
     if(!valor)return;
+
+    const estadoAnterior=!checkbox.checked;
+    const label=checkbox.closest(".check");
+
     valor.value=checkbox.checked?"1":"0";
-    guardarPosicion();
     checkbox.disabled=true;
-    formulario.submit();
+    if(label)label.classList.add("is-saving");
+
+    try{
+        const respuesta=await fetch(formulario.action,{
+            method:"POST",
+            body:new FormData(formulario),
+            credentials:"same-origin",
+            headers:{
+                "X-Requested-With":"XMLHttpRequest",
+                "Accept":"application/json"
+            }
+        });
+
+        let data=null;
+        try{
+            data=await respuesta.json();
+        }catch(error){
+            data=null;
+        }
+
+        if(
+            !respuesta.ok
+            || !data
+            || data.ok!==true
+        ){
+            throw new Error(
+                (data&&data.mensaje)
+                ||"No se pudo guardar el cambio."
+            );
+        }
+
+        checkbox.checked=Boolean(data.listo);
+        valor.value=data.listo?"1":"0";
+        actualizarEstadoProducto(formulario,data);
+        actualizarProgresoPedido(formulario,data);
+        mostrarToastPreparacion(
+            data.mensaje||"Preparación actualizada.",
+            false
+        );
+    }catch(error){
+        checkbox.checked=estadoAnterior;
+        valor.value=estadoAnterior?"1":"0";
+        mostrarToastPreparacion(
+            error.message||"No se pudo guardar el cambio.",
+            true
+        );
+    }finally{
+        if(label)label.classList.remove("is-saving");
+        checkbox.disabled=false;
+    }
 }
 
 function confirmarEntrega(saldoPendiente){
