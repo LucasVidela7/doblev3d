@@ -103,6 +103,7 @@ INSTALLED_APPS = [
     "dashboard",
     "calculadora",
     "auditoria.apps.AuditoriaConfig",
+    "metricas.apps.MetricasConfig",
 ]
 
 MIDDLEWARE = [
@@ -123,6 +124,7 @@ MIDDLEWARE = [
     "config.responsive_fixes_middleware.ResponsiveFixesMiddleware",
     "config.catalog_grid_middleware.CatalogGridMiddleware",
     "config.catalog_contact_middleware.CatalogContactMiddleware",
+    "metricas.middleware.CatalogMetricsMiddleware",
     "config.catalog_rotator_middleware.CatalogRotatorMiddleware",
     "config.product_images_ui_middleware.ProductImagesUIMiddleware",
     "config.operaciones_ui_middleware.OperacionesUIMiddleware",
