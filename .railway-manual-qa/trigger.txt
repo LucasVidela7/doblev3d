@@ -1,6 +1,6 @@
-Deploy QA: tipografía de marca y alineación
-- Alinear logo + texto en mantenimiento.
-- Preparar AvantGardeMdITCTT con fallbacks cercanos.
-- Aplicar la misma tipografía al nombre Doble V 3D del header.
-- Ajustar centrado vertical del texto junto al logo.
+Deploy QA: fuente Avant Garde real
+- Agrega WOFF2 optimizado de AvantGardeMdITCTT Bold para la marca.
+- Mantenimiento usa la fuente real en “Doble V 3D”.
+- Header del catálogo usa la misma fuente real.
+- Mantiene alineación corregida de logo y texto.
 Sin migraciones.
