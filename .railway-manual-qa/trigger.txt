@@ -1,6 +1,6 @@
-Deploy QA: descuento compacto junto al precio
-- El descuento deja de mostrarse como badge debajo del precio.
-- Se muestra en la misma línea del importe, por ejemplo: $ 6.734 -3,8%.
-- Usa hasta 2 decimales según el porcentaje real calculado por backend.
-- Se ajusta el ancho del bloque para evitar saltos de línea.
+Deploy QA: aviso admin de mantenimiento global
+- Admin con tienda apagada ve borde amarillo y alerta inferior en todas las páginas comerciales principales.
+- La alerta se eleva en detalle de producto y kit para no superponerse con la barra de compra.
+- Términos, Privacidad y Arrepentimiento quedan fuera del aviso porque siguen públicas durante mantenimiento.
+- Se agregan pruebas para evitar regresiones.
 Sin migraciones.

@@ -94,6 +94,64 @@ class CatalogoMantenimientoAdminTests(TestCase):
             "Tienda en mantenimiento",
         )
 
+    def test_admin_ve_aviso_en_todas_las_paginas_comerciales_principales(self):
+        admin = get_user_model().objects.create_user(
+            username="admin-tienda-completa",
+            password="clave-segura",
+            is_staff=True,
+        )
+        self.client.force_login(admin)
+
+        for nombre_ruta in (
+            "catalogo",
+            "catalogo_legacy",
+            "catalogo_productos",
+            "catalogo_kits",
+            "catalogo_carrito",
+        ):
+            with self.subTest(ruta=nombre_ruta):
+                respuesta = self.client.get(reverse(nombre_ruta))
+
+                self.assertEqual(respuesta.status_code, 200)
+                self.assertContains(
+                    respuesta,
+                    "Tienda en mantenimiento",
+                )
+                self.assertContains(
+                    respuesta,
+                    "SOLO ADMIN",
+                )
+                self.assertContains(
+                    respuesta,
+                    "border:4px solid #f59e0b",
+                )
+
+    def test_paginas_legales_no_muestran_aviso_admin_de_mantenimiento(self):
+        admin = get_user_model().objects.create_user(
+            username="admin-legales",
+            password="clave-segura",
+            is_staff=True,
+        )
+        self.client.force_login(admin)
+
+        for nombre_ruta in (
+            "catalogo_terminos",
+            "catalogo_privacidad",
+            "catalogo_arrepentimiento",
+        ):
+            with self.subTest(ruta=nombre_ruta):
+                respuesta = self.client.get(reverse(nombre_ruta))
+
+                self.assertEqual(respuesta.status_code, 200)
+                self.assertNotContains(
+                    respuesta,
+                    "Tienda en mantenimiento",
+                )
+                self.assertNotContains(
+                    respuesta,
+                    "SOLO ADMIN",
+                )
+
     def test_detalle_publico_de_producto_respeta_mantenimiento(self):
         respuesta = self.client.get(
             reverse(
