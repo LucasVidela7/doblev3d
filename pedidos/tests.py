@@ -152,6 +152,16 @@ class AccionesPedidoEstadoTests(TestCase):
             'id="dv-pedido-form-style"',
             contenido,
         )
+        self.assertIn(
+            'id="dv-pedido-experience-style"',
+            contenido,
+        )
+        self.assertIn(
+            'id="dv-pedido-experience-script"',
+            contenido,
+        )
+        self.assertIn("dv-order-savebar", contenido)
+        self.assertIn("Cliente y entrega", contenido)
 
     def test_detalle_pendiente_muestra_cancelar_y_eliminar(self):
         respuesta = self.client.get(
