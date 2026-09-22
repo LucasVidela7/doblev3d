@@ -1,0 +1,183 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<link rel="icon" href="{% static 'brand/favicon.ico' %}" sizes="any">
+<link rel="apple-touch-icon" href="{% static 'brand/apple-touch-icon.png' %}">
+<link rel="stylesheet" href="{% static 'brand/brand.css' %}">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Modificación masiva | Doble V 3D</title>
+<style>
+:root{--f:#f4f5f7;--p:#fff;--t:#24272b;--m:#73777f;--b:#e2e5e9;--blue:#315f91;--blue-bg:#eef5ff;--green:#166534;--green-bg:#ecfdf3;--red:#9b3131;--red-bg:#fdecec;--amber:#7a5615;--amber-bg:#fff6dc}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;padding:0 0 105px;background:var(--f);color:var(--t);font-family:Arial,sans-serif}.c{width:min(1380px,100%);margin:auto;padding:22px 18px}.head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px}.title{margin:0;font-size:32px}.sub{margin-top:5px;color:var(--m);font-size:11px;line-height:1.45}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{min-height:46px;padding:0 15px;border:1px solid var(--b);border-radius:13px;background:#fff;color:var(--t);text-decoration:none;font-size:9px;font-weight:900;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}.btn.primary{background:#24272b;color:#fff;border-color:#24272b}.btn.blue{background:#245a9b;color:#fff;border-color:#245a9b}.panel{background:#fff;border:1px solid var(--b);border-radius:17px;padding:15px;margin-bottom:13px}.panel-title{font-size:10px;font-weight:900;margin-bottom:10px}.note{color:var(--m);font-size:9px;line-height:1.45}.filters{display:grid;grid-template-columns:minmax(220px,1fr) 190px 180px 150px 160px 160px auto auto;gap:8px;align-items:end}.field label{display:block;margin-bottom:5px;color:var(--m);font-size:8px;font-weight:900}.field input,.field select{width:100%;min-height:44px;padding:8px 10px;border:1px solid #d4d7dc;border-radius:10px;background:#fff;color:var(--t)}.bulk-layout{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:13px;align-items:start}.table-wrap{overflow:hidden;border:1px solid var(--b);border-radius:15px;background:#fff}.table-scroll{max-height:620px;overflow:auto}table{width:100%;border-collapse:collapse;min-width:790px}th{position:sticky;top:0;z-index:2;padding:10px 9px;background:#f0f2f4;color:var(--m);font-size:8px;text-align:left}td{padding:10px 9px;border-top:1px solid #eef0f2;font-size:10px;vertical-align:middle}.check{width:18px;height:18px;accent-color:#245a9b}.name{font-weight:900;font-size:11px}.code{margin-top:3px;color:var(--m);font-size:8px}.pill{display:inline-flex;padding:4px 7px;border-radius:999px;background:#eef1f4;font-size:8px;font-weight:900}.pill.ok{background:var(--green-bg);color:var(--green)}.pill.off{background:#f2f2f2;color:#6d7178}.select-bar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:9px}.select-all-result{display:flex;align-items:center;gap:8px;color:#4b5563;font-size:9px;font-weight:800}.bulk-panel{position:sticky;top:14px}.change-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.full{grid-column:1/-1}.margin-box{display:grid;grid-template-columns:1fr 120px;gap:8px}.warning{margin-top:10px;padding:10px;border-radius:10px;background:var(--amber-bg);color:var(--amber);font-size:8px;line-height:1.45}.preview{border:2px solid #c9d8ec;background:#f9fbff}.preview-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}.preview-count{padding:7px 9px;border-radius:999px;background:var(--blue-bg);color:#245a9b;font-size:8px;font-weight:900}.preview-list{display:grid;gap:7px;max-height:310px;overflow:auto}.preview-row{padding:10px;border:1px solid #dde4ee;border-radius:11px;background:#fff}.preview-product{font-size:10px;font-weight:900}.preview-changes{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.change{padding:5px 7px;border-radius:8px;background:#f3f5f7;font-size:8px}.change strong{color:#245a9b}.error{padding:9px;border-radius:9px;background:var(--red-bg);color:var(--red);font-size:9px;margin-top:7px}.apply{width:100%;margin-top:10px;min-height:50px;border:0;border-radius:12px;background:#245a9b;color:#fff;font-size:10px;font-weight:900;cursor:pointer}.apply:disabled{opacity:.45;cursor:not-allowed}.mobile-cards{display:none}
+@media(max-width:1100px){.filters{grid-template-columns:repeat(3,1fr)}.bulk-layout{grid-template-columns:1fr}.bulk-panel{position:static}}
+@media(max-width:720px){.c{padding:14px 10px}.head{flex-direction:column}.actions{width:100%}.actions .btn{flex:1}.filters{grid-template-columns:1fr 1fr}.filters .search{grid-column:1/-1}.table-wrap{display:none}.mobile-cards{display:grid;gap:8px}.product-card{display:grid;grid-template-columns:28px minmax(0,1fr);gap:8px;padding:11px;border:1px solid var(--b);border-radius:13px;background:#fff}.product-meta{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.change-grid{grid-template-columns:1fr}.full{grid-column:auto}.margin-box{grid-template-columns:1fr 110px}}
+</style>
+</head>
+<body>
+<div class="c">
+  <div class="head">
+    <div class="encabezado-marca">
+      {% include "shared/brand_bar.html" %}
+      <h1 class="title">Modificación masiva</h1>
+      <div class="sub">Filtrá, seleccioná productos y revisá exactamente qué va a cambiar antes de aplicarlo.</div>
+    </div>
+    <div class="actions">
+      <a class="btn" href="{% url 'productos:lista' %}">← PRODUCTOS</a>
+      <a class="btn primary" href="{% url 'productos:nuevo' %}">+ NUEVO PRODUCTO</a>
+    </div>
+  </div>
+
+  {% if messages %}{% for message in messages %}<div class="panel">{{ message }}</div>{% endfor %}{% endif %}
+
+  <form class="panel filters" method="get">
+    <div class="field search"><label>BUSCAR</label><input name="q" value="{{ filtros.q }}" placeholder="Nombre o código..."></div>
+    <div class="field"><label>TIPO</label><select name="tipo"><option value="">Todos</option>{% for tipo in tipos %}<option value="{{ tipo.id }}" {% if filtros.tipo == tipo.id|stringformat:'s' %}selected{% endif %}>{{ tipo.nombre }}</option>{% endfor %}</select></div>
+    <div class="field"><label>CATEGORÍA</label><select name="categoria"><option value="">Todas</option>{% for value,label in categorias %}<option value="{{ value }}" {% if filtros.categoria == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="field"><label>ESTADO</label><select name="f_activo"><option value="">Todos</option><option value="1" {% if filtros.f_activo == '1' %}selected{% endif %}>Activos</option><option value="0" {% if filtros.f_activo == '0' %}selected{% endif %}>Inactivos</option></select></div>
+    <div class="field"><label>PERMITE COLOR</label><select name="f_color"><option value="">Todos</option><option value="1" {% if filtros.f_color == '1' %}selected{% endif %}>Sí</option><option value="0" {% if filtros.f_color == '0' %}selected{% endif %}>No</option></select></div>
+    <div class="field"><label>PERSONALIZABLE</label><select name="f_personalizable"><option value="">Todos</option><option value="1" {% if filtros.f_personalizable == '1' %}selected{% endif %}>Sí</option><option value="0" {% if filtros.f_personalizable == '0' %}selected{% endif %}>No</option></select></div>
+    <button class="btn primary">FILTRAR</button>
+    <a class="btn" href="{% url 'productos:modificacion_masiva' %}">LIMPIAR</a>
+  </form>
+
+  {% if preview %}
+  <div class="panel preview" id="preview">
+    <div class="preview-head">
+      <div><div class="panel-title">PREVISUALIZACIÓN</div><div class="note">{{ preview.total_seleccionados }} seleccionados · {{ preview.total_cambios }} con cambios reales.</div></div>
+      <span class="preview-count">{% if preview.puede_aplicar %}LISTO PARA APLICAR{% else %}REVISAR{% endif %}</span>
+    </div>
+    {% for error in preview.errores %}<div class="error">{{ error }}</div>{% endfor %}
+    {% for fila in preview.errores_filas %}<div class="error"><strong>{{ fila.producto.codigo }} · {{ fila.producto.nombre }}</strong>: {{ fila.errores.0 }}</div>{% endfor %}
+    <div class="preview-list">
+      {% for fila in preview.filas %}
+        {% if fila.cambios %}
+        <div class="preview-row">
+          <div class="preview-product">{{ fila.producto.codigo }} · {{ fila.producto.nombre }}</div>
+          <div class="preview-changes">{% for cambio in fila.cambios %}<span class="change">{{ cambio.campo }}: {{ cambio.antes }} → <strong>{{ cambio.despues }}</strong></span>{% endfor %}</div>
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="accion" value="aplicar">
+      {% for key,value in filtros.items %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endfor %}
+      {% if request.POST.seleccionar_todos_resultados == '1' %}
+        <input type="hidden" name="seleccionar_todos_resultados" value="1">
+      {% else %}
+        {% for id in preview.ids %}<input type="hidden" name="producto_ids" value="{{ id }}">{% endfor %}
+      {% endif %}
+      <input type="hidden" name="activo" value="{{ request.POST.activo }}">
+      <input type="hidden" name="permite_color" value="{{ request.POST.permite_color }}">
+      <input type="hidden" name="personalizable" value="{{ request.POST.personalizable }}">
+      <input type="hidden" name="requiere_impresion" value="{{ request.POST.requiere_impresion }}">
+      <input type="hidden" name="accion_categoria" value="{{ request.POST.accion_categoria }}">
+      <input type="hidden" name="accion_tipo" value="{{ request.POST.accion_tipo }}">
+      <input type="hidden" name="margen_modo" value="{{ request.POST.margen_modo }}">
+      <input type="hidden" name="margen_valor" value="{{ request.POST.margen_valor }}">
+      <button class="apply" {% if not preview.puede_aplicar %}disabled{% endif %}>APLICAR {{ preview.total_cambios }} CAMBIO{{ preview.total_cambios|pluralize }}</button>
+    </form>
+  </div>
+  {% endif %}
+
+  <form method="post" id="bulk-form">
+    {% csrf_token %}
+    <input type="hidden" name="accion" value="previsualizar">
+    {% for key,value in filtros.items %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endfor %}
+
+    <div class="bulk-layout">
+      <div>
+        <div class="select-bar">
+          <div><strong>{{ total_resultados }} resultado{{ total_resultados|pluralize }}</strong><div class="note">Solo productos comerciales; las piezas internas quedan protegidas.</div></div>
+          <label class="select-all-result"><input class="check" type="checkbox" name="seleccionar_todos_resultados" value="1" id="all-results"> Seleccionar los {{ total_resultados }} resultados</label>
+        </div>
+
+        <div class="table-wrap"><div class="table-scroll">
+          <table>
+            <thead><tr><th><input class="check" type="checkbox" id="all-visible"></th><th>PRODUCTO</th><th>TIPO / CATEGORÍA</th><th>COLOR</th><th>PERSONALIZABLE</th><th>MARGEN</th><th>ESTADO</th></tr></thead>
+            <tbody>
+            {% for producto in productos %}
+              <tr>
+                <td><input class="check row-check" type="checkbox" name="producto_ids" value="{{ producto.id }}"></td>
+                <td><div class="name">{{ producto.nombre }}</div><div class="code">{{ producto.codigo }}</div></td>
+                <td>{{ producto.tipo.nombre }}<div class="code">{{ producto.get_categoria_display }}</div></td>
+                <td><span class="pill {% if producto.permite_elegir_color %}ok{% else %}off{% endif %}">{% if producto.permite_elegir_color %}SÍ{% else %}NO{% endif %}</span></td>
+                <td><span class="pill {% if producto.personalizable %}ok{% else %}off{% endif %}">{% if producto.personalizable %}SÍ{% else %}NO{% endif %}</span></td>
+                <td>{{ producto.margen_ganancia|floatformat:"-2" }}%</td>
+                <td><span class="pill {% if producto.activo %}ok{% else %}off{% endif %}">{% if producto.activo %}ACTIVO{% else %}INACTIVO{% endif %}</span></td>
+              </tr>
+            {% empty %}<tr><td colspan="7">No hay productos con estos filtros.</td></tr>{% endfor %}
+            </tbody>
+          </table>
+        </div></div>
+
+        <div class="mobile-cards">
+        {% for producto in productos %}
+          <label class="product-card">
+            <input class="check row-check" type="checkbox" name="producto_ids" value="{{ producto.id }}">
+            <span><span class="name">{{ producto.nombre }}</span><span class="code">{{ producto.codigo }} · {{ producto.tipo.nombre }}</span><span class="product-meta"><span class="pill {% if producto.permite_elegir_color %}ok{% endif %}">Color {% if producto.permite_elegir_color %}Sí{% else %}No{% endif %}</span><span class="pill">Margen {{ producto.margen_ganancia|floatformat:"-2" }}%</span><span class="pill {% if producto.activo %}ok{% endif %}">{% if producto.activo %}Activo{% else %}Inactivo{% endif %}</span></span></span>
+          </label>
+        {% endfor %}
+        </div>
+      </div>
+
+      <aside class="panel bulk-panel">
+        <div class="panel-title">CAMBIOS A APLICAR</div>
+        <div class="note" style="margin-bottom:11px">Dejá en “Sin cambios” todo lo que no quieras tocar.</div>
+        <div class="change-grid">
+          <div class="field"><label>ESTADO</label><select name="activo"><option value="">Sin cambios</option><option value="1">Activar</option><option value="0">Desactivar</option></select></div>
+          <div class="field"><label>PERMITE COLOR</label><select name="permite_color"><option value="">Sin cambios</option><option value="1">Sí</option><option value="0">No</option></select></div>
+          <div class="field"><label>PERSONALIZABLE</label><select name="personalizable"><option value="">Sin cambios</option><option value="1">Sí</option><option value="0">No</option></select></div>
+          <div class="field"><label>REQUIERE IMPRESIÓN</label><select name="requiere_impresion"><option value="">Sin cambios</option><option value="1">Sí</option><option value="0">No</option></select></div>
+          <div class="field"><label>CATEGORÍA</label><select name="accion_categoria"><option value="">Sin cambios</option>{% for value,label in categorias %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+          <div class="field"><label>TIPO</label><select name="accion_tipo"><option value="">Sin cambios</option>{% for tipo in tipos %}<option value="{{ tipo.id }}">{{ tipo.nombre }}</option>{% endfor %}</select></div>
+          <div class="field full"><label>MARGEN</label><div class="margin-box"><select name="margen_modo"><option value="">Sin cambios</option><option value="FIJAR">Fijar margen en</option><option value="AJUSTAR">Sumar / restar puntos</option></select><input name="margen_valor" type="number" step="0.01" placeholder="Ej: 5"></div></div>
+        </div>
+        <div class="warning">Cambiar el <strong>tipo</strong> puede modificar en qué kits libres aparece el producto. Activar <strong>requiere impresión</strong> solo se permite si el producto ya tiene tiempo y peso válidos.</div>
+        <button class="apply" type="submit">PREVISUALIZAR CAMBIOS</button>
+        <div class="note" id="selected-count" style="margin-top:8px;text-align:center">0 productos seleccionados</div>
+      </aside>
+    </div>
+  </form>
+</div>
+<script>
+(function(){
+  const form=document.getElementById('bulk-form');
+  const allVisible=document.getElementById('all-visible');
+  const allResults=document.getElementById('all-results');
+  const checks=()=>Array.from(form.querySelectorAll('.row-check'));
+  const count=document.getElementById('selected-count');
+
+  function sync(){
+    const selected=checks().filter(c=>c.checked).length;
+    count.textContent=allResults?.checked
+      ? '{{ total_resultados }} productos seleccionados (todos los resultados)'
+      : selected+' producto'+(selected===1?'':'s')+' seleccionado'+(selected===1?'':'s');
+    if(allVisible){
+      const list=checks();
+      allVisible.checked=!!list.length&&list.every(c=>c.checked);
+      allVisible.indeterminate=selected>0&&!allVisible.checked;
+    }
+  }
+  allVisible?.addEventListener('change',()=>{
+    checks().forEach(c=>c.checked=allVisible.checked);
+    if(allVisible.checked&&allResults) allResults.checked=false;
+    sync();
+  });
+  allResults?.addEventListener('change',()=>{
+    if(allResults.checked) checks().forEach(c=>c.checked=false);
+    sync();
+  });
+  checks().forEach(c=>c.addEventListener('change',()=>{
+    if(c.checked&&allResults) allResults.checked=false;
+    sync();
+  }));
+  sync();
+  if(document.getElementById('preview')) document.getElementById('preview').scrollIntoView({block:'start'});
+})();
+</script>
+{% include "shared/navigation.html" %}
+</body>
+</html>

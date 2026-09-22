@@ -136,3 +136,114 @@ class CentroProductosTests(TestCase):
         self.assertContains(respuesta, "2 · FABRICACIÓN")
         self.assertContains(respuesta, "STOCK DISPONIBLE")
         self.assertContains(respuesta, "GUARDAR CAMBIOS")
+
+
+class ModificacionMasivaProductosTests(TestCase):
+    def setUp(self):
+        usuario = get_user_model().objects.create_user(
+            username="bulk-productos",
+            password="test12345",
+        )
+        self.client.force_login(usuario)
+        self.tipo = TipoProducto.objects.create(nombre="Sensoriales bulk")
+        self.otro_tipo = TipoProducto.objects.create(nombre="Otros bulk")
+        self.a = Producto.objects.create(
+            nombre="Estrella bulk",
+            categoria="PRODUCTO",
+            tipo=self.tipo,
+            horas=1,
+            peso_gramos=Decimal("20"),
+            margen_ganancia=Decimal("50"),
+            requiere_impresion=True,
+            permite_elegir_color=False,
+            personalizable=False,
+            activo=True,
+        )
+        self.b = Producto.objects.create(
+            nombre="Dona bulk",
+            categoria="PRODUCTO",
+            tipo=self.tipo,
+            horas=1,
+            peso_gramos=Decimal("20"),
+            margen_ganancia=Decimal("60"),
+            requiere_impresion=True,
+            permite_elegir_color=False,
+            personalizable=False,
+            activo=True,
+        )
+
+    def test_pantalla_masiva_filtra_y_muestra_productos(self):
+        response = self.client.get(
+            reverse("productos:modificacion_masiva"),
+            {"tipo": self.tipo.id},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Modificación masiva")
+        self.assertContains(response, "Estrella bulk")
+        self.assertContains(response, "Dona bulk")
+        self.assertContains(response, "PREVISUALIZAR CAMBIOS")
+
+    def test_previsualizacion_no_modifica_datos(self):
+        response = self.client.post(
+            reverse("productos:modificacion_masiva"),
+            {
+                "accion": "previsualizar",
+                "producto_ids": [self.a.id, self.b.id],
+                "permite_color": "1",
+                "margen_modo": "AJUSTAR",
+                "margen_valor": "5",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "PREVISUALIZACIÓN")
+        self.assertContains(response, "No →")
+        self.a.refresh_from_db()
+        self.assertFalse(self.a.permite_elegir_color)
+        self.assertEqual(self.a.margen_ganancia, Decimal("50"))
+
+    def test_aplicar_modifica_seleccionados(self):
+        response = self.client.post(
+            reverse("productos:modificacion_masiva"),
+            {
+                "accion": "aplicar",
+                "producto_ids": [self.a.id, self.b.id],
+                "permite_color": "1",
+                "personalizable": "1",
+                "margen_modo": "AJUSTAR",
+                "margen_valor": "5",
+            },
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.a.refresh_from_db()
+        self.b.refresh_from_db()
+        self.assertTrue(self.a.permite_elegir_color)
+        self.assertTrue(self.b.personalizable)
+        self.assertEqual(self.a.margen_ganancia, Decimal("55"))
+        self.assertEqual(self.b.margen_ganancia, Decimal("65"))
+
+    def test_seleccionar_todos_respeta_filtro(self):
+        fuera = Producto.objects.create(
+            nombre="Fuera bulk",
+            categoria="PRODUCTO",
+            tipo=self.otro_tipo,
+            horas=1,
+            peso_gramos=Decimal("20"),
+            margen_ganancia=Decimal("50"),
+            activo=True,
+        )
+        self.client.post(
+            reverse("productos:modificacion_masiva"),
+            {
+                "accion": "aplicar",
+                "tipo": str(self.tipo.id),
+                "seleccionar_todos_resultados": "1",
+                "activo": "0",
+            },
+        )
+        self.a.refresh_from_db()
+        self.b.refresh_from_db()
+        fuera.refresh_from_db()
+        self.assertFalse(self.a.activo)
+        self.assertFalse(self.b.activo)
+        self.assertTrue(fuera.activo)
