@@ -542,13 +542,19 @@
         );
         if (index < 0) return;
 
+        const currentQty = Number(items[index].qty || 1);
+        const requested = currentQty + Number(delta || 0);
         const next = Math.max(
             0,
             Math.min(
                 50,
-                Number(items[index].qty || 1) + Number(delta || 0),
+                requested,
             ),
         );
+
+        if (requested > 50) {
+            showToast('Máximo 50 unidades por producto o kit');
+        }
 
         if (next <= 0) {
             items.splice(index, 1);
