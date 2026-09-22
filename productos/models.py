@@ -36,6 +36,45 @@ class ConfiguracionCatalogo(models.Model):
             "Se muestra en la tienda, productos, kits y revisión de la solicitud."
         ),
     )
+    colores_disponibles = models.TextField(
+        blank=True,
+        default="",
+        verbose_name="Colores disponibles",
+        help_text="Un color por línea. Se ofrecen en productos y kits habilitados.",
+    )
+    adicional_color_kit_base = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        verbose_name="Cargo base por color en kit libre",
+    )
+    adicional_color_kit_por_producto = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        verbose_name="Cargo por producto por color en kit libre",
+    )
+
+    @property
+    def colores_disponibles_lista(self):
+        vistos = set()
+        colores = []
+        for linea in (self.colores_disponibles or "").splitlines():
+            color = linea.strip()
+            clave = color.casefold()
+            if color and clave not in vistos:
+                vistos.add(clave)
+                colores.append(color)
+        return colores
+
+    def adicional_color_kit_libre(self, cantidad_productos):
+        cantidad = max(int(cantidad_productos or 0), 0)
+        return (
+            Decimal(str(self.adicional_color_kit_base or 0))
+            + Decimal(str(self.adicional_color_kit_por_producto or 0))
+            * cantidad
+        )
+
     notificaciones_pedidos_web_activas = models.BooleanField(
         default=True,
         verbose_name="Notificaciones de pedidos web",
@@ -284,6 +323,13 @@ class Producto(models.Model):
     )
     requiere_impresion = models.BooleanField(default=True)
     personalizable = models.BooleanField(default=False)
+    permite_elegir_color = models.BooleanField(
+        default=False,
+        help_text=(
+            "Permite elegir un color específico en la tienda. "
+            "No agrega costo en productos individuales."
+        ),
+    )
     stock = models.IntegerField(default=0)
     activo = models.BooleanField(default=True)
 

@@ -68,6 +68,15 @@ class Kit(models.Model):
         ),
     )
 
+    permite_elegir_color = models.BooleanField(
+        default=False,
+        help_text=(
+            "Permite elegir un único color para todo el kit. "
+            "Los kits libres usan el adicional configurado en la tienda; "
+            "los kits fijos no tienen adicional."
+        ),
+    )
+
     activo = models.BooleanField(
         default=True,
     )

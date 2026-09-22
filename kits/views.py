@@ -126,6 +126,10 @@ def _formulario_kit(
             request.POST.get("proteger_rentabilidad_libre")
             == "1"
         )
+        permite_elegir_color = (
+            request.POST.get("permite_elegir_color")
+            == "1"
+        )
 
         if not nombre:
             messages.error(
@@ -182,6 +186,7 @@ def _formulario_kit(
         kit.modalidad = modalidad
         kit.precio = precio
         kit.activo = activo
+        kit.permite_elegir_color = permite_elegir_color
         kit.proteger_rentabilidad_libre = (
             proteger_rentabilidad_libre
             if modalidad == "LIBRE_CATEGORIA"

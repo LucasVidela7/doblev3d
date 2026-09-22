@@ -221,7 +221,22 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
 
         <div class="card" id="catalogo">
             <div class="seccion-titulo">4 · CATÁLOGO</div>
-            <div class="ayuda" style="margin-top:0">
+            <label class="proteccion-opcion">
+                <input
+                    type="checkbox"
+                    name="permite_elegir_color"
+                    value="1"
+                    {% if request.method == 'POST' and request.POST.permite_elegir_color %}checked{% elif request.method != 'POST' and kit and kit.permite_elegir_color %}checked{% endif %}
+                >
+                <span>
+                    <b>PERMITIR ELECCIÓN DE COLOR</b>
+                    <span>
+                        Kit fijo: funciona como un producto y elegir color no suma costo.
+                        Kit libre: “todo del mismo color” usa el cargo base + cargo por producto configurados en Tienda.
+                    </span>
+                </span>
+            </label>
+            <div class="ayuda" style="margin-top:10px">
                 El catálogo reutiliza automáticamente las fotos principales de los productos del kit.
                 {% if kit and kit.id %}
                     La presentación pública puede revisarse sin duplicar imágenes ni configuración.

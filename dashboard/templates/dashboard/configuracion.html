@@ -116,6 +116,28 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 <div class="cfg-note">Se muestra en la portada, como aviso general en los listados, en detalles, “Cómo comprar”, checkout y confirmación. No ocupa espacio dentro de cada tarjeta de producto o kit.</div>
 </div>
 
+<div class="cfg-box full">
+<label class="cfg-label" for="colores_disponibles"><span>COLORES DISPONIBLES PARA PERSONALIZACIÓN</span><span>uno por línea</span></label>
+<textarea class="cfg-textarea" id="colores_disponibles" name="colores_disponibles" maxlength="2000" placeholder="Ejemplo:&#10;Rojo&#10;Azul&#10;Verde">{{ config.colores_disponibles }}</textarea>
+<div class="cfg-note">Sólo aparecen en productos y kits que tengan activada “Permite elegir color”. La opción predeterminada sigue siendo colores surtidos según disponibilidad.</div>
+</div>
+
+<div class="cfg-box">
+<div class="cfg-box-title">Adicional · kit libre del mismo color</div>
+<div class="cfg-box-copy">Cargo fijo por preparar un kit libre completo en un único color.</div>
+<label class="cfg-label" for="adicional_color_kit_base"><span>CARGO BASE</span></label>
+<input class="cfg-input" id="adicional_color_kit_base" name="adicional_color_kit_base" type="number" min="0" step="1" value="{{ config.adicional_color_kit_base|floatformat:'0' }}">
+</div>
+<div class="cfg-box">
+<div class="cfg-box-title">Adicional por producto</div>
+<div class="cfg-box-copy">Se multiplica por la cantidad de productos que incluye el kit libre.</div>
+<label class="cfg-label" for="adicional_color_kit_por_producto"><span>POR PRODUCTO</span></label>
+<input class="cfg-input" id="adicional_color_kit_por_producto" name="adicional_color_kit_por_producto" type="number" min="0" step="1" value="{{ config.adicional_color_kit_por_producto|floatformat:'0' }}">
+</div>
+<div class="cfg-box full">
+<div class="cfg-note"><strong>Fórmula:</strong> adicional = cargo base + (cargo por producto × cantidad del kit). Productos individuales y kits fijos no suman adicional. Si el adicional calculado queda en $0, “todo del mismo color” no se habilita en kits libres.</div>
+</div>
+
 <div class="cfg-box">
 <div class="cfg-switch-row"><div><div class="cfg-box-title">Mostrar Instagram</div><div class="cfg-box-copy">Controla el acceso desde el catálogo público.</div></div><label class="cfg-switch"><input type="checkbox" name="mostrar_instagram" {% if config.mostrar_instagram %}checked{% endif %}><span class="cfg-switch-track"></span></label></div>
 <label class="cfg-label" for="instagram_usuario"><span>USUARIO</span></label>

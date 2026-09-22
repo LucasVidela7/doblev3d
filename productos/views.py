@@ -698,6 +698,7 @@ def _guardar_producto_desde_post(request, producto=None):
     stock = _entero(request.POST.get("stock"), 0)
     requiere_impresion = request.POST.get("requiere_impresion") == "1"
     personalizable = request.POST.get("personalizable") == "1"
+    permite_elegir_color = request.POST.get("permite_elegir_color") == "1"
     activo = request.POST.get("activo") == "1"
     solo_produccion = request.POST.get("solo_produccion") == "1"
 
@@ -746,6 +747,7 @@ def _guardar_producto_desde_post(request, producto=None):
     if solo_produccion:
         tipo_fabricacion = "SIMPLE"
         personalizable = False
+        permite_elegir_color = False
         requiere_impresion = True
 
     if errores:
@@ -760,6 +762,7 @@ def _guardar_producto_desde_post(request, producto=None):
     producto.margen_ganancia = margen_ganancia
     producto.requiere_impresion = requiere_impresion
     producto.personalizable = personalizable
+    producto.permite_elegir_color = permite_elegir_color
     producto.stock = stock
     producto.activo = activo
     producto.tipo_fabricacion = tipo_fabricacion

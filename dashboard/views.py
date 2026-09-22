@@ -986,6 +986,7 @@ def configuracion(request):
     campos_texto = {
         "mensaje_mantenimiento": 240,
         "mensaje_plazo_entrega": 300,
+        "colores_disponibles": 2000,
         "instagram_usuario": 100,
         "whatsapp_numero": 30,
         "whatsapp_mensaje": 240,
@@ -1025,6 +1026,21 @@ def configuracion(request):
                 or ""
             ).strip()[:limite]
             setattr(config, campo, valor)
+            actualizados.append(campo)
+
+        for campo in [
+            "adicional_color_kit_base",
+            "adicional_color_kit_por_producto",
+        ]:
+            try:
+                valor = Decimal(
+                    (request.POST.get(campo) or "0")
+                    .strip()
+                    .replace(",", ".")
+                )
+            except Exception:
+                valor = Decimal("0")
+            setattr(config, campo, max(valor, Decimal("0")))
             actualizados.append(campo)
 
         config.save(
