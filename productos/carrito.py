@@ -1,6 +1,6 @@
 import hashlib
 import json
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import timedelta
 from decimal import Decimal
 from urllib import parse, request as urlrequest
@@ -10,7 +10,8 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db import transaction
 from django.http import JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
@@ -85,7 +86,7 @@ def _parsear_payload(raw):
     return payload
 
 
-def _validar_carrito(payload):
+def _validar_carrito(payload, validar_total=True):
     lineas = []
     unidades = 0
 
@@ -105,7 +106,7 @@ def _validar_carrito(payload):
             )
 
         unidades += cantidad
-        if unidades > MAX_UNIDADES_TOTALES:
+        if validar_total and unidades > MAX_UNIDADES_TOTALES:
             raise ValueError(
                 f"Una solicitud admite hasta {MAX_UNIDADES_TOTALES} unidades."
             )
@@ -118,17 +119,18 @@ def _validar_carrito(payload):
 
             producto = (
                 Producto.objects
-                .filter(
-                    id=producto_id,
-                    activo=True,
-                    solo_produccion=False,
-                )
+                .filter(id=producto_id)
                 .select_related("tipo")
                 .first()
             )
             if not producto:
                 raise ValueError(
-                    "Uno de los productos ya no está disponible en el catálogo."
+                    "Uno de los productos ya no existe en el catálogo."
+                )
+            if not producto.activo or producto.solo_produccion:
+                raise ValueError(
+                    f"{producto.nombre} ya no está disponible en el catálogo. "
+                    "Quitalo del carrito para continuar."
                 )
 
             precio = _decimal(producto.subtotal)
@@ -166,14 +168,19 @@ def _validar_carrito(payload):
 
             kit = (
                 Kit.objects
-                .filter(id=kit_id, activo=True)
+                .filter(id=kit_id)
                 .select_related("tipo_producto")
                 .prefetch_related("componentes__producto")
                 .first()
             )
             if not kit:
                 raise ValueError(
-                    "Uno de los kits ya no está disponible en el catálogo."
+                    "Uno de los kits ya no existe en el catálogo."
+                )
+            if not kit.activo:
+                raise ValueError(
+                    f"{kit.nombre} ya no está disponible en el catálogo. "
+                    "Quitalo del carrito para continuar."
                 )
 
             componentes = Counter()
@@ -184,6 +191,21 @@ def _validar_carrito(payload):
                 if not componentes_fijos:
                     raise ValueError(
                         f"{kit.nombre} no tiene una composición disponible."
+                    )
+
+                no_disponibles = [
+                    componente.producto.nombre
+                    for componente in componentes_fijos
+                    if (
+                        not componente.producto.activo
+                        or componente.producto.solo_produccion
+                    )
+                ]
+                if no_disponibles:
+                    nombres = ", ".join(no_disponibles)
+                    raise ValueError(
+                        f"{kit.nombre} no está disponible porque "
+                        f"{nombres} ya no está disponible en el catálogo."
                     )
 
                 for componente in componentes_fijos:
@@ -237,6 +259,23 @@ def _validar_carrito(payload):
                 }
 
                 if any(pid not in productos_mapa for pid in seleccion_ids):
+                    encontrados = {
+                        producto.id: producto
+                        for producto in Producto.objects.filter(
+                            id__in=set(seleccion_ids)
+                        )
+                    }
+                    nombres = [
+                        encontrados[pid].nombre
+                        for pid in seleccion_ids
+                        if pid in encontrados and pid not in productos_mapa
+                    ]
+                    if nombres:
+                        detalle = ", ".join(dict.fromkeys(nombres))
+                        raise ValueError(
+                            f"En {kit.nombre}, {detalle} ya no está disponible. "
+                            "Volvé a armar el kit para continuar."
+                        )
                     raise ValueError(
                         f"Una opción elegida ya no está disponible para {kit.nombre}."
                     )
@@ -346,51 +385,68 @@ def _aplicar_descuentos_carrito(lineas):
             )
         }
 
-        items = []
+        grupos = defaultdict(list)
         for linea in lineas_kits:
-            componentes = []
-            for producto_id, cantidad in linea["componentes"].items():
-                producto = productos_componentes.get(producto_id)
-                if not producto:
-                    continue
-                componentes.append(
+            kit = linea["kit"]
+            if (
+                kit.modalidad == "LIBRE_CATEGORIA"
+                and kit.tipo_producto_id
+            ):
+                # Distintos kits libres pueden acumular volumen únicamente
+                # cuando pertenecen a la misma categoría.
+                clave_grupo = ("categoria", kit.tipo_producto_id)
+            else:
+                # Los kits fijos distintos no se combinan para conseguir
+                # descuento. El volumen se acumula sobre el mismo kit.
+                clave_grupo = ("kit", kit.id)
+            grupos[clave_grupo].append(linea)
+
+        for lineas_grupo in grupos.values():
+            items = []
+            for linea in lineas_grupo:
+                componentes = []
+                for producto_id, cantidad in linea["componentes"].items():
+                    producto = productos_componentes.get(producto_id)
+                    if not producto:
+                        continue
+                    componentes.append(
+                        {
+                            "producto": producto,
+                            "cantidad": cantidad,
+                        }
+                    )
+
+                items.append(
                     {
-                        "producto": producto,
-                        "cantidad": cantidad,
+                        "key": linea["key"],
+                        "kit": linea["kit"],
+                        "cantidad": linea["cantidad"],
+                        "precio_unitario_lista": linea[
+                            "precio_lista_unitario"
+                        ],
+                        "componentes": componentes,
                     }
                 )
 
-            items.append(
-                {
-                    "key": linea["key"],
-                    "kit": linea["kit"],
-                    "cantidad": linea["cantidad"],
-                    "precio_unitario_lista": linea[
-                        "precio_lista_unitario"
-                    ],
-                    "componentes": componentes,
-                }
-            )
+            resumen = KitEngine.volumen(items)
+            por_key = {
+                str(item["key"]): item
+                for item in resumen["lineas"]
+            }
 
-        resumen = KitEngine.volumen(items)
-        por_key = {
-            str(item["key"]): item
-            for item in resumen["lineas"]
-        }
-
-        for linea in lineas_kits:
-            calculada = por_key.get(str(linea["key"]))
-            if not calculada:
-                continue
-            linea["precio_unitario"] = _decimal(
-                calculada["precio_unitario_final"]
-            )
-            linea["ahorro_total"] = _decimal(
-                calculada["ahorro"]
-            )
-            linea["descuento_porcentaje"] = _decimal(
-                calculada["descuento_porcentaje"]
-            )
+            for linea in lineas_grupo:
+                calculada = por_key.get(str(linea["key"]))
+                if not calculada:
+                    continue
+                linea["precio_unitario"] = _decimal(
+                    calculada["precio_unitario_final"]
+                )
+                linea["ahorro_total"] = _decimal(
+                    calculada["ahorro"]
+                )
+                linea["descuento_porcentaje"] = _decimal(
+                    calculada["descuento_porcentaje"]
+                )
 
     return lineas
 
@@ -447,7 +503,10 @@ def carrito_precios(request):
 
     try:
         payload = json.loads(request.body or b"[]")
-        lineas = _validar_carrito(payload)
+        # El endpoint de precios sigue calculando aunque el carrito supere
+        # 100 unidades. El límite sólo se aplica al enviar la solicitud, para
+        # que los descuentos no desaparezcan mientras el cliente revisa.
+        lineas = _validar_carrito(payload, validar_total=False)
         _aplicar_descuentos_carrito(lineas)
     except (TypeError, ValueError, json.JSONDecodeError) as error:
         return JsonResponse(
@@ -519,13 +578,23 @@ def _validar_turnstile(request):
         return False
 
 
-def _contexto_checkout(error=""):
+def _contexto_checkout(error="", exceso_unidades=False):
     config = (
         ConfiguracionCatalogo.objects.first()
         or ConfiguracionCatalogo()
     )
+    mensaje_exceso = (
+        "Hola! Quiero hacer una compra de más de 100 unidades en Doble V 3D. "
+        "¿Podemos coordinar un presupuesto especial?"
+    )
     return {
         "error": error,
+        "exceso_unidades": exceso_unidades,
+        "whatsapp_exceso_url": (
+            whatsapp_url(config.whatsapp_numero, mensaje_exceso)
+            if exceso_unidades
+            else ""
+        ),
         "turnstile_site_key": getattr(
             settings,
             "TURNSTILE_SITE_KEY",
@@ -601,10 +670,17 @@ def carrito_checkout(request):
         lineas = _validar_carrito(payload)
         _aplicar_descuentos_carrito(lineas)
     except ValueError as error:
+        mensaje = str(error)
         return render(
             request,
             "productos/catalogo_checkout.html",
-            _contexto_checkout(str(error)),
+            _contexto_checkout(
+                mensaje,
+                exceso_unidades=(
+                    "admite hasta" in mensaje
+                    and "unidades" in mensaje
+                ),
+            ),
         )
 
     ahora = timezone.now()
@@ -758,6 +834,7 @@ def carrito_gracias(request):
         mensaje = renderizar_mensaje_solicitud(
             config.whatsapp_mensaje_post_solicitud,
             solicitud,
+            request=request,
         )
         whatsapp_confirmacion_url = whatsapp_url(
             config.whatsapp_numero,
@@ -770,8 +847,53 @@ def carrito_gracias(request):
         {
             "solicitud": solicitud,
             "whatsapp_confirmacion_url": whatsapp_confirmacion_url,
+            "detalle_publico_url": (
+                request.build_absolute_uri(
+                    reverse(
+                        "solicitud_publica",
+                        args=[solicitud.public_token],
+                    )
+                )
+                if solicitud
+                else ""
+            ),
             "mensaje_plazo_entrega": (
                 config.mensaje_plazo_entrega
             ),
+        },
+    )
+
+
+@never_cache
+def solicitud_publica(request, token):
+    """Detalle público de una solicitud accesible sólo mediante token UUID."""
+    solicitud = get_object_or_404(
+        SolicitudWeb.objects
+        .prefetch_related(
+            "items__producto",
+            "items__kit",
+            "items__productos_kit__producto",
+        ),
+        public_token=token,
+    )
+    config = (
+        ConfiguracionCatalogo.objects.first()
+        or ConfiguracionCatalogo()
+    )
+    mensaje = (
+        f"Hola! Te consulto por mi solicitud {solicitud.codigo} "
+        "de Doble V 3D."
+    )
+    return render(
+        request,
+        "productos/solicitud_publica.html",
+        {
+            "solicitud": solicitud,
+            "items": list(solicitud.items.all()),
+            "whatsapp_consulta_url": whatsapp_url(
+                config.whatsapp_numero,
+                mensaje,
+            ),
+            "mensaje_plazo_entrega": config.mensaje_plazo_entrega,
         },
     )
