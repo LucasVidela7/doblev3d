@@ -508,6 +508,27 @@ class CatalogoPublicoTests(TestCase):
         )
         self.assertContains(response, "preview-media dual")
 
+    def test_agregar_producto_confirma_sin_abrir_carrito_automaticamente(self):
+        response = self.client.get(reverse("catalogo_productos"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "data-dv-cart-toast-message")
+        self.assertContains(response, "data-dv-cart-toast-open")
+        self.assertContains(response, "VER CARRITO")
+
+        script_path = os.path.join(
+            os.path.dirname(__file__),
+            "static",
+            "productos",
+            "catalog_cart.js",
+        )
+        with open(script_path, encoding="utf-8") as script_file:
+            script = script_file.read()
+
+        self.assertNotIn("window.setTimeout(open, 90)", script)
+        self.assertIn("cartAction: true", script)
+        self.assertIn("pulseCartOpeners()", script)
+
     def test_tarjeta_producto_muestra_ver_y_agregar_legibles(self):
         response = self.client.get(
             reverse("catalogo_productos")

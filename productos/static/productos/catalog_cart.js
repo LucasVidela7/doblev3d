@@ -15,6 +15,9 @@
     const countNodes = [...document.querySelectorAll('[data-dv-cart-count]')];
     const checkout = root.querySelector('[data-dv-cart-checkout]');
     const toast = root.querySelector('[data-dv-cart-toast]');
+    const toastMessage = toast?.querySelector('[data-dv-cart-toast-message]');
+    const toastOpen = toast?.querySelector('[data-dv-cart-toast-open]');
+    const cartOpeners = [...document.querySelectorAll('[data-dv-cart-open]')];
     const siteLoader = document.querySelector('[data-dv-site-loader]');
 
     let loadingTimer = null;
@@ -170,15 +173,42 @@
         if (recalculate) schedulePricing();
     };
 
-    const showToast = (message) => {
+    const hideToast = () => {
         if (!toast) return;
-        toast.textContent = message;
+        toast.classList.remove('is-show');
+    };
+
+    const showToast = (
+        message,
+        { cartAction = false, duration = 2200 } = {},
+    ) => {
+        if (!toast) return;
+
+        if (toastMessage) {
+            toastMessage.textContent = message;
+        } else {
+            toast.textContent = message;
+        }
+
+        if (toastOpen) {
+            toastOpen.hidden = !cartAction;
+        }
+
         toast.classList.add('is-show');
         window.clearTimeout(showToast.timer);
-        showToast.timer = window.setTimeout(
-            () => toast.classList.remove('is-show'),
-            1800,
-        );
+        showToast.timer = window.setTimeout(hideToast, duration);
+    };
+
+    const pulseCartOpeners = () => {
+        cartOpeners.forEach((opener) => {
+            opener.classList.remove('dv-cart-feedback-pulse');
+            void opener.offsetWidth;
+            opener.classList.add('dv-cart-feedback-pulse');
+            window.setTimeout(
+                () => opener.classList.remove('dv-cart-feedback-pulse'),
+                620,
+            );
+        });
     };
 
     const buttonLoading = (
@@ -227,9 +257,8 @@
                 button.disabled = false;
                 button.textContent = original;
                 addItem(incoming, null);
-                window.setTimeout(open, 90);
-            }, 240);
-        }, 360);
+            }, 620);
+        }, 320);
     };
 
     const addItem = (incoming, button, loadingOptions = {}) => {
@@ -246,12 +275,15 @@
         const current = items.find(
             (item) => signature(item) === key,
         );
+        const wasAlreadyInCart = Boolean(current);
+        let resultingQty = Number(incoming.qty || 1);
 
         if (current) {
             current.qty = Math.min(
                 50,
                 Number(current.qty || 0) + Number(incoming.qty || 1),
             );
+            resultingQty = current.qty;
             if (!current.listUnitPrice) {
                 current.listUnitPrice = incoming.listUnitPrice;
             }
@@ -265,11 +297,26 @@
 
         write(items);
         render();
+        pulseCartOpeners();
         buttonLoading(button, 'AGREGADO ✓', loadingOptions);
-        showToast(
-            (incoming.name || 'Producto')
-            + ' · agregado al carrito',
-        );
+
+        if (incoming.kind === 'product') {
+            const message = wasAlreadyInCart
+                ? (incoming.name || 'Producto')
+                    + ' · cantidad actualizada · x'
+                    + resultingQty
+                : (incoming.name || 'Producto')
+                    + ' · agregado al carrito';
+            showToast(message, {
+                cartAction: true,
+                duration: 3200,
+            });
+        } else {
+            showToast(
+                (incoming.name || 'Kit') + ' · agregado al carrito',
+            );
+        }
+
         window.DVMetrics?.track('ADD_TO_CART', {
             contenidoTipo:
                 incoming.kind === 'kit' ? 'KIT' : 'PRODUCTO',
@@ -695,6 +742,14 @@
     };
 
     document.addEventListener('click', (event) => {
+        const toastOpener = event.target.closest('[data-dv-cart-toast-open]');
+        if (toastOpener) {
+            event.preventDefault();
+            hideToast();
+            open();
+            return;
+        }
+
         const opener = event.target.closest('[data-dv-cart-open]');
         if (opener) {
             event.preventDefault();
