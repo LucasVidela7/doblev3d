@@ -421,9 +421,9 @@ class CarritoPublicoTests(TestCase):
             )
         )
 
-    def test_api_precios_mantiene_descuentos_con_mas_de_cien_unidades(self):
+    def test_checkout_acepta_mas_de_cien_unidades_y_marca_volumen_alto(self):
         productos = [self.producto]
-        for indice in range(5):
+        for indice in range(2):
             productos.append(
                 Producto.objects.create(
                     nombre=f"Producto volumen {indice}",
@@ -441,7 +441,7 @@ class CarritoPublicoTests(TestCase):
                 "key": "product:%s:" % producto.id,
                 "kind": "product",
                 "id": producto.id,
-                "qty": 20,
+                "qty": 50,
                 "selections": [],
             }
             for producto in productos
@@ -453,56 +453,57 @@ class CarritoPublicoTests(TestCase):
             content_type="application/json",
         )
         self.assertEqual(precios.status_code, 200)
-        data = precios.json()
-        self.assertTrue(data["ok"])
-        self.assertGreater(data["ahorro"], 0)
+        self.assertTrue(precios.json()["ok"])
+        self.assertGreater(precios.json()["ahorro"], 0)
 
         checkout = self._post(
             payload,
             telefono="+54 11 5555 3030",
         )
-        self.assertEqual(checkout.status_code, 200)
-        self.assertContains(checkout, "¿Necesitás más de 100 unidades?")
-        self.assertContains(checkout, "CONSULTAR POR WHATSAPP")
-        self.assertEqual(SolicitudWeb.objects.count(), 0)
+        self.assertEqual(checkout.status_code, 302)
+        self.assertEqual(SolicitudWeb.objects.count(), 1)
 
+        solicitud = SolicitudWeb.objects.get()
+        self.assertEqual(solicitud.total_unidades, 150)
+        self.assertTrue(solicitud.es_volumen_alto)
 
-    def test_modal_mas_de_cien_unidades_se_puede_cerrar(self):
-        productos = [self.producto]
-        for indice in range(5):
-            productos.append(
-                Producto.objects.create(
-                    nombre=f"Producto límite {indice}",
-                    categoria="PRODUCTO",
-                    tipo=self.tipo,
-                    peso_gramos=Decimal("100"),
-                    margen_ganancia=Decimal("50"),
-                    activo=True,
-                    solo_produccion=False,
-                )
-            )
-
-        payload = [
-            {
-                "key": "product:%s:" % producto.id,
-                "kind": "product",
-                "id": producto.id,
-                "qty": 20,
-                "selections": [],
-            }
-            for producto in productos
-        ]
-
-        response = self._post(
-            payload,
-            telefono="+54 11 5555 3131",
-        )
+    def test_checkout_incluye_aviso_de_volumen_no_bloqueante(self):
+        response = self.client.get(reverse("catalogo_carrito"))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "data-limit-modal")
-        self.assertContains(response, "data-limit-modal-close")
+        self.assertContains(response, "hidden")
+        self.assertContains(response, "Compra de volumen alto")
+        self.assertContains(response, "CONTINUAR CON SOLICITUD")
         self.assertContains(response, "data-limit-edit-cart")
-        self.assertContains(response, "event.key === 'Escape'")
+
+    def test_cantidad_maxima_por_linea_es_50(self):
+        aceptada = self._post(
+            [
+                {
+                    "kind": "product",
+                    "id": self.producto.id,
+                    "qty": 50,
+                }
+            ],
+            telefono="+54 11 5555 3131",
+        )
+        self.assertEqual(aceptada.status_code, 302)
+        self.assertEqual(SolicitudWeb.objects.count(), 1)
+
+        rechazada = self._post(
+            [
+                {
+                    "kind": "product",
+                    "id": self.producto.id,
+                    "qty": 51,
+                }
+            ],
+            telefono="+54 11 5555 3232",
+        )
+        self.assertEqual(rechazada.status_code, 200)
+        self.assertContains(rechazada, "entre 1 y 50 unidades")
+        self.assertEqual(SolicitudWeb.objects.count(), 1)
 
     def test_producto_inactivo_en_carrito_se_identifica_por_nombre(self):
         self.producto.activo = False
