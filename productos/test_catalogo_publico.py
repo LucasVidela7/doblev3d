@@ -343,6 +343,27 @@ class CatalogoPublicoTests(TestCase):
 
         self.assertEqual(response.status_code, 404)
 
+
+    def test_kit_fijo_con_componente_inactivo_no_se_publica(self):
+        self.producto.activo = False
+        self.producto.save(update_fields=["activo"])
+
+        listado = self.client.get(reverse("catalogo_kits"))
+        self.assertEqual(listado.status_code, 200)
+        self.assertNotContains(listado, self.kit.nombre)
+
+        detalle = self.client.get(
+            reverse("catalogo_kit_detalle", args=[self.kit.id])
+        )
+        self.assertEqual(detalle.status_code, 404)
+
+    def test_banner_inicio_incluye_circulos_de_marca(self):
+        response = self.client.get(reverse("catalogo"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, ".hero-card::before")
+        self.assertContains(response, ".hero-card::after")
+
     def test_detalle_publico_kit_fijo_muestra_composicion(self):
         response = self.client.get(
             reverse("catalogo_kit_detalle", args=[self.kit.id])
