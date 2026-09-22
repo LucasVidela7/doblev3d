@@ -4,7 +4,6 @@ from decimal import Decimal, ROUND_CEILING, ROUND_HALF_UP
 from calculadora.precios import (
     MARGEN_MINIMO,
     calcular_costo_productivo_producto,
-    descuento_dinamico_por_cantidad,
     margen_sugerido,
     margenes_escenario,
     precio_mayorista,
@@ -16,8 +15,38 @@ from productos.models import Producto
 
 
 CANTIDAD_MINIMA_KITS_VOLUMEN = 2
+DESCUENTO_INICIAL_KITS = Decimal("3")
+INCREMENTO_DESCUENTO_KITS = Decimal("1")
 DESCUENTO_MAXIMO_KITS = Decimal("15")
-SUAVIDAD_DESCUENTO_KITS = Decimal("3")
+
+
+def _descuento_comercial_kits(cantidad_kits):
+    """
+    Curva comercial explícita para compras de kits.
+
+    - 1 kit: 0%
+    - 2 kits: 3%
+    - 3 kits: 4%
+    - 4 kits: 5%
+    - 5 kits: 6%
+    - cada kit adicional suma 1 punto
+    - tope: 15%
+
+    El descuento efectivo puede ser menor si el margen disponible no alcanza
+    para sostener esta curva sin bajar del margen mínimo operativo.
+    """
+    cantidad_kits = max(int(cantidad_kits or 0), 0)
+    if cantidad_kits < CANTIDAD_MINIMA_KITS_VOLUMEN:
+        return Decimal("0")
+
+    escalones = Decimal(
+        cantidad_kits - CANTIDAD_MINIMA_KITS_VOLUMEN
+    )
+    return min(
+        DESCUENTO_INICIAL_KITS
+        + escalones * INCREMENTO_DESCUENTO_KITS,
+        DESCUENTO_MAXIMO_KITS,
+    )
 
 
 def _decimal(valor):
@@ -198,11 +227,11 @@ def calcular_precio_volumen_kits(items):
 
     Reglas:
     - La lógica se activa desde 2 kits totales.
-    - Desde 2 kits libera progresivamente el descuento que soporta el margen
-      real disponible, con la referencia técnica como guía cuando corresponde.
-    - La intensidad depende tanto de la cantidad de kits como de la cantidad
-      REAL de productos contenidos y del margen disponible.
-    - El beneficio comercial tiene un tope de 15%.
+    - La curva comercial parte en 3% para 2 kits y suma 1 punto por cada
+      kit adicional: 3%, 4%, 5%, 6%... hasta un máximo de 15%.
+    - El descuento efectivo se limita por la capacidad real de margen de las
+      líneas para no bajar del margen mínimo operativo.
+    - El volumen sigue considerando la cantidad REAL de productos contenidos.
     - Ese porcentaje se aplica sobre el precio real configurado de los kits,
       conservando así su posicionamiento de mercado.
     - El descuento nunca baja una línea por debajo de MARGEN_MINIMO.
@@ -332,22 +361,14 @@ def calcular_precio_volumen_kits(items):
         else Decimal("0")
     )
 
-    # La referencia técnica sigue siendo la guía principal. Si el precio real
-    # ya está por debajo de esa referencia, antes la curva quedaba en 0% aun
-    # cuando todavía había margen rentable disponible. En ese caso usamos la
-    # capacidad real hasta el piso operativo para que el beneficio comience
-    # efectivamente desde la segunda unidad.
-    descuento_curva_disponible = (
-        descuento_tecnico_real
-        if descuento_tecnico_real > 0
-        else descuento_soportable_por_margen
-    )
-    descuento_maximo_comercial = descuento_dinamico_por_cantidad(
-        descuento_curva_disponible,
-        total_kits,
-        CANTIDAD_MINIMA_KITS_VOLUMEN,
-        tope=DESCUENTO_MAXIMO_KITS,
-        suavidad=SUAVIDAD_DESCUENTO_KITS,
+    # La curva comercial es deliberadamente visible para el cliente:
+    # 2=3%, 3=4%, 4=5%, 5=6% y +1 punto por kit hasta 15%.
+    # La capacidad de margen no define la curva; funciona como límite de
+    # seguridad al momento de repartir el ahorro entre las líneas.
+    descuento_maximo_comercial = (
+        _descuento_comercial_kits(total_kits)
+        if elegible
+        else Decimal("0")
     )
     precio_curva_sin_redondear = (
         _redondear_centavos(
@@ -369,32 +390,29 @@ def calcular_precio_volumen_kits(items):
         else precio_lista_total
     )
 
-    # En compras pequeñas un descuento dinámico válido puede ser menor que
-    # $100 sobre el total. Redondear siempre hacia arriba lo borraría por
-    # completo (por ejemplo, $10.000 -> $9.950 -> $10.000). En ese único caso
-    # conservamos el importe de la curva con precisión de centavos para que
-    # desde la segunda unidad exista un beneficio real sin exceder el margen.
+    # Priorizamos el porcentaje comercial exacto. Sólo conservamos el redondeo
+    # a $100 cuando no reduce el descuento comunicado; de lo contrario usamos
+    # el importe exacto de la curva.
+    descuento_redondeado = (
+        (
+            precio_lista_total - precio_minimo_comercial_total
+        )
+        / precio_lista_total
+        * Decimal("100")
+        if elegible and precio_lista_total > 0
+        else Decimal("0")
+    )
     if (
         elegible
         and descuento_maximo_comercial > 0
-        and precio_curva_sin_redondear < precio_lista_total
-        and precio_minimo_comercial_total >= precio_lista_total
+        and descuento_redondeado < descuento_maximo_comercial
     ):
         precio_minimo_comercial_total = precio_curva_sin_redondear
 
-    # Cuando existe una baja técnica, la curva limita cuánto se libera por
-    # cantidad. Si la referencia técnica no habilita baja pero todavía existe
-    # margen real, la propia curva comercial define el descuento.
-    if descuento_tecnico_real > 0:
-        precio_objetivo_total = min(
-            precio_lista_total,
-            max(precio_objetivo_total, precio_minimo_comercial_total),
-        )
-    else:
-        precio_objetivo_total = min(
-            precio_lista_total,
-            precio_minimo_comercial_total,
-        )
+    precio_objetivo_total = min(
+        precio_lista_total,
+        precio_minimo_comercial_total,
+    )
 
     ajustado_por_precio_real = (
         elegible
