@@ -196,6 +196,127 @@ class StockRealImpresionesPorProductoTests(TestCase):
         # "Impresiones por producto".
         self.assertEqual(items, [])
 
+    def test_reserva_preparacion_no_crea_faltante_ficticio(self):
+        producto = Producto.objects.create(
+            nombre="Producto reserva regresion",
+            categoria="PRODUCTO",
+            tipo=self.pieza.tipo,
+            horas=1,
+            minutos=0,
+            peso_gramos=Decimal("10"),
+            margen_ganancia=Decimal("50"),
+            requiere_impresion=True,
+            stock=3,
+            activo=True,
+            tipo_fabricacion="SIMPLE",
+            solo_produccion=False,
+        )
+        cliente = Cliente.objects.first()
+        pedidos = []
+
+        for _ in range(3):
+            pedido = Pedido.objects.create(
+                cliente=cliente,
+                estado="PENDIENTE",
+            )
+            DetallePedido.objects.create(
+                pedido=pedido,
+                tipo_item="PRODUCTO",
+                producto=producto,
+                cantidad=1,
+                precio_unitario=Decimal("1000"),
+                estado="PENDIENTE",
+            )
+            pedidos.append(pedido)
+
+        # Stock 3 cubre exactamente los 3 pedidos: no hay que imprimir.
+        self.assertFalse(
+            any(
+                item["producto"].id == producto.id
+                for item in obtener_impresiones_por_producto()
+            )
+        )
+
+        # Al reservar una unidad para Preparación, el stock físico baja a 2,
+        # pero también queda cubierta una unidad de la demanda. El faltante
+        # debe seguir siendo cero, no aparecer una impresión fantasma.
+        respuesta = self.client.post(
+            reverse("pedidos:iniciar_preparacion", args=[pedidos[0].id])
+        )
+        self.assertEqual(respuesta.status_code, 302)
+        producto.refresh_from_db()
+        self.assertEqual(producto.stock, 2)
+        self.assertFalse(
+            any(
+                item["producto"].id == producto.id
+                for item in obtener_impresiones_por_producto()
+            )
+        )
+
+        # Liberar la preparación repone stock y demanda en paralelo.
+        respuesta = self.client.post(
+            reverse("pedidos:liberar_preparacion", args=[pedidos[0].id])
+        )
+        self.assertEqual(respuesta.status_code, 302)
+        producto.refresh_from_db()
+        self.assertEqual(producto.stock, 3)
+        self.assertFalse(
+            any(
+                item["producto"].id == producto.id
+                for item in obtener_impresiones_por_producto()
+            )
+        )
+
+    def test_reserva_reduce_solo_la_demanda_cubierta(self):
+        producto = Producto.objects.create(
+            nombre="Producto reserva parcial",
+            categoria="PRODUCTO",
+            tipo=self.pieza.tipo,
+            horas=1,
+            minutos=0,
+            peso_gramos=Decimal("10"),
+            margen_ganancia=Decimal("50"),
+            requiere_impresion=True,
+            stock=3,
+            activo=True,
+            tipo_fabricacion="SIMPLE",
+            solo_produccion=False,
+        )
+        cliente = Cliente.objects.first()
+        pedidos = []
+
+        for _ in range(4):
+            pedido = Pedido.objects.create(
+                cliente=cliente,
+                estado="PENDIENTE",
+            )
+            DetallePedido.objects.create(
+                pedido=pedido,
+                tipo_item="PRODUCTO",
+                producto=producto,
+                cantidad=1,
+                precio_unitario=Decimal("1000"),
+                estado="PENDIENTE",
+            )
+            pedidos.append(pedido)
+
+        self.client.post(
+            reverse("pedidos:iniciar_preparacion", args=[pedidos[0].id])
+        )
+        producto.refresh_from_db()
+        self.assertEqual(producto.stock, 2)
+
+        item = next(
+            item
+            for item in obtener_impresiones_por_producto()
+            if item["producto"].id == producto.id
+        )
+        self.assertEqual(item["cantidad_pedida"], 4)
+        self.assertEqual(item["cantidad_normal"], 3)
+        self.assertEqual(item["stock"], 2)
+        self.assertEqual(item["a_imprimir"], 1)
+        self.assertEqual(item["falta_iniciar"], 1)
+
     def test_stock_no_cubre_personalizados_genericos(self):
         DetallePedido.objects.create(
             pedido=Pedido.objects.first(),

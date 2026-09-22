@@ -219,13 +219,27 @@ def obtener_impresiones_por_producto():
             "personalizaciones": [],
         }
     )
+    reservas_normales = defaultdict(int)
 
     for pedido in pedidos:
+        estados_pedido = list(pedido.estados_impresion.all())
         productos_normales_listos = {
             estado.producto_id
-            for estado in pedido.estados_impresion.all()
+            for estado in estados_pedido
             if estado.listo
         }
+
+        # Al iniciar Preparación, el stock reservado ya se descuenta de
+        # Producto.stock. Esa misma cantidad debe salir también de la demanda
+        # pendiente; de lo contrario se compara demanda completa contra un
+        # stock ya reducido y aparece un faltante ficticio.
+        for estado in estados_pedido:
+            if estado.listo or not estado.reservado_stock:
+                continue
+            reservas_normales[estado.producto_id] += max(
+                int(estado.cantidad_stock_reservada or 0),
+                0,
+            )
 
         for detalle in pedido.detalles.all():
             if detalle.estado in ["CANCELADO", "ENTREGADO"]:
@@ -281,8 +295,16 @@ def obtener_impresiones_por_producto():
         if not producto:
             continue
 
-        cantidad_normal = demanda["cantidad_normal"]
+        cantidad_normal_total = max(int(demanda["cantidad_normal"] or 0), 0)
         cantidad_personalizada = demanda["cantidad_personalizada"]
+        cantidad_reservada = min(
+            max(int(reservas_normales.get(producto.id, 0)), 0),
+            cantidad_normal_total,
+        )
+        cantidad_normal = max(
+            cantidad_normal_total - cantidad_reservada,
+            0,
+        )
         falta_normal = max(cantidad_normal - int(producto.stock or 0), 0)
 
         _agregar_fabricacion(
@@ -297,7 +319,12 @@ def obtener_impresiones_por_producto():
         if producto.tipo_fabricacion == "SIMPLE":
             item = productos_agrupados.get(producto.id)
             if item:
-                item["cantidad_pedida"] = cantidad_normal + cantidad_personalizada
+                # cantidad_pedida conserva la demanda comercial visible;
+                # cantidad_normal representa sólo lo que todavía no está
+                # cubierto por una reserva de Preparación.
+                item["cantidad_pedida"] = (
+                    cantidad_normal_total + cantidad_personalizada
+                )
                 item["cantidad_normal"] = cantidad_normal
                 item["necesidad_normal_impresion"] = falta_normal
                 item["stock"] = int(producto.stock or 0)
