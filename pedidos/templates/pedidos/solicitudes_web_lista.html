@@ -27,6 +27,7 @@ h1{margin:0;font-size:clamp(28px,4vw,36px);letter-spacing:-.035em}
 .request-phone-main span{flex:0 0 auto;padding:2px 5px;border-radius:999px;background:var(--dv-success-soft,#eaf7ee);color:var(--dv-success-text,#28633c);font-size:8px;font-weight:900;letter-spacing:.02em}
 .request-phone-main strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:900}
 .request-card .request-generated{background:var(--dv-success-soft,#eaf7ee);color:var(--dv-success-text,#28633c)}
+.request-volume{display:inline-flex;width:max-content;margin-top:6px;padding:4px 7px;border-radius:999px;background:#fff0d7;color:#8a5a00;font-size:8px;font-weight:950;letter-spacing:.02em}
 @media(max-width:760px){
  .shell{width:calc(100% - 18px);padding-top:15px}
  .head{display:block}
@@ -76,6 +77,7 @@ h1{margin:0;font-size:clamp(28px,4vw,36px);letter-spacing:-.035em}
         {% if solicitud.imagen_resumen_url %}<img class="dv-kanban-card__thumb" src="{{ solicitud.imagen_resumen_url }}" alt="" loading="lazy">{% else %}<span class="dv-kanban-card__thumb is-empty">3D</span>{% endif %}
        </div>
        <div class="dv-kanban-card__meta">{{ solicitud.creada_en|date:"d/m/Y H:i" }}</div>
+       {% if solicitud.es_volumen_alto %}<span class="request-volume">VOLUMEN ALTO · {{ solicitud.total_unidades }} U.</span>{% endif %}
        <div class="dv-kanban-card__amount">$ {{ solicitud.total|floatformat:"0g" }}</div>
        <div class="dv-kanban-card__footer"><span class="dv-kanban-badge">NUEVA</span><a class="btn primary" href="{% url 'pedidos:solicitud_web_detalle' solicitud.id %}">VER</a></div>
       </article>
@@ -96,6 +98,7 @@ h1{margin:0;font-size:clamp(28px,4vw,36px);letter-spacing:-.035em}
         {% if solicitud.imagen_resumen_url %}<img class="dv-kanban-card__thumb" src="{{ solicitud.imagen_resumen_url }}" alt="" loading="lazy">{% else %}<span class="dv-kanban-card__thumb is-empty">3D</span>{% endif %}
        </div>
        <div class="dv-kanban-card__meta">{{ solicitud.creada_en|date:"d/m/Y H:i" }}</div>
+       {% if solicitud.es_volumen_alto %}<span class="request-volume">VOLUMEN ALTO · {{ solicitud.total_unidades }} U.</span>{% endif %}
        <div class="dv-kanban-card__amount">$ {{ solicitud.total|floatformat:"0g" }}</div>
        <div class="dv-kanban-card__footer"><span class="dv-kanban-badge">CONTACTADA</span><a class="btn primary" href="{% url 'pedidos:solicitud_web_detalle' solicitud.id %}">VER</a></div>
       </article>
@@ -116,6 +119,7 @@ h1{margin:0;font-size:clamp(28px,4vw,36px);letter-spacing:-.035em}
         {% if solicitud.imagen_resumen_url %}<img class="dv-kanban-card__thumb" src="{{ solicitud.imagen_resumen_url }}" alt="" loading="lazy">{% else %}<span class="dv-kanban-card__thumb is-empty">3D</span>{% endif %}
        </div>
        <div class="dv-kanban-card__meta">{{ solicitud.creada_en|date:"d/m/Y H:i" }}</div>
+       {% if solicitud.es_volumen_alto %}<span class="request-volume">VOLUMEN ALTO · {{ solicitud.total_unidades }} U.</span>{% endif %}
        <div class="dv-kanban-card__amount">$ {{ solicitud.total|floatformat:"0g" }}</div>
        <div class="dv-kanban-card__footer">
         {% if solicitud.presupuesto_generado %}<a class="dv-kanban-badge request-generated" href="{% url 'pedidos:presupuesto_detalle' solicitud.presupuesto_generado.id %}">{{ solicitud.presupuesto_generado.codigo }}</a>{% else %}<span class="dv-kanban-badge">CONVERTIDA</span>{% endif %}
@@ -139,6 +143,7 @@ h1{margin:0;font-size:clamp(28px,4vw,36px);letter-spacing:-.035em}
         {% if solicitud.imagen_resumen_url %}<img class="dv-kanban-card__thumb" src="{{ solicitud.imagen_resumen_url }}" alt="" loading="lazy">{% else %}<span class="dv-kanban-card__thumb is-empty">3D</span>{% endif %}
        </div>
        <div class="dv-kanban-card__meta">{{ solicitud.creada_en|date:"d/m/Y H:i" }}</div>
+       {% if solicitud.es_volumen_alto %}<span class="request-volume">VOLUMEN ALTO · {{ solicitud.total_unidades }} U.</span>{% endif %}
        <div class="dv-kanban-card__amount">$ {{ solicitud.total|floatformat:"0g" }}</div>
        <div class="dv-kanban-card__footer"><span class="dv-kanban-badge">RECHAZADA</span><a class="btn" href="{% url 'pedidos:solicitud_web_detalle' solicitud.id %}">VER</a></div>
       </article>
