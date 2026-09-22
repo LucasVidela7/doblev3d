@@ -101,8 +101,8 @@ a,button{touch-action:manipulation}
 .metrica-icono{width:31px;height:31px;display:grid;place-items:center;border-radius:10px;font-size:15px;flex:0 0 auto}
 .metrica-numero{font-size:31px;font-weight:900;line-height:.95;letter-spacing:-.7px;white-space:nowrap}
 .metrica-ayuda{margin-top:6px;color:var(--muted);font-size:9px;line-height:1.3}
-.m-cobrar,.m-cobrado{background:linear-gradient(180deg,#fff 0%,#fcfcfd 100%)}
-.m-cobrar .metrica-numero,.m-cobrado .metrica-numero{font-size:29px;letter-spacing:-1px}
+.m-ingresos{background:linear-gradient(180deg,#fff 0%,#fcfcfd 100%)}
+.m-ingresos .metrica-numero{font-size:29px;letter-spacing:-1px}
 .m-presupuestos .metrica-icono{background:var(--violeta);color:var(--violeta-texto)}
 .m-web .metrica-icono{background:#e8f1ff;color:#245a9b}
 .m-web.alerta{border-color:#c8d9ef;background:linear-gradient(180deg,#fff 0%,#f8fbff 100%)}
@@ -111,8 +111,9 @@ a,button{touch-action:manipulation}
 .m-entregas .metrica-icono{background:var(--verde);color:var(--verde-texto)}
 .m-entregas.alerta{border-color:#efb5b5;background:linear-gradient(180deg,#fff 0%,#fffafa 100%)}
 .m-entregas.alerta .metrica-icono{background:var(--rojo);color:var(--rojo-texto)}
-.m-cobrar .metrica-icono{background:var(--naranja)}
-.m-cobrado .metrica-icono{background:var(--verde)}
+.m-ingresos .metrica-icono{background:var(--verde);color:var(--verde-texto)}
+.m-arrepentimiento .metrica-icono{background:var(--rojo);color:var(--rojo-texto)}
+.m-arrepentimiento.alerta{border-color:#efb5b5;background:linear-gradient(180deg,#fff 0%,#fffafa 100%)}
 
 /* SECCIONES / ACCIONES */
 .seccion{margin-top:24px}
@@ -451,8 +452,7 @@ a,button{touch-action:manipulation}
         font-size:27px;
     }
 
-    .m-cobrar .metrica-numero,
-    .m-cobrado .metrica-numero{
+    .m-ingresos .metrica-numero{
         font-size:25px;
         letter-spacing:-.8px;
     }
@@ -564,6 +564,19 @@ a,button{touch-action:manipulation}
 
 <!-- MÉTRICAS DESLIZABLES -->
 <section class="metricas" aria-label="Resumen del negocio">
+    <a href="{% url 'pedidos:solicitudes_web' %}" class="metrica m-web {% if solicitudes_web_nuevas %}alerta{% endif %}">
+        <div class="metrica-cabecera">
+            <div class="metrica-titulo">SOLICITUDES WEB</div>
+            <div class="metrica-icono">🌐</div>
+        </div>
+        <div>
+            <div class="metrica-numero">{{ solicitudes_web_pendientes }}</div>
+            <div class="metrica-ayuda">
+                {{ solicitudes_web_nuevas }} nuevas · {{ solicitudes_web_contactadas }} contactadas
+            </div>
+        </div>
+    </a>
+
     <a href="{% url 'pedidos:presupuestos' %}" class="metrica m-presupuestos">
         <div class="metrica-cabecera">
             <div class="metrica-titulo">PRESUPUESTOS PENDIENTES</div>
@@ -577,19 +590,6 @@ a,button{touch-action:manipulation}
                 {% else %}
                     no hay consultas pendientes
                 {% endif %}
-            </div>
-        </div>
-    </a>
-
-    <a href="{% url 'pedidos:solicitudes_web' %}" class="metrica m-web {% if solicitudes_web_nuevas %}alerta{% endif %}">
-        <div class="metrica-cabecera">
-            <div class="metrica-titulo">SOLICITUDES WEB</div>
-            <div class="metrica-icono">🌐</div>
-        </div>
-        <div>
-            <div class="metrica-numero">{{ solicitudes_web_pendientes }}</div>
-            <div class="metrica-ayuda">
-                {{ solicitudes_web_nuevas }} nuevas · {{ solicitudes_web_contactadas }} contactadas
             </div>
         </div>
     </a>
@@ -631,25 +631,33 @@ a,button{touch-action:manipulation}
         </div>
     </a>
 
-    <a href="{% url 'pedidos:finanzas' %}#cobros" class="metrica m-cobrar">
+    <a href="{% url 'pedidos:finanzas' %}#cobros" class="metrica m-ingresos">
         <div class="metrica-cabecera">
-            <div class="metrica-titulo">SALDO A COBRAR</div>
+            <div class="metrica-titulo">INGRESOS</div>
             <div class="metrica-icono">$</div>
         </div>
         <div>
-            <div class="metrica-numero">&#36;{{ saldo_a_cobrar|floatformat:0 }}</div>
-            <div class="metrica-ayuda">{{ pedidos_con_saldo }} pedidos con saldo</div>
+            <div class="metrica-numero">&#36;{{ cobrado_mes|floatformat:0 }}</div>
+            <div class="metrica-ayuda">
+                Cobrado este mes · saldo a cobrar &#36;{{ saldo_a_cobrar|floatformat:0 }}
+            </div>
         </div>
     </a>
 
-    <a href="{% url 'pedidos:finanzas' %}#cobros" class="metrica m-cobrado">
+    <a href="{% url 'dashboard:configuracion' %}#legal" class="metrica m-arrepentimiento {% if arrepentimientos_pendientes %}alerta{% endif %}">
         <div class="metrica-cabecera">
-            <div class="metrica-titulo">COBRADO ESTE MES</div>
-            <div class="metrica-icono">✓</div>
+            <div class="metrica-titulo">ARREPENTIMIENTOS</div>
+            <div class="metrica-icono">↩</div>
         </div>
         <div>
-            <div class="metrica-numero">&#36;{{ cobrado_mes|floatformat:0 }}</div>
-            <div class="metrica-ayuda">pagos registrados este mes</div>
+            <div class="metrica-numero">{{ arrepentimientos_pendientes }}</div>
+            <div class="metrica-ayuda">
+                {% if arrepentimientos_pendientes %}
+                    solicitudes pendientes de revisar
+                {% else %}
+                    sin solicitudes pendientes
+                {% endif %}
+            </div>
         </div>
     </a>
 </section>
