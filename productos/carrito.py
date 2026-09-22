@@ -36,8 +36,7 @@ from productos.whatsapp import (
 
 
 MAX_LINEAS = 20
-MAX_CANTIDAD_LINEA = 20
-MAX_UNIDADES_TOTALES = 100
+MAX_CANTIDAD_LINEA = 50
 MAX_PAYLOAD_BYTES = 30000
 
 
@@ -86,9 +85,8 @@ def _parsear_payload(raw):
     return payload
 
 
-def _validar_carrito(payload, validar_total=True):
+def _validar_carrito(payload):
     lineas = []
-    unidades = 0
 
     for indice, bruto in enumerate(payload, start=1):
         if not isinstance(bruto, dict):
@@ -103,12 +101,6 @@ def _validar_carrito(payload, validar_total=True):
         if cantidad <= 0 or cantidad > MAX_CANTIDAD_LINEA:
             raise ValueError(
                 f"Cada línea debe tener entre 1 y {MAX_CANTIDAD_LINEA} unidades."
-            )
-
-        unidades += cantidad
-        if validar_total and unidades > MAX_UNIDADES_TOTALES:
-            raise ValueError(
-                f"Una solicitud admite hasta {MAX_UNIDADES_TOTALES} unidades."
             )
 
         if tipo == "product":
@@ -503,10 +495,7 @@ def carrito_precios(request):
 
     try:
         payload = json.loads(request.body or b"[]")
-        # El endpoint de precios sigue calculando aunque el carrito supere
-        # 100 unidades. El límite sólo se aplica al enviar la solicitud, para
-        # que los descuentos no desaparezcan mientras el cliente revisa.
-        lineas = _validar_carrito(payload, validar_total=False)
+        lineas = _validar_carrito(payload)
         _aplicar_descuentos_carrito(lineas)
     except (TypeError, ValueError, json.JSONDecodeError) as error:
         return JsonResponse(
@@ -578,22 +567,20 @@ def _validar_turnstile(request):
         return False
 
 
-def _contexto_checkout(error="", exceso_unidades=False):
+def _contexto_checkout(error=""):
     config = (
         ConfiguracionCatalogo.objects.first()
         or ConfiguracionCatalogo()
     )
-    mensaje_exceso = (
+    mensaje_volumen = (
         "Hola! Quiero hacer una compra de más de 100 unidades en Doble V 3D. "
-        "¿Podemos coordinar un presupuesto especial?"
+        "Ya armé el carrito y quisiera coordinar el presupuesto y los plazos."
     )
     return {
         "error": error,
-        "exceso_unidades": exceso_unidades,
-        "whatsapp_exceso_url": (
-            whatsapp_url(config.whatsapp_numero, mensaje_exceso)
-            if exceso_unidades
-            else ""
+        "whatsapp_volumen_url": whatsapp_url(
+            config.whatsapp_numero,
+            mensaje_volumen,
         ),
         "turnstile_site_key": getattr(
             settings,
@@ -670,17 +657,10 @@ def carrito_checkout(request):
         lineas = _validar_carrito(payload)
         _aplicar_descuentos_carrito(lineas)
     except ValueError as error:
-        mensaje = str(error)
         return render(
             request,
             "productos/catalogo_checkout.html",
-            _contexto_checkout(
-                mensaje,
-                exceso_unidades=(
-                    "admite hasta" in mensaje
-                    and "unidades" in mensaje
-                ),
-            ),
+            _contexto_checkout(str(error)),
         )
 
     ahora = timezone.now()
