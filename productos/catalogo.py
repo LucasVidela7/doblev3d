@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 
 from kits.engine import KitEngine
@@ -92,6 +93,19 @@ def _catalogo_publico(request, vista_catalogo):
         }
         if len(tipos) == 1 and componentes:
             kit.tipo_producto = componentes[0].producto.tipo
+
+    kits = [
+        kit
+        for kit in kits
+        if KitEngine.validar_configuracion(
+            kit,
+            productos_categoria=(
+                productos_por_tipo.get(kit.tipo_producto_id, [])
+                if kit.modalidad == "LIBRE_CATEGORIA"
+                else None
+            ),
+        )["valido"]
+    ]
 
     for kit in kits:
         if kit.modalidad == "LIBRE_CATEGORIA":
@@ -279,6 +293,13 @@ def catalogo_kit_detalle(request, kit_id):
             .order_by("nombre", "id")
         )
 
+        validacion = KitEngine.validar_configuracion(
+            kit,
+            productos_categoria=productos,
+        )
+        if not validacion["valido"]:
+            raise Http404("Kit no disponible")
+
         analisis = KitEngine.opciones(
             kit,
             productos_categoria=productos,
@@ -328,6 +349,10 @@ def catalogo_kit_detalle(request, kit_id):
         )
 
     else:
+        validacion = KitEngine.validar_configuracion(kit)
+        if not validacion["valido"]:
+            raise Http404("Kit no disponible")
+
         adjuntar_imagenes_reutilizadas([kit])
 
         imagenes = {
