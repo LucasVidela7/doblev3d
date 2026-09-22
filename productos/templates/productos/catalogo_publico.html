@@ -926,20 +926,26 @@
                             data-category="{% if kit.tipo_producto %}{{ kit.tipo_producto.nombre|lower }}{% endif %}"
                             data-search="{{ kit.nombre|lower }} {% if kit.tipo_producto %}{{ kit.tipo_producto.nombre|lower }}{% endif %} {{ kit.catalogo_busqueda_productos|default:''|lower }}"
                         >
-                            <div class="media">
-                                <span class="badge">Kit</span>
-                                {% if kit.productos_visuales_collage %}
-                                    <div class="kit-collage"{% if kit.productos_visuales_collage|length == 1 %} style="grid-template-columns: 1fr;"{% endif %}>
-                                        {% for visual in kit.productos_visuales_collage %}
-                                            <div class="tile">
-                                                <img src="{{ visual.imagen_url }}" alt="{{ visual.producto.nombre }}" loading="lazy">
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                {% else %}
-                                    <div class="placeholder" aria-hidden="true">K</div>
-                                {% endif %}
-                            </div>
+                            <a
+                                class="catalog-media-link"
+                                href="{% url 'catalogo_kit_detalle' kit.id %}"
+                                aria-label="Ver {{ kit.nombre }}"
+                            >
+                                <div class="media">
+                                    <span class="badge">Kit</span>
+                                    {% if kit.productos_visuales_collage %}
+                                        <div class="kit-collage"{% if kit.productos_visuales_collage|length == 1 %} style="grid-template-columns: 1fr;"{% endif %}>
+                                            {% for visual in kit.productos_visuales_collage %}
+                                                <div class="tile">
+                                                    <img src="{{ visual.imagen_url }}" alt="{{ visual.producto.nombre }}" loading="lazy">
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <div class="placeholder" aria-hidden="true">K</div>
+                                    {% endif %}
+                                </div>
+                            </a>
                             <div class="content">
                                 <div class="meta">
                                     {% if kit.modalidad == "FIJO" %}Composición fija{% else %}Armalo a tu gusto{% endif %}

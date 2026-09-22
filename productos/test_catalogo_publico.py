@@ -251,14 +251,45 @@ class CatalogoPublicoTests(TestCase):
 
 
     def test_catalogo_kit_tiene_enlace_a_detalle_publico(self):
-        response = self.client.get(reverse("catalogo"))
+        response = self.client.get(reverse("catalogo_kits"))
 
         self.assertEqual(response.status_code, 200)
+        detalle_url = reverse("catalogo_kit_detalle", args=[self.kit.id])
+        self.assertContains(response, detalle_url)
+        self.assertContains(response, "VER DETALLE")
+        self.assertContains(response, 'class="catalog-media-link"')
         self.assertContains(
             response,
-            reverse("catalogo_kit_detalle", args=[self.kit.id]),
+            'href="' + detalle_url + '"',
         )
-        self.assertContains(response, "VER DETALLE")
+
+    def test_detalle_kit_no_muestra_salto_de_linea_literal(self):
+        response = self.client.get(
+            reverse("catalogo_kit_detalle", args=[self.kit.id])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(
+            response,
+            '<body class="dv-kit-configurable-page">\\n',
+        )
+
+    def test_agregar_kit_confirma_sin_abrir_carrito_automaticamente(self):
+        script_path = os.path.join(
+            os.path.dirname(__file__),
+            "static",
+            "productos",
+            "catalog_cart.js",
+        )
+        with open(script_path, encoding="utf-8") as script_file:
+            script = script_file.read()
+
+        kit_handler = script.split(
+            "addButton?.addEventListener('click', () => {",
+            1,
+        )[1].split("updateKit();", 1)[0]
+        self.assertNotIn("open();", kit_handler)
+        self.assertIn("cartAction: true", script)
 
     def test_detalle_publico_kit_libre_muestra_incluidos_antes_de_adicionales(self):
         ConfiguracionCostos.objects.create(

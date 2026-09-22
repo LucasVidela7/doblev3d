@@ -323,6 +323,10 @@
         } else {
             showToast(
                 (incoming.name || 'Kit') + ' · agregado al carrito',
+                {
+                    cartAction: true,
+                    duration: 3200,
+                },
             );
         }
 
@@ -1192,7 +1196,6 @@
                     }
                     updateKit();
                 }
-                open();
             }, 430);
         });
 
