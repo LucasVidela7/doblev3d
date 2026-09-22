@@ -4,20 +4,20 @@ from .image_models import ProductoImagen
 
 def asignar_miniaturas_productos(productos):
     """Adjunta una URL de miniatura a productos ya cargados sin N+1 queries."""
-    productos_unicos = {}
+    productos_por_id = {}
 
     for producto in productos:
         if not producto or not getattr(producto, "id", None):
             continue
-        productos_unicos[producto.id] = producto
+        productos_por_id.setdefault(producto.id, []).append(producto)
 
-    if not productos_unicos:
+    if not productos_por_id:
         return {}
 
     imagenes = (
         ProductoImagen.objects
         .filter(
-            producto_id__in=productos_unicos.keys(),
+            producto_id__in=productos_por_id.keys(),
             ambiente=entorno_imagenes(),
             orden=1,
         )
@@ -37,10 +37,9 @@ def asignar_miniaturas_productos(productos):
         for item in imagenes
     }
 
-    for producto_id, producto in productos_unicos.items():
-        producto.imagen_produccion_url = urls.get(
-            producto_id,
-            "",
-        )
+    for producto_id, instancias in productos_por_id.items():
+        url = urls.get(producto_id, "")
+        for producto in instancias:
+            producto.imagen_produccion_url = url
 
     return urls

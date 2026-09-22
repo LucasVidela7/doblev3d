@@ -539,3 +539,42 @@ class CatalogoPublicoTests(TestCase):
             "grid-template-columns:minmax(58px,.7fr) minmax(0,1.3fr)",
         )
 
+
+    @override_settings(DEBUG=False)
+    def test_404_publica_mantiene_al_cliente_en_la_tienda(self):
+        response = self.client.get("/pagina-que-no-existe/")
+
+        self.assertEqual(response.status_code, 404)
+        self.assertContains(
+            response,
+            "Volvamos a la tienda",
+            status_code=404,
+        )
+        self.assertContains(
+            response,
+            reverse("catalogo"),
+            status_code=404,
+        )
+        self.assertContains(
+            response,
+            reverse("catalogo_productos"),
+            status_code=404,
+        )
+        self.assertContains(
+            response,
+            reverse("catalogo_kits"),
+            status_code=404,
+        )
+        self.assertNotContains(
+            response,
+            "/gestion/login/",
+            status_code=404,
+        )
+
+    @override_settings(DEBUG=False)
+    def test_404_de_gestion_sigue_protegida_por_login(self):
+        response = self.client.get("/gestion/ruta-inexistente/")
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/gestion/login/", response.url)
+

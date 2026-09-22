@@ -43,12 +43,15 @@ class LoginRequiredMiddleware:
         try:
             match = resolve(request.path_info)
         except Resolver404:
-            # Incluso una URL inexistente queda detrás del login mientras
-            # el usuario no está autenticado. Luego Django devolverá el 404.
-            return redirect_to_login(
-                request.get_full_path(),
-                settings.LOGIN_URL,
-            )
+            # Las rutas internas inexistentes siguen detrás del login.
+            # En el sitio público dejamos que Django llegue al handler 404
+            # del catálogo para no sacar al cliente de la experiencia de tienda.
+            if request.path_info.startswith("/gestion/"):
+                return redirect_to_login(
+                    request.get_full_path(),
+                    settings.LOGIN_URL,
+                )
+            return self.get_response(request)
 
         if match.url_name in self.PUBLIC_URL_NAMES:
             return self.get_response(request)

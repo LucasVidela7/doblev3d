@@ -2,6 +2,7 @@ from collections import defaultdict
 
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
+from django.views.defaults import page_not_found
 
 from kits.engine import KitEngine
 from kits.imagenes import adjuntar_imagenes_reutilizadas
@@ -10,6 +11,31 @@ from kits.models import Kit
 from .image_environment import entorno_imagenes
 from .image_models import ProductoImagen
 from .models import ConfiguracionCatalogo, Producto
+
+
+def catalogo_404(request, exception):
+    """404 amigable para la tienda pública sin alterar la gestión interna."""
+
+    if request.path_info.startswith("/gestion/"):
+        return page_not_found(request, exception)
+
+    config_catalogo = (
+        ConfiguracionCatalogo.objects.first()
+        or ConfiguracionCatalogo()
+    )
+    mostrar_whatsapp = bool(
+        config_catalogo.mostrar_whatsapp
+        and (config_catalogo.whatsapp_numero or "").strip()
+    )
+
+    return render(
+        request,
+        "productos/catalogo_404.html",
+        {
+            "mostrar_whatsapp": mostrar_whatsapp,
+        },
+        status=404,
+    )
 
 
 def _catalogo_publico(request, vista_catalogo):

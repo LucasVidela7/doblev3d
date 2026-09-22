@@ -413,6 +413,40 @@ class DashboardProduccionTests(TestCase):
             'class="dv-producto-thumb"',
         )
 
+    def test_dashboard_repite_miniatura_si_producto_esta_ahora_y_en_cola(self):
+        ProductoImagen.objects.create(
+            producto=self.producto,
+            file_id="thumb-repetida-dashboard",
+            url="https://example.com/repetida.jpg",
+            thumbnail_url="https://example.com/repetida-thumb.jpg",
+            orden=1,
+        )
+        ahora = timezone.now()
+        Produccion.objects.create(
+            producto=self.producto,
+            cantidad=1,
+            impresora=self.impresora_a,
+            estado="IMPRIMIENDO",
+            inicio_impresion=ahora,
+            tiempo_impresion_minutos=90,
+        )
+        Produccion.objects.create(
+            producto=self.producto,
+            cantidad=2,
+            estado="PENDIENTE",
+            inicio_impresion=ahora + timedelta(hours=2),
+            tiempo_impresion_minutos=120,
+        )
+
+        respuesta = self.client.get(reverse("dashboard:inicio"))
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(
+            respuesta,
+            "https://example.com/repetida-thumb.jpg",
+            count=2,
+        )
+
     def test_arrepentimiento_se_resuelve_desde_configuracion(self):
         solicitud = SolicitudArrepentimiento.objects.create(
             nombre="Cliente arrepentimiento",

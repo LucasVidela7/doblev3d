@@ -5,6 +5,7 @@ from django.urls import include, path
 from config.health import healthcheck
 
 from productos.catalogo import (
+    catalogo_404,
     catalogo,
     catalogo_kits,
     catalogo_productos,
@@ -24,6 +25,9 @@ from productos.carrito import (
     carrito_precios,
     solicitud_publica,
 )
+
+
+handler404 = catalogo_404
 
 
 urlpatterns = [
