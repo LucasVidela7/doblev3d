@@ -205,7 +205,7 @@ header.shell.top{display:none!important}
 }
 body:has(.dv-product-builder) .dv-catalog-withdrawal-float,
 body:has(.dv-kit-builder) .dv-catalog-withdrawal-float{
-    bottom:88px
+    bottom:max(14px,env(safe-area-inset-bottom))
 }
 
 @media(max-width:640px){
@@ -225,7 +225,7 @@ body:has(.dv-kit-builder) .dv-catalog-withdrawal-float{
     }
     body:has(.dv-product-builder) .dv-catalog-withdrawal-float,
     body:has(.dv-kit-builder) .dv-catalog-withdrawal-float{
-        bottom:88px
+        bottom:max(10px,env(safe-area-inset-bottom))
     }
     .dv-catalog-legal-footer{margin-top:22px;padding-bottom:72px}
     .dv-catalog-legal-footer__inner{display:grid;grid-template-columns:1fr}
