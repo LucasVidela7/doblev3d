@@ -29,7 +29,6 @@ class LoginRequiredMiddleware:
         "catalogo_arrepentimiento",
         "catalogo_arrepentimiento_gracias",
         "healthcheck",
-        "db_sync_export",
         "evento",
     }
 
