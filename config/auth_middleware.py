@@ -23,6 +23,7 @@ class LoginRequiredMiddleware:
         "catalogo_carrito",
         "catalogo_carrito_precios",
         "catalogo_carrito_gracias",
+        "solicitud_publica",
         "catalogo_contacto",
         "catalogo_terminos",
         "catalogo_privacidad",
