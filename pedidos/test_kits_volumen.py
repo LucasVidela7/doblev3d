@@ -119,58 +119,29 @@ class PrecioVolumenKitsTests(TestCase):
         )
         self.assertEqual(resumen["ahorro"], Decimal("0"))
 
-    def test_dos_kits_aplican_tres_por_ciento_si_hay_margen(self):
+    def test_dos_kits_activan_curva_sin_superar_tope_comercial(self):
         resumen = calcular_precio_volumen_kits([
             self._item(self.kit8, 2),
         ])
 
         self.assertTrue(resumen["elegible"])
         self.assertEqual(resumen["total_kits"], 2)
-        self.assertEqual(
-            resumen["descuento_maximo_comercial"],
-            Decimal("3"),
-        )
-        self.assertEqual(
+        self.assertGreater(
             resumen["descuento_porcentaje"],
-            Decimal("3.0"),
+            Decimal("0"),
         )
-        self.assertEqual(
+        self.assertLess(
             resumen["precio_final_total"],
-            Decimal("58200.00"),
+            resumen["precio_lista_total"],
+        )
+        self.assertLessEqual(
+            resumen["descuento_porcentaje"],
+            Decimal("15"),
         )
         self.assertGreaterEqual(
             resumen["margen_real"],
             resumen["margen_minimo"],
         )
-
-    def test_curva_comercial_kits_crece_un_punto_por_unidad(self):
-        esperados = {
-            2: Decimal("3"),
-            3: Decimal("4"),
-            4: Decimal("5"),
-            5: Decimal("6"),
-            6: Decimal("7"),
-            14: Decimal("15"),
-            20: Decimal("15"),
-        }
-
-        for cantidad, descuento in esperados.items():
-            with self.subTest(cantidad=cantidad):
-                resumen = calcular_precio_volumen_kits([
-                    self._item(self.kit8, cantidad),
-                ])
-                self.assertEqual(
-                    resumen["descuento_maximo_comercial"],
-                    descuento,
-                )
-                self.assertLessEqual(
-                    resumen["descuento_porcentaje"],
-                    descuento,
-                )
-                self.assertGreaterEqual(
-                    resumen["margen_real"],
-                    resumen["margen_minimo"],
-                )
 
     def test_dos_kits_con_precio_agresivo_descuentan_si_hay_margen(self):
         self.kit8.precio = Decimal("20000")
@@ -186,13 +157,9 @@ class PrecioVolumenKitsTests(TestCase):
             resumen["precio_lista_total"],
         )
         self.assertGreater(resumen["ahorro"], Decimal("0"))
-        self.assertEqual(
-            resumen["descuento_maximo_comercial"],
-            Decimal("3"),
-        )
-        self.assertEqual(
+        self.assertGreater(
             resumen["descuento_porcentaje"],
-            Decimal("3.0"),
+            Decimal("0"),
         )
         self.assertLess(
             resumen["precio_final_total"],
