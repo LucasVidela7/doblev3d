@@ -97,6 +97,57 @@ class CarritoPublicoTests(TestCase):
         self.assertContains(autenticada, "VER EN GESTIÓN")
         self.assertContains(autenticada, url_gestion)
 
+    def test_detalle_publico_muestra_estado_real_del_flujo(self):
+        self._post(
+            [{"kind": "product", "id": self.producto.id, "qty": 1}],
+            telefono="+54 11 5555 8181",
+        )
+        solicitud = SolicitudWeb.objects.get()
+        url = reverse("solicitud_publica", args=[solicitud.public_token])
+
+        recibida = self.client.get(url)
+        self.assertContains(recibida, "Estado actual")
+        self.assertContains(recibida, "Solicitud recibida")
+
+        solicitud.estado = "CONTACTADA"
+        solicitud.save(update_fields=["estado"])
+        self.assertContains(self.client.get(url), "En contacto")
+
+        cliente = Cliente.objects.create(
+            nombre="Cliente estado público",
+            telefono="1155558181",
+            activo=True,
+        )
+        presupuesto = Presupuesto.objects.create(
+            cliente=cliente,
+            estado="PENDIENTE",
+        )
+        solicitud.estado = "CONVERTIDA"
+        solicitud.presupuesto_generado = presupuesto
+        solicitud.save(update_fields=["estado", "presupuesto_generado"])
+        presupuesto_response = self.client.get(url)
+        self.assertContains(presupuesto_response, "Presupuesto en revisión")
+        self.assertContains(presupuesto_response, presupuesto.codigo)
+
+        pedido = Pedido.objects.create(
+            cliente=cliente,
+            estado="PREPARANDO",
+        )
+        presupuesto.estado = "APROBADO"
+        presupuesto.pedido_generado = pedido
+        presupuesto.save(update_fields=["estado", "pedido_generado"])
+        preparando = self.client.get(url)
+        self.assertContains(preparando, "En preparación")
+        self.assertContains(preparando, pedido.codigo)
+
+        pedido.estado = "LISTO"
+        pedido.save(update_fields=["estado"])
+        self.assertContains(self.client.get(url), "Listo")
+
+        pedido.estado = "ENTREGADO"
+        pedido.save(update_fields=["estado"])
+        self.assertContains(self.client.get(url), "Entregado")
+
     def test_checkout_es_publico_y_muestra_loader(self):
         response = self.client.get(reverse("catalogo_carrito"))
 
