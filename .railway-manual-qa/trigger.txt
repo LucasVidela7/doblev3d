@@ -7,3 +7,4 @@ QA manual deploy: asegurar seña 30% y fecha en respuesta de solicitudes
 QA manual deploy: destacar nombre y WhatsApp de clientes
 QA deploy: correcciones casos de prueba tienda 2026-09-22
 QA deploy: cierre modal >100 unidades 2026-09-22
+QA deploy: carrito sin límite global, máximo 50 2026-09-22
