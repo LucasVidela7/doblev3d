@@ -1,6 +1,7 @@
 from decimal import Decimal
 from urllib.parse import quote
 
+from django.urls import reverse
 from django.utils import timezone
 
 
@@ -15,6 +16,7 @@ PLACEHOLDERS_SOLICITUD = (
     "{senia}",
     "{fecha_hoy}",
     "{observaciones}",
+    "{url}",
 )
 
 
@@ -58,7 +60,16 @@ def detalle_solicitud_texto(solicitud):
     return "\n".join(lineas) or "Sin productos."
 
 
-def contexto_mensaje_solicitud(solicitud):
+def contexto_mensaje_solicitud(solicitud, request=None):
+    ruta_publica = reverse(
+        "solicitud_publica",
+        args=[solicitud.public_token],
+    )
+    url_publica = (
+        request.build_absolute_uri(ruta_publica)
+        if request is not None
+        else ruta_publica
+    )
     return {
         "{nombre}": solicitud.nombre or "",
         "{codigo}": solicitud.codigo,
@@ -69,12 +80,13 @@ def contexto_mensaje_solicitud(solicitud):
         ),
         "{fecha_hoy}": timezone.localdate().strftime("%d/%m/%Y"),
         "{observaciones}": (solicitud.observaciones or "").strip() or "Sin observaciones.",
+        "{url}": url_publica,
     }
 
 
-def renderizar_mensaje_solicitud(plantilla, solicitud):
+def renderizar_mensaje_solicitud(plantilla, solicitud, request=None):
     mensaje = (plantilla or "").strip()
-    contexto = contexto_mensaje_solicitud(solicitud)
+    contexto = contexto_mensaje_solicitud(solicitud, request=request)
 
     for marcador, valor in contexto.items():
         mensaje = mensaje.replace(marcador, valor)
