@@ -426,16 +426,24 @@ class DashboardProduccionTests(TestCase):
         self.assertEqual(configuracion.status_code, 200)
         self.assertContains(
             configuracion,
-            'formaction="'
+            'form="resolverArrepentimiento'
+            + str(solicitud.id)
+            + '"',
+        )
+        self.assertContains(
+            configuracion,
+            'id="resolverArrepentimiento'
+            + str(solicitud.id)
+            + '"',
+        )
+        self.assertContains(
+            configuracion,
+            'action="'
             + reverse(
                 "dashboard:arrepentimiento_resolver",
                 args=[solicitud.id],
             )
             + '"',
-        )
-        self.assertContains(
-            configuracion,
-            "formnovalidate",
         )
 
         respuesta = self.client.post(
