@@ -75,7 +75,7 @@ class ConfiguracionCatalogo(models.Model):
         blank=True,
         default=(
             "Hola {nombre}! 👋 Gracias por tu solicitud {codigo} en Doble V 3D.\n\n"
-            "Este es el detalle que recibimos:\n{detalle}\n\n"
+            "Podés revisar el detalle completo acá:\n{url}\n\n"
             "Total de productos: {total}\n\n"
             "Para confirmar tu pedido solicitamos una seña del 30%: {senia}.\n\n"
             "El plazo estimado de entrega es de 3 a 10 días hábiles "
@@ -85,7 +85,7 @@ class ConfiguracionCatalogo(models.Model):
         ),
         verbose_name="Mensaje para responder solicitudes",
         help_text=(
-            "Podés usar {nombre}, {codigo}, {detalle}, {total}, {senia}, "
+            "Podés usar {nombre}, {codigo}, {detalle}, {url}, {total}, {senia}, "
             "{fecha_hoy} y {observaciones}."
         ),
     )
@@ -93,14 +93,14 @@ class ConfiguracionCatalogo(models.Model):
         blank=True,
         default=(
             "Hola! 👋 Acabo de enviar la solicitud {codigo} desde el catálogo de "
-            "Doble V 3D.\n\nDetalle:\n{detalle}\n\n"
+            "Doble V 3D.\n\nDetalle de la solicitud:\n{url}\n\n"
             "Total de productos: {total}\n\n"
             "Quisiera coordinar disponibilidad y entrega."
         ),
         verbose_name="Mensaje del cliente después de solicitar",
         help_text=(
             "Se abre hacia tu WhatsApp. Podés usar {nombre}, {codigo}, "
-            "{detalle}, {total} y {observaciones}."
+            "{detalle}, {url}, {total} y {observaciones}."
         ),
     )
 
