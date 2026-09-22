@@ -8,6 +8,9 @@
     const loader = document.querySelector('[data-checkout-loader]');
     const specialObservation = document.querySelector('[data-special-observation]');
     const observations = document.getElementById('observaciones');
+    const volumeModal = document.querySelector('[data-limit-modal]');
+    const volumeClose = volumeModal?.querySelectorAll('[data-limit-modal-close], [data-limit-continue], [data-limit-edit-cart]') || [];
+    let volumeNoticeDismissed = false;
 
     if (!summary || !payloadInput || !form) return;
 
@@ -54,9 +57,55 @@
             })),
         }));
 
+    const hideVolumeModal = () => {
+        if (!volumeModal) return;
+        volumeModal.hidden = true;
+        volumeModal.setAttribute('aria-hidden', 'true');
+        volumeNoticeDismissed = true;
+    };
+
+    const syncVolumeNotice = (items) => {
+        if (!volumeModal) return;
+        const units = items.reduce(
+            (sum, item) => sum + Number(item.qty || 0),
+            0,
+        );
+
+        if (units <= 100) {
+            volumeNoticeDismissed = false;
+            volumeModal.hidden = true;
+            volumeModal.setAttribute('aria-hidden', 'true');
+            return;
+        }
+
+        if (volumeNoticeDismissed) return;
+
+        volumeModal.hidden = false;
+        volumeModal.setAttribute('aria-hidden', 'false');
+    };
+
+    volumeClose.forEach((button) => {
+        button.addEventListener('click', hideVolumeModal);
+    });
+
+    volumeModal?.addEventListener('click', (event) => {
+        if (event.target === volumeModal) hideVolumeModal();
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (
+            event.key === 'Escape'
+            && volumeModal
+            && !volumeModal.hidden
+        ) {
+            hideVolumeModal();
+        }
+    });
+
     const render = () => {
         const items = read();
         payloadInput.value = JSON.stringify(minimalPayload(items));
+        syncVolumeNotice(items);
 
         if (!items.length) {
             summary.innerHTML = '<div class="checkout-empty"><strong>Tu carrito está vacío.</strong><span>Volvé al catálogo para agregar productos o kits.</span></div>';
