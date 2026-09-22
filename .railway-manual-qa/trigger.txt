@@ -15,3 +15,5 @@ QA deploy: resolver arrepentimiento sin formulario anidado 2026-09-22
 QA deploy: formulario independiente arrepentimientos 2026-09-22
 
 2026-09-22 - Fix miniaturas dashboard + pagina 404 publica del catalogo
+
+2026-09-22 - Ampliar ancho de Configuracion a 1320px
