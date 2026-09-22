@@ -1,6 +1,7 @@
-Deploy QA: descuento visible de kits desde 2 unidades
-- Corrige la lógica de margen disponible para descuentos de kits.
-- Evita que el redondeo comercial a $100 borre un descuento dinámico válido en compras pequeñas.
-- Mantiene el piso de rentabilidad y el tope máximo de 15%.
-- Pruebas específicas exigen descuento > 0 desde 2 kits cuando hay margen.
+Deploy QA: curva comercial de descuentos para kits
+- 1 kit: sin descuento.
+- 2 kits: 3%; 3: 4%; 4: 5%; 5: 6%.
+- Desde allí suma 1 punto por kit hasta un máximo de 15%.
+- El margen mínimo sigue funcionando como límite de seguridad.
+- El redondeo no puede recortar el porcentaje comercial comunicado.
 Sin migraciones.
