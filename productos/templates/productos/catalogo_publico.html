@@ -857,7 +857,7 @@
                                 <div class="meta">Producto</div>
                                 <h3 class="title"><a class="catalog-title-link" href="{% url 'catalogo_producto_detalle' producto.id %}">{{ producto.nombre }}</a></h3>
                                 <p class="detail">
-                                    {% if producto.personalizable %}Personalizable{% else %}Impresión 3D{% endif %}
+                                    {% if producto.personalizable %}Personalizable{% else %}Impresión 3D{% endif %}{% if producto.permite_elegir_color %} · Color a elección{% endif %}
                                 </p>
                                 <div class="price-row">
                                     <div class="price-block">
@@ -954,7 +954,7 @@
                                 <h3 class="title">{{ kit.nombre }}</h3>
 
                                 {% if kit.modalidad == "FIJO" %}
-                                    <p class="detail">Incluye {{ kit.cantidad_componentes_fijos }} pieza{{ kit.cantidad_componentes_fijos|pluralize }}.</p>
+                                    <p class="detail">Incluye {{ kit.cantidad_componentes_fijos }} pieza{{ kit.cantidad_componentes_fijos|pluralize }}.{% if kit.permite_elegir_color %} · Permite elegir color.{% endif %}</p>
                                     <div class="mini-list">
                                         {% for visual in kit.productos_visuales_visibles %}
                                             <span class="mini">{{ visual.cantidad }}× {{ visual.producto.nombre }}</span>
@@ -966,7 +966,7 @@
                                 {% else %}
                                     <p class="detail">
                                         Elegí {{ kit.cantidad_productos }} producto{{ kit.cantidad_productos|pluralize }}
-                                        {% if kit.tipo_producto %}de {{ kit.tipo_producto.nombre }}{% endif %}.
+                                        {% if kit.tipo_producto %}de {{ kit.tipo_producto.nombre }}{% endif %}.{% if kit.permite_elegir_color %} · Permite elegir un color para todo el kit.{% endif %}
                                     </p>
 
                                     {% if kit.proteger_rentabilidad_libre and kit.opciones_libres_analisis.disponible %}

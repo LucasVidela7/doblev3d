@@ -504,6 +504,14 @@ class CatalogoPublicoTests(TestCase):
         self.assertContains(response, "Elegir un color")
         self.assertContains(response, "preparación más rápida")
         self.assertContains(response, "mayor tiempo de preparación")
+        self.assertContains(response, 'data-dv-color-swatch')
+        self.assertContains(response, 'data-color-value="Rojo"')
+        self.assertContains(response, 'data-color-value="Azul"')
+        self.assertContains(response, 'data-dv-color-current')
+        self.assertNotContains(response, '<select id="dv-product-color-')
+
+        listado = self.client.get(reverse("catalogo_productos"))
+        self.assertContains(listado, "Color a elección")
 
     def test_kit_libre_muestra_adicional_por_mismo_color(self):
         config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
@@ -535,6 +543,16 @@ class CatalogoPublicoTests(TestCase):
         self.assertContains(response, "Todo del mismo color")
         self.assertContains(response, "2.000")
         self.assertContains(response, "Producción especial")
+        self.assertContains(response, 'data-dv-color-swatch')
+        self.assertContains(response, 'data-color-value="Rojo"')
+        self.assertContains(response, 'data-color-value="Azul"')
+        self.assertNotContains(response, '<select id="dv-kit-color-')
+
+        listado = self.client.get(reverse("catalogo_kits"))
+        self.assertContains(
+            listado,
+            "Permite elegir un color para todo el kit",
+        )
 
     def test_producto_inactivo_no_tiene_detalle_publico(self):
         self.producto.activo = False

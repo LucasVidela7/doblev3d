@@ -40,6 +40,7 @@
           <span class="badge">{{ producto.tipo.nombre }}</span>
           {% if producto.es_compuesto %}<span class="badge comp">COMPUESTO</span>{% endif %}
           {% if producto.solo_produccion %}<span class="badge pieza">PIEZA · SOLO PRODUCCIÓN</span>{% endif %}
+          <span class="badge {% if producto.permite_elegir_color %}ok{% endif %}">{% if producto.permite_elegir_color %}PERMITE COLOR{% else %}SIN COLOR{% endif %}</span>
           <span class="badge {% if producto.activo %}ok{% endif %}">{% if producto.activo %}ACTIVO{% else %}INACTIVO{% endif %}</span>
         </div>
       </div>
@@ -158,6 +159,7 @@
         <div class="fila"><span>Tiempo</span><strong>{{ producto.tiempo_formateado }}</strong></div>
         <div class="fila"><span>Peso</span><strong>{{ producto.peso_gramos|floatformat:'-2' }} g</strong></div>
         <div class="fila"><span>Personalizable</span><strong>{% if producto.personalizable %}Sí{% else %}No{% endif %}</strong></div>
+        <div class="fila"><span>Permite elegir color</span><strong>{% if producto.permite_elegir_color %}Sí{% else %}No{% endif %}</strong></div>
         <div class="fila"><span>Requiere impresión</span><strong>{% if producto.requiere_impresion %}Sí{% else %}No{% endif %}</strong></div>
       </div>
 

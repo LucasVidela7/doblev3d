@@ -13,7 +13,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-seri
 @media(max-width:700px){.wrap{padding:14px 10px 35px}.actions .btn{flex:1 1 0}.actions .primary{margin-left:0;min-width:0;flex:1.25 1 0}.metrics{grid-template-columns:1fr 1fr}.price-grid{display:flex;overflow-x:auto;gap:8px}.price{flex:0 0 155px}.row{grid-template-columns:42px minmax(0,1fr) auto}.thumb{width:42px;height:42px}}
 </style></head><body>
 <div class="wrap">
-<header class="head"><div>{% include "shared/brand_bar.html" %}<h1>{{ kit.nombre }}</h1><div class="sub">{{ kit.codigo }} · {{ kit.get_modalidad_display }} · {% if kit.activo %}ACTIVO{% else %}INACTIVO{% endif %}</div></div><div class="actions"><a class="btn" href="{% url 'catalogo_kit_detalle' kit.id %}" target="_blank" rel="noopener">VER CATÁLOGO</a><a class="btn primary" href="{% url 'kits:editar' kit.id %}">EDITAR</a></div></header>
+<header class="head"><div>{% include "shared/brand_bar.html" %}<h1>{{ kit.nombre }}</h1><div class="sub">{{ kit.codigo }} · {{ kit.get_modalidad_display }} · {% if kit.activo %}ACTIVO{% else %}INACTIVO{% endif %} · {% if kit.permite_elegir_color %}PERMITE COLOR{% else %}SIN COLOR{% endif %}</div></div><div class="actions"><a class="btn" href="{% url 'catalogo_kit_detalle' kit.id %}" target="_blank" rel="noopener">VER CATÁLOGO</a><a class="btn primary" href="{% url 'kits:editar' kit.id %}">EDITAR</a></div></header>
 
 <section class="metrics">
 <div class="metric"><small>PRECIO ACTUAL</small><strong>$ {{ kit.precio|floatformat:"0g" }}</strong></div>
@@ -22,7 +22,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-seri
 <div class="metric"><small>{% if kit.modalidad == "FIJO" %}PIEZAS{% else %}ELIGE{% endif %}</small><strong>{{ kit.cantidad_visible }}</strong></div>
 </section>
 
-<section class="panel"><div class="panel-head"><b>ESTADO DEL KIT</b><span>Diagnóstico con costos y reglas actuales.</span></div><div class="panel-body"><div class="health {{ kit.salud_gestion.nivel }}"><b>{{ kit.salud_gestion.etiqueta }}</b><span>{{ kit.salud_gestion.detalle }}</span></div></div></section>
+<section class="panel"><div class="panel-head"><b>ESTADO DEL KIT</b><span>Diagnóstico con costos y reglas actuales.</span></div><div class="panel-body"><div class="health {{ kit.salud_gestion.nivel }}"><b>{{ kit.salud_gestion.etiqueta }}</b><span>{{ kit.salud_gestion.detalle }}</span></div><div class="note">Elección de color: <b>{% if kit.permite_elegir_color %}HABILITADA{% else %}DESHABILITADA{% endif %}</b>{% if kit.permite_elegir_color %} · {% if kit.modalidad == "FIJO" %}sin adicional{% else %}usa el adicional configurado para kits libres{% endif %}{% endif %}.</div></div></section>
 
 <section class="panel"><div class="panel-head"><b>{% if kit.modalidad == "FIJO" %}COMPOSICIÓN{% else %}REGLAS Y OPCIONES{% endif %}</b><span>{% if kit.modalidad == "FIJO" %}Receta actual del kit.{% else %}{{ kit.tipo_producto.nombre|default:"Sin categoría" }} · el cliente elige {{ kit.cantidad_productos }}.{% endif %}</span></div><div class="panel-body"><div class="rows">
 {% if kit.modalidad == "FIJO" %}

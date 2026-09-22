@@ -116,6 +116,62 @@
         }
     };
 
+    const normalizeColorName = (value) =>
+        String(value || '')
+            .trim()
+            .toLocaleLowerCase('es-AR')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '');
+
+    const colorCssValue = (name) => {
+        const key = normalizeColorName(name);
+        const palette = {
+            rojo: '#ef1111',
+            bordo: '#7f1d1d',
+            bordó: '#7f1d1d',
+            azul: '#0b66c3',
+            celeste: '#67d3ea',
+            turquesa: '#22c7c9',
+            verde: '#00963f',
+            amarillo: '#ffe000',
+            naranja: '#ff8a00',
+            marron: '#a96438',
+            marrón: '#a96438',
+            beige: '#d7b98b',
+            rosa: '#f05cab',
+            fucsia: '#e83e8c',
+            violeta: '#7c3aed',
+            lila: '#b89af3',
+            gris: '#9b9b9b',
+            plateado: '#b8bcc2',
+            blanco: '#ffffff',
+            negro: '#000000',
+            dorado: '#d4a017',
+        };
+        return palette[key]
+            || 'linear-gradient(135deg,#f7f7f7 0 45%,#d8dde5 45% 55%,#f7f7f7 55% 100%)';
+    };
+
+    const syncColorSwatches = (colorConfig) => {
+        if (!colorConfig) return;
+        const hiddenInput = colorConfig.querySelector('[data-dv-color-select]');
+        const current = colorConfig.querySelector('[data-dv-color-current]');
+        const selectedValue = String(hiddenInput?.value || '').trim();
+
+        colorConfig.querySelectorAll('[data-dv-color-swatch]')
+            .forEach((swatch) => {
+                const value = String(swatch.dataset.colorValue || '').trim();
+                const active = value === selectedValue;
+                swatch.classList.toggle('is-selected', active);
+                swatch.setAttribute('aria-checked', active ? 'true' : 'false');
+                swatch.style.setProperty('--swatch-color', colorCssValue(value));
+            });
+
+        if (current) {
+            current.textContent = selectedValue || 'Ninguno';
+        }
+    };
+
     const colorSelectionFor = (scope, fallbackEnabled = false) => {
         const config = document.querySelector(
             '[data-dv-color-config][data-color-scope="' + scope + '"]',
@@ -813,8 +869,28 @@
                 .forEach((input) => {
                     input.addEventListener('change', syncColorConfig);
                 });
-            colorConfig.querySelector('[data-dv-color-select]')
-                ?.addEventListener('change', syncColorConfig);
+            const hiddenColor = colorConfig.querySelector(
+                '[data-dv-color-select]',
+            );
+
+            colorConfig.querySelectorAll('[data-dv-color-swatch]')
+                .forEach((swatch) => {
+                    swatch.addEventListener('click', () => {
+                        if (!hiddenColor) return;
+                        hiddenColor.value = String(
+                            swatch.dataset.colorValue || '',
+                        ).trim();
+                        syncColorSwatches(colorConfig);
+                        syncColorConfig();
+                    });
+                });
+
+            hiddenColor?.addEventListener('change', () => {
+                syncColorSwatches(colorConfig);
+                syncColorConfig();
+            });
+
+            syncColorSwatches(colorConfig);
             syncColorConfig();
         });
 

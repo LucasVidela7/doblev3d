@@ -107,11 +107,22 @@ body{margin:0;padding-bottom:156px;background:radial-gradient(circle at top righ
       </label>
     </div>
     <div class="dv-color-select-wrap" data-dv-color-select-wrap hidden>
-      <label for="dv-product-color-{{ producto.id }}">COLOR</label>
-      <select id="dv-product-color-{{ producto.id }}" data-dv-color-select>
-        <option value="">Elegí un color...</option>
-        {% for color in colores_disponibles %}<option value="{{ color }}">{{ color }}</option>{% endfor %}
-      </select>
+      <div class="dv-color-current">Color: <strong data-dv-color-current>Ninguno</strong></div>
+      <input type="hidden" data-dv-color-select value="">
+      <div class="dv-color-swatches" role="radiogroup" aria-label="Elegí el color del producto">
+        {% for color in colores_disponibles %}
+        <button
+          class="dv-color-swatch"
+          type="button"
+          data-dv-color-swatch
+          data-color-value="{{ color }}"
+          role="radio"
+          aria-checked="false"
+          aria-label="{{ color }}"
+          title="{{ color }}"
+        ><span class="dv-color-swatch__check" aria-hidden="true">✓</span></button>
+        {% endfor %}
+      </div>
     </div>
   </div>
   {% endif %}
