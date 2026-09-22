@@ -104,6 +104,21 @@ class KitEngine:
                 errores.append(
                     "Hay componentes con cantidades inválidas."
                 )
+            else:
+                no_disponibles = [
+                    item.producto.nombre
+                    for item in componentes
+                    if (
+                        not item.producto.activo
+                        or item.producto.solo_produccion
+                    )
+                ]
+                if no_disponibles:
+                    errores.append(
+                        "El kit tiene productos no disponibles: "
+                        + ", ".join(no_disponibles)
+                        + "."
+                    )
         else:
             if not kit.tipo_producto_id:
                 errores.append(
