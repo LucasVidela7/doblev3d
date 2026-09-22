@@ -323,18 +323,39 @@ html[data-dv-theme="dark"] .dv-management-menu__push{
 }
 
 .dv-management-menu__logout{
-    width:auto;
-    min-width:92px;
-    min-height:40px;
-    padding:0 11px;
+    width:42px;
+    min-width:42px;
+    height:42px;
+    min-height:42px;
+    display:grid;
+    place-items:center;
+    padding:0;
     border:1px solid var(--dv-brand-red,#f0393b);
     border-radius:11px;
     background:var(--dv-brand-red,#f0393b);
     color:#fff;
     font-family:Arial,sans-serif;
-    font-size:10px;
-    font-weight:900;
     cursor:pointer;
+}
+.dv-management-menu__logout-icon{
+    width:19px;
+    height:19px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+.dv-management-menu__logout-label{
+    position:absolute;
+    width:1px;
+    height:1px;
+    padding:0;
+    margin:-1px;
+    overflow:hidden;
+    clip:rect(0,0,0,0);
+    white-space:nowrap;
+    border:0;
 }
 
 .dv-management-menu__logout:hover{
