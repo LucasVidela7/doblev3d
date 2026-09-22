@@ -306,6 +306,216 @@ class CarritoPublicoTests(TestCase):
         )
         self.assertContains(gracias, "WEB0001")
 
+
+    def test_kits_fijos_distintos_no_combinan_descuento(self):
+        kit_a = Kit.objects.create(
+            nombre="Kit fijo A independiente",
+            modalidad="FIJO",
+            cantidad_productos=1,
+            precio=Decimal("5000"),
+            activo=True,
+        )
+        kit_b = Kit.objects.create(
+            nombre="Kit fijo B independiente",
+            modalidad="FIJO",
+            cantidad_productos=1,
+            precio=Decimal("5000"),
+            activo=True,
+        )
+        KitComponente.objects.create(
+            kit=kit_a,
+            producto=self.producto,
+            cantidad=1,
+        )
+        KitComponente.objects.create(
+            kit=kit_b,
+            producto=self.producto,
+            cantidad=1,
+        )
+
+        response = self.client.post(
+            reverse("catalogo_carrito_precios"),
+            data=json.dumps(
+                [
+                    {
+                        "key": "kit:%s:" % kit_a.id,
+                        "kind": "kit",
+                        "id": kit_a.id,
+                        "qty": 1,
+                        "selections": [],
+                    },
+                    {
+                        "key": "kit:%s:" % kit_b.id,
+                        "kind": "kit",
+                        "id": kit_b.id,
+                        "qty": 1,
+                        "selections": [],
+                    },
+                ]
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["ok"])
+        self.assertEqual(data["ahorro"], 0)
+        self.assertTrue(
+            all(
+                linea["descuento_porcentaje"] == 0
+                for linea in data["lineas"]
+            )
+        )
+
+    def test_kits_libres_misma_categoria_si_combinan_descuento(self):
+        kit_a = Kit.objects.create(
+            nombre="Kit libre A misma categoría",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=1,
+            precio=Decimal("5000"),
+            proteger_rentabilidad_libre=False,
+            activo=True,
+        )
+        kit_b = Kit.objects.create(
+            nombre="Kit libre B misma categoría",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=1,
+            precio=Decimal("5000"),
+            proteger_rentabilidad_libre=False,
+            activo=True,
+        )
+
+        response = self.client.post(
+            reverse("catalogo_carrito_precios"),
+            data=json.dumps(
+                [
+                    {
+                        "key": "kit:%s:%s" % (kit_a.id, self.producto.id),
+                        "kind": "kit",
+                        "id": kit_a.id,
+                        "qty": 1,
+                        "selections": [{"id": self.producto.id}],
+                    },
+                    {
+                        "key": "kit:%s:%s" % (kit_b.id, self.producto.id),
+                        "kind": "kit",
+                        "id": kit_b.id,
+                        "qty": 1,
+                        "selections": [{"id": self.producto.id}],
+                    },
+                ]
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["ok"])
+        self.assertGreater(data["ahorro"], 0)
+        self.assertTrue(
+            any(
+                linea["descuento_porcentaje"] > 0
+                for linea in data["lineas"]
+            )
+        )
+
+    def test_api_precios_mantiene_descuentos_con_mas_de_cien_unidades(self):
+        productos = [self.producto]
+        for indice in range(5):
+            productos.append(
+                Producto.objects.create(
+                    nombre=f"Producto volumen {indice}",
+                    categoria="PRODUCTO",
+                    tipo=self.tipo,
+                    peso_gramos=Decimal("100"),
+                    margen_ganancia=Decimal("50"),
+                    activo=True,
+                    solo_produccion=False,
+                )
+            )
+
+        payload = [
+            {
+                "key": "product:%s:" % producto.id,
+                "kind": "product",
+                "id": producto.id,
+                "qty": 20,
+                "selections": [],
+            }
+            for producto in productos
+        ]
+
+        precios = self.client.post(
+            reverse("catalogo_carrito_precios"),
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+        self.assertEqual(precios.status_code, 200)
+        data = precios.json()
+        self.assertTrue(data["ok"])
+        self.assertGreater(data["ahorro"], 0)
+
+        checkout = self._post(
+            payload,
+            telefono="+54 11 5555 3030",
+        )
+        self.assertEqual(checkout.status_code, 200)
+        self.assertContains(checkout, "¿Necesitás más de 100 unidades?")
+        self.assertContains(checkout, "CONSULTAR POR WHATSAPP")
+        self.assertEqual(SolicitudWeb.objects.count(), 0)
+
+    def test_producto_inactivo_en_carrito_se_identifica_por_nombre(self):
+        self.producto.activo = False
+        self.producto.save(update_fields=["activo"])
+
+        response = self._post(
+            [
+                {
+                    "kind": "product",
+                    "id": self.producto.id,
+                    "qty": 1,
+                }
+            ],
+            telefono="+54 11 5555 4040",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.producto.nombre)
+        self.assertContains(response, "ya no está disponible")
+        self.assertEqual(SolicitudWeb.objects.count(), 0)
+
+    def test_confirmacion_y_whatsapp_incluyen_detalle_publico_tokenizado(self):
+        response = self._post(
+            [
+                {
+                    "kind": "product",
+                    "id": self.producto.id,
+                    "qty": 1,
+                }
+            ],
+            telefono="+54 11 5555 5050",
+        )
+        self.assertEqual(response.status_code, 302)
+
+        solicitud = SolicitudWeb.objects.get()
+        detalle_url = reverse(
+            "solicitud_publica",
+            args=[solicitud.public_token],
+        )
+
+        gracias = self.client.get(reverse("catalogo_carrito_gracias"))
+        self.assertContains(gracias, "VER DETALLE DE MI SOLICITUD")
+        self.assertContains(gracias, detalle_url)
+
+        detalle = self.client.get(detalle_url)
+        self.assertEqual(detalle.status_code, 200)
+        self.assertContains(detalle, solicitud.codigo)
+        self.assertContains(detalle, self.producto.nombre)
+        self.assertContains(detalle, "TOTAL SOLICITADO")
+
+
     def test_checkout_muestra_plazo_desde_confirmacion_del_presupuesto(self):
         config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
         config.mensaje_plazo_entrega = (
