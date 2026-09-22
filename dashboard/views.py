@@ -912,6 +912,12 @@ def inicio(request):
         or Decimal("0")
     )
 
+    arrepentimientos_pendientes = (
+        SolicitudArrepentimiento.objects
+        .filter(estado="NUEVA")
+        .count()
+    )
+
     response = render(
         request,
         "dashboard/inicio.html",
@@ -933,6 +939,7 @@ def inicio(request):
             "saldo_a_cobrar": saldo_a_cobrar,
             "pedidos_con_saldo": pedidos_con_saldo,
             "cobrado_mes": cobrado_mes,
+            "arrepentimientos_pendientes": arrepentimientos_pendientes,
             "presupuestos_pendientes": presupuestos_pendientes,
             "monto_presupuestado_pendiente": monto_presupuestado_pendiente,
             "solicitudes_web_activas": solicitudes_web_activas,
