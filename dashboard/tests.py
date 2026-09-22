@@ -14,7 +14,12 @@ from pedidos.models import (
     SolicitudWebItem,
 )
 from produccion.models import Impresora, Produccion
-from productos.models import ConfiguracionCatalogo, Producto, TipoProducto
+from productos.models import (
+    ConfiguracionCatalogo,
+    Producto,
+    SolicitudArrepentimiento,
+    TipoProducto,
+)
 from productos.image_models import ProductoImagen
 
 
@@ -213,6 +218,40 @@ class DashboardProduccionTests(TestCase):
         self.assertNotContains(
             respuesta,
             ">ATRASADOS<",
+        )
+
+    def test_barra_superior_mantiene_siete_metricas_y_unifica_ingresos(self):
+        SolicitudArrepentimiento.objects.create(
+            nombre="Cliente arrepentimiento",
+            contacto="1144440000",
+            estado="NUEVA",
+        )
+
+        respuesta = self.client.get(
+            reverse("dashboard:inicio")
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        contenido = respuesta.content.decode()
+        self.assertEqual(
+            contenido.count('class="metrica '),
+            7,
+        )
+        self.assertLess(
+            contenido.index("SOLICITUDES WEB"),
+            contenido.index("PRESUPUESTOS PENDIENTES"),
+        )
+        self.assertContains(respuesta, "INGRESOS")
+        self.assertContains(respuesta, "Cobrado este mes")
+        self.assertContains(respuesta, "saldo a cobrar")
+        self.assertContains(respuesta, "ARREPENTIMIENTOS")
+        self.assertEqual(
+            respuesta.context["arrepentimientos_pendientes"],
+            1,
+        )
+        self.assertContains(
+            respuesta,
+            reverse("dashboard:configuracion") + "#legal",
         )
 
     def test_dashboard_muestra_solicitudes_web_pendientes(self):
