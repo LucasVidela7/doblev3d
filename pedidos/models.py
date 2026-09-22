@@ -563,6 +563,17 @@ class SolicitudWeb(models.Model):
             Decimal("0"),
         )
 
+    @property
+    def total_unidades(self):
+        return sum(
+            (int(item.cantidad or 0) for item in self.items.all()),
+            0,
+        )
+
+    @property
+    def es_volumen_alto(self):
+        return self.total_unidades > 100
+
     def __str__(self):
         return f"{self.codigo} - {self.nombre}"
 
