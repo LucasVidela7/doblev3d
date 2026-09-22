@@ -27,3 +27,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-22 - Feedback visual al agregar productos sin abrir carrito
 
 2026-09-22 - Ajustar toast oscuro y stepper mobile del carrito
+2026-09-22T13:36:30-03:00 | deploy QA | arrepentimiento debajo de barra de compra | 829ba491c9ee276e847da07a7c036f3fe08f5397
