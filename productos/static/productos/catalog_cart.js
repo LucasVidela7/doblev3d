@@ -249,7 +249,7 @@
 
         if (current) {
             current.qty = Math.min(
-                20,
+                50,
                 Number(current.qty || 0) + Number(incoming.qty || 1),
             );
             if (!current.listUnitPrice) {
@@ -259,7 +259,7 @@
         } else {
             items.push({
                 ...incoming,
-                qty: Math.min(20, Number(incoming.qty || 1)),
+                qty: Math.min(50, Number(incoming.qty || 1)),
             });
         }
 
@@ -545,7 +545,7 @@
         const next = Math.max(
             0,
             Math.min(
-                20,
+                50,
                 Number(items[index].qty || 1) + Number(delta || 0),
             ),
         );
@@ -902,7 +902,7 @@
             );
             const qty = Math.max(
                 1,
-                Math.min(20, Number(qtyInput?.value || 1)),
+                Math.min(50, Number(qtyInput?.value || 1)),
             );
             if (qtyInput) qtyInput.value = String(qty);
 
@@ -1073,7 +1073,7 @@
                 qty: Math.max(
                     1,
                     Math.min(
-                        20,
+                        50,
                         Number(qtyInput?.value || 1),
                     ),
                 ),
