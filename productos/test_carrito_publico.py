@@ -10,7 +10,7 @@ from calculadora.precios import calcular_escenarios_producto
 from costos.models import ConfiguracionCostos
 from kits.economia import precio_automatico_kit_libre
 from kits.models import Kit, KitComponente
-from pedidos.models import Presupuesto, SolicitudWeb
+from pedidos.models import Pedido, Presupuesto, SolicitudWeb
 from clientes.models import Cliente
 from productos.models import ConfiguracionCatalogo, Producto, TipoProducto
 
