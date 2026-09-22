@@ -44,3 +44,5 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-22 - Modificacion masiva de productos y UX pedidos
 
 2026-09-22 - Corregir modo oscuro en modificacion masiva
+
+2026-09-22 - Bloquear modificacion masiva sin seleccion
