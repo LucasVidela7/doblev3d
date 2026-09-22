@@ -413,6 +413,45 @@ class DashboardProduccionTests(TestCase):
             'class="dv-producto-thumb"',
         )
 
+    def test_arrepentimiento_se_resuelve_desde_configuracion(self):
+        solicitud = SolicitudArrepentimiento.objects.create(
+            nombre="Cliente arrepentimiento",
+            contacto="1144443333",
+            estado="NUEVA",
+        )
+
+        configuracion = self.client.get(
+            reverse("dashboard:configuracion")
+        )
+        self.assertEqual(configuracion.status_code, 200)
+        self.assertContains(
+            configuracion,
+            'formaction="'
+            + reverse(
+                "dashboard:arrepentimiento_resolver",
+                args=[solicitud.id],
+            )
+            + '"',
+        )
+        self.assertContains(
+            configuracion,
+            "formnovalidate",
+        )
+
+        respuesta = self.client.post(
+            reverse(
+                "dashboard:arrepentimiento_resolver",
+                args=[solicitud.id],
+            )
+        )
+        self.assertRedirects(
+            respuesta,
+            reverse("dashboard:configuracion") + "#legal",
+        )
+
+        solicitud.refresh_from_db()
+        self.assertEqual(solicitud.estado, "RESUELTA")
+
     def test_configuracion_muestra_centro_y_plantillas_whatsapp(self):
         respuesta = self.client.get(
             reverse("dashboard:configuracion")
