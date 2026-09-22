@@ -35,7 +35,7 @@ from productos.whatsapp import (
 )
 
 
-MAX_LINEAS = 20
+MAX_LINEAS = 50
 MAX_CANTIDAD_LINEA = 50
 MAX_PAYLOAD_BYTES = 30000
 
