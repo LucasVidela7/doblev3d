@@ -504,9 +504,14 @@ def _aplicar_descuentos_carrito(lineas):
                         "key": linea["key"],
                         "kit": linea["kit"],
                         "cantidad": linea["cantidad"],
-                        "precio_unitario_lista": linea[
-                            "precio_lista_unitario"
-                        ],
+                        # El adicional por color es una personalización
+                        # fija por unidad: no participa de la curva de
+                        # descuento de volumen y se suma una sola vez al final.
+                        "precio_unitario_lista": max(
+                            _decimal(linea["precio_lista_unitario"])
+                            - _decimal(linea.get("adicional_color")),
+                            Decimal("0"),
+                        ),
                         "componentes": componentes,
                     }
                 )

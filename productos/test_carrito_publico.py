@@ -478,6 +478,111 @@ class CarritoPublicoTests(TestCase):
         )
         self.assertGreater(linea["descuento_porcentaje"], 0)
 
+    def test_api_kit_color_no_duplica_adicional_y_mantiene_descuento(self):
+        config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
+        config.colores_disponibles = "Rojo\nAzul"
+        config.adicional_color_kit_base = Decimal("2500")
+        config.adicional_color_kit_por_producto = Decimal("500")
+        config.save(
+            update_fields=[
+                "colores_disponibles",
+                "adicional_color_kit_base",
+                "adicional_color_kit_por_producto",
+            ]
+        )
+
+        otro = Producto.objects.create(
+            nombre="Otra pieza para kit color",
+            categoria="PRODUCTO",
+            tipo=self.tipo,
+            peso_gramos=Decimal("100"),
+            margen_ganancia=Decimal("50"),
+            activo=True,
+            solo_produccion=False,
+        )
+        kit = Kit.objects.create(
+            nombre="Kit color precio carrito",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=2,
+            precio=Decimal("25000"),
+            proteger_rentabilidad_libre=False,
+            permite_elegir_color=True,
+            activo=True,
+        )
+
+        payload_base = {
+            "key": (
+                "kit:%s:%s,%s:color:rojo"
+                % (kit.id, self.producto.id, otro.id)
+            ),
+            "kind": "kit",
+            "id": kit.id,
+            "selections": [
+                {"id": self.producto.id},
+                {"id": otro.id},
+            ],
+            "color_mode": "ESPECIFICO",
+            "color": "Rojo",
+        }
+
+        una = self.client.post(
+            reverse("catalogo_carrito_precios"),
+            data=json.dumps([{**payload_base, "qty": 1}]),
+            content_type="application/json",
+        )
+        self.assertEqual(una.status_code, 200)
+        linea_una = una.json()["lineas"][0]
+        self.assertEqual(
+            Decimal(str(linea_una["precio_lista_unitario"])),
+            Decimal("28500"),
+        )
+        self.assertEqual(
+            Decimal(str(linea_una["precio_unitario"])),
+            Decimal("28500"),
+        )
+        self.assertEqual(
+            Decimal(str(linea_una["adicional_color"])),
+            Decimal("3500"),
+        )
+
+        dos_color = self.client.post(
+            reverse("catalogo_carrito_precios"),
+            data=json.dumps([{**payload_base, "qty": 2}]),
+            content_type="application/json",
+        )
+        self.assertEqual(dos_color.status_code, 200)
+        linea_color = dos_color.json()["lineas"][0]
+        self.assertLess(
+            linea_color["precio_final_total"],
+            linea_color["precio_lista_total"],
+        )
+        self.assertGreater(linea_color["descuento_porcentaje"], 0)
+
+        payload_surtido = {
+            **payload_base,
+            "key": (
+                "kit:%s:%s,%s"
+                % (kit.id, self.producto.id, otro.id)
+            ),
+            "color_mode": "SURTIDO",
+            "color": "",
+            "qty": 2,
+        }
+        dos_surtido = self.client.post(
+            reverse("catalogo_carrito_precios"),
+            data=json.dumps([payload_surtido]),
+            content_type="application/json",
+        )
+        self.assertEqual(dos_surtido.status_code, 200)
+        linea_surtido = dos_surtido.json()["lineas"][0]
+
+        self.assertEqual(
+            Decimal(str(linea_color["precio_unitario"]))
+            - Decimal(str(linea_surtido["precio_unitario"])),
+            Decimal("3500"),
+        )
+
     def test_api_precios_aplica_volumen_desde_dos_kits(self):
         kit = Kit.objects.create(
             nombre="Kit fijo volumen web",
