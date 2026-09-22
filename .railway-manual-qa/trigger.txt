@@ -1,6 +1,6 @@
-Deploy QA: descuento de kits desde 2 unidades
-- Corrige el caso donde la segunda unidad quedaba en 0% por depender sólo de la referencia técnica.
-- La curva dinámica usa el margen real disponible como respaldo cuando la referencia técnica no propone una baja.
-- Mantiene el piso de rentabilidad y el tope comercial de 15%.
-- Agrega regresión backend y prueba del carrito público desde 2 kits.
+Deploy QA: descuento visible de kits desde 2 unidades
+- Corrige la lógica de margen disponible para descuentos de kits.
+- Evita que el redondeo comercial a $100 borre un descuento dinámico válido en compras pequeñas.
+- Mantiene el piso de rentabilidad y el tope máximo de 15%.
+- Pruebas específicas exigen descuento > 0 desde 2 kits cuando hay margen.
 Sin migraciones.
