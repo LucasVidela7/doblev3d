@@ -25,3 +25,5 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-22 - Mantener boton Entendido en modal Como comprar
 
 2026-09-22 - Feedback visual al agregar productos sin abrir carrito
+
+2026-09-22 - Ajustar toast oscuro y stepper mobile del carrito

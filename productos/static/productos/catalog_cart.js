@@ -16,6 +16,7 @@
     const checkout = root.querySelector('[data-dv-cart-checkout]');
     const toast = root.querySelector('[data-dv-cart-toast]');
     const toastMessage = toast?.querySelector('[data-dv-cart-toast-message]');
+    const toastIcon = toast?.querySelector('[data-dv-cart-toast-icon]');
     const toastOpen = toast?.querySelector('[data-dv-cart-toast-open]');
     const cartOpeners = [...document.querySelectorAll('[data-dv-cart-open]')];
     const siteLoader = document.querySelector('[data-dv-site-loader]');
@@ -180,7 +181,11 @@
 
     const showToast = (
         message,
-        { cartAction = false, duration = 2200 } = {},
+        {
+            cartAction = false,
+            duration = 2200,
+            icon = '✓',
+        } = {},
     ) => {
         if (!toast) return;
 
@@ -188,6 +193,10 @@
             toastMessage.textContent = message;
         } else {
             toast.textContent = message;
+        }
+
+        if (toastIcon) {
+            toastIcon.textContent = icon;
         }
 
         if (toastOpen) {
@@ -603,6 +612,13 @@
             showToast('Máximo 50 unidades por producto o kit');
         }
 
+        const removedName = items[index]?.name || 'Producto';
+        const removedByDecrement = (
+            currentQty === 1
+            && Number(delta || 0) < 0
+            && next === 0
+        );
+
         if (next <= 0) {
             items.splice(index, 1);
         } else {
@@ -612,6 +628,17 @@
 
         write(items);
         render();
+
+        if (removedByDecrement) {
+            showToast(
+                removedName + ' · eliminado del carrito',
+                {
+                    cartAction: items.length > 0,
+                    duration: 3200,
+                    icon: '×',
+                },
+            );
+        }
     };
 
     let syncKitControl = () => {};
@@ -818,7 +845,14 @@
             items.splice(index, 1);
             write(items);
             render();
-            showToast(removedName + ' · eliminado');
+            showToast(
+                removedName + ' · eliminado del carrito',
+                {
+                    cartAction: items.length > 0,
+                    duration: 3200,
+                    icon: '×',
+                },
+            );
             return;
         }
 

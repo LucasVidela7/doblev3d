@@ -529,6 +529,31 @@ class CatalogoPublicoTests(TestCase):
         self.assertIn("cartAction: true", script)
         self.assertIn("pulseCartOpeners()", script)
 
+    def test_carrito_informa_eliminacion_al_restar_de_uno_a_cero(self):
+        script_path = os.path.join(
+            os.path.dirname(__file__),
+            "static",
+            "productos",
+            "catalog_cart.js",
+        )
+        style_path = os.path.join(
+            os.path.dirname(__file__),
+            "static",
+            "productos",
+            "catalog_cart.css",
+        )
+
+        with open(script_path, encoding="utf-8") as script_file:
+            script = script_file.read()
+        with open(style_path, encoding="utf-8") as style_file:
+            styles = style_file.read()
+
+        self.assertIn("removedByDecrement", script)
+        self.assertIn("eliminado del carrito", script)
+        self.assertIn("grid-template-columns:repeat(3,minmax(0,1fr))", styles)
+        self.assertIn("background:#17233a", styles)
+        self.assertIn("background:#f0393b", styles)
+
     def test_tarjeta_producto_muestra_ver_y_agregar_legibles(self):
         response = self.client.get(
             reverse("catalogo_productos")
