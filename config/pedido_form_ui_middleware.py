@@ -719,6 +719,7 @@ PEDIDO_FORM_SCRIPT = r"""
 
             pintarEstado(item, indice);
             actualizarTotal(item, indice);
+            actualizarResumenPedido();
         }catch(error){
             const referencia = caja.querySelector(`#dv_kit_ref_${indice}`);
             textoSiCambio(
@@ -953,7 +954,12 @@ PEDIDO_FORM_SCRIPT = r"""
 
         new MutationObserver(function(){
             actualizarNotaVolumen();
-        }).observe(document.body, {childList:true, subtree:true});
+            actualizarResumenPedido();
+        }).observe(document.body, {
+            childList:true,
+            subtree:true,
+            characterData:true
+        });
     }
 
     if (document.readyState === 'loading'){
@@ -1076,12 +1082,17 @@ class PedidoFormUIMiddleware:
             <div class="dv-order-ready" data-dv-order-ready>REVISAR</div>
             <div class="dv-order-save-action"></div>
         `;
+        const contenedorAnterior = submit.parentElement;
         form.appendChild(barra);
         submit.classList.add('dv-order-save');
         barra.querySelector('.dv-order-save-action').appendChild(submit);
 
-        const anterior = submit.closest('.acciones');
-        if (anterior && !anterior.children.length) anterior.remove();
+        if (
+            contenedorAnterior
+            && contenedorAnterior.classList?.contains('acciones')
+        ){
+            contenedorAnterior.remove();
+        }
 
         actualizarResumenPedido();
     }
