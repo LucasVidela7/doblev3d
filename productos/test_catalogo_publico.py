@@ -375,26 +375,19 @@ class CatalogoPublicoTests(TestCase):
         self.assertContains(response, "1 unidad")
 
 
-    def test_catalogo_informa_como_comprar_y_retiro(self):
+    def test_catalogo_como_comprar_muestra_solo_los_cuatro_pasos(self):
         response = self.client.get(reverse("catalogo"))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "¿Cómo comprar?")
-        self.assertContains(response, "¿Cómo comprar?")
         self.assertContains(response, "Explorá productos y/o kits")
+        self.assertContains(response, "Armá tu carrito")
         self.assertContains(response, "Solicitá el presupuesto")
         self.assertContains(response, "Confirmamos y preparamos")
-        self.assertContains(response, "Correo")
-        self.assertContains(response, "Motomensajería")
-        self.assertContains(response, "Coordinado en domicilio")
-        self.assertContains(
-            response,
-            "La dirección exacta y el horario se informan al confirmar",
-        )
-        self.assertContains(
-            response,
-            "Cualquier costo de entrega",
-        )
+        self.assertNotContains(response, "Entregas y retiro")
+        self.assertNotContains(response, "Motomensajería")
+        self.assertNotContains(response, "Cualquier costo de entrega")
+        self.assertNotContains(response, "ENTENDIDO")
 
     def test_detalle_de_kit_reutiliza_modal_como_comprar(self):
         response = self.client.get(
@@ -403,7 +396,8 @@ class CatalogoPublicoTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "¿Cómo comprar?")
-        self.assertContains(response, "Entregas y retiro")
+        self.assertContains(response, "Confirmamos y preparamos")
+        self.assertNotContains(response, "Entregas y retiro")
 
     def test_catalogo_informa_plazo_de_entrega_configurado(self):
         config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)

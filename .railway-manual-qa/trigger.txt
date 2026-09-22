@@ -19,3 +19,5 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-22 - Ampliar ancho de Configuracion a 1320px
 
 2026-09-22 - Icono para cerrar sesion en menu de gestion
+
+2026-09-22 - Simplificar modal Como comprar a 4 pasos
