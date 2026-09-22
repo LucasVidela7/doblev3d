@@ -18,7 +18,12 @@ from productos.legal import (
     privacidad,
     terminos_compra,
 )
-from productos.carrito import carrito_checkout, carrito_gracias, carrito_precios
+from productos.carrito import (
+    carrito_checkout,
+    carrito_gracias,
+    carrito_precios,
+    solicitud_publica,
+)
 
 
 urlpatterns = [
@@ -99,6 +104,11 @@ urlpatterns = [
         "carrito/gracias/",
         carrito_gracias,
         name="catalogo_carrito_gracias",
+    ),
+    path(
+        "solicitud/<uuid:token>/",
+        solicitud_publica,
+        name="solicitud_publica",
     ),
 
     # Los enlaces sociales pasan por el sistema para registrar el click antes
