@@ -115,10 +115,10 @@ form{margin:0}
                         </div>
                     {% endif %}
 
-                    {% if detalle.tipo_item == "PERSONALIZADO" %}
+                    {% if detalle.tipo_item == "PERSONALIZADO" or detalle.color_personalizacion %}
                         <div class="personal">
-                            {{ detalle.detalle_personalizacion }}
-                            {% if detalle.color_personalizacion %}<br>Color: {{ detalle.color_personalizacion }}{% endif %}
+                            {% if detalle.detalle_personalizacion %}{{ detalle.detalle_personalizacion }}{% endif %}
+                            {% if detalle.color_personalizacion %}{% if detalle.detalle_personalizacion %}<br>{% endif %}Color: {{ detalle.color_personalizacion }}{% endif %}
                         </div>
                     {% endif %}
 

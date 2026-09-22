@@ -273,6 +273,22 @@ def convertir_solicitud_web(request, solicitud_id):
     else:
         observaciones = f"Origen {solicitud.codigo}"
 
+    resumen_colores = []
+    for item_color in solicitud.items.all():
+        if item_color.modo_color == "ESPECIFICO" and item_color.color_elegido:
+            resumen_colores.append(
+                f"- {item_color.nombre_snapshot}: {item_color.color_elegido}"
+            )
+        elif item_color.modo_color == "SURTIDO":
+            resumen_colores.append(
+                f"- {item_color.nombre_snapshot}: colores surtidos según stock"
+            )
+    if resumen_colores:
+        observaciones += (
+            "\n\nSelección de color:\n"
+            + "\n".join(resumen_colores)
+        )
+
     presupuesto = Presupuesto.objects.create(
         cliente=cliente,
         observaciones=observaciones,
@@ -291,8 +307,25 @@ def convertir_solicitud_web(request, solicitud_id):
                     + item.adicional_unitario
                 ),
                 precio_unitario=item.precio_unitario,
+                personalizado=bool(item.color_elegido),
+                detalle_personalizacion=(
+                    "Color elegido desde la tienda"
+                    if item.color_elegido
+                    else ""
+                ),
+                color_personalizacion=item.color_elegido,
             )
             continue
+
+        kit_snapshot = dict(item.kit_snapshot or {})
+        if item.modo_color:
+            kit_snapshot["seleccion_color"] = {
+                "modo": item.modo_color,
+                "color": item.color_elegido,
+                "adicional_unitario": str(
+                    item.adicional_color_unitario or 0
+                ),
+            }
 
         detalle = DetallePresupuesto.objects.create(
             presupuesto=presupuesto,
@@ -308,7 +341,14 @@ def convertir_solicitud_web(request, solicitud_id):
             # Al convertirlo congelamos ese valor para respetar lo visto
             # por el cliente.
             precio_kit_manual=True,
-            kit_snapshot=item.kit_snapshot or {},
+            kit_snapshot=kit_snapshot,
+            personalizado=bool(item.color_elegido),
+            detalle_personalizacion=(
+                "Color elegido desde la tienda"
+                if item.color_elegido
+                else ""
+            ),
+            color_personalizacion=item.color_elegido,
         )
 
         for componente in item.productos_kit.all():

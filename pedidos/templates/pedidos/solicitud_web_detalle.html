@@ -94,6 +94,18 @@ h1{margin:0;font-size:30px}.sub{margin-top:5px;color:var(--dv-muted,#667085);fon
                             {% endfor %}
                         </div>
                     {% endif %}
+                    {% if item.modo_color %}
+                        <div class="kit-products">
+                            {% if item.modo_color == "ESPECIFICO" %}
+                                <span class="chip">COLOR: {{ item.color_elegido|upper }}</span>
+                                {% if item.adicional_color_unitario %}
+                                    <span class="chip">ADICIONAL COLOR +$ {{ item.adicional_color_unitario|floatformat:"0g" }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="chip">COLORES SURTIDOS · SEGÚN STOCK</span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
 
                     <div class="money">
                         <div><span class="label">PRECIO LISTA / U.</span><b>$ {{ item.precio_lista_unitario|floatformat:"0g" }}</b></div>

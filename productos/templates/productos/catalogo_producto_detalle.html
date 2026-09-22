@@ -76,6 +76,7 @@ body{margin:0;padding-bottom:156px;background:radial-gradient(circle at top righ
   <div class="tags">
     <span class="tag">Producto individual</span>
     {% if producto.personalizable %}<span class="tag custom">Personalizable</span>{% endif %}
+    {% if producto.permite_elegir_color %}<span class="tag custom">Color a elección</span>{% endif %}
   </div>
 
   <div class="pricebox">
@@ -88,6 +89,32 @@ body{margin:0;padding-bottom:156px;background:radial-gradient(circle at top righ
       <span>Consultanos por disponibilidad y precio.</span>
     {% endif %}
   </div>
+
+  {% if producto.permite_elegir_color and colores_disponibles %}
+  <div class="dv-color-config" data-dv-color-config data-color-scope="product" data-color-surcharge="0">
+    <div class="dv-color-config__head">
+      <strong>¿Cómo querés el color?</strong>
+      <span>Elegí antes de agregar al carrito.</span>
+    </div>
+    <div class="dv-color-options">
+      <label class="dv-color-option">
+        <input type="radio" name="color_producto_{{ producto.id }}" value="SURTIDO" data-dv-color-mode checked>
+        <span><b>Colores surtidos</b><small>Según disponibilidad · preparación más rápida.</small></span>
+      </label>
+      <label class="dv-color-option">
+        <input type="radio" name="color_producto_{{ producto.id }}" value="ESPECIFICO" data-dv-color-mode>
+        <span><b>Elegir un color</b><small>Sin adicional · puede requerir mayor tiempo de preparación.</small></span>
+      </label>
+    </div>
+    <div class="dv-color-select-wrap" data-dv-color-select-wrap hidden>
+      <label for="dv-product-color-{{ producto.id }}">COLOR</label>
+      <select id="dv-product-color-{{ producto.id }}" data-dv-color-select>
+        <option value="">Elegí un color...</option>
+        {% for color in colores_disponibles %}<option value="{{ color }}">{{ color }}</option>{% endfor %}
+      </select>
+    </div>
+  </div>
+  {% endif %}
 
   {% if mensaje_plazo_entrega %}
   <div class="delivery"><span aria-hidden="true">⏱</span><div><strong>Plazo estimado</strong><br>{{ mensaje_plazo_entrega }}</div></div>
@@ -103,6 +130,7 @@ body{margin:0;padding-bottom:156px;background:radial-gradient(circle at top righ
   data-dv-product-floating
   data-product-id="{{ producto.id }}"
   data-product-price="{{ producto.catalogo_precio|unlocalize }}"
+  data-product-color-enabled="{{ producto.permite_elegir_color|yesno:'1,0' }}"
   aria-label="Compra de {{ producto.nombre }}"
 >
   <div class="dv-product-cart-panel">
@@ -112,7 +140,7 @@ body{margin:0;padding-bottom:156px;background:radial-gradient(circle at top righ
       <span class="dv-product-cart-discount" data-dv-product-discount hidden></span>
     </div>
     <div class="dv-cart-card-control is-ready" data-dv-product-control data-product-id="{{ producto.id }}">
-      <button class="dv-cart-add-btn" type="button" data-dv-cart-product data-product-id="{{ producto.id }}" data-product-name="{{ producto.nombre }}" data-product-price="{{ producto.catalogo_precio|unlocalize }}" data-product-image="{{ producto.catalogo_imagen_url }}">AGREGAR AL CARRITO</button>
+      <button class="dv-cart-add-btn" type="button" data-dv-cart-product data-product-id="{{ producto.id }}" data-product-name="{{ producto.nombre }}" data-product-price="{{ producto.catalogo_precio|unlocalize }}" data-product-image="{{ producto.catalogo_imagen_url }}" data-product-color-enabled="{{ producto.permite_elegir_color|yesno:'1,0' }}">AGREGAR AL CARRITO</button>
       <div class="dv-cart-inline-stepper" data-dv-product-stepper hidden aria-label="Cantidad en carrito">
         <button type="button" data-dv-product-inline-minus aria-label="Disminuir cantidad">−</button>
         <span data-dv-product-inline-qty>1</span>
@@ -148,10 +176,35 @@ body{margin:0;padding-bottom:156px;background:radial-gradient(circle at top righ
       return [];
     }
   };
-  const updateSubtotal = (items = read()) => {
-    const item = items.find(
-      (entry) => entry.kind === 'product' && Number(entry.id) === productId
+  const currentColor = () => {
+    const config = document.querySelector(
+      '[data-dv-color-config][data-color-scope="product"]'
     );
+    if (!config) return { mode: '', color: '' };
+    const specific = config.querySelector(
+      '[data-dv-color-mode]:checked'
+    )?.value === 'ESPECIFICO';
+    return {
+      mode: specific ? 'ESPECIFICO' : 'SURTIDO',
+      color: specific
+        ? String(config.querySelector('[data-dv-color-select]')?.value || '').trim()
+        : '',
+    };
+  };
+  const updateSubtotal = (items = read()) => {
+    const choice = currentColor();
+    const item = items.find((entry) => {
+      if (
+        entry.kind !== 'product'
+        || Number(entry.id) !== productId
+      ) return false;
+      if (choice.mode === 'ESPECIFICO') {
+        return entry.colorMode === 'ESPECIFICO'
+          && String(entry.color || '').toLocaleLowerCase('es-AR')
+            === choice.color.toLocaleLowerCase('es-AR');
+      }
+      return entry.colorMode !== 'ESPECIFICO';
+    });
     const qty = item ? Math.max(1, Number(item.qty || 1)) : 1;
     const unit = item
       ? Number(item.unitPrice ?? item.listUnitPrice ?? basePrice)
@@ -171,6 +224,9 @@ body{margin:0;padding-bottom:156px;background:radial-gradient(circle at top righ
 
   document.addEventListener('dv-cart-change', (event) => {
     updateSubtotal(Array.isArray(event.detail) ? event.detail : read());
+  });
+  document.addEventListener('dv-color-change', (event) => {
+    if (event.detail?.scope === 'product') updateSubtotal();
   });
   window.addEventListener('storage', (event) => {
     if (event.key === storageKey) updateSubtotal();

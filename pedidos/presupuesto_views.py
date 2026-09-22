@@ -824,6 +824,9 @@ def aprobar_presupuesto(request, presupuesto_id):
                     detalle.producto
                 ),
                 estado="PENDIENTE",
+                personalizado=bool(detalle.color_personalizacion),
+                detalle_personalizacion=detalle.detalle_personalizacion,
+                color_personalizacion=detalle.color_personalizacion,
             )
             continue
 
@@ -839,6 +842,9 @@ def aprobar_presupuesto(request, presupuesto_id):
                 costo_unitario=None,
                 kit_snapshot=detalle.kit_snapshot or {},
                 estado="PENDIENTE",
+                personalizado=bool(detalle.color_personalizacion),
+                detalle_personalizacion=detalle.detalle_personalizacion,
+                color_personalizacion=detalle.color_personalizacion,
             )
 
             for componente in detalle.productos_kit.all():

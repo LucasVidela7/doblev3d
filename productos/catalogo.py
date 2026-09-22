@@ -281,6 +281,9 @@ def catalogo_producto_detalle(request, producto_id):
             "mensaje_plazo_entrega": (
                 config_catalogo.mensaje_plazo_entrega
             ),
+            "colores_disponibles": (
+                config_catalogo.colores_disponibles_lista
+            ),
         },
     )
 
@@ -413,6 +416,14 @@ def catalogo_kit_detalle(request, kit_id):
         "",
     )
 
+    adicional_color_kit = (
+        config_catalogo.adicional_color_kit_libre(
+            kit.cantidad_productos
+        )
+        if kit.modalidad == "LIBRE_CATEGORIA"
+        else 0
+    )
+
     return render(
         request,
         "productos/catalogo_kit_detalle.html",
@@ -427,5 +438,9 @@ def catalogo_kit_detalle(request, kit_id):
             "mensaje_plazo_entrega": (
                 config_catalogo.mensaje_plazo_entrega
             ),
+            "colores_disponibles": (
+                config_catalogo.colores_disponibles_lista
+            ),
+            "adicional_color_kit": adicional_color_kit,
         },
     )

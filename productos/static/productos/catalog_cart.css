@@ -514,3 +514,42 @@ html.dv-cart-open .dv-cart-body{
         line-height:1;
     }
 }
+
+
+/* Selección de color en productos y kits */
+.dv-color-config{
+    margin-top:14px;
+    padding:14px;
+    border:1px solid #d7e1ef;
+    border-radius:16px;
+    background:#fff;
+    box-shadow:0 5px 18px rgba(19,74,154,.045);
+}
+.dv-color-config--kit{margin-top:12px;margin-bottom:12px}
+.dv-color-config__head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
+.dv-color-config__head strong{color:#0d376f;font-size:.86rem}
+.dv-color-config__head span{max-width:360px;color:#667085;font-size:.68rem;line-height:1.4;text-align:right}
+.dv-color-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.dv-color-option{
+    min-width:0;display:flex;align-items:flex-start;gap:9px;padding:11px;
+    border:1px solid #dfe5ef;border-radius:12px;background:#f8fafc;cursor:pointer
+}
+.dv-color-option:has(input:checked){border-color:#134a9a;background:#eef4ff;box-shadow:0 0 0 2px rgba(19,74,154,.08)}
+.dv-color-option input{width:17px;height:17px;margin:2px 0 0;accent-color:#134a9a;flex:0 0 auto}
+.dv-color-option span{min-width:0}
+.dv-color-option b{display:block;color:#17233a;font-size:.76rem}
+.dv-color-option small{display:block;margin-top:3px;color:#667085;font-size:.64rem;line-height:1.4}
+.dv-color-option.is-disabled{opacity:.58;cursor:not-allowed}
+.dv-color-select-wrap{margin-top:10px}
+.dv-color-select-wrap[hidden]{display:none!important}
+.dv-color-select-wrap label{display:block;margin-bottom:5px;color:#667085;font-size:.62rem;font-weight:950;letter-spacing:.04em}
+.dv-color-select-wrap select{
+    width:100%;min-height:43px;padding:8px 10px;border:1px solid #cfd8e6;border-radius:11px;
+    background:#fff;color:#17233a;font:inherit;font-size:.78rem;font-weight:800
+}
+@media(max-width:640px){
+    .dv-color-config{padding:11px;border-radius:14px}
+    .dv-color-config__head{display:block}
+    .dv-color-config__head span{display:block;margin-top:4px;max-width:none;text-align:left}
+    .dv-color-options{grid-template-columns:1fr}
+}

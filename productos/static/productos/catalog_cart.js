@@ -116,12 +116,53 @@
         }
     };
 
+    const colorSelectionFor = (scope, fallbackEnabled = false) => {
+        const config = document.querySelector(
+            '[data-dv-color-config][data-color-scope="' + scope + '"]',
+        );
+        if (!config) {
+            return {
+                enabled: Boolean(fallbackEnabled),
+                mode: fallbackEnabled ? 'SURTIDO' : '',
+                color: '',
+                surcharge: 0,
+                valid: true,
+            };
+        }
+
+        const selectedMode = config.querySelector(
+            '[data-dv-color-mode]:checked',
+        );
+        const mode = selectedMode?.value === 'ESPECIFICO'
+            ? 'ESPECIFICO'
+            : 'SURTIDO';
+        const select = config.querySelector('[data-dv-color-select]');
+        const color = mode === 'ESPECIFICO'
+            ? String(select?.value || '').trim()
+            : '';
+
+        return {
+            enabled: true,
+            mode,
+            color,
+            surcharge: mode === 'ESPECIFICO'
+                ? Number(config.dataset.colorSurcharge || 0)
+                : 0,
+            valid: mode !== 'ESPECIFICO' || Boolean(color),
+        };
+    };
+
     const signature = (item) => {
         const selected = (item.selections || [])
             .map((entry) => Number(entry.id))
             .sort((a, b) => a - b)
             .join(',');
-        return [item.kind, item.id, selected].join(':');
+        const base = [item.kind, item.id, selected].join(':');
+        const color = String(item.color || '').trim();
+        return item.colorMode === 'ESPECIFICO' && color
+            ? base + ':color:'
+                + encodeURIComponent(color.toLocaleLowerCase('es-AR'))
+            : base;
     };
 
     const payloadFor = (items) =>
@@ -130,6 +171,8 @@
             kind: item.kind,
             id: Number(item.id),
             qty: Number(item.qty || 1),
+            color_mode: item.colorMode || '',
+            color: item.color || '',
             selections: (item.selections || []).map((entry) => ({
                 id: Number(entry.id),
             })),
@@ -347,24 +390,36 @@
             + '</div>';
     };
 
+    const itemColorMeta = (item) => {
+        if (!item.colorEnabled && !item.colorMode) return '';
+        if (item.colorMode === 'ESPECIFICO' && item.color) {
+            return 'Color: ' + escapeHtml(item.color);
+        }
+        return 'Colores surtidos';
+    };
+
     const itemMeta = (item) => {
-        if (item.kind !== 'kit') return 'Producto';
+        const colorMeta = itemColorMeta(item);
+        if (item.kind !== 'kit') {
+            return colorMeta ? 'Producto · ' + colorMeta : 'Producto';
+        }
 
         const selections = item.selections || [];
-        if (!selections.length) return 'Kit de composición fija';
+        let detail = 'Kit de composición fija';
+        if (selections.length) {
+            const names = selections
+                .map((entry) => escapeHtml(entry.name))
+                .join(' · ');
+            const extra = selections.reduce(
+                (sum, entry) => sum + Number(entry.extra || 0),
+                0,
+            );
+            detail = extra > 0
+                ? names + ' · <b>+' + money(extra) + ' adicional</b>'
+                : names;
+        }
 
-        const names = selections
-            .map((entry) => escapeHtml(entry.name))
-            .join(' · ');
-
-        const extra = selections.reduce(
-            (sum, entry) => sum + Number(entry.extra || 0),
-            0,
-        );
-
-        return extra > 0
-            ? names + ' · <b>+' + money(extra) + ' adicional</b>'
-            : names;
+        return colorMeta ? detail + ' · ' + colorMeta : detail;
     };
 
     const render = () => {
@@ -535,6 +590,12 @@
                 line.descuento_porcentaje || 0,
             );
             item.savings = Number(line.ahorro || 0);
+            item.colorMode = line.modo_color || item.colorMode || '';
+            item.color = line.color_elegido || '';
+            item.colorSurcharge = Number(line.adicional_color || 0);
+            item.colorEnabled = Boolean(
+                item.colorEnabled || item.colorMode,
+            );
             item.pricingPending = false;
         });
 
@@ -655,8 +716,18 @@
         document.querySelectorAll('[data-dv-product-control]')
             .forEach((control) => {
                 const id = Number(control.dataset.productId || 0);
-                const item = byKey.get('product:' + id + ':');
                 const add = control.querySelector('[data-dv-cart-product]');
+                const colorChoice = colorSelectionFor(
+                    'product',
+                    add?.dataset.productColorEnabled === '1',
+                );
+                const item = byKey.get(signature({
+                    kind: 'product',
+                    id,
+                    selections: [],
+                    colorMode: colorChoice.mode,
+                    color: colorChoice.color,
+                }));
                 const stepper = control.querySelector(
                     '[data-dv-product-stepper]',
                 );
@@ -716,6 +787,36 @@
         syncProductControls(items);
         syncKitControl(items);
     };
+
+    document.querySelectorAll('[data-dv-color-config]')
+        .forEach((colorConfig) => {
+            const syncColorConfig = () => {
+                const specific = colorConfig.querySelector(
+                    '[data-dv-color-mode]:checked',
+                )?.value === 'ESPECIFICO';
+                const wrap = colorConfig.querySelector(
+                    '[data-dv-color-select-wrap]',
+                );
+                if (wrap) wrap.hidden = !specific;
+
+                syncInlineControls();
+                document.dispatchEvent(
+                    new CustomEvent('dv-color-change', {
+                        detail: {
+                            scope: colorConfig.dataset.colorScope || '',
+                        },
+                    }),
+                );
+            };
+
+            colorConfig.querySelectorAll('[data-dv-color-mode]')
+                .forEach((input) => {
+                    input.addEventListener('change', syncColorConfig);
+                });
+            colorConfig.querySelector('[data-dv-color-select]')
+                ?.addEventListener('change', syncColorConfig);
+            syncColorConfig();
+        });
 
     const shouldLockBody = () =>
         window.matchMedia('(max-width: 640px)').matches;
@@ -801,9 +902,20 @@
                 '[data-dv-product-control]',
             );
             const id = Number(control?.dataset.productId || 0);
+            const add = control?.querySelector('[data-dv-cart-product]');
+            const colorChoice = colorSelectionFor(
+                'product',
+                add?.dataset.productColorEnabled === '1',
+            );
             if (id) {
                 changeQuantity(
-                    'product:' + id + ':',
+                    signature({
+                        kind: 'product',
+                        id,
+                        selections: [],
+                        colorMode: colorChoice.mode,
+                        color: colorChoice.color,
+                    }),
                     productInline.matches('[data-dv-product-inline-plus]')
                         ? 1
                         : -1,
@@ -819,6 +931,17 @@
             const listPrice = Number(
                 productButton.dataset.productPrice || 0,
             );
+            const colorEnabled =
+                productButton.dataset.productColorEnabled === '1';
+            const colorChoice = colorSelectionFor(
+                'product',
+                colorEnabled,
+            );
+            if (!colorChoice.valid) {
+                showToast('Elegí un color antes de agregar el producto');
+                return;
+            }
+
             addProductWithLoading({
                 kind: 'product',
                 id: Number(productButton.dataset.productId),
@@ -830,6 +953,10 @@
                 listUnitPrice: listPrice,
                 image: productButton.dataset.productImage || '',
                 selections: [],
+                colorEnabled,
+                colorMode: colorChoice.mode,
+                color: colorChoice.color,
+                colorSurcharge: 0,
             }, productButton);
             return;
         }
@@ -900,6 +1027,7 @@
         const required = Number(config.dataset.required || 0);
         const mode = config.dataset.mode || 'FIJO';
         const base = Number(config.dataset.basePrice || 0);
+        const colorEnabled = config.dataset.colorEnabled === '1';
         const qtyInput = config.querySelector('[data-dv-kit-qty]');
         const status = config.querySelector('[data-dv-kit-status]');
         const priceNode = config.querySelector('[data-dv-kit-total]');
@@ -940,11 +1068,16 @@
             return selections;
         };
 
-        const currentKitKey = () => signature({
-            kind: 'kit',
-            id: Number(config.dataset.kitId),
-            selections: kitSelections(),
-        });
+        const currentKitKey = () => {
+            const colorChoice = colorSelectionFor('kit', colorEnabled);
+            return signature({
+                kind: 'kit',
+                id: Number(config.dataset.kitId),
+                selections: kitSelections(),
+                colorMode: colorChoice.mode,
+                color: colorChoice.color,
+            });
+        };
 
         syncKitControl = (items = read()) => {
             const selections = kitSelections();
@@ -1005,7 +1138,14 @@
             );
             if (qtyInput) qtyInput.value = String(qty);
 
-            const unitListPrice = base + extras;
+            const colorChoice = colorSelectionFor(
+                'kit',
+                colorEnabled,
+            );
+            const colorExtra = colorChoice.mode === 'ESPECIFICO'
+                ? Number(config.dataset.colorSurcharge || 0)
+                : 0;
+            const unitListPrice = base + extras + colorExtra;
             if (priceNode) {
                 priceNode.textContent = money(unitListPrice * qty);
             }
@@ -1017,6 +1157,9 @@
             const complete =
                 mode === 'LIBRE_CATEGORIA'
                 && selected === required;
+            const compositionReady =
+                mode !== 'LIBRE_CATEGORIA' || complete;
+            const ready = compositionReady && colorChoice.valid;
             const remaining = Math.max(required - selected, 0);
 
             if (status) {
@@ -1038,10 +1181,10 @@
             }
 
             if (addButton) {
-                addButton.disabled =
-                    mode === 'LIBRE_CATEGORIA'
-                    && !complete;
-                if (
+                addButton.disabled = !ready;
+                if (!colorChoice.valid) {
+                    addButton.textContent = 'ELEGÍ UN COLOR';
+                } else if (
                     mode === 'LIBRE_CATEGORIA'
                     && !addButton.hidden
                 ) {
@@ -1137,6 +1280,9 @@
         });
 
         qtyInput?.addEventListener('input', updateKit);
+        document.addEventListener('dv-color-change', (event) => {
+            if (event.detail?.scope === 'kit') updateKit();
+        });
 
         const resetKitSelection = () => {
             options.forEach((node) => {
@@ -1148,6 +1294,15 @@
 
         addButton?.addEventListener('click', () => {
             const selections = kitSelections();
+            const colorChoice = colorSelectionFor(
+                'kit',
+                colorEnabled,
+            );
+
+            if (!colorChoice.valid) {
+                showToast('Elegí un color antes de agregar el kit');
+                return;
+            }
 
             if (
                 mode === 'LIBRE_CATEGORIA'
@@ -1157,13 +1312,17 @@
                 return;
             }
 
+            const colorExtra = colorChoice.mode === 'ESPECIFICO'
+                ? Number(config.dataset.colorSurcharge || 0)
+                : 0;
             const listUnitPrice =
                 base
                 + selections.reduce(
                     (sum, item) =>
                         sum + Number(item.extra || 0),
                     0,
-                );
+                )
+                + colorExtra;
 
             addItem({
                 kind: 'kit',
@@ -1181,6 +1340,10 @@
                 basePrice: base,
                 image: config.dataset.image || '',
                 selections,
+                colorEnabled,
+                colorMode: colorChoice.mode,
+                color: colorChoice.color,
+                colorSurcharge: colorExtra,
             }, addButton, {
                 restore: false,
             });

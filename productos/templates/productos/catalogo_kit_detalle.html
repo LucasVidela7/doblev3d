@@ -557,6 +557,49 @@
         </div>
         {% endif %}
 
+        {% if kit.permite_elegir_color and colores_disponibles %}
+        <section class="shell dv-color-config dv-color-config--kit" data-dv-color-config data-color-scope="kit" data-color-surcharge="{{ adicional_color_kit|unlocalize }}">
+            <div class="dv-color-config__head">
+                <strong>¿Cómo querés los colores del kit?</strong>
+                <span>Esta elección se aplica a todas las piezas del kit.</span>
+            </div>
+            <div class="dv-color-options">
+                <label class="dv-color-option">
+                    <input type="radio" name="color_kit_{{ kit.id }}" value="SURTIDO" data-dv-color-mode checked>
+                    <span><b>Colores surtidos</b><small>Según disponibilidad · preparación más rápida · sin adicional.</small></span>
+                </label>
+                <label class="dv-color-option {% if kit.modalidad == 'LIBRE_CATEGORIA' and not adicional_color_kit %}is-disabled{% endif %}">
+                    <input
+                        type="radio"
+                        name="color_kit_{{ kit.id }}"
+                        value="ESPECIFICO"
+                        data-dv-color-mode
+                        {% if kit.modalidad == 'LIBRE_CATEGORIA' and not adicional_color_kit %}disabled{% endif %}
+                    >
+                    <span>
+                        <b>Todo del mismo color{% if kit.modalidad == "LIBRE_CATEGORIA" and adicional_color_kit %} · +$ {{ adicional_color_kit|floatformat:"0g" }}{% endif %}</b>
+                        <small>
+                            {% if kit.modalidad == "FIJO" %}
+                                Sin adicional · puede requerir mayor tiempo de preparación.
+                            {% elif adicional_color_kit %}
+                                Producción especial · puede requerir mayor tiempo de preparación.
+                            {% else %}
+                                Esta opción se habilita al configurar el adicional en Gestión.
+                            {% endif %}
+                        </small>
+                    </span>
+                </label>
+            </div>
+            <div class="dv-color-select-wrap" data-dv-color-select-wrap hidden>
+                <label for="dv-kit-color-{{ kit.id }}">COLOR PARA TODO EL KIT</label>
+                <select id="dv-kit-color-{{ kit.id }}" data-dv-color-select>
+                    <option value="">Elegí un color...</option>
+                    {% for color in colores_disponibles %}<option value="{{ color }}">{{ color }}</option>{% endfor %}
+                </select>
+            </div>
+        </section>
+        {% endif %}
+
         <section
             class="dv-kit-builder"
             data-dv-kit-config
@@ -566,6 +609,8 @@
             data-required="{{ kit.cantidad_productos }}"
             data-base-price="{{ kit.precio|unlocalize }}"
             data-image="{{ kit.catalogo_imagen_url }}"
+            data-color-enabled="{{ kit.permite_elegir_color|yesno:'1,0' }}"
+            data-color-surcharge="{{ adicional_color_kit|unlocalize }}"
         >
             {% if kit.modalidad == "LIBRE_CATEGORIA" %}
                 <div class="dv-kit-cart-panel dv-kit-cart-panel--simple">

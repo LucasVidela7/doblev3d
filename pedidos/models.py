@@ -657,6 +657,21 @@ class SolicitudWebItem(models.Model):
         default=dict,
         blank=True,
     )
+    modo_color = models.CharField(
+        max_length=20,
+        blank=True,
+        default="",
+    )
+    color_elegido = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )
+    adicional_color_unitario = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+    )
 
     @property
     def precio_lista_unitario(self):

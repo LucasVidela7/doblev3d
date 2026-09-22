@@ -62,6 +62,54 @@ def _decimal(valor):
     return Decimal(str(valor or 0))
 
 
+def _configuracion_catalogo():
+    return (
+        ConfiguracionCatalogo.objects.first()
+        or ConfiguracionCatalogo()
+    )
+
+
+def _validar_color_item(bruto, habilitado, config, nombre):
+    modo_solicitado = str(
+        bruto.get("color_mode") or ""
+    ).strip().upper()
+    color_solicitado = str(
+        bruto.get("color") or ""
+    ).strip()
+
+    if not habilitado:
+        if modo_solicitado == "ESPECIFICO" or color_solicitado:
+            raise ValueError(
+                f"{nombre} no admite selección de color."
+            )
+        return "", ""
+
+    if modo_solicitado not in {"", "SURTIDO", "ESPECIFICO"}:
+        raise ValueError(
+            f"La opción de color de {nombre} no es válida."
+        )
+
+    if modo_solicitado in {"", "SURTIDO"}:
+        return "SURTIDO", ""
+
+    if not color_solicitado:
+        raise ValueError(
+            f"Elegí un color para {nombre}."
+        )
+
+    colores = {
+        color.casefold(): color
+        for color in config.colores_disponibles_lista
+    }
+    color = colores.get(color_solicitado.casefold())
+    if not color:
+        raise ValueError(
+            f"El color elegido para {nombre} ya no está disponible."
+        )
+
+    return "ESPECIFICO", color
+
+
 def _parsear_payload(raw):
     if not raw:
         raise ValueError("Tu carrito está vacío.")
@@ -87,6 +135,7 @@ def _parsear_payload(raw):
 
 def _validar_carrito(payload):
     lineas = []
+    config_catalogo = _configuracion_catalogo()
 
     for indice, bruto in enumerate(payload, start=1):
         if not isinstance(bruto, dict):
@@ -131,6 +180,13 @@ def _validar_carrito(payload):
                     f"{producto.nombre} no tiene un precio válido actualmente."
                 )
 
+            modo_color, color_elegido = _validar_color_item(
+                bruto,
+                producto.permite_elegir_color,
+                config_catalogo,
+                producto.nombre,
+            )
+
             lineas.append(
                 {
                     "key": str(bruto.get("key") or f"producto-{producto.id}"),
@@ -141,12 +197,17 @@ def _validar_carrito(payload):
                     "nombre": producto.nombre,
                     "precio_base": precio,
                     "adicional": Decimal("0"),
+                    "adicional_color": Decimal("0"),
                     "precio_unitario": precio,
                     "componentes": {},
+                    "modo_color": modo_color,
+                    "color_elegido": color_elegido,
                     "canonical": {
                         "kind": "product",
                         "id": producto.id,
                         "qty": cantidad,
+                        "color_mode": modo_color,
+                        "color": color_elegido,
                     },
                 }
             )
@@ -174,6 +235,13 @@ def _validar_carrito(payload):
                     f"{kit.nombre} ya no está disponible en el catálogo. "
                     "Quitalo del carrito para continuar."
                 )
+
+            modo_color, color_elegido = _validar_color_item(
+                bruto,
+                kit.permite_elegir_color,
+                config_catalogo,
+                kit.nombre,
+            )
 
             componentes = Counter()
             seleccion_ids = []
@@ -291,6 +359,24 @@ def _validar_carrito(payload):
                     f"{kit.nombre} no tiene un precio válido actualmente."
                 )
 
+            adicional_color = Decimal("0")
+            if (
+                modo_color == "ESPECIFICO"
+                and kit.modalidad == "LIBRE_CATEGORIA"
+            ):
+                adicional_color = _decimal(
+                    config_catalogo.adicional_color_kit_libre(
+                        kit.cantidad_productos
+                    )
+                )
+                if adicional_color <= 0:
+                    raise ValueError(
+                        f"La opción de un solo color para {kit.nombre} "
+                        "todavía no está habilitada."
+                    )
+                precio_unitario += adicional_color
+                adicional += adicional_color
+
             lineas.append(
                 {
                     "key": str(bruto.get("key") or f"kit-{kit.id}-{indice}"),
@@ -301,13 +387,18 @@ def _validar_carrito(payload):
                     "nombre": kit.nombre,
                     "precio_base": precio_base,
                     "adicional": adicional,
+                    "adicional_color": adicional_color,
                     "precio_unitario": precio_unitario,
                     "componentes": dict(componentes),
+                    "modo_color": modo_color,
+                    "color_elegido": color_elegido,
                     "canonical": {
                         "kind": "kit",
                         "id": kit.id,
                         "qty": cantidad,
                         "selections": sorted(seleccion_ids),
+                        "color_mode": modo_color,
+                        "color": color_elegido,
                     },
                 }
             )
@@ -430,14 +521,30 @@ def _aplicar_descuentos_carrito(lineas):
                 calculada = por_key.get(str(linea["key"]))
                 if not calculada:
                     continue
-                linea["precio_unitario"] = _decimal(
-                    calculada["precio_unitario_final"]
+                linea["precio_unitario"] = (
+                    _decimal(calculada["precio_unitario_final"])
+                    + _decimal(linea.get("adicional_color"))
                 )
-                linea["ahorro_total"] = _decimal(
-                    calculada["ahorro"]
+                ahorro_unitario = max(
+                    _decimal(linea["precio_lista_unitario"])
+                    - _decimal(linea["precio_unitario"]),
+                    Decimal("0"),
                 )
-                linea["descuento_porcentaje"] = _decimal(
-                    calculada["descuento_porcentaje"]
+                linea["ahorro_total"] = (
+                    ahorro_unitario
+                    * Decimal(int(linea["cantidad"]))
+                )
+                lista_unitaria = _decimal(
+                    linea["precio_lista_unitario"]
+                )
+                linea["descuento_porcentaje"] = (
+                    (
+                        ahorro_unitario
+                        / lista_unitaria
+                        * Decimal("100")
+                    ).quantize(Decimal("0.1"))
+                    if lista_unitaria > 0
+                    else Decimal("0")
                 )
 
     return lineas
@@ -471,6 +578,11 @@ def _resumen_precios_carrito(lineas):
                 "ahorro": float(ahorro),
                 "descuento_porcentaje": float(
                     linea["descuento_porcentaje"]
+                ),
+                "modo_color": linea.get("modo_color", ""),
+                "color_elegido": linea.get("color_elegido", ""),
+                "adicional_color": float(
+                    _decimal(linea.get("adicional_color"))
                 ),
             }
         )
@@ -745,6 +857,12 @@ def carrito_checkout(request):
             precio_base_unitario=linea["precio_base"],
             adicional_unitario=linea["adicional"],
             precio_unitario=linea["precio_unitario"],
+            modo_color=linea.get("modo_color", ""),
+            color_elegido=linea.get("color_elegido", ""),
+            adicional_color_unitario=linea.get(
+                "adicional_color",
+                Decimal("0"),
+            ),
         )
 
         for producto_id, cantidad in linea["componentes"].items():

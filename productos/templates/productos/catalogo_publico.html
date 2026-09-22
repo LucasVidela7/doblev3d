@@ -887,6 +887,7 @@
                                                 data-product-name="{{ producto.nombre }}"
                                                 data-product-price="{{ producto.catalogo_precio|unlocalize }}"
                                                 data-product-image="{% if producto.catalogo_imagen %}{{ producto.catalogo_imagen.url }}{% endif %}"
+                                                data-product-color-enabled="{{ producto.permite_elegir_color|yesno:'1,0' }}"
                                             >AGREGAR</button>
                                             <div class="dv-cart-inline-stepper" data-dv-product-stepper hidden aria-label="Cantidad en carrito">
                                                 <button type="button" data-dv-product-inline-minus aria-label="Disminuir cantidad">−</button>

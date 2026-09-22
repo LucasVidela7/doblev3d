@@ -184,6 +184,155 @@ class CarritoPublicoTests(TestCase):
         self.assertEqual(item.cantidad, 2)
         self.assertEqual(solicitud.total, esperado_unitario * Decimal("2"))
 
+    def test_producto_color_especifico_no_suma_adicional(self):
+        config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
+        config.colores_disponibles = "Rojo\nAzul"
+        config.save(update_fields=["colores_disponibles"])
+        self.producto.permite_elegir_color = True
+        self.producto.save(update_fields=["permite_elegir_color"])
+
+        response = self._post(
+            [
+                {
+                    "kind": "product",
+                    "id": self.producto.id,
+                    "qty": 1,
+                    "color_mode": "ESPECIFICO",
+                    "color": "Rojo",
+                }
+            ],
+            telefono="+54 11 5555 2101",
+        )
+
+        self.assertEqual(response.status_code, 302)
+        item = SolicitudWeb.objects.get().items.get()
+        self.assertEqual(item.modo_color, "ESPECIFICO")
+        self.assertEqual(item.color_elegido, "Rojo")
+        self.assertEqual(item.adicional_color_unitario, Decimal("0"))
+
+    def test_kit_libre_mismo_color_suma_base_mas_productos(self):
+        config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
+        config.colores_disponibles = "Rojo\nAzul"
+        config.adicional_color_kit_base = Decimal("1000")
+        config.adicional_color_kit_por_producto = Decimal("500")
+        config.save(
+            update_fields=[
+                "colores_disponibles",
+                "adicional_color_kit_base",
+                "adicional_color_kit_por_producto",
+            ]
+        )
+        otro = Producto.objects.create(
+            nombre="Otra opción color",
+            categoria="PRODUCTO",
+            tipo=self.tipo,
+            peso_gramos=Decimal("90"),
+            margen_ganancia=Decimal("50"),
+            activo=True,
+            solo_produccion=False,
+        )
+        kit = Kit.objects.create(
+            nombre="Kit libre color",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=2,
+            precio=Decimal("5000"),
+            proteger_rentabilidad_libre=False,
+            permite_elegir_color=True,
+            activo=True,
+        )
+
+        response = self._post(
+            [
+                {
+                    "kind": "kit",
+                    "id": kit.id,
+                    "qty": 1,
+                    "selections": [
+                        {"id": self.producto.id},
+                        {"id": otro.id},
+                    ],
+                    "color_mode": "ESPECIFICO",
+                    "color": "Azul",
+                }
+            ],
+            telefono="+54 11 5555 2102",
+        )
+
+        self.assertEqual(response.status_code, 302)
+        item = SolicitudWeb.objects.get().items.get()
+        self.assertEqual(item.modo_color, "ESPECIFICO")
+        self.assertEqual(item.color_elegido, "Azul")
+        self.assertEqual(
+            item.adicional_color_unitario,
+            Decimal("2000"),
+        )
+        self.assertGreaterEqual(
+            item.adicional_unitario,
+            item.adicional_color_unitario,
+        )
+
+    def test_kit_fijo_color_especifico_no_suma_adicional(self):
+        config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
+        config.colores_disponibles = "Rojo\nAzul"
+        config.save(update_fields=["colores_disponibles"])
+        kit = Kit.objects.create(
+            nombre="Kit fijo color",
+            modalidad="FIJO",
+            cantidad_productos=1,
+            precio=Decimal("5000"),
+            permite_elegir_color=True,
+            activo=True,
+        )
+        KitComponente.objects.create(
+            kit=kit,
+            producto=self.producto,
+            cantidad=1,
+        )
+
+        response = self._post(
+            [
+                {
+                    "kind": "kit",
+                    "id": kit.id,
+                    "qty": 1,
+                    "color_mode": "ESPECIFICO",
+                    "color": "Rojo",
+                    "selections": [],
+                }
+            ],
+            telefono="+54 11 5555 2103",
+        )
+
+        self.assertEqual(response.status_code, 302)
+        item = SolicitudWeb.objects.get().items.get()
+        self.assertEqual(item.color_elegido, "Rojo")
+        self.assertEqual(item.adicional_color_unitario, Decimal("0"))
+
+    def test_color_fuera_de_configuracion_se_rechaza(self):
+        config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
+        config.colores_disponibles = "Rojo\nAzul"
+        config.save(update_fields=["colores_disponibles"])
+        self.producto.permite_elegir_color = True
+        self.producto.save(update_fields=["permite_elegir_color"])
+
+        response = self._post(
+            [
+                {
+                    "kind": "product",
+                    "id": self.producto.id,
+                    "qty": 1,
+                    "color_mode": "ESPECIFICO",
+                    "color": "Verde",
+                }
+            ],
+            telefono="+54 11 5555 2104",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "ya no está disponible")
+        self.assertEqual(SolicitudWeb.objects.count(), 0)
+
     def test_solicitud_duplicada_no_genera_dos_registros(self):
         payload = [
             {

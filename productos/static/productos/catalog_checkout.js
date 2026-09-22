@@ -39,19 +39,27 @@
         }
     };
 
+    const signature = (item) => {
+        const selected = (item.selections || [])
+            .map((entry) => Number(entry.id))
+            .sort((a, b) => a - b)
+            .join(',');
+        const base = [item.kind, item.id, selected].join(':');
+        const color = String(item.color || '').trim();
+        return item.colorMode === 'ESPECIFICO' && color
+            ? base + ':color:'
+                + encodeURIComponent(color.toLocaleLowerCase('es-AR'))
+            : base;
+    };
+
     const minimalPayload = (items) =>
         items.map((item) => ({
-            key: [
-                item.kind,
-                item.id,
-                (item.selections || [])
-                    .map((entry) => Number(entry.id))
-                    .sort((a, b) => a - b)
-                    .join(','),
-            ].join(':'),
+            key: signature(item),
             kind: item.kind,
             id: Number(item.id),
             qty: Number(item.qty || 1),
+            color_mode: item.colorMode || '',
+            color: item.color || '',
             selections: (item.selections || []).map((entry) => ({
                 id: Number(entry.id),
             })),
@@ -120,12 +128,27 @@
                 (sum, entry) => sum + Number(entry.extra || 0),
                 0,
             );
-            const meta = item.kind === 'kit'
+            const colorMeta = item.colorEnabled || item.colorMode
+                ? (
+                    item.colorMode === 'ESPECIFICO' && item.color
+                        ? 'Color: ' + escapeHtml(item.color)
+                        : 'Colores surtidos'
+                )
+                : '';
+            const baseMeta = item.kind === 'kit'
                 ? (selected || 'Composición fija')
                 : 'Producto';
-            const extra = additional > 0
-                ? '<span class="checkout-extra">+' + money(additional) + ' adicional</span>'
+            const meta = colorMeta
+                ? baseMeta + ' · ' + colorMeta
+                : baseMeta;
+            const optionExtra = additional > 0
+                ? '<span class="checkout-extra">+' + money(additional) + ' por opciones</span>'
                 : '';
+            const colorSurcharge = Number(item.colorSurcharge || 0);
+            const colorExtra = colorSurcharge > 0
+                ? '<span class="checkout-extra">+' + money(colorSurcharge) + ' por mismo color</span>'
+                : '';
+            const extra = optionExtra + colorExtra;
             const discount = Number(item.discountPercent || 0);
             const listUnit = Number(item.listUnitPrice ?? item.unitPrice ?? 0);
             const finalUnit = Number(item.unitPrice || 0);

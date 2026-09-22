@@ -484,6 +484,58 @@ class CatalogoPublicoTests(TestCase):
         self.assertContains(response, "data-dv-cart-root")
         self.assertContains(response, "data-dv-how-buy-open")
 
+    def test_producto_con_color_muestra_surtido_y_eleccion(self):
+        config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
+        config.colores_disponibles = "Rojo\nAzul"
+        config.save(update_fields=["colores_disponibles"])
+        self.producto.permite_elegir_color = True
+        self.producto.save(update_fields=["permite_elegir_color"])
+
+        response = self.client.get(
+            reverse(
+                "catalogo_producto_detalle",
+                args=[self.producto.id],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "¿Cómo querés el color?")
+        self.assertContains(response, "Colores surtidos")
+        self.assertContains(response, "Elegir un color")
+        self.assertContains(response, "preparación más rápida")
+        self.assertContains(response, "mayor tiempo de preparación")
+
+    def test_kit_libre_muestra_adicional_por_mismo_color(self):
+        config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
+        config.colores_disponibles = "Rojo\nAzul"
+        config.adicional_color_kit_base = Decimal("1000")
+        config.adicional_color_kit_por_producto = Decimal("500")
+        config.save(
+            update_fields=[
+                "colores_disponibles",
+                "adicional_color_kit_base",
+                "adicional_color_kit_por_producto",
+            ]
+        )
+        kit = Kit.objects.create(
+            nombre="Kit libre color detalle",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=2,
+            precio=Decimal("9000"),
+            permite_elegir_color=True,
+            activo=True,
+        )
+
+        response = self.client.get(
+            reverse("catalogo_kit_detalle", args=[kit.id])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Todo del mismo color")
+        self.assertContains(response, "2.000")
+        self.assertContains(response, "Producción especial")
+
     def test_producto_inactivo_no_tiene_detalle_publico(self):
         self.producto.activo = False
         self.producto.save(update_fields=["activo"])

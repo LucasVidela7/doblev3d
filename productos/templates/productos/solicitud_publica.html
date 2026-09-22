@@ -44,6 +44,9 @@ VER EN GESTIÓN
 {% if item.tipo_item == "KIT" %}
 <div class="selection"><strong>Selección:</strong> {% for componente in item.productos_kit.all %}{{ componente.cantidad }}× {{ componente.producto.nombre }}{% if not forloop.last %} · {% endif %}{% empty %}Composición fija del kit.{% endfor %}</div>
 {% endif %}
+{% if item.modo_color %}
+<div class="selection">{% if item.modo_color == "ESPECIFICO" %}<strong>Color:</strong> {{ item.color_elegido }}{% if item.adicional_color_unitario %} · adicional +$ {{ item.adicional_color_unitario|floatformat:"0g" }}{% endif %}{% else %}<strong>Color:</strong> surtidos según disponibilidad{% endif %}</div>
+{% endif %}
 </article>
 {% endfor %}
 </div>
