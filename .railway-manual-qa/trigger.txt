@@ -9,3 +9,4 @@ QA deploy: correcciones casos de prueba tienda 2026-09-22
 QA deploy: cierre modal >100 unidades 2026-09-22
 QA deploy: carrito sin límite global, máximo 50 2026-09-22
 QA deploy: acceso Gestión desde solicitud pública 2026-09-22
+QA deploy: estado público solicitud/pedido 2026-09-22
