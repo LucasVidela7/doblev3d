@@ -279,10 +279,7 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 <button
     class="cfg-btn"
     type="submit"
-    form="configForm"
-    formmethod="post"
-    formaction="{% url 'dashboard:arrepentimiento_resolver' item.id %}"
-    formnovalidate
+    form="resolverArrepentimiento{{ item.id }}"
     style="min-height:32px;padding:0 8px"
 >MARCAR RESUELTA</button>
 {% endif %}
@@ -417,6 +414,19 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 </section>
 
 </form>
+
+{% for item in arrepentimientos_recientes %}
+{% if item.estado == "NUEVA" %}
+<form
+    id="resolverArrepentimiento{{ item.id }}"
+    method="post"
+    action="{% url 'dashboard:arrepentimiento_resolver' item.id %}"
+    hidden
+>
+    {% csrf_token %}
+</form>
+{% endif %}
+{% endfor %}
 </main>
 
 {{ whatsapp_defaults|json_script:"dvWhatsappDefaults" }}
