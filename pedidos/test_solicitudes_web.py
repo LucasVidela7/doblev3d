@@ -80,6 +80,7 @@ class SolicitudesWebGestionTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.solicitud.codigo)
         self.assertContains(response, "Cliente desde web")
+        self.assertContains(response, "+54 11 4000 1234")
 
         detail = self.client.get(
             reverse(

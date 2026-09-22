@@ -4,3 +4,4 @@ Deploy QA: revertir curva comercial fija de kits
 - Se restaura el comportamiento previo completo de descuentos, pruebas y documentación.
 Sin migraciones.
 QA manual deploy: asegurar seña 30% y fecha en respuesta de solicitudes
+QA manual deploy: destacar nombre y WhatsApp de clientes
