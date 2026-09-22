@@ -2,6 +2,7 @@ import json
 from datetime import date
 from decimal import Decimal
 
+from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -57,6 +58,44 @@ class CarritoPublicoTests(TestCase):
                 "website": "",
             },
         )
+
+
+    def test_detalle_publico_muestra_acceso_gestion_solo_con_sesion(self):
+        self._post(
+            [
+                {
+                    "kind": "product",
+                    "id": self.producto.id,
+                    "qty": 1,
+                }
+            ],
+            telefono="+54 11 5555 8080",
+        )
+        solicitud = SolicitudWeb.objects.get()
+        url_publica = reverse(
+            "solicitud_publica",
+            args=[solicitud.public_token],
+        )
+        url_gestion = reverse(
+            "pedidos:solicitud_web_detalle",
+            args=[solicitud.id],
+        )
+
+        anonima = self.client.get(url_publica)
+        self.assertEqual(anonima.status_code, 200)
+        self.assertNotContains(anonima, "VER EN GESTIÓN")
+        self.assertNotContains(anonima, url_gestion)
+
+        user = get_user_model().objects.create_user(
+            username="admin-catalogo",
+            password="test-pass-123",
+        )
+        self.client.force_login(user)
+
+        autenticada = self.client.get(url_publica)
+        self.assertEqual(autenticada.status_code, 200)
+        self.assertContains(autenticada, "VER EN GESTIÓN")
+        self.assertContains(autenticada, url_gestion)
 
     def test_checkout_es_publico_y_muestra_loader(self):
         response = self.client.get(reverse("catalogo_carrito"))
