@@ -132,6 +132,8 @@
             azul: '#0b66c3',
             celeste: '#67d3ea',
             turquesa: '#22c7c9',
+            acqua: '#63d8e5',
+            aqua: '#63d8e5',
             verde: '#00963f',
             amarillo: '#ffe000',
             naranja: '#ff8a00',
