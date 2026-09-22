@@ -1,8 +1,6 @@
-Deploy QA: tipografía legible global en Gestión
-- Normaliza toda la suite interna con cuerpo base de 16px.
-- Textos secundarios 12.5px, botones 13px, badges 11.5px e inputs 15/16px.
-- Ajusta navegación inferior, menú lateral, Configuración, Métricas y Kanban.
-- Corrige controles inyectados de Productos/Planificación que usaban 7–10px.
-- Refuerza Clientes para no heredar overrides históricos más pequeños.
-- Mantiene jerarquías y responsive sin tocar el catálogo público.
+Deploy QA: descuento de kits desde 2 unidades
+- Corrige el caso donde la segunda unidad quedaba en 0% por depender sólo de la referencia técnica.
+- La curva dinámica usa el margen real disponible como respaldo cuando la referencia técnica no propone una baja.
+- Mantiene el piso de rentabilidad y el tope comercial de 15%.
+- Agrega regresión backend y prueba del carrito público desde 2 kits.
 Sin migraciones.
