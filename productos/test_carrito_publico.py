@@ -466,6 +466,44 @@ class CarritoPublicoTests(TestCase):
         self.assertContains(checkout, "CONSULTAR POR WHATSAPP")
         self.assertEqual(SolicitudWeb.objects.count(), 0)
 
+
+    def test_modal_mas_de_cien_unidades_se_puede_cerrar(self):
+        productos = [self.producto]
+        for indice in range(5):
+            productos.append(
+                Producto.objects.create(
+                    nombre=f"Producto límite {indice}",
+                    categoria="PRODUCTO",
+                    tipo=self.tipo,
+                    peso_gramos=Decimal("100"),
+                    margen_ganancia=Decimal("50"),
+                    activo=True,
+                    solo_produccion=False,
+                )
+            )
+
+        payload = [
+            {
+                "key": "product:%s:" % producto.id,
+                "kind": "product",
+                "id": producto.id,
+                "qty": 20,
+                "selections": [],
+            }
+            for producto in productos
+        ]
+
+        response = self._post(
+            payload,
+            telefono="+54 11 5555 3131",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "data-limit-modal")
+        self.assertContains(response, "data-limit-modal-close")
+        self.assertContains(response, "data-limit-edit-cart")
+        self.assertContains(response, "event.key === 'Escape'")
+
     def test_producto_inactivo_en_carrito_se_identifica_por_nombre(self):
         self.producto.activo = False
         self.producto.save(update_fields=["activo"])
