@@ -1,12 +1,19 @@
 from decimal import Decimal
 from urllib.parse import quote
 
+from django.utils import timezone
+
+
+PORCENTAJE_SENIA = Decimal("0.30")
+
 
 PLACEHOLDERS_SOLICITUD = (
     "{nombre}",
     "{codigo}",
     "{detalle}",
     "{total}",
+    "{senia}",
+    "{fecha_hoy}",
     "{observaciones}",
 )
 
@@ -57,6 +64,10 @@ def contexto_mensaje_solicitud(solicitud):
         "{codigo}": solicitud.codigo,
         "{detalle}": detalle_solicitud_texto(solicitud),
         "{total}": _moneda(solicitud.total),
+        "{senia}": _moneda(
+            Decimal(str(solicitud.total or 0)) * PORCENTAJE_SENIA
+        ),
+        "{fecha_hoy}": timezone.localdate().strftime("%d/%m/%Y"),
         "{observaciones}": (solicitud.observaciones or "").strip() or "Sin observaciones.",
     }
 
