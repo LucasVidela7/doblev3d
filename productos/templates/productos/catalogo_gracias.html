@@ -16,7 +16,7 @@ body{min-height:100vh;margin:0;padding:24px 14px 110px;background:radial-gradien
 h1{margin:0;color:var(--blue-dark);font-size:clamp(1.9rem,6vw,2.7rem);letter-spacing:-.04em}.lead{margin:10px auto 0;max-width:560px;color:var(--muted);font-size:.9rem;line-height:1.55}.code{display:inline-flex;margin-top:15px;padding:8px 12px;border-radius:999px;background:#eef4ff;color:var(--blue-dark);font-size:.78rem;font-weight:900}
 .next{margin-top:24px;padding:18px;border:1px solid var(--line);border-radius:18px;background:#fbfcfe}.next h2{margin:0;color:var(--blue-dark);font-size:1rem}.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:12px}.step{padding:12px;border:1px solid #e7ebf1;border-radius:13px;background:#fff}.step small{display:block;color:var(--red);font-size:.6rem;font-weight:950;letter-spacing:.07em}.step strong{display:block;margin-top:4px;font-size:.8rem}.step p{margin:4px 0 0;color:var(--muted);font-size:.68rem;line-height:1.4}
 .leadtime{display:flex;align-items:flex-start;gap:8px;margin-top:12px;padding:11px 12px;border:1px solid #cdddf4;border-radius:12px;background:#eef4ff;color:#345f91;font-size:.72rem;line-height:1.45}.leadtime strong{color:var(--blue-dark)}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:20px}.btn{min-height:48px;display:flex;align-items:center;justify-content:center;padding:0 12px;border-radius:14px;text-decoration:none;font-size:.78rem;font-weight:900;text-align:center}.btn.primary{background:var(--blue);color:#fff}.btn.whatsapp{background:#25d366;color:#fff}.helper{margin:12px 0 0;color:var(--muted);font-size:.68rem;line-height:1.45;text-align:center}
+.actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px;margin-top:20px}.btn{min-height:48px;display:flex;align-items:center;justify-content:center;padding:0 12px;border-radius:14px;text-decoration:none;font-size:.78rem;font-weight:900;text-align:center}.btn.primary{background:var(--blue);color:#fff}.btn.whatsapp{background:#25d366;color:#fff}.helper{margin:12px 0 0;color:var(--muted);font-size:.68rem;line-height:1.45;text-align:center}
 @media(max-width:620px){.card{padding:20px 15px;border-radius:22px}.progress span{font-size:.58rem}.steps{grid-template-columns:1fr}.actions{grid-template-columns:1fr}}
 </style>
 </head>
@@ -53,6 +53,9 @@ h1{margin:0;color:var(--blue-dark);font-size:clamp(1.9rem,6vw,2.7rem);letter-spa
     </section>
 
     <div class="actions">
+        {% if detalle_publico_url %}
+        <a class="btn primary" href="{{ detalle_publico_url }}">VER DETALLE DE MI SOLICITUD</a>
+        {% endif %}
         {% if whatsapp_confirmacion_url %}
         <a class="btn whatsapp" href="{{ whatsapp_confirmacion_url }}" target="_blank" rel="noopener">ENVIAR DETALLE POR WHATSAPP</a>
         {% endif %}
