@@ -77,11 +77,16 @@ class ConfiguracionCatalogo(models.Model):
             "Hola {nombre}! 👋 Gracias por tu solicitud {codigo} en Doble V 3D.\n\n"
             "Este es el detalle que recibimos:\n{detalle}\n\n"
             "Total de productos: {total}\n\n"
-            "Te escribo para confirmar disponibilidad y coordinar la entrega."
+            "Para confirmar tu pedido solicitamos una seña del 30%: {senia}.\n\n"
+            "El plazo estimado de entrega es de 3 a 10 días hábiles "
+            "a partir del {fecha_hoy}.\n\n"
+            "Si querés avanzar, realizá la seña y enviame el comprobante "
+            "por acá. Una vez acreditada, tu pedido queda confirmado. 😊"
         ),
         verbose_name="Mensaje para responder solicitudes",
         help_text=(
-            "Podés usar {nombre}, {codigo}, {detalle}, {total} y {observaciones}."
+            "Podés usar {nombre}, {codigo}, {detalle}, {total}, {senia}, "
+            "{fecha_hoy} y {observaciones}."
         ),
     )
     whatsapp_mensaje_post_solicitud = models.TextField(

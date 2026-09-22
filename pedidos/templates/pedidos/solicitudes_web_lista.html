@@ -23,6 +23,9 @@ h1{margin:0;font-size:clamp(28px,4vw,36px);letter-spacing:-.035em}
 .request-card .dv-kanban-card__title{padding-right:2px}
 .request-card .dv-kanban-card__footer a{position:relative;z-index:2}
 .request-card .request-phone{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.request-phone-main{display:flex;align-items:center;gap:6px;margin-top:5px;min-width:0;color:var(--dv-text,#17233a);font-size:11px;line-height:1.25}
+.request-phone-main span{flex:0 0 auto;padding:2px 5px;border-radius:999px;background:var(--dv-success-soft,#eaf7ee);color:var(--dv-success-text,#28633c);font-size:8px;font-weight:900;letter-spacing:.02em}
+.request-phone-main strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:900}
 .request-card .request-generated{background:var(--dv-success-soft,#eaf7ee);color:var(--dv-success-text,#28633c)}
 @media(max-width:760px){
  .shell{width:calc(100% - 18px);padding-top:15px}
@@ -68,11 +71,11 @@ h1{margin:0;font-size:clamp(28px,4vw,36px);letter-spacing:-.035em}
         <div style="min-width:0">
          <div class="dv-kanban-card__code">{{ solicitud.codigo }}</div>
          <div class="dv-kanban-card__title">{{ solicitud.nombre }}</div>
+         <div class="request-phone-main"><span>WHATSAPP</span><strong>{{ solicitud.telefono }}</strong></div>
         </div>
         {% if solicitud.imagen_resumen_url %}<img class="dv-kanban-card__thumb" src="{{ solicitud.imagen_resumen_url }}" alt="" loading="lazy">{% else %}<span class="dv-kanban-card__thumb is-empty">3D</span>{% endif %}
        </div>
        <div class="dv-kanban-card__meta">{{ solicitud.creada_en|date:"d/m/Y H:i" }}</div>
-       <div class="dv-kanban-card__meta request-phone">{{ solicitud.telefono }}</div>
        <div class="dv-kanban-card__amount">$ {{ solicitud.total|floatformat:"0g" }}</div>
        <div class="dv-kanban-card__footer"><span class="dv-kanban-badge">NUEVA</span><a class="btn primary" href="{% url 'pedidos:solicitud_web_detalle' solicitud.id %}">VER</a></div>
       </article>
@@ -89,11 +92,10 @@ h1{margin:0;font-size:clamp(28px,4vw,36px);letter-spacing:-.035em}
      {% for solicitud in solicitudes_contactadas %}
       <article class="dv-kanban-card request-card" tabindex="0" role="link" onclick="if(!event.target.closest('a,button,form'))location.href='{% url 'pedidos:solicitud_web_detalle' solicitud.id %}'" onkeydown="if(event.key==='Enter')location.href='{% url 'pedidos:solicitud_web_detalle' solicitud.id %}'">
        <div class="dv-kanban-card__top">
-        <div style="min-width:0"><div class="dv-kanban-card__code">{{ solicitud.codigo }}</div><div class="dv-kanban-card__title">{{ solicitud.nombre }}</div></div>
+        <div style="min-width:0"><div class="dv-kanban-card__code">{{ solicitud.codigo }}</div><div class="dv-kanban-card__title">{{ solicitud.nombre }}</div><div class="request-phone-main"><span>WHATSAPP</span><strong>{{ solicitud.telefono }}</strong></div></div>
         {% if solicitud.imagen_resumen_url %}<img class="dv-kanban-card__thumb" src="{{ solicitud.imagen_resumen_url }}" alt="" loading="lazy">{% else %}<span class="dv-kanban-card__thumb is-empty">3D</span>{% endif %}
        </div>
        <div class="dv-kanban-card__meta">{{ solicitud.creada_en|date:"d/m/Y H:i" }}</div>
-       <div class="dv-kanban-card__meta request-phone">{{ solicitud.telefono }}</div>
        <div class="dv-kanban-card__amount">$ {{ solicitud.total|floatformat:"0g" }}</div>
        <div class="dv-kanban-card__footer"><span class="dv-kanban-badge">CONTACTADA</span><a class="btn primary" href="{% url 'pedidos:solicitud_web_detalle' solicitud.id %}">VER</a></div>
       </article>
@@ -110,7 +112,7 @@ h1{margin:0;font-size:clamp(28px,4vw,36px);letter-spacing:-.035em}
      {% for solicitud in solicitudes_convertidas %}
       <article class="dv-kanban-card request-card" tabindex="0" role="link" onclick="if(!event.target.closest('a,button,form'))location.href='{% url 'pedidos:solicitud_web_detalle' solicitud.id %}'" onkeydown="if(event.key==='Enter')location.href='{% url 'pedidos:solicitud_web_detalle' solicitud.id %}'">
        <div class="dv-kanban-card__top">
-        <div style="min-width:0"><div class="dv-kanban-card__code">{{ solicitud.codigo }}</div><div class="dv-kanban-card__title">{{ solicitud.nombre }}</div></div>
+        <div style="min-width:0"><div class="dv-kanban-card__code">{{ solicitud.codigo }}</div><div class="dv-kanban-card__title">{{ solicitud.nombre }}</div><div class="request-phone-main"><span>WHATSAPP</span><strong>{{ solicitud.telefono }}</strong></div></div>
         {% if solicitud.imagen_resumen_url %}<img class="dv-kanban-card__thumb" src="{{ solicitud.imagen_resumen_url }}" alt="" loading="lazy">{% else %}<span class="dv-kanban-card__thumb is-empty">3D</span>{% endif %}
        </div>
        <div class="dv-kanban-card__meta">{{ solicitud.creada_en|date:"d/m/Y H:i" }}</div>
@@ -133,7 +135,7 @@ h1{margin:0;font-size:clamp(28px,4vw,36px);letter-spacing:-.035em}
      {% for solicitud in solicitudes_rechazadas %}
       <article class="dv-kanban-card request-card" tabindex="0" role="link" onclick="if(!event.target.closest('a,button,form'))location.href='{% url 'pedidos:solicitud_web_detalle' solicitud.id %}'" onkeydown="if(event.key==='Enter')location.href='{% url 'pedidos:solicitud_web_detalle' solicitud.id %}'">
        <div class="dv-kanban-card__top">
-        <div style="min-width:0"><div class="dv-kanban-card__code">{{ solicitud.codigo }}</div><div class="dv-kanban-card__title">{{ solicitud.nombre }}</div></div>
+        <div style="min-width:0"><div class="dv-kanban-card__code">{{ solicitud.codigo }}</div><div class="dv-kanban-card__title">{{ solicitud.nombre }}</div><div class="request-phone-main"><span>WHATSAPP</span><strong>{{ solicitud.telefono }}</strong></div></div>
         {% if solicitud.imagen_resumen_url %}<img class="dv-kanban-card__thumb" src="{{ solicitud.imagen_resumen_url }}" alt="" loading="lazy">{% else %}<span class="dv-kanban-card__thumb is-empty">3D</span>{% endif %}
        </div>
        <div class="dv-kanban-card__meta">{{ solicitud.creada_en|date:"d/m/Y H:i" }}</div>

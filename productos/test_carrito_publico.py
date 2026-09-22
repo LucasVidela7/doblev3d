@@ -239,7 +239,7 @@ class CarritoPublicoTests(TestCase):
         )
         self.assertGreater(linea["descuento_porcentaje"], 0)
 
-    def test_api_precios_aplica_volumen_desde_cinco_kits(self):
+    def test_api_precios_aplica_volumen_desde_dos_kits(self):
         kit = Kit.objects.create(
             nombre="Kit fijo volumen web",
             modalidad="FIJO",
@@ -261,7 +261,7 @@ class CarritoPublicoTests(TestCase):
                         "key": "kit:%s:" % kit.id,
                         "kind": "kit",
                         "id": kit.id,
-                        "qty": 5,
+                        "qty": 2,
                         "selections": [],
                     }
                 ]
@@ -273,11 +273,11 @@ class CarritoPublicoTests(TestCase):
         data = response.json()
         self.assertTrue(data["ok"])
         linea = data["lineas"][0]
-        self.assertLessEqual(
+        self.assertLess(
             linea["precio_final_total"],
             linea["precio_lista_total"],
         )
-        self.assertGreaterEqual(linea["descuento_porcentaje"], 0)
+        self.assertGreater(linea["descuento_porcentaje"], 0)
 
     def test_confirmacion_ofrece_whatsapp_con_detalle(self):
         response = self._post(

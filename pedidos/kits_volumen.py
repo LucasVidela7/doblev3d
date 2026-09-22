@@ -198,7 +198,8 @@ def calcular_precio_volumen_kits(items):
 
     Reglas:
     - La lógica se activa desde 2 kits totales.
-    - Desde 2 kits libera progresivamente el descuento técnico disponible.
+    - Desde 2 kits libera progresivamente el descuento que soporta el margen
+      real disponible, con la referencia técnica como guía cuando corresponde.
     - La intensidad depende tanto de la cantidad de kits como de la cantidad
       REAL de productos contenidos y del margen disponible.
     - El beneficio comercial tiene un tope de 15%.
@@ -319,32 +320,81 @@ def calcular_precio_volumen_kits(items):
         if elegible and precio_lista_total > 0
         else Decimal("0")
     )
+    capacidad_total = sum(
+        (linea["capacidad_descuento"] for linea in lineas),
+        Decimal("0"),
+    )
+    descuento_soportable_por_margen = (
+        capacidad_total
+        / precio_lista_total
+        * Decimal("100")
+        if elegible and precio_lista_total > 0
+        else Decimal("0")
+    )
+
+    # La referencia técnica sigue siendo la guía principal. Si el precio real
+    # ya está por debajo de esa referencia, antes la curva quedaba en 0% aun
+    # cuando todavía había margen rentable disponible. En ese caso usamos la
+    # capacidad real hasta el piso operativo para que el beneficio comience
+    # efectivamente desde la segunda unidad.
+    descuento_curva_disponible = (
+        descuento_tecnico_real
+        if descuento_tecnico_real > 0
+        else descuento_soportable_por_margen
+    )
     descuento_maximo_comercial = descuento_dinamico_por_cantidad(
-        descuento_tecnico_real,
+        descuento_curva_disponible,
         total_kits,
         CANTIDAD_MINIMA_KITS_VOLUMEN,
         tope=DESCUENTO_MAXIMO_KITS,
         suavidad=SUAVIDAD_DESCUENTO_KITS,
     )
-    precio_minimo_comercial_total = (
-        redondear_arriba(
+    precio_curva_sin_redondear = (
+        _redondear_centavos(
             precio_lista_total
             * (
                 Decimal("1")
                 - descuento_maximo_comercial / Decimal("100")
-            ),
+            )
+        )
+        if elegible
+        else precio_lista_total
+    )
+    precio_minimo_comercial_total = (
+        redondear_arriba(
+            precio_curva_sin_redondear,
             Decimal("100"),
         )
         if elegible
         else precio_lista_total
     )
 
-    # La cantidad libera de forma gradual sólo una parte del descuento que
-    # realmente soportan los costos y el margen del conjunto de kits.
-    precio_objetivo_total = min(
-        precio_lista_total,
-        max(precio_objetivo_total, precio_minimo_comercial_total),
-    )
+    # En compras pequeñas un descuento dinámico válido puede ser menor que
+    # $100 sobre el total. Redondear siempre hacia arriba lo borraría por
+    # completo (por ejemplo, $10.000 -> $9.950 -> $10.000). En ese único caso
+    # conservamos el importe de la curva con precisión de centavos para que
+    # desde la segunda unidad exista un beneficio real sin exceder el margen.
+    if (
+        elegible
+        and descuento_maximo_comercial > 0
+        and precio_curva_sin_redondear < precio_lista_total
+        and precio_minimo_comercial_total >= precio_lista_total
+    ):
+        precio_minimo_comercial_total = precio_curva_sin_redondear
+
+    # Cuando existe una baja técnica, la curva limita cuánto se libera por
+    # cantidad. Si la referencia técnica no habilita baja pero todavía existe
+    # margen real, la propia curva comercial define el descuento.
+    if descuento_tecnico_real > 0:
+        precio_objetivo_total = min(
+            precio_lista_total,
+            max(precio_objetivo_total, precio_minimo_comercial_total),
+        )
+    else:
+        precio_objetivo_total = min(
+            precio_lista_total,
+            precio_minimo_comercial_total,
+        )
 
     ajustado_por_precio_real = (
         elegible
@@ -356,10 +406,6 @@ def calcular_precio_volumen_kits(items):
         max(precio_lista_total - precio_objetivo_total, Decimal("0"))
         if elegible
         else Decimal("0")
-    )
-    capacidad_total = sum(
-        (linea["capacidad_descuento"] for linea in lineas),
-        Decimal("0"),
     )
     ahorro_aplicable = min(ahorro_deseado, capacidad_total)
     limitado_por_margen = ahorro_aplicable < ahorro_deseado

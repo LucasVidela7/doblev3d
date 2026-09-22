@@ -5,12 +5,14 @@ from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from clientes.models import Cliente
 from costos.models import ConfiguracionCostos
 from kits.models import Kit, KitComponente
 from pedidos.models import Presupuesto, SolicitudWeb
 from productos.models import Producto, TipoProducto
+from productos.whatsapp import renderizar_mensaje_solicitud
 from productos.image_models import ProductoImagen
 
 
@@ -78,6 +80,7 @@ class SolicitudesWebGestionTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.solicitud.codigo)
         self.assertContains(response, "Cliente desde web")
+        self.assertContains(response, "+54 11 4000 1234")
 
         detail = self.client.get(
             reverse(
@@ -89,6 +92,20 @@ class SolicitudesWebGestionTests(TestCase):
         self.assertContains(detail, "CONVERTIR EN PRESUPUESTO")
         self.assertContains(detail, "WHATSAPP")
         self.assertContains(detail, self.producto.nombre)
+
+    def test_whatsapp_respuesta_calcula_senia_y_fecha_hoy(self):
+        mensaje = renderizar_mensaje_solicitud(
+            "Seña: {senia} | Fecha: {fecha_hoy}",
+            self.solicitud,
+        )
+        senia = Decimal(str(self.solicitud.total)) * Decimal("0.30")
+        senia_formateada = "$ " + f"{senia:,.0f}".replace(",", ".")
+
+        self.assertIn(f"Seña: {senia_formateada}", mensaje)
+        self.assertIn(
+            timezone.localdate().strftime("%d/%m/%Y"),
+            mensaje,
+        )
 
     def test_convertir_crea_cliente_y_presupuesto_sin_crear_pedido(self):
         response = self.client.post(

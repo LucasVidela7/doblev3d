@@ -126,9 +126,44 @@ class PrecioVolumenKitsTests(TestCase):
 
         self.assertTrue(resumen["elegible"])
         self.assertEqual(resumen["total_kits"], 2)
+        self.assertGreater(
+            resumen["descuento_porcentaje"],
+            Decimal("0"),
+        )
+        self.assertLess(
+            resumen["precio_final_total"],
+            resumen["precio_lista_total"],
+        )
         self.assertLessEqual(
             resumen["descuento_porcentaje"],
             Decimal("15"),
+        )
+        self.assertGreaterEqual(
+            resumen["margen_real"],
+            resumen["margen_minimo"],
+        )
+
+    def test_dos_kits_con_precio_agresivo_descuentan_si_hay_margen(self):
+        self.kit8.precio = Decimal("20000")
+        self.kit8.save(update_fields=["precio"])
+
+        resumen = calcular_precio_volumen_kits([
+            self._item(self.kit8, 2),
+        ])
+
+        self.assertTrue(resumen["elegible"])
+        self.assertGreater(
+            resumen["precio_objetivo_tecnico_total"],
+            resumen["precio_lista_total"],
+        )
+        self.assertGreater(resumen["ahorro"], Decimal("0"))
+        self.assertGreater(
+            resumen["descuento_porcentaje"],
+            Decimal("0"),
+        )
+        self.assertLess(
+            resumen["precio_final_total"],
+            resumen["precio_lista_total"],
         )
         self.assertGreaterEqual(
             resumen["margen_real"],

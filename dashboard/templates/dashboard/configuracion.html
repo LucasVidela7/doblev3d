@@ -190,8 +190,8 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 </div>
 
 <div class="cfg-message">
-<div class="cfg-message-head"><div><h3>Responder una solicitud</h3><p>Mensaje que abre Gestión para contactar al cliente que completó el carrito.</p></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_respuesta_solicitud">RESTAURAR</button></div>
-<div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{codigo}</span><span class="cfg-var">{detalle}</span><span class="cfg-var">{total}</span><span class="cfg-var">{observaciones}</span></div>
+<div class="cfg-message-head"><div><h3>Responder una solicitud</h3><p>Mensaje que abre Gestión para confirmar la solicitud, informar la seña y el plazo de entrega.</p></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_respuesta_solicitud">RESTAURAR</button></div>
+<div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{codigo}</span><span class="cfg-var">{detalle}</span><span class="cfg-var">{total}</span><span class="cfg-var">{senia}</span><span class="cfg-var">{fecha_hoy}</span><span class="cfg-var">{observaciones}</span></div>
 <label class="cfg-label" for="whatsapp_mensaje_respuesta_solicitud"><span>PLANTILLA</span><span data-count-for="whatsapp_mensaje_respuesta_solicitud"></span></label>
 <textarea class="cfg-textarea" id="whatsapp_mensaje_respuesta_solicitud" name="whatsapp_mensaje_respuesta_solicitud" maxlength="4000" data-counter data-preview="preview_solicitud_respuesta">{{ config.whatsapp_mensaje_respuesta_solicitud }}</textarea>
 <div class="cfg-preview" id="preview_solicitud_respuesta"></div>
@@ -420,8 +420,8 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 <script>
 (function(){
 const ejemplos={
-nombre:"Lucas",codigo:"PED0014",saldo:"12.500",total:"25.000",pagado:"12.500",
-fecha:"20/09/2026",fecha_entrega:"22/09/2026",dias_sin_actividad:"78",
+nombre:"Lucas",codigo:"PED0014",saldo:"12.500",total:"25.000",pagado:"12.500",senia:"$ 7.500",
+fecha:"20/09/2026",fecha_hoy:new Intl.DateTimeFormat("es-AR").format(new Date()),fecha_entrega:"22/09/2026",dias_sin_actividad:"78",
 ultima_actividad:"04/07/2026",detalle:"2 × Kit Sensorial\n1 × Pepino",
 observaciones:"Entrega en Morón"
 };
