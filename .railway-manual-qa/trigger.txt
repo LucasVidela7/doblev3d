@@ -5,3 +5,4 @@ Deploy QA: revertir curva comercial fija de kits
 Sin migraciones.
 QA manual deploy: asegurar seña 30% y fecha en respuesta de solicitudes
 QA manual deploy: destacar nombre y WhatsApp de clientes
+DB sync temporal: preparar clon production -> QA

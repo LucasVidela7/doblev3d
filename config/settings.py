@@ -212,6 +212,11 @@ CATALOGO_MANTENIMIENTO = _env_bool(
     False,
 )
 
+# Token temporal para sincronizar datos de producción hacia QA.
+# La vista de exportación sólo se habilita en production y exige este token.
+DB_SYNC_TOKEN = os.getenv("DB_SYNC_TOKEN", "").strip()
+DB_SYNC_SOURCE_URL = os.getenv("DB_SYNC_SOURCE_URL", "").strip()
+
 # Web Push para avisos internos (por ejemplo, un nuevo pedido web).
 WEBPUSH_VAPID_PUBLIC_KEY = os.getenv(
     "WEBPUSH_VAPID_PUBLIC_KEY",

@@ -3,6 +3,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
 from config.health import healthcheck
+from config.db_sync import export_database
 
 from productos.catalogo import (
     catalogo,
@@ -23,6 +24,11 @@ from productos.carrito import carrito_checkout, carrito_gracias, carrito_precios
 
 urlpatterns = [
     path("healthz/", healthcheck, name="healthcheck"),
+    path(
+        "internal/db-sync/export/",
+        export_database,
+        name="db_sync_export",
+    ),
     path("metricas/", include("metricas.urls")),
     # Sitio publico
     path(
