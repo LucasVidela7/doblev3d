@@ -34,3 +34,5 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-22 - Seleccion de color en productos y kits
 
 2026-09-22 - Swatches visuales y estado permite color
+
+2026-09-22 - Deploy final swatches visuales de color
