@@ -844,11 +844,135 @@ def carrito_gracias(request):
     )
 
 
+def _estado_publico_solicitud(solicitud):
+    presupuesto = solicitud.presupuesto_generado
+    pedido = presupuesto.pedido_generado if presupuesto else None
+
+    if solicitud.estado == "RECHAZADA":
+        return {
+            "codigo": "CERRADA",
+            "etiqueta": "Solicitud cerrada",
+            "detalle": (
+                "Esta solicitud fue cerrada. Si querés retomarla, "
+                "podés consultarnos por WhatsApp."
+            ),
+            "clase": "closed",
+            "referencia": solicitud.codigo,
+        }
+
+    if presupuesto and presupuesto.estado == "RECHAZADO":
+        return {
+            "codigo": "CERRADA",
+            "etiqueta": "Presupuesto cerrado",
+            "detalle": (
+                "El presupuesto asociado fue cerrado. "
+                "Contactanos si querés volver a consultarlo."
+            ),
+            "clase": "closed",
+            "referencia": presupuesto.codigo,
+        }
+
+    if pedido:
+        estados_pedido = {
+            "PENDIENTE": (
+                "Pedido confirmado",
+                "Tu pedido ya está confirmado y quedó pendiente de preparación.",
+                "confirmed",
+            ),
+            "PREPARANDO": (
+                "En preparación",
+                "Estamos preparando los productos de tu pedido.",
+                "working",
+            ),
+            "LISTO": (
+                "Listo",
+                "Tu pedido está listo. Coordinamos la entrega con vos.",
+                "ready",
+            ),
+            "ENTREGADO": (
+                "Entregado",
+                "El pedido figura como entregado.",
+                "done",
+            ),
+            "CANCELADO": (
+                "Pedido cancelado",
+                "El pedido asociado a esta solicitud fue cancelado.",
+                "closed",
+            ),
+        }
+        etiqueta, detalle, clase = estados_pedido.get(
+            pedido.estado,
+            (
+                pedido.get_estado_display(),
+                "Estamos actualizando el estado de tu pedido.",
+                "working",
+            ),
+        )
+        return {
+            "codigo": pedido.estado,
+            "etiqueta": etiqueta,
+            "detalle": detalle,
+            "clase": clase,
+            "referencia": pedido.codigo,
+        }
+
+    if presupuesto:
+        if presupuesto.estado == "APROBADO":
+            return {
+                "codigo": "CONFIRMADO",
+                "etiqueta": "Presupuesto confirmado",
+                "detalle": (
+                    "El presupuesto fue aprobado. "
+                    "Estamos generando el pedido para comenzar la preparación."
+                ),
+                "clase": "confirmed",
+                "referencia": presupuesto.codigo,
+            }
+
+        return {
+            "codigo": "PRESUPUESTO",
+            "etiqueta": "Presupuesto en revisión",
+            "detalle": (
+                "Ya generamos el presupuesto de tu solicitud y "
+                "estamos coordinando la confirmación con vos."
+            ),
+            "clase": "review",
+            "referencia": presupuesto.codigo,
+        }
+
+    if solicitud.estado == "CONTACTADA":
+        return {
+            "codigo": "CONTACTADA",
+            "etiqueta": "En contacto",
+            "detalle": (
+                "Ya tomamos tu solicitud y estamos coordinando "
+                "los próximos pasos con vos."
+            ),
+            "clase": "review",
+            "referencia": solicitud.codigo,
+        }
+
+    return {
+        "codigo": "RECIBIDA",
+        "etiqueta": "Solicitud recibida",
+        "detalle": (
+            "Recibimos tu solicitud correctamente. "
+            "La vamos a revisar antes de confirmar el pedido."
+        ),
+        "clase": "received",
+        "referencia": solicitud.codigo,
+    }
+
+
 @never_cache
 def solicitud_publica(request, token):
     """Detalle público de una solicitud accesible sólo mediante token UUID."""
     solicitud = get_object_or_404(
         SolicitudWeb.objects
+        .select_related(
+            "presupuesto_generado",
+            "presupuesto_generado__pedido_generado",
+        )
         .prefetch_related(
             "items__producto",
             "items__kit",
@@ -870,6 +994,7 @@ def solicitud_publica(request, token):
         {
             "solicitud": solicitud,
             "items": list(solicitud.items.all()),
+            "estado_publico": _estado_publico_solicitud(solicitud),
             "whatsapp_consulta_url": whatsapp_url(
                 config.whatsapp_numero,
                 mensaje,
