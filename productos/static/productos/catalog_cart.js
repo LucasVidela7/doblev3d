@@ -163,6 +163,11 @@
                 const value = String(swatch.dataset.colorValue || '').trim();
                 const active = value === selectedValue;
                 swatch.classList.toggle('is-selected', active);
+                swatch.classList.toggle(
+                    'is-light',
+                    ['blanco', 'amarillo', 'celeste', 'beige', 'plateado']
+                        .includes(normalizeColorName(value)),
+                );
                 swatch.setAttribute('aria-checked', active ? 'true' : 'false');
                 swatch.style.setProperty('--swatch-color', colorCssValue(value));
             });
@@ -215,10 +220,15 @@
             .join(',');
         const base = [item.kind, item.id, selected].join(':');
         const color = String(item.color || '').trim();
-        return item.colorMode === 'ESPECIFICO' && color
-            ? base + ':color:'
-                + encodeURIComponent(color.toLocaleLowerCase('es-AR'))
-            : base;
+        if (item.colorMode === 'ESPECIFICO') {
+            return base + ':color:'
+                + encodeURIComponent(
+                    color
+                        ? color.toLocaleLowerCase('es-AR')
+                        : '__pending__',
+                );
+        }
+        return base;
     };
 
     const payloadFor = (items) =>

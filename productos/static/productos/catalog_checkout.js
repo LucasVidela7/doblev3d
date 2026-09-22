@@ -46,10 +46,15 @@
             .join(',');
         const base = [item.kind, item.id, selected].join(':');
         const color = String(item.color || '').trim();
-        return item.colorMode === 'ESPECIFICO' && color
-            ? base + ':color:'
-                + encodeURIComponent(color.toLocaleLowerCase('es-AR'))
-            : base;
+        if (item.colorMode === 'ESPECIFICO') {
+            return base + ':color:'
+                + encodeURIComponent(
+                    color
+                        ? color.toLocaleLowerCase('es-AR')
+                        : '__pending__',
+                );
+        }
+        return base;
     };
 
     const minimalPayload = (items) =>

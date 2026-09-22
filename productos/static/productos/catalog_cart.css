@@ -595,6 +595,10 @@ html.dv-cart-open .dv-cart-body{
     pointer-events:none;
 }
 .dv-color-swatch.is-selected .dv-color-swatch__check{opacity:1}
+.dv-color-swatch.is-light .dv-color-swatch__check{
+    color:#17233a;
+    text-shadow:0 1px 2px rgba(255,255,255,.9);
+}
 .dv-color-swatch:focus-visible{
     outline:3px solid rgba(19,74,154,.28);
     outline-offset:3px;
