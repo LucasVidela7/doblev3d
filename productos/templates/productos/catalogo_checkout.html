@@ -16,7 +16,7 @@
 .checkout-skeleton{display:grid;gap:9px}.checkout-skeleton span{height:64px;border-radius:14px;background:linear-gradient(90deg,#f1f3f6 25%,#fafbfd 42%,#f1f3f6 62%);background-size:320% 100%;animation:checkoutShimmer 1.15s infinite}@keyframes checkoutShimmer{0%{background-position:100% 0}100%{background-position:0 0}}
 .checkout-line{display:grid;grid-template-columns:48px minmax(0,1fr) auto;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #edf0f5}.checkout-line:last-child{border-bottom:0}.checkout-thumb{width:48px;height:48px;display:grid;place-items:center;object-fit:cover;border:1px solid var(--line);border-radius:11px;background:linear-gradient(135deg,#eef4ff,#fff1f2);color:var(--blue);font-size:.9rem;font-weight:950}.checkout-line-main{min-width:0}.checkout-line strong{display:block;font-size:.85rem}.checkout-line span{display:block;margin-top:3px;color:var(--muted);font-size:.69rem;line-height:1.35}.checkout-line .checkout-extra{color:#79500f;font-weight:800}.checkout-line .checkout-discount{display:inline-flex;margin-top:5px;padding:4px 7px;border-radius:999px;background:#eaf7ee;color:#28633c;font-size:.64rem;font-weight:900}.checkout-line-money{text-align:right;flex:0 0 auto}.checkout-line-money b{display:block;color:var(--blue-dark);font-size:.86rem}.checkout-line-money span{font-size:.65rem}.checkout-empty{display:grid;gap:5px;padding:30px 10px;text-align:center}.checkout-empty span{color:var(--muted);font-size:.76rem}
 .checkout-total{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-top:13px;padding-top:13px;border-top:1px solid var(--line)}.checkout-total span{color:var(--muted);font-size:.72rem;font-weight:800}.checkout-total strong{color:var(--blue-dark);font-size:1.5rem}.delivery-note{margin:8px 0 0;color:#8a93a3;font-size:.67rem;text-align:right}
-.error{margin-bottom:12px;padding:11px 12px;border-radius:13px;background:#fdeaea;color:#913b3b;font-size:.78rem;line-height:1.4}.error strong{display:block;margin-bottom:3px;color:#7d2828}.limit-modal{position:fixed;inset:0;z-index:130;display:grid;place-items:center;padding:18px;background:rgba(13,25,46,.74);backdrop-filter:blur(8px)}.limit-modal.is-closing{display:none}.limit-modal-card{position:relative;width:min(520px,100%);padding:26px;border-radius:24px;background:#fff;box-shadow:0 28px 80px rgba(0,0,0,.3);text-align:center}.limit-modal-close{position:absolute;top:12px;right:12px;width:38px;height:38px;display:grid;place-items:center;border:1px solid #dfe5ef;border-radius:50%;background:#fff;color:#40506a;font:inherit;font-size:1.25rem;line-height:1;cursor:pointer}.limit-modal-close:hover{background:#f5f7fb}.limit-modal-close:focus-visible{outline:3px solid rgba(19,74,154,.22);outline-offset:2px}.limit-modal-icon{width:58px;height:58px;display:grid;place-items:center;margin:0 auto 13px;border-radius:50%;background:#eef4ff;color:var(--blue);font-size:1.25rem;font-weight:950}.limit-modal h2{margin:0;color:var(--blue-dark);font-size:1.45rem}.limit-modal p{margin:9px auto 0;max-width:430px;color:var(--muted);font-size:.82rem;line-height:1.55}.limit-modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:18px}.limit-modal-actions a,.limit-modal-actions button{min-height:46px;display:flex;align-items:center;justify-content:center;padding:0 12px;border:0;border-radius:13px;text-decoration:none;font:inherit;font-size:.75rem;font-weight:950;cursor:pointer}.limit-modal-actions a{background:#25d366;color:#fff}.limit-modal-actions button{background:#eef2f7;color:var(--blue-dark)}@media(max-width:520px){.limit-modal-actions{grid-template-columns:1fr}}
+.error{margin-bottom:12px;padding:11px 12px;border-radius:13px;background:#fdeaea;color:#913b3b;font-size:.78rem;line-height:1.4}.error strong{display:block;margin-bottom:3px;color:#7d2828}.limit-modal{position:fixed;inset:0;z-index:130;display:grid;place-items:center;padding:18px;background:rgba(13,25,46,.74);backdrop-filter:blur(8px)}.limit-modal[hidden]{display:none!important}.limit-modal-card{position:relative;width:min(520px,100%);padding:26px;border-radius:24px;background:#fff;box-shadow:0 28px 80px rgba(0,0,0,.3);text-align:center}.limit-modal-close{position:absolute;top:12px;right:12px;width:38px;height:38px;display:grid;place-items:center;border:1px solid #dfe5ef;border-radius:50%;background:#fff;color:#40506a;font:inherit;font-size:1.25rem;line-height:1;cursor:pointer}.limit-modal-close:hover{background:#f5f7fb}.limit-modal-close:focus-visible{outline:3px solid rgba(19,74,154,.22);outline-offset:2px}.limit-modal-icon{width:58px;height:58px;display:grid;place-items:center;margin:0 auto 13px;border-radius:50%;background:#eef4ff;color:var(--blue);font-size:1.25rem;font-weight:950}.limit-modal h2{margin:0;color:var(--blue-dark);font-size:1.45rem}.limit-modal p{margin:9px auto 0;max-width:430px;color:var(--muted);font-size:.82rem;line-height:1.55}.limit-modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:18px}.limit-modal-actions a,.limit-modal-actions button{min-height:46px;display:flex;align-items:center;justify-content:center;padding:0 12px;border:0;border-radius:13px;text-decoration:none;font:inherit;font-size:.75rem;font-weight:950;cursor:pointer}.limit-modal-actions a{background:#25d366;color:#fff}.limit-modal-actions button{background:#eef2f7;color:var(--blue-dark)}@media(max-width:520px){.limit-modal-actions{grid-template-columns:1fr}}
 .field{display:grid;gap:6px;margin-bottom:12px}.field label{color:#45546d;font-size:.72rem;font-weight:850}.field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:13px;background:#fff;color:var(--text);font:inherit;font-size:.86rem;outline:none}.field input{height:46px;padding:0 12px}.field textarea{min-height:88px;padding:11px 12px;resize:vertical}.field input:focus,.field textarea:focus{border-color:rgba(19,74,154,.65);box-shadow:0 0 0 4px rgba(19,74,154,.09)}.field small{color:#8a93a3;font-size:.65rem}
 .honeypot{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;overflow:hidden!important}
 .leadtime-note{margin:0 0 12px;padding:11px 12px;border:1px solid #cdddf4;border-radius:12px;background:var(--blue-soft);color:#345f91;font-size:.76rem;line-height:1.45}.leadtime-note strong{display:block;margin-bottom:3px;color:var(--blue-dark);font-size:.72rem;text-transform:uppercase;letter-spacing:.03em}
@@ -151,49 +151,19 @@
     </div>
 </main>
 
-{% if exceso_unidades %}
-<div class="limit-modal" data-limit-modal role="dialog" aria-modal="true" aria-labelledby="limitModalTitle">
+<div class="limit-modal" data-limit-modal hidden role="dialog" aria-modal="true" aria-labelledby="limitModalTitle">
     <div class="limit-modal-card">
         <button class="limit-modal-close" type="button" data-limit-modal-close aria-label="Cerrar">×</button>
         <div class="limit-modal-icon" aria-hidden="true">100+</div>
-        <h2 id="limitModalTitle">¿Necesitás más de 100 unidades?</h2>
-        <p>Para compras grandes preferimos armarte un presupuesto especial y revisar producción, plazos y entrega directamente con vos.</p>
+        <h2 id="limitModalTitle">Compra de volumen alto</h2>
+        <p>Tu carrito supera las 100 unidades. Podés enviar la solicitud normalmente; antes de producir vamos a revisar disponibilidad, capacidad, plazos y entrega con vos.</p>
         <div class="limit-modal-actions">
-            {% if whatsapp_exceso_url %}<a href="{{ whatsapp_exceso_url }}" target="_blank" rel="noopener">CONSULTAR POR WHATSAPP</a>{% endif %}
+            {% if whatsapp_volumen_url %}<a href="{{ whatsapp_volumen_url }}" target="_blank" rel="noopener">CONSULTAR POR WHATSAPP</a>{% endif %}
+            <button type="button" data-limit-continue>CONTINUAR CON SOLICITUD</button>
             <button type="button" data-limit-edit-cart data-dv-cart-open>EDITAR CARRITO</button>
         </div>
     </div>
 </div>
-<script>
-(function(){
-    const modal = document.querySelector('[data-limit-modal]');
-    if (!modal) return;
-
-    const closeModal = () => {
-        modal.classList.add('is-closing');
-        modal.setAttribute('aria-hidden', 'true');
-    };
-
-    modal.querySelectorAll('[data-limit-modal-close]').forEach((button) => {
-        button.addEventListener('click', closeModal);
-    });
-
-    modal.querySelectorAll('[data-limit-edit-cart]').forEach((button) => {
-        button.addEventListener('click', closeModal);
-    });
-
-    modal.addEventListener('click', (event) => {
-        if (event.target === modal) closeModal();
-    });
-
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && !modal.classList.contains('is-closing')) {
-            closeModal();
-        }
-    });
-})();
-</script>
-{% endif %}
 
 <div class="checkout-loader" data-checkout-loader aria-hidden="true">
     <div class="checkout-loader-card" role="status">
