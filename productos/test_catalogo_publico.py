@@ -387,7 +387,7 @@ class CatalogoPublicoTests(TestCase):
         self.assertNotContains(response, "Entregas y retiro")
         self.assertNotContains(response, "Motomensajería")
         self.assertNotContains(response, "Cualquier costo de entrega")
-        self.assertNotContains(response, "ENTENDIDO")
+        self.assertContains(response, "ENTENDIDO")
 
     def test_detalle_de_kit_reutiliza_modal_como_comprar(self):
         response = self.client.get(

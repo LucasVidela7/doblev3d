@@ -21,3 +21,5 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-22 - Icono para cerrar sesion en menu de gestion
 
 2026-09-22 - Simplificar modal Como comprar a 4 pasos
+
+2026-09-22 - Mantener boton Entendido en modal Como comprar
