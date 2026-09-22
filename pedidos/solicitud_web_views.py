@@ -102,6 +102,7 @@ def detalle_solicitud_web(request, solicitud_id):
     mensaje_whatsapp = renderizar_mensaje_solicitud(
         config.whatsapp_mensaje_respuesta_solicitud,
         solicitud,
+        request=request,
     )
     whatsapp_url_cliente = whatsapp_url(
         solicitud.telefono_normalizado,
