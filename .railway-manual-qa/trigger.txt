@@ -12,3 +12,4 @@ QA deploy: acceso Gestión desde solicitud pública 2026-09-22
 QA deploy: estado público solicitud/pedido 2026-09-22
 QA deploy: dashboard métricas 7 cards e ingresos unificados 2026-09-22
 QA deploy: resolver arrepentimiento sin formulario anidado 2026-09-22
+QA deploy: formulario independiente arrepentimientos 2026-09-22
