@@ -11,7 +11,7 @@ El volumen se calcula con la cantidad real de productos contenidos en los kits d
 - La recomendación conservadora y la curva técnica siguen funcionando como referencia para determinar cuánto descuento tiene sentido liberar.
 - Si el precio real ya está por debajo de esa referencia técnica pero todavía conserva margen por encima del piso operativo, la curva usa esa capacidad real disponible para que el descuento comience efectivamente desde la segunda unidad.
 - El porcentaje se aplica sobre el precio real configurado del kit y crece progresivamente con la cantidad, con un tope comercial de 15%.
-- El precio final se redondea monetariamente; por eso el porcentaje efectivo mostrado puede variar una décima respecto del porcentaje técnico de referencia.
+- El precio final intenta conservar el redondeo comercial a $100. Si ese redondeo borrara por completo un descuento válido desde 2 kits, se conserva el importe exacto de la curva para que el beneficio sea real.
 - Ninguna línea se descuenta por debajo del margen mínimo operativo.
 - Si un precio de lista ya está por debajo del piso rentable, el sistema no lo aumenta automáticamente y tampoco le aplica un descuento adicional.
 

@@ -349,18 +349,38 @@ def calcular_precio_volumen_kits(items):
         tope=DESCUENTO_MAXIMO_KITS,
         suavidad=SUAVIDAD_DESCUENTO_KITS,
     )
-    precio_minimo_comercial_total = (
-        redondear_arriba(
+    precio_curva_sin_redondear = (
+        _redondear_centavos(
             precio_lista_total
             * (
                 Decimal("1")
                 - descuento_maximo_comercial / Decimal("100")
-            ),
+            )
+        )
+        if elegible
+        else precio_lista_total
+    )
+    precio_minimo_comercial_total = (
+        redondear_arriba(
+            precio_curva_sin_redondear,
             Decimal("100"),
         )
         if elegible
         else precio_lista_total
     )
+
+    # En compras pequeñas un descuento dinámico válido puede ser menor que
+    # $100 sobre el total. Redondear siempre hacia arriba lo borraría por
+    # completo (por ejemplo, $10.000 -> $9.950 -> $10.000). En ese único caso
+    # conservamos el importe de la curva con precisión de centavos para que
+    # desde la segunda unidad exista un beneficio real sin exceder el margen.
+    if (
+        elegible
+        and descuento_maximo_comercial > 0
+        and precio_curva_sin_redondear < precio_lista_total
+        and precio_minimo_comercial_total >= precio_lista_total
+    ):
+        precio_minimo_comercial_total = precio_curva_sin_redondear
 
     # Cuando existe una baja técnica, la curva limita cuánto se libera por
     # cantidad. Si la referencia técnica no habilita baja pero todavía existe
