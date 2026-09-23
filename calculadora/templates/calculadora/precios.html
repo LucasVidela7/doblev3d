@@ -21,6 +21,8 @@
         .eyebrow{margin:0 0 5px;color:var(--dv-brand-blue,#134a9a);font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
         h1{margin:0;font-size:clamp(27px,5vw,40px);letter-spacing:-.045em}
         .subtitle{margin:7px 0 0;color:var(--dv-muted,#667085);font-size:12px;line-height:1.5}
+        .mode-current{display:inline-flex;align-items:center;gap:7px;min-height:30px;margin-top:10px;padding:0 10px;border:1px solid color-mix(in srgb,var(--dv-brand-blue,#134a9a) 38%,var(--dv-border,#dfe5ef));border-radius:999px;background:var(--dv-brand-blue-soft,#eef4ff);color:var(--dv-accent-blue-text,#0d376f);font-size:10px;font-weight:900;letter-spacing:.02em}
+        .mode-current::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--dv-brand-blue,#134a9a);box-shadow:0 0 0 3px color-mix(in srgb,var(--dv-brand-blue,#134a9a) 14%,transparent)}
         .back{min-height:40px;display:inline-flex;align-items:center;justify-content:center;padding:0 13px;border:1px solid var(--dv-border,#dfe5ef);border-radius:12px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);text-decoration:none;font-size:10px;font-weight:900}
         .rule{
             margin-bottom:16px;padding:13px 15px;border:1px solid rgba(19,74,154,.16);
@@ -30,6 +32,8 @@
         .tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:16px;padding:5px;border:1px solid var(--dv-border,#dfe5ef);border-radius:15px;background:var(--dv-surface,#fff)}
         .tab{min-height:42px;display:flex;align-items:center;justify-content:center;border-radius:11px;color:var(--dv-muted,#667085);text-decoration:none;font-size:10px;font-weight:900}
         .tab.active{background:var(--dv-brand-blue,#134a9a);color:#fff}
+        html[data-dv-theme="dark"] body .tabs .tab.active{background:var(--dv-brand-blue)!important;border-color:var(--dv-brand-blue)!important;color:var(--dv-on-blue,#fff)!important;box-shadow:0 5px 16px rgba(0,0,0,.22)}
+        html[data-dv-theme="dark"] body .mode-current{background:var(--dv-brand-blue-soft)!important;border-color:color-mix(in srgb,var(--dv-accent-blue-text) 42%,var(--dv-border))!important;color:var(--dv-accent-blue-text)!important}
         .panel{margin-bottom:15px;padding:19px;border:1px solid var(--dv-border,#dfe5ef);border-radius:20px;background:var(--dv-surface,#fff);box-shadow:var(--dv-shadow,0 8px 25px rgba(20,25,35,.055))}
         .panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:16px}
         .panel h2,.panel h3{margin:0}
@@ -101,6 +105,12 @@
             <p class="eyebrow">Productos · Más opciones</p>
             <h1>Calculadora de catálogo</h1>
             <p class="subtitle">Los resultados usan exactamente la misma lógica de precios que hoy ve el cliente en el catálogo.</p>
+            <div class="mode-current" aria-label="Calculadora actual">
+                {% if modo == "existente" %}PRODUCTO
+                {% elif modo == "kit" %}KIT
+                {% elif modo == "personalizado" %}PERSONALIZADO
+                {% else %}SIMULAR NUEVO{% endif %}
+            </div>
         </div>
         <a class="back" href="{% url 'productos:lista' %}">← PRODUCTOS</a>
     </header>
@@ -109,6 +119,7 @@
         <strong>Productos:</strong> precio de lista hasta 4 unidades y curva dinámica desde {{ cantidad_minima_descuento }}, con tope de {{ descuento_maximo|floatformat:"-1" }}%.
         <strong>Kits:</strong> volumen desde {{ cantidad_minima_kits }} kits totales, con tope de {{ descuento_maximo_kits|floatformat:"-1" }}% y selección premium cuando corresponda.
         <strong>Personalizados:</strong> la base usa el mismo precio del catálogo y el trabajo adicional se acuerda manualmente.
+        <strong>Calculadora:</strong> podés evaluar cualquier cantidad desde 1 unidad, sin tope máximo.
     </div>
 
     {% if config %}
@@ -159,11 +170,11 @@
                 </div>
                 <div class="field">
                     <label for="cantidad_existente">Cantidad</label>
-                    <input id="cantidad_existente" type="number" name="cantidad" min="1" max="{{ max_cantidad_catalogo }}" value="{{ request.POST.cantidad|default:'5' }}" required>
+                    <input id="cantidad_existente" type="number" name="cantidad" min="1" value="{{ request.POST.cantidad|default:'5' }}" required>
                 </div>
                 <div class="field">
                     <label for="cantidades_lista_existente">Comparar cantidades</label>
-                    <input id="cantidades_lista_existente" type="text" name="cantidades_lista" value="{{ cantidades_texto }}" placeholder="1,2,4,5,6,10,15,20">
+                    <input id="cantidades_lista_existente" type="text" name="cantidades_lista" value="{{ cantidades_texto }}" placeholder="1,2,5,10,20,50,100">
                 </div>
             </div>
             <div class="actions"><button class="btn" type="submit">CALCULAR PRECIO CATÁLOGO</button></div>
@@ -289,11 +300,11 @@
                 </div>
                 <div class="field">
                     <label for="cantidad_nueva">Cantidad</label>
-                    <input id="cantidad_nueva" type="number" name="cantidad" min="1" max="{{ max_cantidad_catalogo }}" value="{{ request.POST.cantidad|default:'5' }}" required>
+                    <input id="cantidad_nueva" type="number" name="cantidad" min="1" value="{{ request.POST.cantidad|default:'5' }}" required>
                 </div>
                 <div class="field wide">
                     <label for="cantidades_lista_nueva">Comparar cantidades</label>
-                    <input id="cantidades_lista_nueva" type="text" name="cantidades_lista" value="{{ cantidades_texto }}" placeholder="1,2,4,5,6,10,15,20">
+                    <input id="cantidades_lista_nueva" type="text" name="cantidades_lista" value="{{ cantidades_texto }}" placeholder="1,2,5,10,20,50,100">
                 </div>
             </div>
             <div class="actions"><button class="btn" type="submit">SIMULAR CATÁLOGO</button></div>
@@ -387,7 +398,7 @@
                 </div>
                 <div class="field">
                     <label for="cantidad_kit">Cantidad de kits</label>
-                    <input id="cantidad_kit" type="number" name="cantidad" min="1" max="{{ max_cantidad_catalogo }}" value="{{ request.POST.cantidad|default:'2' }}" required>
+                    <input id="cantidad_kit" type="number" name="cantidad" min="1" value="{{ request.POST.cantidad|default:'2' }}" required>
                 </div>
                 <div class="field full">
                     <div id="kitOptions" class="kit-options">
@@ -478,7 +489,7 @@
                 </div>
                 <div class="field">
                     <label for="cantidad_personalizado">Cantidad</label>
-                    <input id="cantidad_personalizado" type="number" name="cantidad" min="1" max="{{ max_cantidad_catalogo }}" value="{{ request.POST.cantidad|default:'1' }}" required>
+                    <input id="cantidad_personalizado" type="number" name="cantidad" min="1" value="{{ request.POST.cantidad|default:'1' }}" required>
                 </div>
                 <div class="field">
                     <label for="precio_total_personalizado">Total acordado</label>
