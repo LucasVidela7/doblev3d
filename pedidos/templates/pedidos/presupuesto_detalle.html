@@ -20,7 +20,7 @@
 .shell{width:min(1050px,100%);margin:auto;padding:22px 14px 50px}
 .head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px}
 h1{margin:0;font-size:30px}.sub{margin-top:5px;color:var(--muted);font-size:12px}
-.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 14px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);text-decoration:none;font-size:10px;font-weight:900;cursor:pointer}.btn.primary{background:#24272b;border-color:#24272b;color:#fff}.btn.approve{background:#2f7747;border-color:#2f7747;color:#fff}.btn.reject{background:var(--card)1f1;border-color:#e6bcbc;color:#913434}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 14px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);text-decoration:none;font-size:10px;font-weight:900;cursor:pointer}.btn.primary{background:#24272b;border-color:#24272b;color:#fff}.btn.approve{background:#2f7747;border-color:#2f7747;color:#fff}.btn.reject{background:var(--red);border-color:#e6bcbc;color:var(--red-t)}
 .status{display:inline-flex;margin-top:9px;padding:7px 10px;border-radius:999px;font-size:9px;font-weight:900}.PENDIENTE{background:var(--yellow);color:var(--yellow-t)}.APROBADO{background:var(--green);color:var(--green-t)}.RECHAZADO{background:var(--red);color:var(--red-t)}
 .card{padding:17px;border:1px solid var(--border);border-radius:18px;background:var(--card);margin-bottom:13px;box-shadow:0 4px 15px rgba(20,25,35,.05)}
 .info{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}.label{font-size:8px;font-weight:900;color:var(--muted);letter-spacing:.25px}.value{margin-top:4px;font-size:13px;font-weight:800}
@@ -34,7 +34,7 @@ form{margin:0}
 @media(max-width:720px){.head{flex-direction:column}.actions{justify-content:flex-start}.info,.money,.totals{grid-template-columns:1fr}.item-head{gap:8px}}
 </style>
 </head>
-<body>
+<body class="dv-commercial-page dv-commercial-detail dv-presupuestos-page">
 <div class="shell">
     {% include "shared/messages_toasts.html" %}
 
