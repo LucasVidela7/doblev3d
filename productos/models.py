@@ -223,12 +223,14 @@ class ConfiguracionCatalogo(models.Model):
             "Hola {nombre} 👋 Te paso el estado de tus {cantidad_pedidos} "
             "pedidos de Doble V 3D:\n\n"
             "{pedidos}\n\n"
+            "{saldo_resumen}\n\n"
             "{cierre}"
         ),
         verbose_name="Mensaje de múltiples pedidos",
         help_text=(
             "Podés usar {nombre}, {cantidad_pedidos}, {pedidos}, {saldo_total}, "
-            "{cantidad_listos}, {cantidad_con_saldo} y {cierre}. {pedidos} "
+            "{saldo_resumen}, {cantidad_listos}, {cantidad_con_saldo} y {cierre}. "
+            "{pedidos} "
             "incluye estado, cantidad de pagos, total pagado, saldo y URL "
             "individual de cada pedido."
         ),
