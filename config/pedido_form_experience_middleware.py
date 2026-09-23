@@ -17,9 +17,9 @@ body.dv-pedido-form-page .contenedor{
     gap:7px;
     margin:-5px 0 14px;
     padding:7px;
-    border:1px solid #e1e5ea;
+    border:1px solid var(--dv-border,#e1e5ea);
     border-radius:15px;
-    background:#fff;
+    background:var(--dv-surface,#fff);
 }
 .dv-order-guide a,
 .dv-order-guide span{
@@ -29,12 +29,12 @@ body.dv-pedido-form-page .contenedor{
     gap:9px;
     padding:8px 11px;
     border-radius:11px;
-    color:#667085;
+    color:var(--dv-muted,#667085);
     text-decoration:none;
-    font-size:9px;
+    font-size:11px;
     font-weight:900;
 }
-.dv-order-guide a:hover{background:#f5f7fa}
+.dv-order-guide a:hover{background:var(--dv-surface-soft,#f5f7fa)}
 .dv-order-guide b{
     width:25px;
     height:25px;
@@ -42,17 +42,17 @@ body.dv-pedido-form-page .contenedor{
     place-items:center;
     flex:0 0 auto;
     border-radius:50%;
-    background:#edf1f5;
-    color:#4d5968;
-    font-size:9px;
+    background:var(--dv-surface-muted,#edf1f5);
+    color:var(--dv-text,#4d5968);
+    font-size:10px;
 }
 .dv-order-guide .is-active{
-    background:#eef5ff;
-    color:#245a9b;
+    background:var(--dv-brand-blue-soft,#eef5ff);
+    color:var(--dv-accent-blue-text,#245a9b);
 }
 .dv-order-guide .is-active b{
-    background:#245a9b;
-    color:#fff;
+    background:var(--dv-brand-blue,#245a9b);
+    color:var(--dv-on-blue,#fff);
 }
 .dv-order-data-card,
 #dv-pedido-items{
@@ -61,17 +61,17 @@ body.dv-pedido-form-page .contenedor{
 body.dv-pedido-form-page .boton-agregar,
 body.dv-pedido-form-page .agregar{
     min-height:52px!important;
-    border:1px dashed #9db7d8!important;
+    border:1px dashed color-mix(in srgb,var(--dv-brand-blue,#134a9a) 46%,var(--dv-border,#9db7d8))!important;
     border-radius:14px!important;
-    background:#f7faff!important;
-    color:#245a9b!important;
-    font-size:9px!important;
+    background:var(--dv-brand-blue-soft,#f7faff)!important;
+    color:var(--dv-accent-blue-text,#245a9b)!important;
+    font-size:11.5px!important;
     font-weight:900!important;
     box-shadow:none!important;
 }
 body.dv-pedido-form-page .boton-agregar:hover,
 body.dv-pedido-form-page .agregar:hover{
-    background:#eef5ff!important;
+    background:color-mix(in srgb,var(--dv-brand-blue-soft,#eef5ff) 82%,var(--dv-surface,#fff))!important;
 }
 .dv-order-savebar{
     position:fixed;
@@ -85,16 +85,17 @@ body.dv-pedido-form-page .agregar:hover{
     align-items:center;
     gap:12px;
     padding:10px;
-    border:1px solid #dce2ea;
+    border:1px solid var(--dv-border,#dce2ea);
     border-radius:18px;
-    background:rgba(255,255,255,.96);
-    box-shadow:0 14px 38px rgba(24,34,48,.18);
+    background:color-mix(in srgb,var(--dv-surface,#fff) 96%,transparent);
+    color:var(--dv-text,#17233a);
+    box-shadow:0 14px 38px rgba(0,0,0,.22);
     backdrop-filter:blur(14px);
 }
 .dv-order-summary-main{min-width:0;padding-left:4px}
 .dv-order-summary-title{
-    color:#17233a;
-    font-size:11px;
+    color:var(--dv-text,#17233a);
+    font-size:12.5px;
     font-weight:900;
     white-space:nowrap;
     overflow:hidden;
@@ -102,8 +103,8 @@ body.dv-pedido-form-page .agregar:hover{
 }
 .dv-order-summary-detail{
     margin-top:3px;
-    color:#73777f;
-    font-size:8px;
+    color:var(--dv-muted,#73777f);
+    font-size:11px;
     line-height:1.35;
     white-space:nowrap;
     overflow:hidden;
@@ -116,15 +117,15 @@ body.dv-pedido-form-page .agregar:hover{
     justify-content:center;
     padding:0 10px;
     border-radius:999px;
-    background:#fff6dc;
-    color:#7a5615;
-    font-size:8px;
+    background:var(--dv-warning-soft,#fff6dc);
+    color:var(--dv-warning-text,#7a5615);
+    font-size:10.5px;
     font-weight:900;
     white-space:nowrap;
 }
 .dv-order-ready.ok{
-    background:#ecfdf3;
-    color:#166534;
+    background:var(--dv-success-soft,#ecfdf3);
+    color:var(--dv-success-text,#166534);
 }
 .dv-order-savebar .dv-order-save{
     position:static!important;
@@ -137,9 +138,9 @@ body.dv-pedido-form-page .agregar:hover{
     padding:0 18px!important;
     border:0!important;
     border-radius:13px!important;
-    background:#24272b!important;
-    color:#fff!important;
-    font-size:9px!important;
+    background:var(--dv-brand-blue,#134a9a)!important;
+    color:var(--dv-on-blue,#fff)!important;
+    font-size:11.5px!important;
     font-weight:900!important;
     box-shadow:none!important;
 }
@@ -153,10 +154,10 @@ body.dv-pedido-form-page{
         min-height:42px;
         gap:6px;
         padding:6px;
-        font-size:7px;
+        font-size:10px;
         justify-content:center;
     }
-    .dv-order-guide b{width:22px;height:22px;font-size:8px}
+    .dv-order-guide b{width:22px;height:22px;font-size:9.5px}
     .dv-order-savebar{
         bottom:76px;
         width:calc(100% - 12px);
@@ -166,8 +167,8 @@ body.dv-pedido-form-page{
         border-radius:15px;
     }
     .dv-order-ready{display:none}
-    .dv-order-summary-title{font-size:10px}
-    .dv-order-summary-detail{font-size:7px}
+    .dv-order-summary-title{font-size:11.5px}
+    .dv-order-summary-detail{font-size:10px}
     .dv-order-savebar .dv-order-save{
         min-width:138px!important;
         min-height:48px!important;
@@ -191,6 +192,7 @@ body.dv-pedido-form-page{
 PEDIDO_EXPERIENCE_SCRIPT = r"""
 <script id="dv-pedido-experience-script">
 (function(){
+    const esPresupuesto = __ES_PRESUPUESTO__;
     function money(value){
         return new Intl.NumberFormat('es-AR', {
             minimumFractionDigits:0,
@@ -227,7 +229,9 @@ PEDIDO_EXPERIENCE_SCRIPT = r"""
         heading.className = 'dv-items-heading';
         heading.id = 'dv-pedido-items';
         heading.innerHTML =
-            '<div><div class="dv-items-heading-main">Ítems del pedido</div>' +
+            '<div><div class="dv-items-heading-main">' +
+            (esPresupuesto ? 'Ítems del presupuesto' : 'Ítems del pedido') +
+            '</div>' +
             '<div class="dv-items-heading-help">Elegí tipo, cantidad y precio. Podés combinar productos, kits y personalizados.</div></div>' +
             '<div class="dv-items-count">0 ITEMS</div>';
         items.insertAdjacentElement('beforebegin', heading);
@@ -348,7 +352,11 @@ PEDIDO_EXPERIENCE_SCRIPT = r"""
             detail,
             parts.length
                 ? parts.join(' · ')
-                : 'Completá cliente, ítems y precios.'
+                : (
+                    esPresupuesto
+                        ? 'Completá cliente, ítems y precios del presupuesto.'
+                        : 'Completá cliente, ítems y precios.'
+                )
         );
 
         var stateText = 'REVISAR';
@@ -396,7 +404,11 @@ PEDIDO_EXPERIENCE_SCRIPT = r"""
         bar.innerHTML =
             '<div class="dv-order-summary-main">' +
             '<div class="dv-order-summary-title" data-dv-order-summary-title>0 ítems · total pendiente</div>' +
-            '<div class="dv-order-summary-detail" data-dv-order-summary-detail>Completá cliente, ítems y precios.</div>' +
+            '<div class="dv-order-summary-detail" data-dv-order-summary-detail>' +
+            (esPresupuesto
+                ? 'Completá cliente, ítems y precios del presupuesto.'
+                : 'Completá cliente, ítems y precios.') +
+            '</div>' +
             '</div>' +
             '<div class="dv-order-ready" data-dv-order-ready>REVISAR</div>' +
             '<div class="dv-order-save-action"></div>';
@@ -467,6 +479,13 @@ PEDIDO_EXPERIENCE_SCRIPT = r"""
 """
 
 
+def _experience_script(es_presupuesto):
+    return PEDIDO_EXPERIENCE_SCRIPT.replace(
+        "__ES_PRESUPUESTO__",
+        "true" if es_presupuesto else "false",
+    )
+
+
 class PedidoFormExperienceMiddleware:
     """Inyecta la guía y el resumen visual en Nuevo/Editar Pedido."""
 
@@ -512,7 +531,12 @@ class PedidoFormExperienceMiddleware:
         ):
             html = html.replace(
                 "</body>",
-                PEDIDO_EXPERIENCE_SCRIPT + "\n</body>",
+                _experience_script(
+                    view_name in {
+                        "pedidos:nuevo",
+                        "pedidos:presupuesto_editar",
+                    }
+                ) + "\n</body>",
                 1,
             )
 
