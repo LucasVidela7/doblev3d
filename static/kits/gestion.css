@@ -417,7 +417,22 @@ body.dv-kits-form :is(
 body.dv-kits-form .dv-kit-costo-chip{font-size:10.5px!important}
 body.dv-kits-form .dv-kit-opcion-chip{font-size:11px!important}
 body.dv-kits-form .dv-kit-opciones-numero{font-size:20px!important}
+body.dv-kits-form .dv-kit-precio-actual{font-size:12px!important}
+body.dv-kits-form .dv-kit-base-protegida strong{font-size:12.5px!important}
+body.dv-kits-form .dv-kit-opciones-vacio{font-size:11.5px!important}
 body.dv-kits-form .dv-kit-escenario-precio{font-size:26px!important}
+body.dv-kits-form .dv-kit-opciones-resumen>div,
+body.dv-kits-form .dv-kit-escenario,
+body.dv-kits-form .dv-kit-precio-actual{
+    border-color:color-mix(in srgb,var(--kit-accent) 16%,var(--kit-line))!important;
+    background:var(--kit-soft)!important;
+}
+body.dv-kits-form .dv-kit-opcion-chip.incluida{
+    background:var(--kit-ok-soft)!important;color:var(--kit-ok)!important;
+}
+body.dv-kits-form .dv-kit-opcion-chip.premium{
+    background:var(--kit-warn-soft)!important;color:var(--kit-warn)!important;
+}
 body.dv-kits-form .dv-kit-usar-precio{
     border-color:color-mix(in srgb,var(--kit-accent) 30%,var(--kit-line))!important;
     background:var(--kit-surface)!important;color:var(--kit-accent-strong)!important;
