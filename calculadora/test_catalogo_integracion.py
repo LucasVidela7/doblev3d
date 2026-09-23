@@ -177,6 +177,85 @@ class CalculadoraCatalogoIntegracionTests(TestCase):
             esperado["precio_final_total"],
         )
 
+    def test_calculadora_producto_acepta_cantidad_mayor_a_20(self):
+        respuesta = self.client.post(
+            reverse("calculadora:precios"),
+            {
+                "modo": "existente",
+                "producto_id": str(self.producto.id),
+                "cantidad": "100",
+                "cantidades_lista": "20,50,100",
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        resultado = respuesta.context["resultado_existente"]
+        self.assertIsNotNone(resultado)
+        self.assertEqual(resultado["cantidad"], 100)
+        self.assertEqual(
+            [fila["cantidad"] for fila in resultado["lista_precios"]],
+            [20, 50, 100],
+        )
+        self.assertNotContains(
+            respuesta,
+            'max="20"',
+        )
+
+    def test_calculadora_kit_y_personalizado_aceptan_mas_de_20(self):
+        kit = self.client.post(
+            reverse("calculadora:precios"),
+            {
+                "modo": "kit",
+                "kit_id": str(self.kit.id),
+                "cantidad": "75",
+            },
+        )
+        self.assertEqual(kit.status_code, 200)
+        self.assertEqual(
+            kit.context["resultado_kit"]["cantidad"],
+            75,
+        )
+
+        personalizado = self.client.post(
+            reverse("calculadora:precios"),
+            {
+                "modo": "personalizado",
+                "producto_personalizado_id": str(self.producto.id),
+                "cantidad": "120",
+                "precio_total_personalizado": "500000",
+            },
+        )
+        self.assertEqual(personalizado.status_code, 200)
+        self.assertEqual(
+            personalizado.context["resultado_personalizado"]["cantidad"],
+            120,
+        )
+
+    def test_modo_actual_es_visible_y_activo_en_tema_oscuro(self):
+        respuesta = self.client.get(
+            reverse("calculadora:precios"),
+            {"modo": "kit"},
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        contenido = respuesta.content.decode()
+        self.assertIn(
+            'class="mode-current"',
+            contenido,
+        )
+        self.assertIn(
+            'class="tab active">KIT</a>',
+            contenido,
+        )
+        self.assertIn(
+            'html[data-dv-theme="dark"] body .tabs .tab.active',
+            contenido,
+        )
+        self.assertIn(
+            'color:var(--dv-on-blue,#fff)!important',
+            contenido,
+        )
+
     def test_presupuesto_producto_automatico_guarda_precio_catalogo(self):
         esperado = calcular_precio_catalogo_producto(
             self.producto,
