@@ -192,7 +192,7 @@ class PrecioVolumenKitsTests(TestCase):
             resumen["margen_minimo"],
         )
 
-    def test_precio_real_del_kit_conserva_el_posicionamiento_de_mercado(self):
+    def test_precio_real_del_kit_recibe_la_misma_curva_por_cantidad(self):
         self.kit8.precio = Decimal("52000")
         self.kit8.save(update_fields=["precio"])
 
@@ -200,36 +200,15 @@ class PrecioVolumenKitsTests(TestCase):
             self._item(self.kit8, 5),
         ])
 
-        descuento_bruto_anterior = (
-            (
-                resumen["precio_lista_total"]
-                - resumen["precio_objetivo_tecnico_total"]
-            )
-            / resumen["precio_lista_total"]
-            * Decimal("100")
-        )
-
         self.assertTrue(resumen["elegible"])
-        self.assertTrue(resumen["ajustado_por_precio_real"])
-        self.assertGreater(
-            resumen["precio_lista_total"],
-            resumen["precio_referencia_conservador_total"],
-        )
-        self.assertGreater(
-            resumen["precio_final_total"],
-            resumen["precio_objetivo_tecnico_total"],
-        )
-        self.assertLess(
+        self.assertFalse(resumen["ajustado_por_precio_real"])
+        self.assertEqual(
             resumen["descuento_porcentaje"],
-            descuento_bruto_anterior,
+            resumen["descuento_equilibrado_porcentaje"],
         )
-        self.assertLessEqual(
-            resumen["descuento_porcentaje"],
-            resumen["descuento_maximo_comercial"] + Decimal("0.1"),
-        )
-        self.assertLess(
-            resumen["descuento_maximo_comercial"],
-            resumen["descuento_referencia_porcentaje"],
+        self.assertEqual(
+            resumen["lineas"][0]["descuento_porcentaje"],
+            resumen["descuento_equilibrado_porcentaje"],
         )
 
     def test_kits_distintos_reciben_el_mismo_porcentaje_de_descuento(self):
@@ -300,6 +279,63 @@ class PrecioVolumenKitsTests(TestCase):
                 linea["precio_final_total"],
                 linea["piso_aplicable"],
             )
+
+    def test_x4_tiene_mismo_descuento_separado_o_en_una_sola_linea(self):
+        producto_caro = Producto.objects.create(
+            nombre="Pieza distinta para kit",
+            categoria="PRODUCTO",
+            tipo=self.tipo,
+            horas=0,
+            minutos=1,
+            peso_gramos=Decimal("160"),
+            margen_ganancia=Decimal("60"),
+            requiere_impresion=True,
+            personalizable=False,
+            stock=0,
+            activo=True,
+            tipo_fabricacion="SIMPLE",
+            solo_produccion=False,
+        )
+        kit_distinto = Kit.objects.create(
+            nombre="Kit x8 distinto",
+            modalidad="FIJO",
+            cantidad_productos=8,
+            precio=Decimal("30000"),
+            activo=True,
+        )
+        KitComponente.objects.create(
+            kit=kit_distinto,
+            producto=producto_caro,
+            cantidad=8,
+        )
+
+        separado = calcular_precio_volumen_kits([
+            self._item(self.kit8, 1),
+            self._item(kit_distinto, 1),
+            self._item(self.kit8, 1),
+            self._item(kit_distinto, 1),
+        ])
+        agrupado = calcular_precio_volumen_kits([
+            self._item(self.kit8, 4),
+        ])
+
+        self.assertEqual(separado["total_kits"], 4)
+        self.assertEqual(agrupado["total_kits"], 4)
+        self.assertEqual(
+            separado["descuento_equilibrado_porcentaje"],
+            agrupado["descuento_equilibrado_porcentaje"],
+        )
+        self.assertEqual(
+            separado["descuento_porcentaje"],
+            agrupado["descuento_porcentaje"],
+        )
+        self.assertTrue(
+            all(
+                linea["descuento_porcentaje"]
+                == separado["descuento_equilibrado_porcentaje"]
+                for linea in separado["lineas"]
+            )
+        )
 
     def test_dos_kits_mas_tres_kits_distintos_califican_juntos(self):
         resumen = calcular_precio_volumen_kits([
