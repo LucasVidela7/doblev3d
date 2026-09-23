@@ -70,3 +70,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-23 - WhatsApp para coordinar entrega en clientes y pedido
 2026-09-23 - Rotacion de dos fotos en productos dentro de kits
 2026-09-23 - Rotacion de fotos cada 2.1 segundos
+2026-09-23 - Rotacion de fotos cada 3 segundos
