@@ -36,7 +36,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-seri
     {% endwith %}
   {% empty %}<div class="note">No hay opciones activas en esta categoría.</div>{% endfor %}
 {% endif %}
-</div>{% if kit.modalidad == "LIBRE_CATEGORIA" %}<div class="note">Protección de rentabilidad: <b>{% if kit.proteger_rentabilidad_libre %}ACTIVADA{% else %}DESACTIVADA{% endif %}</b> · {{ kit.opciones_gestion.cantidad_incluidos }} incluidas · {{ kit.opciones_gestion.cantidad_premium }} con adicional.</div>{% endif %}</div></section>
+</div>{% if kit.modalidad == "LIBRE_CATEGORIA" %}<div class="note">Protección de rentabilidad: <b>{% if kit.proteger_rentabilidad_libre %}ACTIVADA{% else %}DESACTIVADA{% endif %}</b> · {{ kit.opciones_gestion.cantidad_incluidos }} incluidas · {{ kit.opciones_gestion.cantidad_premium }} con adicional.</div><div class="note">Repetición por producto: <b>{% if kit.max_repeticiones_producto == 1 %}NO SE PERMITE REPETIR{% else %}MÁXIMO {{ kit.max_repeticiones_producto }} VECES{% endif %}</b>.</div>{% endif %}</div></section>
 
 <section class="panel"><div class="panel-head"><b>PRECIO Y RENTABILIDAD</b><span>Referencias de la calculadora vigente.</span></div><div class="panel-body"><div class="price-grid">
 {% for nombre,escenario in kit.recomendacion_gestion.escenarios.items %}
