@@ -877,7 +877,8 @@ class CarritoPublicoTests(TestCase):
             7: Decimal("10.0"),
             8: Decimal("10.5"),
             9: Decimal("10.9"),
-            10: Decimal("11.3"),
+            # Decimal.quantize usa ROUND_HALF_EVEN por defecto: 11.25 -> 11.2.
+            10: Decimal("11.2"),
         }
 
         resumen_impreso = []
