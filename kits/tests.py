@@ -343,6 +343,32 @@ class AnalisisEconomicoKitTests(TestCase):
                 reverse("kits:recomendacion_libre"),
             )
 
+    def test_paginas_de_gestion_de_kits_usan_layout_compartido(self):
+        producto = self.crear_producto("Producto UI kit", 100)
+        kit = Kit.objects.create(
+            nombre="Kit UI compartida",
+            modalidad="FIJO",
+            cantidad_productos=1,
+            precio=Decimal("5000"),
+            activo=True,
+        )
+        KitComponente.objects.create(
+            kit=kit,
+            producto=producto,
+            cantidad=1,
+        )
+
+        respuestas = (
+            self.client.get(reverse("kits:lista")),
+            self.client.get(reverse("kits:detalle", args=[kit.id])),
+            self.client.get(reverse("kits:editar", args=[kit.id])),
+        )
+
+        for respuesta in respuestas:
+            self.assertEqual(respuesta.status_code, 200)
+            self.assertContains(respuesta, "kits/gestion.css")
+            self.assertContains(respuesta, "dv-kits-page")
+
     def test_ruta_de_kits_esta_expuesta(self):
         self.assertEqual(
             resolve(reverse("kits:lista")).view_name,
