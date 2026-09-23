@@ -44,7 +44,6 @@ def _primer_nombre(valor, fallback="¿cómo estás?"):
     return partes[0] if partes else fallback
 
 
-
 def _nombre_detalle_pedido(detalle):
     if detalle.tipo_item == "KIT":
         if detalle.kit:
@@ -76,90 +75,130 @@ def _url_publica_pedido(pedido, request=None):
     return ruta
 
 
-def _bloque_pedido_whatsapp(pedido, request=None):
-    lineas = [
-        f"*{pedido.codigo} · {pedido.get_estado_display()}*"
-    ]
+def _cantidad_pagos(pedido):
+    return len(list(pedido.pagos.all()))
 
+
+def _bloque_pedido_whatsapp(pedido, request=None):
     saldo = max(
         Decimal(pedido.saldo_pendiente or 0),
         Decimal("0"),
     )
-    lineas.append("Total: $" + _dinero(pedido.total))
+    pagado = Decimal(pedido.total_pagado or 0)
+    cantidad_pagos = _cantidad_pagos(pedido)
+
+    lineas = [
+        f"*{pedido.codigo} · {pedido.get_estado_display()}*",
+        "Total: $" + _dinero(pedido.total),
+    ]
+
+    if cantidad_pagos <= 0:
+        lineas.append("Sin pagos registrados")
+    elif cantidad_pagos == 1:
+        lineas.append(
+            "1 pago registrado · Pagado: $"
+            + _dinero(pagado)
+        )
+    else:
+        lineas.append(
+            f"{cantidad_pagos} pagos registrados · Pagado: $"
+            + _dinero(pagado)
+        )
+
     if saldo > 0:
-        lineas.append("Saldo pendiente: $" + _dinero(saldo))
+        lineas.append(
+            "Saldo pendiente: $" + _dinero(saldo)
+        )
     else:
         lineas.append("Pagado ✓")
 
-    lineas.append(
-        "Ver pedido: " + _url_publica_pedido(
-            pedido,
-            request=request,
-        )
+    url = _url_publica_pedido(
+        pedido,
+        request=request,
     )
-    return "\n".join(lineas), saldo
+    lineas.append("Ver pedido: " + url)
+
+    return {
+        "texto": "\n".join(lineas),
+        "saldo": saldo,
+        "pagado": pagado,
+        "cantidad_pagos": cantidad_pagos,
+        "url": url,
+    }
 
 
-def _mensaje_pedidos_whatsapp(cliente, pedidos, request=None):
+def _resumen_pedidos(pedidos, request=None):
     pedidos = list(pedidos)
-    nombre = _primer_nombre(cliente.nombre)
-    cantidad = len(pedidos)
-    listos = sum(
-        1
-        for pedido in pedidos
-        if pedido.estado == "LISTO"
-    )
-
-    bloques = []
-    saldo_total = Decimal("0")
-    for pedido in pedidos:
-        bloque, saldo = _bloque_pedido_whatsapp(
+    bloques = [
+        _bloque_pedido_whatsapp(
             pedido,
             request=request,
         )
-        bloques.append(bloque)
-        saldo_total += saldo
+        for pedido in pedidos
+    ]
+    return {
+        "pedidos": pedidos,
+        "bloques": bloques,
+        "texto": "\n\n".join(
+            bloque["texto"]
+            for bloque in bloques
+        ),
+        "saldo_total": sum(
+            (
+                bloque["saldo"]
+                for bloque in bloques
+            ),
+            Decimal("0"),
+        ),
+        "cantidad_listos": sum(
+            1
+            for pedido in pedidos
+            if pedido.estado == "LISTO"
+        ),
+        "cantidad_con_saldo": sum(
+            1
+            for bloque in bloques
+            if bloque["saldo"] > 0
+        ),
+    }
+
+
+def _cierre_pedidos(resumen):
+    cantidad = len(resumen["pedidos"])
+    listos = resumen["cantidad_listos"]
+    saldo_total = resumen["saldo_total"]
+
+    if listos and saldo_total > 0:
+        if cantidad == 1:
+            return (
+                "Cuando puedas coordinamos el saldo pendiente "
+                "y la entrega 😊"
+            )
+        return (
+            "Cuando puedas coordinamos los saldos pendientes "
+            "y la entrega de los pedidos que ya están listos 😊"
+        )
+
+    if listos:
+        if cantidad == 1:
+            return "Cuando quieras coordinamos la entrega 😊"
+        return (
+            "Cuando quieras coordinamos la entrega de los "
+            "pedidos que ya están listos 😊"
+        )
 
     if saldo_total > 0:
-        config, _ = ConfiguracionCatalogo.objects.get_or_create(
-            pk=1
-        )
-        plantilla = _plantilla_config(
-            config,
-            "whatsapp_mensaje_cliente_multiples_pedidos",
-        )
-        return _renderizar_plantilla(
-            plantilla,
-            {
-                "nombre": nombre,
-                "cantidad_pedidos": cantidad,
-                "pedidos": "\n\n".join(bloques),
-                "saldo_total": _dinero(saldo_total),
-            },
+        return (
+            "Cuando puedas coordinamos el pago del saldo "
+            "pendiente 😊"
+            if cantidad == 1
+            else (
+                "Cuando puedas coordinamos el pago de los "
+                "saldos pendientes 😊"
+            )
         )
 
-    intro = (
-        f"Te avisamos que tenés {cantidad} "
-        f"pedido{'s' if cantidad != 1 else ''} "
-        f"listo{'s' if cantidad != 1 else ''} "
-        "para entregar en Doble V 3D:"
-        if listos == cantidad
-        else (
-            f"Te escribimos por {cantidad} pedidos "
-            "que tenés activos en Doble V 3D:"
-        )
-    )
-    return "\n".join(
-        [
-            f"Hola {nombre} 👋",
-            "",
-            intro,
-            "",
-            "\n\n".join(bloques),
-            "",
-            "Cuando quieras podemos coordinar la entrega 😊",
-        ]
-    ).strip()
+    return "Si necesitás algo con estos pedidos, escribinos 😊"
 
 
 def _plantilla_config(config, nombre_campo):
@@ -190,6 +229,56 @@ def _renderizar_plantilla(plantilla, variables):
         return plantilla
 
 
+def _mensaje_pedidos_whatsapp(cliente, pedidos, request=None):
+    resumen = _resumen_pedidos(
+        pedidos,
+        request=request,
+    )
+    config, _ = ConfiguracionCatalogo.objects.get_or_create(
+        pk=1
+    )
+    plantilla = _plantilla_config(
+        config,
+        "whatsapp_mensaje_cliente_multiples_pedidos",
+    )
+    cierre = _cierre_pedidos(resumen)
+    mensaje = _renderizar_plantilla(
+        plantilla,
+        {
+            "nombre": _primer_nombre(cliente.nombre),
+            "cantidad_pedidos": len(resumen["pedidos"]),
+            "pedidos": resumen["texto"],
+            "saldo_total": _dinero(
+                resumen["saldo_total"]
+            ),
+            "cantidad_listos": resumen["cantidad_listos"],
+            "cantidad_con_saldo": resumen[
+                "cantidad_con_saldo"
+            ],
+            "cierre": cierre,
+        },
+    ).strip()
+
+    # El bloque automático garantiza que cada pedido conserve su URL
+    # pública y el resumen real de pagos aunque exista una plantilla
+    # personalizada anterior que no use {pedidos}.
+    urls = [
+        bloque["url"]
+        for bloque in resumen["bloques"]
+    ]
+    if urls and not all(
+        url in mensaje
+        for url in urls
+    ):
+        mensaje = (
+            mensaje
+            + "\n\n"
+            + resumen["texto"]
+        ).strip()
+
+    return mensaje
+
+
 def numero_whatsapp(cliente):
     clave = normalizar_telefono(cliente.telefono)
     if not clave:
@@ -210,11 +299,7 @@ def mensaje_whatsapp(
         pk=1
     )
 
-    nombre = (
-        cliente.nombre.strip()
-        if cliente.nombre
-        else "¿cómo estás?"
-    )
+    nombre = _primer_nombre(cliente.nombre)
 
     variables = {
         "nombre": nombre,
@@ -222,6 +307,10 @@ def mensaje_whatsapp(
         "saldo": "",
         "total": "",
         "pagado": "",
+        "cantidad_pagos": "",
+        "pedido": "",
+        "url": "",
+        "cierre": "",
         "fecha": "",
         "fecha_entrega": "",
         "dias_sin_actividad": "",
@@ -229,6 +318,7 @@ def mensaje_whatsapp(
     }
 
     campo = "whatsapp_mensaje_cliente_generico"
+    bloque_pedido = None
 
     if motivo == "PEDIDO_APROBADO" and pedido:
         campo = (
@@ -236,7 +326,6 @@ def mensaje_whatsapp(
         )
         variables.update(
             {
-                "nombre": _primer_nombre(cliente.nombre),
                 "codigo": pedido.codigo,
                 "url": _url_publica_pedido(
                     pedido,
@@ -252,54 +341,43 @@ def mensaje_whatsapp(
             }
         )
 
-    elif motivo == "PEDIDO_LISTO" and pedido:
-        campo = (
-            "whatsapp_mensaje_cliente_pedido_listo"
+    elif motivo in {"PEDIDO_LISTO", "SALDO"} and pedido:
+        bloque_pedido = _bloque_pedido_whatsapp(
+            pedido,
+            request=request,
         )
-        variables.update(
-            {
-                "codigo": pedido.codigo,
-                "total": _dinero(
-                    pedido.total
-                ),
-                "pagado": _dinero(
-                    pedido.total_pagado
-                ),
-                "saldo": _dinero(
-                    pedido.saldo_pendiente
-                ),
-                "fecha": _fecha(
-                    pedido.fecha
-                ),
-                "fecha_entrega": _fecha(
-                    pedido.fecha_entrega
-                ),
-            }
+        resumen = _resumen_pedidos(
+            [pedido],
+            request=request,
         )
+        cierre = _cierre_pedidos(resumen)
 
-    elif motivo == "SALDO" and pedido:
-        campo = "whatsapp_mensaje_cliente_saldo"
+        if motivo == "PEDIDO_LISTO":
+            campo = (
+                "whatsapp_mensaje_cliente_pedido_listo_saldo"
+                if bloque_pedido["saldo"] > 0
+                else "whatsapp_mensaje_cliente_pedido_listo"
+            )
+        else:
+            campo = "whatsapp_mensaje_cliente_saldo"
+
         variables.update(
             {
                 "codigo": pedido.codigo,
-                "total": _dinero(
-                    pedido.total
-                ),
+                "url": bloque_pedido["url"],
+                "total": _dinero(pedido.total),
                 "pagado": _dinero(
-                    pedido.total_pagado
+                    bloque_pedido["pagado"]
                 ),
                 "saldo": _dinero(
-                    max(
-                        Decimal(
-                            pedido.saldo_pendiente
-                            or 0
-                        ),
-                        Decimal("0"),
-                    )
+                    bloque_pedido["saldo"]
                 ),
-                "fecha": _fecha(
-                    pedido.fecha
+                "cantidad_pagos": (
+                    bloque_pedido["cantidad_pagos"]
                 ),
+                "pedido": bloque_pedido["texto"],
+                "cierre": cierre,
+                "fecha": _fecha(pedido.fecha),
                 "fecha_entrega": _fecha(
                     pedido.fecha_entrega
                 ),
@@ -368,10 +446,25 @@ def mensaje_whatsapp(
         config,
         campo,
     )
-    return _renderizar_plantilla(
+    mensaje = _renderizar_plantilla(
         plantilla,
         variables,
-    )
+    ).strip()
+
+    # Para mensajes de pedido, la URL pública y el detalle financiero
+    # son obligatorios. Si una plantilla vieja/custom no los incluyó,
+    # se agregan automáticamente sin romper esa configuración.
+    if (
+        bloque_pedido
+        and bloque_pedido["url"] not in mensaje
+    ):
+        mensaje = (
+            mensaje
+            + "\n\n"
+            + bloque_pedido["texto"]
+        ).strip()
+
+    return mensaje
 
 
 def enlace_whatsapp(numero, mensaje):
