@@ -506,6 +506,15 @@ class DashboardProduccionTests(TestCase):
         self.assertContains(respuesta, "OTROS CONTACTOS CON CLIENTES")
         self.assertContains(respuesta, "Pedido listo · pagado")
         self.assertContains(respuesta, "Pedido listo · con saldo")
+        self.assertContains(respuesta, "Datos para cobrar")
+        self.assertContains(
+            respuesta,
+            'name="whatsapp_pago_alias"',
+        )
+        self.assertContains(
+            respuesta,
+            'name="whatsapp_pago_titular"',
+        )
         self.assertContains(respuesta, "Saldo pendiente")
         self.assertContains(respuesta, "Múltiples pedidos")
         self.assertContains(respuesta, "Reactivar cliente")
@@ -541,6 +550,8 @@ class DashboardProduccionTests(TestCase):
                 ),
                 "instagram_usuario": "@doblev3d_nuevo",
                 "whatsapp_numero": "+54 9 11 1234-5678",
+                "whatsapp_pago_alias": "doblev3d.prueba",
+                "whatsapp_pago_titular": "Titular Prueba",
                 "whatsapp_mensaje": "Hola catálogo",
                 "whatsapp_mensaje_respuesta_solicitud": (
                     "Hola {nombre}, recibimos {codigo}"
@@ -594,6 +605,14 @@ class DashboardProduccionTests(TestCase):
         self.assertEqual(
             config.whatsapp_numero,
             "5491112345678",
+        )
+        self.assertEqual(
+            config.whatsapp_pago_alias,
+            "doblev3d.prueba",
+        )
+        self.assertEqual(
+            config.whatsapp_pago_titular,
+            "Titular Prueba",
         )
         self.assertEqual(
             config.whatsapp_mensaje_cliente_pedido_listo,
