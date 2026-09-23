@@ -5,10 +5,16 @@ from django.test import TestCase
 from django.urls import reverse
 
 from clientes.models import Cliente
+from kits.models import Kit
 from productos.models import Producto, TipoProducto
 from productos.image_models import ProductoImagen
 
-from .models import DetallePedido, EstadoImpresionPedido, Pedido
+from .models import (
+    DetalleKitProducto,
+    DetallePedido,
+    EstadoImpresionPedido,
+    Pedido,
+)
 
 
 class CentroPreparacionTests(TestCase):
@@ -281,6 +287,75 @@ class CentroPreparacionTests(TestCase):
         self.assertContains(
             respuesta,
             'class="producto-thumb"',
+        )
+
+    def test_vista_por_paquete_separa_seis_kits_del_mismo_pedido(self):
+        otro_producto = Producto.objects.create(
+            nombre="Estrella preparación",
+            categoria="PRODUCTO",
+            tipo=self.producto.tipo,
+            requiere_impresion=True,
+            stock=10,
+            activo=True,
+        )
+        pedido = Pedido.objects.create(
+            cliente=self.cliente,
+            estado="PENDIENTE",
+        )
+        kit = Kit.objects.create(
+            nombre="Kit sensorial x2 preparación",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.producto.tipo,
+            cantidad_productos=2,
+            precio=Decimal("12000"),
+            activo=True,
+        )
+        detalle = DetallePedido.objects.create(
+            pedido=pedido,
+            tipo_item="KIT",
+            kit=kit,
+            cantidad=6,
+            precio_unitario=Decimal("12000"),
+            estado="PENDIENTE",
+        )
+        DetalleKitProducto.objects.create(
+            detalle=detalle,
+            producto=self.producto,
+            cantidad=6,
+        )
+        DetalleKitProducto.objects.create(
+            detalle=detalle,
+            producto=otro_producto,
+            cantidad=6,
+        )
+
+        respuesta = self.client.get(
+            reverse("pedidos:impresiones")
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        fila = next(
+            item
+            for item in respuesta.context["para_preparar"]
+            if item["pedido"].id == pedido.id
+        )
+        self.assertEqual(fila["total_paquetes"], 6)
+        self.assertEqual(len(fila["paquetes"]), 6)
+
+        for paquete in fila["paquetes"]:
+            self.assertEqual(len(paquete["productos"]), 2)
+            self.assertTrue(
+                all(
+                    item["cantidad"] == 1
+                    for item in paquete["productos"]
+                )
+            )
+
+        self.assertContains(respuesta, "POR PAQUETE")
+        self.assertContains(respuesta, "PAQUETE 1 DE 6")
+        self.assertContains(
+            respuesta,
+            'data-preparacion-vista="paquetes"',
         )
 
     def test_cancelados_muestran_miniatura_del_producto(self):
