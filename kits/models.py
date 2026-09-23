@@ -68,6 +68,14 @@ class Kit(models.Model):
         ),
     )
 
+    max_repeticiones_producto = models.PositiveIntegerField(
+        default=1,
+        help_text=(
+            "Máximo de veces que un mismo producto puede elegirse dentro "
+            "de un kit libre. 1 impide repetir productos."
+        ),
+    )
+
     permite_elegir_color = models.BooleanField(
         default=False,
         help_text=(
