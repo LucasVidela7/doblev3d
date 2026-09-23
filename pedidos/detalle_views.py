@@ -267,6 +267,10 @@ def detalle_pedido(request, pedido_id):
             "aprobacion_whatsapp_url": aprobacion_whatsapp_url,
             "entrega_contactada": entrega_contactada,
             "entrega_whatsapp_url": entrega_whatsapp_url,
+            "entrega_con_saldo": (
+                pedido.estado == "LISTO"
+                and pedido.saldo_pendiente > 0
+            ),
         },
     )
 
