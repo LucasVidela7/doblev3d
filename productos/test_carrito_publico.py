@@ -6,7 +6,11 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from calculadora.precios import calcular_escenarios_producto
+from calculadora.precios import (
+    MARGEN_MINIMO,
+    calcular_costo_productivo_producto,
+    calcular_escenarios_producto,
+)
 from costos.models import ConfiguracionCostos
 from kits.economia import precio_automatico_kit_libre
 from kits.models import Kit, KitComponente
@@ -812,6 +816,184 @@ class CarritoPublicoTests(TestCase):
             descuento_separado,
             descuento_agrupado,
         )
+
+    def test_curva_kits_x2_x4_x6_es_uniforme_de_1_a_10_y_segura(self):
+        """
+        Prueba comercial integral:
+        - x2, x4 y x6 comparten curva por cantidad total de kits.
+        - distintas selecciones baratas/caras no cambian el porcentaje.
+        - un único kit llevado a qty=N coincide con N kits separados.
+        - las combinaciones de este escenario de estrés conservan el margen
+          mínimo técnico.
+        """
+        productos = [self.producto]
+        for indice, peso in enumerate(("30", "60", "140", "200", "250"), start=1):
+            productos.append(
+                Producto.objects.create(
+                    nombre=f"Sensorial estrés {indice}",
+                    categoria="PRODUCTO",
+                    tipo=self.tipo,
+                    peso_gramos=Decimal(peso),
+                    margen_ganancia=Decimal("50"),
+                    activo=True,
+                    solo_produccion=False,
+                )
+            )
+
+        kits = {}
+        for cantidad, precio in ((2, "12000"), (4, "19000"), (6, "25000")):
+            kits[cantidad] = Kit.objects.create(
+                nombre=f"Kit sensorial x{cantidad} estrés",
+                modalidad="LIBRE_CATEGORIA",
+                tipo_producto=self.tipo,
+                cantidad_productos=cantidad,
+                precio=Decimal(precio),
+                proteger_rentabilidad_libre=False,
+                activo=True,
+            )
+
+        selecciones = {
+            2: [
+                [productos[0], productos[5]],
+                [productos[1], productos[4]],
+            ],
+            4: [
+                [productos[0], productos[1], productos[4], productos[5]],
+                [productos[1], productos[2], productos[3], productos[5]],
+            ],
+            6: [
+                productos[:6],
+                [productos[5], productos[4], productos[3], productos[2], productos[1], productos[0]],
+            ],
+        }
+
+        esperados = {
+            1: Decimal("0.0"),
+            2: Decimal("3.8"),
+            3: Decimal("6.0"),
+            4: Decimal("7.5"),
+            5: Decimal("8.6"),
+            6: Decimal("9.4"),
+            7: Decimal("10.0"),
+            8: Decimal("10.5"),
+            9: Decimal("10.9"),
+            10: Decimal("11.3"),
+        }
+
+        resumen_impreso = []
+
+        for total_kits in range(1, 11):
+            # Escenario A: una configuración de x6 aumentada a qty=N.
+            seleccion_agrupada = selecciones[6][0]
+            agrupado = self.client.post(
+                reverse("catalogo_carrito_precios"),
+                data=json.dumps(
+                    [
+                        {
+                            "key": f"agrupado-x6-{total_kits}",
+                            "kind": "kit",
+                            "id": kits[6].id,
+                            "qty": total_kits,
+                            "selections": [
+                                {"id": producto.id}
+                                for producto in seleccion_agrupada
+                            ],
+                        }
+                    ]
+                ),
+                content_type="application/json",
+            )
+            self.assertEqual(agrupado.status_code, 200)
+            linea_agrupada = agrupado.json()["lineas"][0]
+            descuento_agrupado = Decimal(
+                str(linea_agrupada["descuento_porcentaje"])
+            )
+
+            # Escenario B: N kits separados, alternando x2/x4/x6 y usando
+            # selecciones de costos muy diferentes.
+            payload_mixto = []
+            costo_mixto = Decimal("0")
+            for indice in range(total_kits):
+                cantidad_kit = (2, 4, 6)[indice % 3]
+                seleccion = selecciones[cantidad_kit][indice % 2]
+                payload_mixto.append(
+                    {
+                        "key": f"mixto-{total_kits}-{indice}",
+                        "kind": "kit",
+                        "id": kits[cantidad_kit].id,
+                        "qty": 1,
+                        "selections": [
+                            {"id": producto.id}
+                            for producto in seleccion
+                        ],
+                    }
+                )
+                for producto in seleccion:
+                    costo_mixto += Decimal(
+                        str(
+                            calcular_costo_productivo_producto(
+                                producto,
+                                cantidad=1,
+                                forzar_filamento_economico=True,
+                            )["costo_productivo"]
+                        )
+                    )
+
+            mixto = self.client.post(
+                reverse("catalogo_carrito_precios"),
+                data=json.dumps(payload_mixto),
+                content_type="application/json",
+            )
+            self.assertEqual(mixto.status_code, 200)
+            datos_mixtos = mixto.json()
+            descuentos_mixtos = {
+                Decimal(str(linea["descuento_porcentaje"]))
+                for linea in datos_mixtos["lineas"]
+            }
+
+            esperado = esperados[total_kits]
+            self.assertEqual(descuento_agrupado, esperado)
+            self.assertEqual(descuentos_mixtos, {esperado})
+
+            precio_final_mixto = Decimal(
+                str(datos_mixtos["precio_final_total"])
+            )
+            margen_mixto = (
+                (
+                    precio_final_mixto - costo_mixto
+                )
+                / precio_final_mixto
+                * Decimal("100")
+                if precio_final_mixto > 0
+                else Decimal("0")
+            ).quantize(Decimal("0.1"))
+
+            self.assertGreaterEqual(
+                margen_mixto,
+                MARGEN_MINIMO,
+                msg=(
+                    f"Con {total_kits} kits el margen de estrés cayó a "
+                    f"{margen_mixto}%."
+                ),
+            )
+
+            resumen_impreso.append(
+                (
+                    total_kits,
+                    esperado,
+                    margen_mixto,
+                    len(datos_mixtos["lineas"]),
+                )
+            )
+
+        print("DV_KIT_CURVE_STRESS_BEGIN")
+        for cantidad, descuento, margen, lineas in resumen_impreso:
+            print(
+                "DV_KIT_CURVE_STRESS "
+                f"kits={cantidad} descuento={descuento}% "
+                f"margen_mixto={margen}% lineas={lineas}"
+            )
+        print("DV_KIT_CURVE_STRESS_END")
 
     def test_kits_fijos_distintos_no_combinan_descuento(self):
         kit_a = Kit.objects.create(
