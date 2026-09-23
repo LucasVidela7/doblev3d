@@ -13,10 +13,10 @@ from django.urls import reverse
 PEDIDO_FORM_STYLE = r"""
 <style id="dv-pedido-form-style">
 body.dv-pedido-form-page{
-    --dv-ink:#25282d;
-    --dv-muted:#727780;
-    --dv-line:#e2e5e9;
-    --dv-soft:#f7f8fa;
+    --dv-form-ink:var(--dv-text,#25282d);
+    --dv-form-muted:var(--dv-muted,#727780);
+    --dv-form-line:var(--dv-border,#e2e5e9);
+    --dv-form-soft:var(--dv-surface-soft,#f7f8fa);
     --dv-blue:#315f9f;
     --dv-blue-bg:#eef5ff;
     --dv-green:#25603c;
@@ -41,12 +41,12 @@ body.dv-pedido-form-page form > .card{
 .dv-items-heading-main{
     font-size:15px;
     font-weight:900;
-    color:var(--dv-ink);
+    color:var(--dv-form-ink);
 }
 .dv-items-heading-help{
     margin-top:4px;
     max-width:680px;
-    color:var(--dv-muted);
+    color:var(--dv-form-muted);
     font-size:10px;
     line-height:1.45;
 }
@@ -54,10 +54,20 @@ body.dv-pedido-form-page form > .card{
     flex:0 0 auto;
     padding:7px 10px;
     border-radius:999px;
-    background:#e9ebee;
-    color:#555b63;
-    font-size:9px;
+    background:var(--dv-surface-muted,#e9ebee);
+    color:var(--dv-form-ink);
+    font-size:10.5px;
     font-weight:900;
+}
+.dv-items-heading-main{
+    font-size:16px;
+}
+.dv-items-heading-help{
+    font-size:11.5px;
+}
+html[data-dv-theme="dark"] body.dv-pedido-form-page .dv-item-kind{
+    background:var(--dv-surface-muted)!important;
+    color:var(--dv-text)!important;
 }
 
 body.dv-pedido-form-page .item{
