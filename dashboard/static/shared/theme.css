@@ -52,6 +52,9 @@ html[data-dv-theme="dark"]{
     --dv-border:#2d394d;
     --dv-brand-red-soft:#351f27;
     --dv-brand-blue-soft:#1a2b47;
+    --dv-brand-sky:#78c3f3;
+    --dv-brand-sky-strong:#69b6eb;
+    --dv-brand-sky-soft:#172c3a;
     --dv-accent-blue-text:#8fc1ff;
     --dv-accent-red-text:#ff9ca2;
     --dv-on-blue:#ffffff;
