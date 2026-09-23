@@ -6,6 +6,7 @@ from django.utils import timezone
 
 from pedidos.models import Pedido, Presupuesto
 from productos.models import ConfiguracionCatalogo
+from productos.whatsapp import datos_pago_texto
 
 from .telefonos import normalizar_telefono
 
@@ -242,6 +243,11 @@ def _mensaje_pedidos_whatsapp(cliente, pedidos, request=None):
         "whatsapp_mensaje_cliente_multiples_pedidos",
     )
     cierre = _cierre_pedidos(resumen)
+    datos_pago = (
+        datos_pago_texto(config)
+        if resumen["saldo_total"] > 0
+        else ""
+    )
     mensaje = _renderizar_plantilla(
         plantilla,
         {
@@ -262,6 +268,7 @@ def _mensaje_pedidos_whatsapp(cliente, pedidos, request=None):
             "cantidad_con_saldo": resumen[
                 "cantidad_con_saldo"
             ],
+            "datos_pago": datos_pago,
             "cierre": cierre,
         },
     ).strip()
@@ -281,6 +288,16 @@ def _mensaje_pedidos_whatsapp(cliente, pedidos, request=None):
             mensaje
             + "\n\n"
             + resumen["texto"]
+        ).strip()
+
+    if (
+        datos_pago
+        and datos_pago not in mensaje
+    ):
+        mensaje = (
+            mensaje
+            + "\n\n"
+            + datos_pago
         ).strip()
 
     return mensaje
@@ -317,6 +334,7 @@ def mensaje_whatsapp(
         "cantidad_pagos": "",
         "pedido": "",
         "url": "",
+        "datos_pago": "",
         "cierre": "",
         "fecha": "",
         "fecha_entrega": "",
@@ -358,6 +376,11 @@ def mensaje_whatsapp(
             request=request,
         )
         cierre = _cierre_pedidos(resumen)
+        datos_pago = (
+            datos_pago_texto(config)
+            if bloque_pedido["saldo"] > 0
+            else ""
+        )
 
         if motivo == "PEDIDO_LISTO":
             campo = (
@@ -383,6 +406,7 @@ def mensaje_whatsapp(
                     bloque_pedido["cantidad_pagos"]
                 ),
                 "pedido": bloque_pedido["texto"],
+                "datos_pago": datos_pago,
                 "cierre": cierre,
                 "fecha": _fecha(pedido.fecha),
                 "fecha_entrega": _fecha(
@@ -469,6 +493,18 @@ def mensaje_whatsapp(
             mensaje
             + "\n\n"
             + bloque_pedido["texto"]
+        ).strip()
+
+    if (
+        bloque_pedido
+        and bloque_pedido["saldo"] > 0
+        and variables.get("datos_pago")
+        and variables["datos_pago"] not in mensaje
+    ):
+        mensaje = (
+            mensaje
+            + "\n\n"
+            + variables["datos_pago"]
         ).strip()
 
     return mensaje
