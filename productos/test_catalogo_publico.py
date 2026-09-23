@@ -236,10 +236,9 @@ class CatalogoPublicoTests(TestCase):
             activo=True,
             solo_produccion=False,
         )
-        ConfiguracionCatalogo.objects.create(
-            pk=1,
-            mostrar_productos_sin_foto=False,
-        )
+        config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
+        config.mostrar_productos_sin_foto = False
+        config.save(update_fields=["mostrar_productos_sin_foto"])
 
         response = self.client.get(reverse("catalogo_productos"))
 
