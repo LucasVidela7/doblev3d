@@ -86,6 +86,44 @@ def lista_solicitudes_web(request):
     )
 
 
+def _normalizar_texto(valor):
+    return " ".join(str(valor or "").split())
+
+
+def _cliente_existente_y_diferencias(solicitud):
+    cliente = buscar_cliente_por_telefono(solicitud.telefono)
+    if not cliente:
+        return None, {
+            "nombre": False,
+            "email": False,
+            "hay_diferencias": False,
+            "email_se_completa": False,
+        }
+
+    nombre_solicitud = _normalizar_texto(solicitud.nombre)
+    nombre_cliente = _normalizar_texto(cliente.nombre)
+    email_solicitud = (solicitud.email or "").strip()
+    email_cliente = (cliente.email or "").strip()
+
+    diferencia_nombre = bool(
+        nombre_solicitud
+        and nombre_cliente
+        and nombre_solicitud.casefold() != nombre_cliente.casefold()
+    )
+    diferencia_email = bool(
+        email_solicitud
+        and email_cliente
+        and email_solicitud.casefold() != email_cliente.casefold()
+    )
+
+    return cliente, {
+        "nombre": diferencia_nombre,
+        "email": diferencia_email,
+        "hay_diferencias": diferencia_nombre or diferencia_email,
+        "email_se_completa": bool(email_solicitud and not email_cliente),
+    }
+
+
 def detalle_solicitud_web(request, solicitud_id):
     solicitud = get_object_or_404(
         SolicitudWeb.objects
@@ -111,6 +149,9 @@ def detalle_solicitud_web(request, solicitud_id):
 
     items = list(solicitud.items.all())
     asignar_miniaturas_items(items)
+    cliente_existente, diferencias_cliente = (
+        _cliente_existente_y_diferencias(solicitud)
+    )
 
     return render(
         request,
@@ -120,6 +161,8 @@ def detalle_solicitud_web(request, solicitud_id):
             "items": items,
             "whatsapp_numero": solicitud.telefono_normalizado,
             "whatsapp_url_cliente": whatsapp_url_cliente,
+            "cliente_existente": cliente_existente,
+            "diferencias_cliente": diferencias_cliente,
         },
     )
 
@@ -193,57 +236,46 @@ def rechazar_solicitud_web(request, solicitud_id):
     )
 
 
-def _buscar_cliente(solicitud):
-    # Primero resolvemos por teléfono normalizado para evitar duplicados por
-    # formato (+54 9..., 11..., espacios o guiones).
-    if solicitud.telefono:
-        cliente = buscar_cliente_por_telefono(
-            solicitud.telefono
-        )
-        if cliente:
-            campos_actualizados = []
-            nombre_nuevo = " ".join(
-                (solicitud.nombre or "").split()
-            )
-            telefono_nuevo = (solicitud.telefono or "").strip()
-            email_nuevo = (solicitud.email or "").strip()
+def _buscar_cliente(solicitud, actualizar_datos=False):
+    # El teléfono es la identidad del cliente. Una nueva solicitud nunca
+    # debe sobrescribir silenciosamente la ficha maestra.
+    cliente = buscar_cliente_por_telefono(solicitud.telefono)
 
+    if cliente:
+        campos_actualizados = []
+        nombre_nuevo = _normalizar_texto(solicitud.nombre)
+        email_nuevo = (solicitud.email or "").strip()
+
+        # Completar email faltante es seguro; reemplazar uno existente solo
+        # se hace con una decisión explícita desde la solicitud.
+        if email_nuevo and not (cliente.email or "").strip():
+            cliente.email = email_nuevo
+            campos_actualizados.append("email")
+
+        if actualizar_datos:
             if nombre_nuevo and cliente.nombre != nombre_nuevo:
                 cliente.nombre = nombre_nuevo
                 campos_actualizados.append("nombre")
-            if telefono_nuevo and cliente.telefono != telefono_nuevo:
-                cliente.telefono = telefono_nuevo
-                campos_actualizados.append("telefono")
-            if email_nuevo and cliente.email != email_nuevo:
+
+            email_actual = (cliente.email or "").strip()
+            if (
+                email_nuevo
+                and email_actual
+                and email_actual.casefold() != email_nuevo.casefold()
+            ):
                 cliente.email = email_nuevo
                 campos_actualizados.append("email")
-            if not cliente.activo:
-                cliente.activo = True
-                campos_actualizados.append("activo")
 
-            if campos_actualizados:
-                cliente.save(
-                    update_fields=list(dict.fromkeys(campos_actualizados))
-                )
-            return cliente
-
-    if solicitud.email:
-        cliente = (
-            Cliente.objects
-            .filter(
-                email__iexact=solicitud.email,
-                activo=True,
+        if campos_actualizados:
+            cliente.save(
+                update_fields=list(dict.fromkeys(campos_actualizados))
             )
-            .order_by("id")
-            .first()
-        )
-        if cliente:
-            return cliente
+        return cliente
 
     return Cliente.objects.create(
-        nombre=solicitud.nombre,
-        telefono=solicitud.telefono,
-        email=solicitud.email,
+        nombre=_normalizar_texto(solicitud.nombre),
+        telefono=(solicitud.telefono or "").strip(),
+        email=(solicitud.email or "").strip(),
         activo=True,
     )
 
@@ -283,7 +315,31 @@ def convertir_solicitud_web(request, solicitud_id):
             solicitud_id=solicitud.id,
         )
 
-    cliente = _buscar_cliente(solicitud)
+    cliente_existente, diferencias_cliente = (
+        _cliente_existente_y_diferencias(solicitud)
+    )
+    decision_datos = str(
+        request.POST.get("datos_cliente") or ""
+    ).strip().upper()
+
+    if (
+        cliente_existente
+        and diferencias_cliente["hay_diferencias"]
+        and decision_datos not in {"MANTENER", "ACTUALIZAR"}
+    ):
+        messages.error(
+            request,
+            "Elegí si querés mantener o actualizar los datos del cliente.",
+        )
+        return redirect(
+            "pedidos:solicitud_web_detalle",
+            solicitud_id=solicitud.id,
+        )
+
+    cliente = _buscar_cliente(
+        solicitud,
+        actualizar_datos=(decision_datos == "ACTUALIZAR"),
+    )
 
     observaciones = solicitud.observaciones.strip()
     if observaciones:

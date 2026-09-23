@@ -162,7 +162,8 @@ class SolicitudesWebGestionTests(TestCase):
             reverse(
                 "pedidos:solicitud_web_convertir",
                 args=[self.solicitud.id],
-            )
+            ),
+            {"datos_cliente": "MANTENER"},
         )
 
         self.assertEqual(response.status_code, 302)
@@ -174,8 +175,119 @@ class SolicitudesWebGestionTests(TestCase):
         self.assertEqual(Cliente.objects.count(), 1)
 
         existente.refresh_from_db()
+        self.assertEqual(existente.nombre, "Cliente previo")
+        self.assertEqual(existente.telefono, "11 4000-1234")
+        self.assertEqual(existente.email, "web@example.com")
+
+    def test_detalle_advierte_si_nombre_no_coincide_con_telefono(self):
+        Cliente.objects.create(
+            nombre="Lucas Videla",
+            telefono="11 4000-1234",
+            email="original@example.com",
+            activo=True,
+        )
+        self.solicitud.nombre = "Lucas Alala"
+        self.solicitud.email = "nuevo@example.com"
+        self.solicitud.save(update_fields=["nombre", "email"])
+
+        response = self.client.get(
+            reverse(
+                "pedidos:solicitud_web_detalle",
+                args=[self.solicitud.id],
+            )
+        )
+
+        self.assertContains(
+            response,
+            "Datos distintos para un cliente existente",
+        )
+        self.assertContains(response, "Lucas Videla")
+        self.assertContains(response, "Lucas Alala")
+        self.assertContains(response, 'value="MANTENER"')
+        self.assertContains(response, 'value="ACTUALIZAR"')
+
+    def test_convertir_conservar_no_sobrescribe_ficha_existente(self):
+        existente = Cliente.objects.create(
+            nombre="Lucas Videla",
+            telefono="11 4000-1234",
+            email="original@example.com",
+            activo=True,
+        )
+        self.solicitud.nombre = "Lucas Alala"
+        self.solicitud.email = "nuevo@example.com"
+        self.solicitud.save(update_fields=["nombre", "email"])
+
+        response = self.client.post(
+            reverse(
+                "pedidos:solicitud_web_convertir",
+                args=[self.solicitud.id],
+            ),
+            {"datos_cliente": "MANTENER"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        existente.refresh_from_db()
+        self.assertEqual(existente.nombre, "Lucas Videla")
+        self.assertEqual(existente.email, "original@example.com")
+        self.assertEqual(
+            self.solicitud.__class__.objects.get(id=self.solicitud.id).nombre,
+            "Lucas Alala",
+        )
+
+    def test_convertir_actualizar_requiere_decision_explicita(self):
+        existente = Cliente.objects.create(
+            nombre="Lucas Videla",
+            telefono="11 4000-1234",
+            email="original@example.com",
+            activo=True,
+        )
+        self.solicitud.nombre = "Lucas Alala"
+        self.solicitud.email = "nuevo@example.com"
+        self.solicitud.save(update_fields=["nombre", "email"])
+
+        bloqueada = self.client.post(
+            reverse(
+                "pedidos:solicitud_web_convertir",
+                args=[self.solicitud.id],
+            )
+        )
+        self.assertEqual(bloqueada.status_code, 302)
+        self.solicitud.refresh_from_db()
+        self.assertIsNone(self.solicitud.presupuesto_generado_id)
+
+        actualizada = self.client.post(
+            reverse(
+                "pedidos:solicitud_web_convertir",
+                args=[self.solicitud.id],
+            ),
+            {"datos_cliente": "ACTUALIZAR"},
+        )
+
+        self.assertEqual(actualizada.status_code, 302)
+        existente.refresh_from_db()
+        self.assertEqual(existente.nombre, "Lucas Alala")
+        self.assertEqual(existente.email, "nuevo@example.com")
+        self.assertEqual(existente.telefono, "11 4000-1234")
+
+    def test_email_vacio_se_completa_sin_cambiar_nombre(self):
+        existente = Cliente.objects.create(
+            nombre="Cliente desde web",
+            telefono="11 4000-1234",
+            email="",
+            activo=True,
+        )
+
+        response = self.client.post(
+            reverse(
+                "pedidos:solicitud_web_convertir",
+                args=[self.solicitud.id],
+            ),
+            {"datos_cliente": "MANTENER"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        existente.refresh_from_db()
         self.assertEqual(existente.nombre, "Cliente desde web")
-        self.assertEqual(existente.telefono, "+54 11 4000 1234")
         self.assertEqual(existente.email, "web@example.com")
 
     def test_marcar_contactada_no_convierte(self):
