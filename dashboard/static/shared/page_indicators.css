@@ -167,3 +167,373 @@ html[data-dv-theme="dark"] .dv-management-menu__link[data-dv-section]:not(.is-pr
         width:4px;
     }
 }
+
+
+/* SUITE COLOR SYSTEM v2
+   ---------------------------------------------------------
+   Doble V 3D usa azul y rojo para jerarquía/identidad.
+   Verde, ámbar y rojo de estado quedan reservados para
+   información semántica: correcto, atención y problema.
+*/
+body[data-dv-section]{
+    --dv-brand-accent-blue:var(--dv-brand-blue,#134a9a);
+    --dv-brand-accent-blue-strong:var(--dv-brand-blue-strong,#0d376f);
+    --dv-brand-accent-red:var(--dv-brand-red,#f0393b);
+    --dv-brand-accent-red-strong:var(--dv-brand-red-strong,#cf2730);
+    --dv-state-ok:var(--dv-success-text,#287044);
+    --dv-state-ok-soft:var(--dv-success-soft,#eaf7ee);
+    --dv-state-warn:var(--dv-warning-text,#8a6417);
+    --dv-state-warn-soft:var(--dv-warning-soft,#fff7db);
+    --dv-state-danger:var(--dv-danger-text,#a63d3d);
+    --dv-state-danger-soft:var(--dv-danger-soft,#fff0f0);
+    --dv-state-info:var(--dv-brand-blue,#134a9a);
+    --dv-state-info-soft:var(--dv-brand-blue-soft,#edf4ff);
+}
+
+/* Inicio también forma parte del lenguaje visual compartido. */
+body[data-dv-section="inicio"]{
+    --dv-page-accent:var(--dv-brand-accent-blue);
+    --dv-page-accent-strong:var(--dv-brand-accent-blue-strong);
+}
+
+/* Botones principales: la acción importante queda ligada al área actual. */
+body[data-dv-section] :is(
+    .btn.primary,
+    .btn.principal,
+    .fin-action.primary,
+    .accion-principal,
+    .btn-head.principal
+){
+    border-color:var(--dv-page-accent)!important;
+    background:var(--dv-page-accent)!important;
+    color:#fff!important;
+}
+body[data-dv-section] :is(
+    .btn.primary,
+    .btn.principal,
+    .fin-action.primary,
+    .accion-principal,
+    .btn-head.principal
+):hover{
+    filter:brightness(.94);
+}
+
+/* Filtros y controles: el foco deja claro qué área se está editando. */
+body[data-dv-section] :is(input,select,textarea):focus{
+    border-color:color-mix(
+        in srgb,
+        var(--dv-page-accent) 70%,
+        var(--dv-border,#dfe5ef)
+    )!important;
+    outline:3px solid color-mix(
+        in srgb,
+        var(--dv-page-accent) 14%,
+        transparent
+    )!important;
+    outline-offset:0;
+}
+body[data-dv-section] :is(
+    .filtros,
+    .filters,
+    .periodo,
+    .tabs
+){
+    border-color:color-mix(
+        in srgb,
+        var(--dv-page-accent) 17%,
+        var(--dv-border,#dfe5ef)
+    )!important;
+}
+body[data-dv-section] :is(
+    .tab.active,
+    .period-btn.active
+){
+    border-color:var(--dv-page-accent)!important;
+    background:color-mix(
+        in srgb,
+        var(--dv-page-accent) 13%,
+        var(--dv-surface,#fff)
+    )!important;
+    color:var(--dv-page-accent)!important;
+}
+body[data-dv-section] .tab.active{
+    background:var(--dv-page-accent)!important;
+    color:#fff!important;
+}
+
+/* KPI / métricas:
+   se alternan únicamente los dos colores de marca para distinguir datos.
+   Estados explícitos abajo reemplazan este color por semáforo. */
+body[data-dv-section] :is(.metricas,.metrics,.resumen) > :is(.metrica,.metric){
+    --dv-metric-accent:var(--dv-page-accent);
+    position:relative;
+    border-color:color-mix(
+        in srgb,
+        var(--dv-metric-accent) 23%,
+        var(--dv-border,#dfe5ef)
+    )!important;
+    border-top:3px solid var(--dv-metric-accent)!important;
+    background:color-mix(
+        in srgb,
+        var(--dv-metric-accent) 4%,
+        var(--dv-surface,#fff)
+    )!important;
+}
+body[data-dv-section] :is(.metricas,.metrics,.resumen) > :is(.metrica,.metric):nth-child(2n){
+    --dv-metric-accent:var(--dv-brand-accent-red);
+}
+body[data-dv-section] :is(.metricas,.metrics,.resumen) > :is(.metrica,.metric):nth-child(4n + 3){
+    --dv-metric-accent:var(--dv-brand-accent-blue-strong);
+}
+body[data-dv-section] :is(.metricas,.metrics,.resumen) > :is(.metrica,.metric) :is(
+    small,
+    .metrica-label,
+    .metric-label,
+    .metrica-titulo
+){
+    color:color-mix(
+        in srgb,
+        var(--dv-metric-accent) 62%,
+        var(--dv-text,#17233a)
+    )!important;
+}
+
+/* Semáforo real sobre las métricas. */
+body[data-dv-section] :is(.metrica,.metric):is(
+    .ok,.success,.disponible,.listo,.m-ingresos
+){
+    --dv-metric-accent:var(--dv-state-ok)!important;
+}
+body[data-dv-section] :is(.metrica,.metric):is(
+    .warning,.warn,.preparando,.m-presupuestos,.m-planificacion
+){
+    --dv-metric-accent:var(--dv-state-warn)!important;
+}
+body[data-dv-section] :is(.metrica,.metric):is(
+    .danger,.error,.falta,.m-arrepentimiento
+){
+    --dv-metric-accent:var(--dv-state-danger)!important;
+}
+body[data-dv-section] :is(.metrica,.metric):is(
+    .info,.azul,.m-web,.m-pedidos,.m-entregas
+){
+    --dv-metric-accent:var(--dv-state-info)!important;
+}
+
+/* Tarjetas de entidades principales: borde de identidad y hover suave.
+   No se usa rojo/verde semántico salvo que la propia tarjeta lo declare. */
+body[data-dv-section] :is(
+    .card-producto,
+    .kit,
+    .pedido,
+    .request-card,
+    .budget-card,
+    .printer,
+    .need,
+    .personal,
+    .queue-item,
+    .prod-card,
+    .rent-card
+){
+    border-color:color-mix(
+        in srgb,
+        var(--dv-page-accent) 18%,
+        var(--dv-border,#dfe5ef)
+    )!important;
+    box-shadow:
+        inset 3px 0 0 color-mix(
+            in srgb,
+            var(--dv-page-accent) 72%,
+            transparent
+        ),
+        var(--dv-shadow-soft,0 4px 18px rgba(31,41,55,.06));
+}
+body[data-dv-section] :is(
+    .card-producto,
+    .kit,
+    .pedido,
+    .request-card,
+    .budget-card,
+    .printer,
+    .need,
+    .personal,
+    .queue-item,
+    .prod-card
+):hover{
+    border-color:color-mix(
+        in srgb,
+        var(--dv-page-accent) 42%,
+        var(--dv-border,#dfe5ef)
+    )!important;
+}
+
+/* Encabezados internos: raya corta de color sin pintar paneles completos. */
+body[data-dv-section] :is(
+    .seccion-head,
+    .section-head,
+    .panel-head,
+    .card-head
+){
+    box-shadow:inset 3px 0 0 var(--dv-page-accent);
+}
+
+/* Tablas: encabezado relacionado al área, filas más fáciles de recorrer. */
+body[data-dv-section] table thead th{
+    background:color-mix(
+        in srgb,
+        var(--dv-page-accent) 7%,
+        var(--dv-surface-muted,#f1f4f9)
+    )!important;
+    border-bottom-color:color-mix(
+        in srgb,
+        var(--dv-page-accent) 20%,
+        var(--dv-border,#dfe5ef)
+    )!important;
+}
+body[data-dv-section] table tbody tr:nth-child(even){
+    background:color-mix(
+        in srgb,
+        var(--dv-page-accent) 2.3%,
+        transparent
+    );
+}
+body[data-dv-section] table tbody tr:hover{
+    background:color-mix(
+        in srgb,
+        var(--dv-page-accent) 6%,
+        var(--dv-surface,#fff)
+    )!important;
+}
+
+/* Badges neutros reciben sólo un aro de marca; los colores semánticos
+   existentes continúan controlando su fondo y texto. */
+body[data-dv-section] :is(.badge,.pill,.tag,.dv-kanban-badge){
+    border:1px solid color-mix(
+        in srgb,
+        var(--dv-page-accent) 16%,
+        var(--dv-border,#dfe5ef)
+    );
+}
+
+/* KANBAN: estados con colores semánticos consistentes en toda la suite. */
+body[data-dv-section] .dv-kanban-column{
+    --dv-kanban-state:var(--dv-page-accent);
+    border-top:4px solid var(--dv-kanban-state)!important;
+}
+body[data-dv-section] .dv-kanban-column.is-info{
+    --dv-kanban-state:var(--dv-state-info);
+}
+body[data-dv-section] .dv-kanban-column.is-warning{
+    --dv-kanban-state:var(--dv-state-warn);
+}
+body[data-dv-section] .dv-kanban-column.is-success{
+    --dv-kanban-state:var(--dv-state-ok);
+}
+body[data-dv-section] .dv-kanban-column:is(.is-danger,.is-error){
+    --dv-kanban-state:var(--dv-state-danger);
+}
+body[data-dv-section] .dv-kanban-column__head{
+    background:color-mix(
+        in srgb,
+        var(--dv-kanban-state) 6%,
+        var(--dv-surface,#fff)
+    )!important;
+}
+body[data-dv-section] .dv-kanban-count{
+    border:1px solid color-mix(
+        in srgb,
+        var(--dv-kanban-state) 30%,
+        var(--dv-border,#dfe5ef)
+    )!important;
+    background:color-mix(
+        in srgb,
+        var(--dv-kanban-state) 12%,
+        var(--dv-surface,#fff)
+    )!important;
+    color:color-mix(
+        in srgb,
+        var(--dv-kanban-state) 78%,
+        var(--dv-text,#17233a)
+    )!important;
+}
+
+/* Preparación usa un semáforo operacional explícito. */
+body[data-dv-section="preparacion"] .kanban-board>#falta-stock{
+    border-top-color:var(--dv-state-danger)!important;
+}
+body[data-dv-section="preparacion"] .kanban-board>#para-preparar{
+    border-top-color:var(--dv-brand-accent-blue)!important;
+}
+body[data-dv-section="preparacion"] .kanban-board>#en-preparacion{
+    border-top-color:var(--dv-state-warn)!important;
+}
+body[data-dv-section="preparacion"] .kanban-board>#listos{
+    border-top-color:var(--dv-state-ok)!important;
+}
+
+/* Producción: impresora libre/ocupada y prioridad conservan semántica. */
+body[data-dv-section="produccion"] .printer.free{
+    border-color:color-mix(
+        in srgb,
+        var(--dv-state-ok) 36%,
+        var(--dv-border,#dfe5ef)
+    )!important;
+    box-shadow:inset 4px 0 0 var(--dv-state-ok)!important;
+}
+body[data-dv-section="produccion"] .printer.busy{
+    border-color:color-mix(
+        in srgb,
+        var(--dv-state-info) 36%,
+        var(--dv-border,#dfe5ef)
+    )!important;
+    box-shadow:inset 4px 0 0 var(--dv-state-info)!important;
+}
+body[data-dv-section="produccion"] :is(.pill.high,.nbox.hot){
+    border-color:color-mix(
+        in srgb,
+        var(--dv-state-danger) 34%,
+        var(--dv-border,#dfe5ef)
+    )!important;
+    background:var(--dv-state-danger-soft)!important;
+    color:var(--dv-state-danger)!important;
+}
+body[data-dv-section="produccion"] .pill.medium{
+    background:var(--dv-state-warn-soft)!important;
+    color:var(--dv-state-warn)!important;
+}
+body[data-dv-section="produccion"] .pill.low{
+    background:var(--dv-state-info-soft)!important;
+    color:var(--dv-state-info)!important;
+}
+
+/* Dark mode: conservar contraste sin convertir los tintes en bloques brillantes. */
+html[data-dv-theme="dark"] body[data-dv-section] :is(
+    .metricas,.metrics,.resumen
+) > :is(.metrica,.metric){
+    background:color-mix(
+        in srgb,
+        var(--dv-metric-accent) 9%,
+        var(--dv-surface,#171e2c)
+    )!important;
+}
+html[data-dv-theme="dark"] body[data-dv-section] table thead th{
+    background:color-mix(
+        in srgb,
+        var(--dv-page-accent) 10%,
+        var(--dv-surface-muted,#1f2838)
+    )!important;
+}
+html[data-dv-theme="dark"] body[data-dv-section] table tbody tr:hover{
+    background:color-mix(
+        in srgb,
+        var(--dv-page-accent) 9%,
+        var(--dv-surface,#171e2c)
+    )!important;
+}
+html[data-dv-theme="dark"] body[data-dv-section] .dv-kanban-column__head{
+    background:color-mix(
+        in srgb,
+        var(--dv-kanban-state) 10%,
+        var(--dv-surface,#171e2c)
+    )!important;
+}
