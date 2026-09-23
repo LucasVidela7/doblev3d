@@ -15,11 +15,11 @@ body[data-dv-section="nuevo"],
 body[data-dv-section="presupuestos"],
 body[data-dv-section="kits"],
 body[data-dv-section="finanzas"]{
-    --dv-page-accent:var(--dv-brand-red,#f0393b);
-    --dv-page-accent-strong:var(--dv-brand-red-strong,#cf2730);
+    --dv-page-accent:var(--dv-brand-sky,#4f9bd3);
+    --dv-page-accent-strong:var(--dv-brand-blue,#134a9a);
     --dv-page-accent-soft:color-mix(
         in srgb,
-        var(--dv-brand-red,#f0393b) 9%,
+        var(--dv-brand-sky,#4f9bd3) 10%,
         var(--dv-surface,#fff)
     );
 }
@@ -55,8 +55,8 @@ body[data-dv-section] h1::before{
     border-radius:999px;
     background:linear-gradient(
         180deg,
-        var(--dv-page-accent) 0 62%,
-        var(--dv-brand-red,#f0393b) 62% 100%
+        var(--dv-page-accent-strong) 0 58%,
+        var(--dv-brand-sky,#69b6eb) 58% 100%
     );
 }
 
@@ -86,7 +86,7 @@ body[data-dv-section] .card-head{
 .dv-management-menu__link[data-dv-section="presupuestos"],
 .dv-management-menu__link[data-dv-section="kits"],
 .dv-management-menu__link[data-dv-section="finanzas"]{
-    --dv-menu-accent:var(--dv-brand-red,#f0393b);
+    --dv-menu-accent:var(--dv-brand-sky,#4f9bd3);
 }
 .dv-management-menu__link[data-dv-section]:not(.is-primary) .dv-management-menu__icon{
     border:1px solid color-mix(
@@ -169,17 +169,17 @@ html[data-dv-theme="dark"] .dv-management-menu__link[data-dv-section]:not(.is-pr
 }
 
 
-/* SUITE COLOR SYSTEM v2
+/* SUITE COLOR SYSTEM v3
    ---------------------------------------------------------
-   Doble V 3D usa azul y rojo para jerarquía/identidad.
-   Verde, ámbar y rojo de estado quedan reservados para
-   información semántica: correcto, atención y problema.
+   Azul + celeste para jerarquía e identidad visual.
+   Rojo queda reservado exclusivamente para alerta,
+   error, deuda crítica o acción destructiva.
 */
 body[data-dv-section]{
     --dv-brand-accent-blue:var(--dv-brand-blue,#134a9a);
     --dv-brand-accent-blue-strong:var(--dv-brand-blue-strong,#0d376f);
-    --dv-brand-accent-red:var(--dv-brand-red,#f0393b);
-    --dv-brand-accent-red-strong:var(--dv-brand-red-strong,#cf2730);
+    --dv-brand-accent-sky:var(--dv-brand-sky,#69b6eb);
+    --dv-brand-accent-sky-strong:var(--dv-brand-sky-strong,#4f9bd3);
     --dv-state-ok:var(--dv-success-text,#287044);
     --dv-state-ok-soft:var(--dv-success-soft,#eaf7ee);
     --dv-state-warn:var(--dv-warning-text,#8a6417);
@@ -204,8 +204,8 @@ body[data-dv-section] :is(
     .accion-principal,
     .btn-head.principal
 ){
-    border-color:var(--dv-page-accent)!important;
-    background:var(--dv-page-accent)!important;
+    border-color:var(--dv-brand-accent-blue)!important;
+    background:var(--dv-brand-accent-blue)!important;
     color:#fff!important;
 }
 body[data-dv-section] :is(
@@ -280,7 +280,7 @@ body[data-dv-section] :is(.metricas,.metrics,.resumen) > :is(.metrica,.metric){
     )!important;
 }
 body[data-dv-section] :is(.metricas,.metrics,.resumen) > :is(.metrica,.metric):nth-child(2n){
-    --dv-metric-accent:var(--dv-brand-accent-red);
+    --dv-metric-accent:var(--dv-brand-accent-sky);
 }
 body[data-dv-section] :is(.metricas,.metrics,.resumen) > :is(.metrica,.metric):nth-child(4n + 3){
     --dv-metric-accent:var(--dv-brand-accent-blue-strong);
