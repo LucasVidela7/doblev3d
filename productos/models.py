@@ -616,9 +616,9 @@ class Producto(models.Model):
             / (Decimal("1") - margen)
         )
 
-        # Conservamos la regla comercial histórica: precio de lista
-        # redondeado siempre hacia arriba al siguiente múltiplo de $500.
-        multiplo = Decimal("500")
+        # Precio de lista redondeado siempre hacia arriba al siguiente
+        # múltiplo de $100.
+        multiplo = Decimal("100")
         return (
             (precio_sin_redondear / multiplo)
             .to_integral_value(rounding=ROUND_CEILING)
