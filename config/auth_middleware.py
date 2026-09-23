@@ -24,6 +24,7 @@ class LoginRequiredMiddleware:
         "catalogo_carrito_precios",
         "catalogo_carrito_gracias",
         "solicitud_publica",
+        "pedido_publico",
         "catalogo_contacto",
         "catalogo_terminos",
         "catalogo_privacidad",
