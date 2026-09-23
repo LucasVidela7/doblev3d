@@ -352,3 +352,49 @@ class PresupuestosTests(TestCase):
             snapshot_original["precio_base"],
         )
 
+
+
+    def test_pedido_aprobado_muestra_paso_para_avisar_al_cliente(self):
+        self.cliente.telefono = "11 5555 4444"
+        self.cliente.save(update_fields=["telefono"])
+        self._crear_presupuesto()
+        presupuesto = Presupuesto.objects.get()
+
+        self.client.post(
+            reverse(
+                "pedidos:presupuesto_aprobar",
+                args=[presupuesto.id],
+            )
+        )
+        pedido = Pedido.objects.get()
+
+        detalle = self.client.get(
+            reverse("pedidos:detalle", args=[pedido.id])
+        )
+        self.assertEqual(detalle.status_code, 200)
+        self.assertContains(
+            detalle,
+            "Avisar aprobación al cliente",
+        )
+        self.assertContains(detalle, "AVISAR POR WHATSAPP")
+        self.assertContains(detalle, "VER DETALLE PÚBLICO")
+
+        self.client.get(
+            reverse(
+                "clientes:whatsapp",
+                args=[self.cliente.id],
+            ),
+            {
+                "motivo": "PEDIDO_APROBADO",
+                "pedido": pedido.id,
+            },
+        )
+
+        detalle = self.client.get(
+            reverse("pedidos:detalle", args=[pedido.id])
+        )
+        self.assertContains(
+            detalle,
+            "Contacto de aprobación iniciado",
+        )
+        self.assertContains(detalle, "✓ CONTACTO INICIADO")
