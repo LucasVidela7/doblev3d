@@ -521,6 +521,14 @@ class DashboardProduccionTests(TestCase):
         self.assertContains(respuesta, "OTROS CONTACTOS CON CLIENTES")
         self.assertContains(respuesta, "Pedido listo · pagado")
         self.assertContains(respuesta, "Pedido listo · con saldo")
+        self.assertContains(
+            respuesta,
+            'name="redondeo_precio_producto"',
+        )
+        self.assertContains(
+            respuesta,
+            "Redondeo de precios de productos",
+        )
         self.assertContains(respuesta, "Datos para cobrar")
         self.assertContains(
             respuesta,
