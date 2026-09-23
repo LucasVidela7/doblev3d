@@ -22,6 +22,13 @@ class Pedido(models.Model):
         auto_now_add=True
     )
 
+    public_token = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+        db_index=True,
+    )
+
     cliente = models.ForeignKey(
         Cliente,
         on_delete=models.PROTECT,
