@@ -222,6 +222,13 @@ PEDIDO_EXPERIENCE_SCRIPT = r"""
         var heading = document.querySelector('.dv-items-heading');
         if (heading){
             heading.id = 'dv-pedido-items';
+            var titulo = heading.querySelector('.dv-items-heading-main');
+            setText(
+                titulo,
+                esPresupuesto
+                    ? 'Ítems del presupuesto'
+                    : 'Ítems del pedido'
+            );
             return;
         }
 
