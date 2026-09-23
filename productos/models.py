@@ -600,11 +600,24 @@ class Producto(models.Model):
     def subtotal(self):
         if not self.requiere_impresion:
             return Decimal("0")
+
         margen = self.margen_ganancia / Decimal("100")
         if margen >= Decimal("1"):
             return Decimal("0")
-        ganancia_teorica = self.costo / (Decimal("1") - margen) - self.costo
-        precio_sin_redondear = self.costo + self.seguro + ganancia_teorica
+
+        # El margen se aplica sobre TODO el costo productivo. Antes se
+        # calculaba sólo sobre self.costo y luego se sumaba self.seguro,
+        # por lo que un producto configurado al 60% podía terminar con un
+        # margen real inferior. Seguro, amortización y provisión por fallos
+        # deben formar parte de la base sobre la que se protege el margen.
+        costo_productivo = self.costo + self.seguro
+        precio_sin_redondear = (
+            costo_productivo
+            / (Decimal("1") - margen)
+        )
+
+        # Conservamos la regla comercial histórica: precio de lista
+        # redondeado siempre hacia arriba al siguiente múltiplo de $500.
         multiplo = Decimal("500")
         return (
             (precio_sin_redondear / multiplo)
