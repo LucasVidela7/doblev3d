@@ -126,6 +126,12 @@ def _formulario_kit(
             request.POST.get("proteger_rentabilidad_libre")
             == "1"
         )
+
+        max_repeticiones_texto = request.POST.get(
+            "max_repeticiones_producto",
+            "1",
+        ).strip()
+
         permite_elegir_color = (
             request.POST.get("permite_elegir_color")
             == "1"
@@ -235,15 +241,73 @@ def _formulario_kit(
                     productos,
                 )
 
+            try:
+                max_repeticiones_producto = int(
+                    max_repeticiones_texto
+                )
+            except (
+                TypeError,
+                ValueError,
+            ):
+                max_repeticiones_producto = 0
+
+            if (
+                max_repeticiones_producto <= 0
+                or max_repeticiones_producto > cantidad_productos
+            ):
+                messages.error(
+                    request,
+                    (
+                        "El máximo de repeticiones por producto debe estar "
+                        "entre 1 y la cantidad total del kit."
+                    ),
+                )
+                return _render_form(
+                    request,
+                    kit,
+                    tipos,
+                    productos,
+                )
+
             tipo_producto = get_object_or_404(
                 TipoProducto,
                 id=tipo_producto_id,
                 activo=True,
             )
 
+            disponibles_categoria = (
+                Producto.objects
+                .filter(
+                    tipo=tipo_producto,
+                    activo=True,
+                    solo_produccion=False,
+                )
+                .count()
+            )
+            capacidad_total = (
+                disponibles_categoria
+                * max_repeticiones_producto
+            )
+            if capacidad_total < cantidad_productos:
+                messages.error(
+                    request,
+                    (
+                        "Con el límite de repetición elegido no hay suficientes "
+                        "productos activos para completar el kit. "
+                        f"Capacidad actual: {capacidad_total} selecciones."
+                    ),
+                )
+                return _render_form(
+                    request,
+                    kit,
+                    tipos,
+                    productos,
+                )
+
             kit.tipo_producto = tipo_producto
-            kit.cantidad_productos = (
-                cantidad_productos
+            kit.cantidad_productos = cantidad_productos
+            kit.max_repeticiones_producto = (
+                max_repeticiones_producto
             )
             kit.save()
 
@@ -346,6 +410,9 @@ def _formulario_kit(
 
             kit.tipo_producto = None
             kit.cantidad_productos = total_piezas
+            # En kits fijos la repetición queda definida por la receta y
+            # este límite no interviene.
+            kit.max_repeticiones_producto = 1
             kit.save()
 
             kit.componentes.all().delete()
