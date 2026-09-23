@@ -1049,6 +1049,19 @@ def configuracion(request):
             setattr(config, campo, max(valor, Decimal("0")))
             actualizados.append(campo)
 
+        try:
+            redondeo = int(
+                (request.POST.get("redondeo_precio_producto") or "100")
+                .strip()
+            )
+        except (TypeError, ValueError):
+            redondeo = 100
+        redondeo = max(redondeo, 100)
+        if redondeo % 100:
+            redondeo = ((redondeo + 99) // 100) * 100
+        config.redondeo_precio_producto = redondeo
+        actualizados.append("redondeo_precio_producto")
+
         config.save(
             update_fields=actualizados,
         )
