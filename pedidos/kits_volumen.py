@@ -198,16 +198,13 @@ def calcular_precio_volumen_kits(items):
 
     Reglas:
     - La lógica se activa desde 2 kits totales.
-    - Desde 2 kits libera progresivamente el descuento que soporta el margen
-      real disponible, con la referencia técnica como guía cuando corresponde.
-    - La intensidad depende tanto de la cantidad de kits como de la cantidad
-      REAL de productos contenidos y del margen disponible.
+    - La curva comercial depende únicamente de la cantidad TOTAL de kits.
+    - El mismo porcentaje se aplica a todas las líneas del grupo.
+    - x4 debe dar el mismo porcentaje si son cuatro configuraciones distintas
+      o una sola configuración aumentada a cantidad 4.
     - El beneficio comercial tiene un tope de 15%.
-    - Ese porcentaje se aplica sobre el precio real configurado de los kits,
-      conservando así su posicionamiento de mercado.
-    - El descuento nunca baja una línea por debajo de MARGEN_MINIMO.
-    - Si el precio actual ya está por debajo del piso, no se lo aumenta ni se
-      lo descuenta automáticamente.
+    - Los costos y márgenes se conservan como control técnico, pero no cambian
+      el porcentaje comercial que ve el cliente.
     """
     lineas = [
         _preparar_linea(item)
