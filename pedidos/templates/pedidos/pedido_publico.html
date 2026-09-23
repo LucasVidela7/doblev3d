@@ -1,0 +1,49 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="{% static 'brand/favicon.ico' %}">
+<title>{{ pedido.codigo }} | Doble V 3D</title>
+<style>
+:root{--blue:#134a9a;--blue-dark:#0d376f;--red:#f0393b;--text:#17233a;--muted:#667085;--line:#dfe5ef;--bg:#f5f7fb;--green:#eaf7ee;--green-text:#28633c}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:24px 14px 70px;background:radial-gradient(circle at 92% 8%,rgba(240,57,59,.10),transparent 28rem),radial-gradient(circle at 8% 92%,rgba(19,74,154,.10),transparent 28rem),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{width:min(760px,100%);margin:0 auto}.card{padding:28px;border:1px solid var(--line);border-radius:28px;background:#fff;box-shadow:0 24px 65px rgba(18,31,52,.10)}.admin-shortcut{display:flex;justify-content:flex-end;margin-bottom:10px}.admin-shortcut a{min-height:38px;display:inline-flex;align-items:center;padding:0 11px;border:1px solid rgba(19,74,154,.22);border-radius:11px;background:#eef4ff;color:var(--blue-dark);text-decoration:none;font-size:.68rem;font-weight:950}.brand{display:flex;align-items:center;justify-content:center}.brand img{width:82px;height:auto}.eyebrow{margin:18px 0 6px;color:var(--red);font-size:.7rem;font-weight:950;letter-spacing:.1em;text-align:center;text-transform:uppercase}h1{margin:0;color:var(--blue-dark);font-size:clamp(1.8rem,6vw,2.6rem);text-align:center;letter-spacing:-.04em}.meta{text-align:center;margin:8px 0 0;color:var(--muted);font-size:.78rem}.status-card{margin:18px 0 0;padding:15px;border:1px solid var(--line);border-radius:16px;background:#fbfcfe}.status-top{display:flex;align-items:center;justify-content:space-between;gap:10px}.status-label{font-size:.7rem;font-weight:950;letter-spacing:.04em;text-transform:uppercase}.status-pill{display:inline-flex;align-items:center;padding:6px 9px;border-radius:999px;background:#eef4ff;color:var(--blue-dark);font-size:.66rem;font-weight:950}.items{display:grid;gap:9px;margin-top:22px}.item{padding:13px;border:1px solid #e8ecf2;border-radius:14px;background:#fbfcfe}.item-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.item strong{font-size:.86rem}.item-price{white-space:nowrap;color:var(--blue-dark);font-weight:950}.item-meta{margin-top:6px;color:var(--muted);font-size:.72rem;line-height:1.45}.summary{display:grid;gap:9px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}.summary-row{display:flex;align-items:center;justify-content:space-between;gap:12px}.summary-row span{color:var(--muted);font-size:.75rem;font-weight:850}.summary-row strong{color:var(--blue-dark);font-size:1rem}.summary-row.total strong{font-size:1.45rem}.summary-row.balance{padding:11px 12px;border-radius:13px;background:#fff5d8}.summary-row.balance.zero{background:var(--green)}.summary-row.balance.zero strong{color:var(--green-text)}.actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px;margin-top:18px}.btn{min-height:47px;display:flex;align-items:center;justify-content:center;padding:0 12px;border-radius:13px;text-decoration:none;font-size:.76rem;font-weight:950;text-align:center}.btn.primary{background:var(--blue);color:#fff}.btn.whatsapp{background:#25d366;color:#fff}.helper{margin:13px 0 0;color:var(--muted);font-size:.67rem;line-height:1.45;text-align:center}@media(max-width:520px){.card{padding:20px 15px;border-radius:22px}.item-head{display:block}.item-price{display:block;margin-top:5px}.summary-row.total strong{font-size:1.25rem}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<section class="card">
+{% if request.user.is_authenticated %}
+<div class="admin-shortcut"><a href="{% url 'pedidos:detalle' pedido.id %}">VER EN GESTIÓN</a></div>
+{% endif %}
+<div class="brand"><img src="{% static 'brand/logo.png' %}" alt="Doble V 3D"></div>
+<p class="eyebrow">Detalle del pedido</p>
+<h1>{{ pedido.codigo }}</h1>
+<p class="meta">{{ pedido.fecha|date:"d/m/Y" }}{% if cliente_nombre %} · {{ cliente_nombre }}{% endif %}</p>
+<div class="status-card"><div class="status-top"><span class="status-label">Estado actual</span><span class="status-pill">{{ pedido.get_estado_display }}</span></div>{% if pedido.fecha_entrega %}<p class="meta" style="text-align:left">Entrega prevista: {{ pedido.fecha_entrega|date:"d/m/Y" }}</p>{% endif %}</div>
+<div class="items">
+{% for item in items %}
+<article class="item">
+<div class="item-head"><strong>{{ item.cantidad }}× {{ item.nombre }}</strong><span class="item-price">$ {{ item.subtotal|floatformat:"0g" }}</span></div>
+{% if item.color %}<div class="item-meta"><strong>Color:</strong> {{ item.color }}</div>{% endif %}
+{% if item.personalizacion %}<div class="item-meta"><strong>Personalización:</strong> {{ item.personalizacion }}</div>{% endif %}
+{% if item.seleccion %}<div class="item-meta"><strong>Selección:</strong> {% for seleccionado in item.seleccion %}{{ seleccionado.cantidad }}× {{ seleccionado.nombre }}{% if not forloop.last %} · {% endif %}{% endfor %}</div>{% endif %}
+</article>
+{% empty %}<div class="item">Este pedido no tiene productos cargados.</div>{% endfor %}
+</div>
+<div class="summary">
+<div class="summary-row total"><span>TOTAL</span><strong>$ {{ pedido.total|floatformat:"0g" }}</strong></div>
+<div class="summary-row"><span>ABONADO</span><strong>$ {{ pedido.total_pagado|floatformat:"0g" }}</strong></div>
+<div class="summary-row balance {% if pedido.saldo_pendiente <= 0 %}zero{% endif %}"><span>SALDO PENDIENTE</span><strong>$ {{ pedido.saldo_pendiente|floatformat:"0g" }}</strong></div>
+</div>
+<div class="actions">
+{% if whatsapp_consulta_url %}<a class="btn whatsapp" href="{{ whatsapp_consulta_url }}" target="_blank" rel="noopener">CONSULTAR POR WHATSAPP</a>{% endif %}
+<a class="btn primary" href="{% url 'catalogo' %}">VER CATÁLOGO</a>
+</div>
+<p class="helper">Este enlace identifica únicamente este pedido. Guardalo si querés volver a consultar su estado y saldo.</p>
+</section>
+</main>
+</body>
+</html>
