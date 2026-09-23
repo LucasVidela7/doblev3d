@@ -149,9 +149,24 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
                         min="1"
                         name="cantidad_productos"
                         id="cantidad_productos"
-                        value="{{ kit.cantidad_productos|default:'1' }}"
-                        oninput="actualizarRecomendacion()"
+                        value="{% if request.method == 'POST' %}{{ request.POST.cantidad_productos|default:'1' }}{% else %}{{ kit.cantidad_productos|default:'1' }}{% endif %}"
+                        oninput="sincronizarLimiteRepeticiones(); actualizarRecomendacion()"
                     >
+                </div>
+
+                <div>
+                    <label>MÁXIMO DEL MISMO PRODUCTO</label>
+                    <input
+                        type="number"
+                        min="1"
+                        name="max_repeticiones_producto"
+                        id="max_repeticiones_producto"
+                        value="{% if request.method == 'POST' %}{{ request.POST.max_repeticiones_producto|default:'1' }}{% elif kit %}{{ kit.max_repeticiones_producto|default:'1' }}{% else %}1{% endif %}"
+                    >
+                    <div class="ayuda">
+                        1 = no se puede repetir. 2 = el mismo producto puede
+                        aparecer hasta dos veces dentro del kit.
+                    </div>
                 </div>
             </div>
 
@@ -282,6 +297,20 @@ function modalidadActual(){
 
 // El cálculo económico vive en static/kits/precios_fijos.js y en sus APIs.
 function actualizarRecomendacion(){}
+
+function sincronizarLimiteRepeticiones(){
+    const cantidad = Math.max(
+        1,
+        Number(document.getElementById("cantidad_productos")?.value || 1),
+    );
+    const limite = document.getElementById("max_repeticiones_producto");
+    if (!limite) return;
+    limite.max = String(cantidad);
+    const actual = Math.max(1, Number(limite.value || 1));
+    if (actual > cantidad) {
+        limite.value = String(cantidad);
+    }
+}
 
 function actualizarModalidad(){
     const fijo =
@@ -414,7 +443,8 @@ document.addEventListener(
             );
         }
 
-        actualizarModalidad();
+        sincronizarLimiteRepeticiones();
+actualizarModalidad();
         actualizarTotal();
         actualizarRecomendacion();
     }
