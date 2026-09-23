@@ -80,3 +80,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-23 - Margen de productos sobre costo productivo completo
 2026-09-23 - Redondeo de precios configurable en multiplos de 100
 2026-09-23 - Sectorizar configuracion por areas con navegacion lateral
+2026-09-23 - Colores indicadores y contraste en configuracion
