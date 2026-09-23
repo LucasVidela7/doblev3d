@@ -395,17 +395,7 @@ button{font-family:Arial,sans-serif}
          MENSAJES
     ========================================== -->
 
-    {% if messages %}
-
-    {% for message in messages %}
-
-    <div class="mensaje {{ message.tags }}">
-        {{ message }}
-    </div>
-
-    {% endfor %}
-
-    {% endif %}
+    {% include "shared/messages_toasts.html" %}
 
 
     <!-- =========================================
