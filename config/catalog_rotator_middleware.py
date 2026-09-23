@@ -12,14 +12,16 @@ from productos.models import Producto
 CATALOG_ROTATOR_STYLE = r"""
 <style id="dv-catalog-rotator-style">
 /* Rotador simple para productos y kits no sensoriales. */
-.media .dv-catalog-rotator{
+.media .dv-catalog-rotator,
+.dv-kit-configurable-page .photo .dv-catalog-rotator{
     position:absolute;
     inset:0;
     z-index:0;
     overflow:hidden;
     background:#f2f5fa;
 }
-.media .dv-catalog-rotator img{
+.media .dv-catalog-rotator img,
+.dv-kit-configurable-page .photo .dv-catalog-rotator img{
     position:absolute!important;
     inset:0!important;
     width:100%!important;
@@ -32,8 +34,13 @@ CATALOG_ROTATOR_STYLE = r"""
     transition:opacity .68s ease,transform .28s ease!important;
     pointer-events:none;
 }
-.media .dv-catalog-rotator img.is-active{
+.media .dv-catalog-rotator img.is-active,
+.dv-kit-configurable-page .photo .dv-catalog-rotator img.is-active{
     opacity:1;
+}
+
+.dv-kit-configurable-page .photo{
+    position:relative!important;
 }
 
 /* Los kits sensoriales conservan SIEMPRE la identidad de collage 2x2. */
@@ -89,14 +96,16 @@ CATALOG_ROTATOR_STYLE = r"""
     .card:hover .dv-catalog-rotator img.is-active,
     .card:hover .dv-sensory-slot img.is-active,
     .preview:hover .dv-catalog-rotator img.is-active,
-    .preview:hover .dv-sensory-slot img.is-active{
+    .preview:hover .dv-sensory-slot img.is-active,
+    .dv-kit-configurable-page .option:hover .dv-catalog-rotator img.is-active{
         transform:scale(1.025);
     }
 }
 
 @media(prefers-reduced-motion:reduce){
     .media .dv-catalog-rotator img,
-    .media .dv-sensory-slot img{
+    .media .dv-sensory-slot img,
+    .dv-kit-configurable-page .photo .dv-catalog-rotator img{
         transition:none!important;
     }
 }
@@ -227,6 +236,20 @@ CATALOG_ROTATOR_SCRIPT = r"""
         const urls = productImages[rawSrc] || productImages[current.src] || [rawSrc];
         const slides = urls.map((src) => ({src, alt: current.alt || ''}));
         const rotator = buildRotator(media, slides);
+        if (rotator) simpleRotators.push(rotator);
+    });
+
+    // En el detalle de kits reutilizamos exactamente el mismo pool de dos
+    // fotos por producto que usa el listado público. Esto incluye tanto las
+    // opciones de un kit libre como la composición visual de un kit fijo.
+    document.querySelectorAll('.dv-kit-configurable-page .option .photo').forEach((photo) => {
+        const current = photo.querySelector(':scope > img');
+        if (!current) return;
+
+        const rawSrc = current.getAttribute('src') || '';
+        const urls = productImages[rawSrc] || productImages[current.src] || [rawSrc];
+        const slides = urls.map((src) => ({src, alt: current.alt || ''}));
+        const rotator = buildRotator(photo, slides);
         if (rotator) simpleRotators.push(rotator);
     });
 
@@ -444,7 +467,7 @@ class CatalogRotatorMiddleware:
         view_name = match.view_name if match else ''
 
         if (
-            view_name not in {'catalogo', 'catalogo_legacy', 'catalogo_productos', 'catalogo_kits'}
+            view_name not in {'catalogo', 'catalogo_legacy', 'catalogo_productos', 'catalogo_kits', 'catalogo_kit_detalle'}
             or response.status_code != 200
             or getattr(response, 'streaming', False)
             or 'text/html' not in response.get('Content-Type', '')
