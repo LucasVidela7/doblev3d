@@ -13,8 +13,8 @@
         *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;padding:0 0 calc(94px + env(safe-area-inset-bottom));font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}a,button,input{touch-action:manipulation}.contenedor{width:min(1120px,100%);margin:auto;padding:22px 18px 34px}
         .encabezado{display:grid;grid-template-columns:minmax(0,1fr);gap:11px;margin-bottom:14px}.titulo-linea{display:flex;align-items:center;gap:9px;flex-wrap:wrap}h1{margin:0;font-size:clamp(26px,4vw,34px)}.subtitulo{margin-top:5px;color:var(--muted);font-size:12px}.acciones-encabezado{width:100%;display:flex;align-items:stretch;gap:8px;flex-wrap:nowrap;justify-content:flex-start}.acciones-encabezado form{margin:0}.btn{min-height:42px;display:inline-flex;align-items:center;justify-content:center;padding:0 14px;border-radius:11px;text-decoration:none;font-size:9px;font-weight:900;white-space:nowrap;cursor:pointer}.btn-secundario{border:1px solid var(--dv-brand-blue,#134a9a);background:var(--surface);color:var(--text)}.btn-principal{border:1px solid var(--dv-brand-blue,#134a9a);background:var(--dv-brand-blue,#134a9a);color:#fff}.btn-entregar{border:1px solid var(--dv-brand-blue,#134a9a);background:var(--dv-brand-blue,#134a9a);color:#fff}
         .mensajes{display:grid;gap:8px;margin-bottom:14px}.mensaje{padding:11px 13px;border-radius:12px;font-size:10px;font-weight:800}.mensaje.success{background:var(--green);color:var(--green-text)}.mensaje.error{background:var(--red);color:var(--red-text)}.mensaje.warning{background:var(--amber);color:var(--amber-text)}.mensaje.info{background:var(--blue);color:var(--blue-text)}
-        .aprobacion-flow{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px;padding:16px 17px;border:1px solid color-mix(in srgb,var(--dv-brand-blue,#134a9a) 26%,var(--dv-border,#dfe5ef));border-radius:16px;background:var(--dv-brand-blue-soft,#eef4ff);color:var(--dv-text,#17233a);box-shadow:var(--dv-shadow-soft,var(--shadow))}.aprobacion-flow.done{border-color:color-mix(in srgb,var(--dv-success-text,#28633c) 28%,var(--dv-border,#dfe5ef));background:var(--dv-success-soft,#eaf7ee)}.aprobacion-copy{min-width:0}.aprobacion-kicker{color:var(--dv-accent-blue-text,#0d376f);font-size:11.5px;font-weight:950;letter-spacing:.06em;line-height:1.2}.aprobacion-flow.done .aprobacion-kicker{color:var(--dv-success-text,#28633c)}.aprobacion-copy strong{display:block;margin-top:5px;color:var(--dv-text,#17233a);font-size:15px;line-height:1.35}.aprobacion-copy p{margin:5px 0 0;color:var(--dv-muted,#667085);font-size:12.5px;line-height:1.5}.aprobacion-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.aprobacion-actions .btn{min-height:42px;font-size:13px}.aprobacion-status{min-height:42px;display:inline-flex;align-items:center;padding:0 12px;border:1px solid color-mix(in srgb,var(--dv-success-text,#28633c) 20%,var(--dv-border,#dfe5ef));border-radius:11px;background:var(--dv-success-soft,#eaf7ee);color:var(--dv-success-text,#28633c);font-size:11.5px;font-weight:950;white-space:nowrap}
-        html[data-dv-theme="dark"] .aprobacion-flow{background:var(--dv-brand-blue-soft)!important;border-color:color-mix(in srgb,var(--dv-accent-blue-text) 24%,var(--dv-border))!important;color:var(--dv-text)!important}html[data-dv-theme="dark"] .aprobacion-flow.done{background:var(--dv-success-soft)!important;border-color:color-mix(in srgb,var(--dv-success-text) 24%,var(--dv-border))!important}html[data-dv-theme="dark"] .aprobacion-copy strong{color:var(--dv-text)!important}html[data-dv-theme="dark"] .aprobacion-copy p{color:var(--dv-muted)!important}html[data-dv-theme="dark"] .aprobacion-actions .btn-secundario{background:var(--dv-surface-soft)!important;border-color:var(--dv-border)!important;color:var(--dv-text)!important}
+        .comunicacion-cliente{margin-bottom:14px;border:1px solid var(--dv-border,#dfe5ef);border-radius:17px;background:var(--dv-surface,#fff);box-shadow:var(--dv-shadow-soft,var(--shadow));overflow:hidden}.comunicacion-head{padding:12px 16px;border-bottom:1px solid var(--dv-border,#dfe5ef);background:var(--dv-surface-soft,#f8faff)}.comunicacion-head small{display:block;color:var(--dv-muted,#667085);font-size:11.5px;font-weight:950;letter-spacing:.06em}.comunicacion-head strong{display:block;margin-top:3px;color:var(--dv-text,#17233a);font-size:15px}.comunicacion-pasos{display:grid}.comunicacion-paso{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:12px;align-items:center;padding:14px 16px;border-top:1px solid var(--dv-border,#dfe5ef)}.comunicacion-paso:first-child{border-top:0}.comunicacion-numero{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--dv-brand-blue-soft,#eef4ff);color:var(--dv-accent-blue-text,#0d376f);font-size:12px;font-weight:950}.comunicacion-paso.entrega .comunicacion-numero{background:var(--dv-success-soft,#eaf7ee);color:var(--dv-success-text,#28633c)}.comunicacion-copy{min-width:0}.comunicacion-kicker{color:var(--dv-muted,#667085);font-size:11.5px;font-weight:950;letter-spacing:.04em}.comunicacion-copy strong{display:block;margin-top:3px;color:var(--dv-text,#17233a);font-size:14px;line-height:1.35}.comunicacion-copy p{margin:3px 0 0;color:var(--dv-muted,#667085);font-size:12.5px;line-height:1.45}.comunicacion-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.comunicacion-actions .btn{min-height:40px;font-size:12.5px}.comunicacion-status{min-height:40px;display:inline-flex;align-items:center;padding:0 11px;border:1px solid color-mix(in srgb,var(--dv-success-text,#28633c) 20%,var(--dv-border,#dfe5ef));border-radius:11px;background:var(--dv-success-soft,#eaf7ee);color:var(--dv-success-text,#28633c);font-size:11.5px;font-weight:950;white-space:nowrap}
+        html[data-dv-theme="dark"] .comunicacion-cliente{background:var(--dv-surface)!important;border-color:var(--dv-border)!important;color:var(--dv-text)!important}html[data-dv-theme="dark"] .comunicacion-head{background:var(--dv-surface-soft)!important;border-color:var(--dv-border)!important}html[data-dv-theme="dark"] .comunicacion-paso{border-color:var(--dv-border)!important}html[data-dv-theme="dark"] .comunicacion-copy strong{color:var(--dv-text)!important}html[data-dv-theme="dark"] .comunicacion-copy p,html[data-dv-theme="dark"] .comunicacion-kicker{color:var(--dv-muted)!important}html[data-dv-theme="dark"] .comunicacion-actions .btn-secundario{background:var(--dv-surface-soft)!important;border-color:var(--dv-border)!important;color:var(--dv-text)!important}
         .metricas{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-bottom:13px}.metrica{padding:12px 13px;border:1px solid var(--line);border-radius:15px;background:#fff;box-shadow:var(--shadow)}.metrica-label{color:var(--muted);font-size:8px;font-weight:900}.metrica-valor{margin-top:6px;font-size:19px;font-weight:900}.metrica-nota{margin-top:4px;color:var(--muted);font-size:8px}.metrica.saldo{background:var(--amber);border-color:#efdda3}.metrica.saldo .metrica-label,.metrica.saldo .metrica-valor{color:var(--amber-text)}
         .layout{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr);gap:14px;align-items:start}.columna{display:grid;gap:14px;min-width:0}.panel{border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:var(--shadow);overflow:hidden}.panel-cabecera{min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 15px;border-bottom:1px solid var(--line);background:#fbfbfc}.panel-titulo{font-size:12px;font-weight:900}.panel-subtitulo{margin-top:3px;color:var(--muted);font-size:8px}.panel-cuerpo{padding:15px}
         .estado{min-height:28px;display:inline-flex;align-items:center;justify-content:center;padding:0 9px;border-radius:999px;font-size:7px;font-weight:900;white-space:nowrap}.estado-PENDIENTE{background:var(--amber);color:var(--amber-text)}.estado-PREPARANDO{background:var(--blue);color:var(--blue-text)}.estado-LISTO,.estado-ENTREGADO{background:var(--green);color:var(--green-text)}.estado-CANCELADO{background:var(--red);color:var(--red-text)}.pago-SIN_PAGAR{background:var(--red);color:var(--red-text)}.pago-PARCIAL{background:var(--amber);color:var(--amber-text)}.pago-PAGADO{background:var(--green);color:var(--green-text)}
@@ -26,7 +26,7 @@
         .pago-form .campo label,.fecha-entrega-form label{display:block;margin-bottom:5px;color:var(--muted);font-size:8px;font-weight:900}.pago-form input,.pago-form select,.fecha-entrega-form input{width:100%;min-height:40px;padding:7px 9px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);font-size:11px}.pago-form .btn{min-height:40px}.fecha-entrega-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;align-items:end;margin-top:6px}.fecha-entrega-form .btn{min-height:40px;padding:0 11px}
         .nav-inferior{position:fixed;z-index:50;left:50%;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(720px,calc(100% - 20px));display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:7px;border-radius:20px;background:rgba(35,38,43,.96);box-shadow:0 12px 35px rgba(0,0,0,.22)}.nav-item{min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:14px;color:#d9dbe0;text-decoration:none;font-size:9px;font-weight:bold}.nav-item span:first-child{font-size:19px}.nav-item.nuevo-nav{background:#fff;color:var(--dark)}
         @media(max-width:900px){.layout{grid-template-columns:1fr}.metricas{grid-template-columns:repeat(2,minmax(0,1fr))}}
-        @media(max-width:680px){.aprobacion-flow{align-items:stretch;flex-direction:column}.aprobacion-actions{display:grid;grid-template-columns:1fr}.aprobacion-actions .btn,.aprobacion-status{width:100%;justify-content:center}.contenedor{padding:14px 11px 28px}.encabezado{gap:10px;margin-bottom:12px}.titulo-linea{gap:7px}h1{font-size:clamp(24px,8vw,30px)}.subtitulo{font-size:11px}.acciones-encabezado>.btn{flex:1 1 0}.acciones-encabezado>form{flex:1.15 1 0}.acciones-encabezado form .btn{width:100%}.acciones-encabezado>.dv-order-menu{flex:0 0 46px;width:46px}.metricas{gap:8px}.metrica{padding:11px 12px}.metrica-valor{font-size:18px}.prep-item{grid-template-columns:42px minmax(0,1fr) 52px;gap:9px;padding:13px 12px}.prep-item>.pedido-thumb{width:42px;height:42px;grid-column:1;grid-row:1 / span 2}.prep-item>div:nth-of-type(1){grid-column:2;grid-row:1}.prep-estado{grid-column:2;grid-row:2;justify-self:start;text-align:left}.prep-form{grid-column:3;grid-row:1 / span 2;align-self:center}.item-arriba{display:block}.item-subtotal{margin-top:7px}.item-identidad{grid-template-columns:42px minmax(0,1fr)}.item-identidad .pedido-thumb{width:42px;height:42px}.pago-form{grid-template-columns:1fr}.fecha-entrega-form{grid-template-columns:1fr}.nav-inferior{width:calc(100% - 12px);bottom:max(6px,env(safe-area-inset-bottom))}}
+        @media(max-width:680px){.comunicacion-paso{grid-template-columns:34px minmax(0,1fr);align-items:start}.comunicacion-actions{grid-column:1/-1;display:grid;grid-template-columns:1fr}.comunicacion-actions .btn,.comunicacion-status{width:100%;justify-content:center}.contenedor{padding:14px 11px 28px}.encabezado{gap:10px;margin-bottom:12px}.titulo-linea{gap:7px}h1{font-size:clamp(24px,8vw,30px)}.subtitulo{font-size:11px}.acciones-encabezado>.btn{flex:1 1 0}.acciones-encabezado>form{flex:1.15 1 0}.acciones-encabezado form .btn{width:100%}.acciones-encabezado>.dv-order-menu{flex:0 0 46px;width:46px}.metricas{gap:8px}.metrica{padding:11px 12px}.metrica-valor{font-size:18px}.prep-item{grid-template-columns:42px minmax(0,1fr) 52px;gap:9px;padding:13px 12px}.prep-item>.pedido-thumb{width:42px;height:42px;grid-column:1;grid-row:1 / span 2}.prep-item>div:nth-of-type(1){grid-column:2;grid-row:1}.prep-estado{grid-column:2;grid-row:2;justify-self:start;text-align:left}.prep-form{grid-column:3;grid-row:1 / span 2;align-self:center}.item-arriba{display:block}.item-subtotal{margin-top:7px}.item-identidad{grid-template-columns:42px minmax(0,1fr)}.item-identidad .pedido-thumb{width:42px;height:42px}.pago-form{grid-template-columns:1fr}.fecha-entrega-form{grid-template-columns:1fr}.nav-inferior{width:calc(100% - 12px);bottom:max(6px,env(safe-area-inset-bottom))}}
     </style>
 </head>
 <body>
@@ -48,26 +48,61 @@
 
     {% if messages %}<div class="mensajes">{% for message in messages %}<div class="mensaje {{ message.tags|default:'info' }}">{{ message }}</div>{% endfor %}</div>{% endif %}
 
-    {% if tiene_origen_aprobado %}
-    <section class="aprobacion-flow{% if aprobacion_contactada %} done{% endif %}">
-        <div class="aprobacion-copy">
-            <div class="aprobacion-kicker">PASO POST-APROBACIÓN</div>
-            {% if aprobacion_contactada %}
-                <strong>Contacto de aprobación iniciado</strong>
-                <p>Ya abriste el WhatsApp de aprobación para {{ pedido.codigo }}. Podés volver a abrirlo si necesitás reenviar el enlace público.</p>
-            {% else %}
-                <strong>Avisar aprobación al cliente</strong>
-                <p>Informale que su solicitud fue aprobada, que ya pasó a {{ pedido.codigo }} y compartile el enlace público para consultar detalle y estado.</p>
-            {% endif %}
+    {% if tiene_origen_aprobado or pedido.estado == 'LISTO' %}
+    <section class="comunicacion-cliente">
+        <div class="comunicacion-head">
+            <small>COMUNICACIÓN CON CLIENTE</small>
+            <strong>Seguimiento del pedido</strong>
         </div>
-        <div class="aprobacion-actions">
-            <a class="btn btn-secundario" href="{% url 'pedido_publico' pedido.public_token %}" target="_blank" rel="noopener">VER DETALLE PÚBLICO</a>
-            {% if aprobacion_whatsapp_url %}
-                <a class="btn btn-principal" href="{{ aprobacion_whatsapp_url }}" target="_blank" rel="noopener">{% if aprobacion_contactada %}VOLVER A ABRIR WHATSAPP{% else %}AVISAR POR WHATSAPP{% endif %}</a>
-            {% elif not aprobacion_contactada %}
-                <span class="aprobacion-status">SIN WHATSAPP VÁLIDO</span>
+        <div class="comunicacion-pasos">
+            {% if tiene_origen_aprobado %}
+            <div class="comunicacion-paso">
+                <div class="comunicacion-numero">1</div>
+                <div class="comunicacion-copy">
+                    <div class="comunicacion-kicker">APROBACIÓN</div>
+                    {% if aprobacion_contactada %}
+                        <strong>Contacto de aprobación iniciado</strong>
+                        <p>Ya abriste el WhatsApp de aprobación de {{ pedido.codigo }}.</p>
+                    {% else %}
+                        <strong>Avisar aprobación al cliente</strong>
+                        <p>Confirmale que la solicitud ya pasó a pedido y compartile el detalle público.</p>
+                    {% endif %}
+                </div>
+                <div class="comunicacion-actions">
+                    <a class="btn btn-secundario" href="{% url 'pedido_publico' pedido.public_token %}" target="_blank" rel="noopener">VER DETALLE PÚBLICO</a>
+                    {% if aprobacion_whatsapp_url %}
+                        <a class="btn btn-principal" href="{{ aprobacion_whatsapp_url }}" target="_blank" rel="noopener">{% if aprobacion_contactada %}VOLVER A ABRIR{% else %}AVISAR POR WHATSAPP{% endif %}</a>
+                    {% elif not aprobacion_contactada %}
+                        <span class="comunicacion-status">SIN WHATSAPP VÁLIDO</span>
+                    {% endif %}
+                    {% if aprobacion_contactada %}<span class="comunicacion-status">✓ CONTACTO INICIADO</span>{% endif %}
+                </div>
+            </div>
             {% endif %}
-            {% if aprobacion_contactada %}<span class="aprobacion-status">✓ CONTACTO INICIADO</span>{% endif %}
+
+            {% if pedido.estado == 'LISTO' %}
+            <div class="comunicacion-paso entrega">
+                <div class="comunicacion-numero">{% if tiene_origen_aprobado %}2{% else %}1{% endif %}</div>
+                <div class="comunicacion-copy">
+                    <div class="comunicacion-kicker">ENTREGA</div>
+                    {% if entrega_contactada %}
+                        <strong>Contacto de entrega iniciado</strong>
+                        <p>Ya abriste el WhatsApp para coordinar la entrega de {{ pedido.codigo }}.</p>
+                    {% else %}
+                        <strong>Coordinar entrega con el cliente</strong>
+                        <p>El pedido está listo. Avisale al cliente para coordinar cómo y cuándo entregarlo.</p>
+                    {% endif %}
+                </div>
+                <div class="comunicacion-actions">
+                    {% if entrega_whatsapp_url %}
+                        <a class="btn btn-principal" href="{{ entrega_whatsapp_url }}" target="_blank" rel="noopener">{% if entrega_contactada %}VOLVER A COORDINAR{% else %}COORDINAR ENTREGA · WHATSAPP{% endif %}</a>
+                    {% else %}
+                        <span class="comunicacion-status">SIN WHATSAPP VÁLIDO</span>
+                    {% endif %}
+                    {% if entrega_contactada %}<span class="comunicacion-status">✓ CONTACTO INICIADO</span>{% endif %}
+                </div>
+            </div>
+            {% endif %}
         </div>
     </section>
     {% endif %}
