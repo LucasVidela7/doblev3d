@@ -77,3 +77,20 @@ class CatalogoRotacionFotosTests(TestCase):
         self.assertIn("const kitCards = [...document.querySelectorAll", html)
         self.assertIn("buildRotator(media, slides)", html)
         self.assertIn("media.querySelectorAll(':scope > img, :scope > .kit-collage')", html)
+
+    def test_detalle_kit_rota_las_dos_fotos_de_cada_producto(self):
+        response = self.client.get(
+            reverse("catalogo_kit_detalle", args=[self.kit.id])
+        )
+        html = response.content.decode()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('id="dv-catalog-rotator-script"', html)
+        self.assertIn(
+            ".dv-kit-configurable-page .option .photo",
+            html,
+        )
+        self.assertIn("https://example.com/cubo-1.jpg", html)
+        self.assertIn("https://example.com/cubo-2.jpg", html)
+        self.assertNotIn("https://example.com/cubo-production.jpg", html)
+        self.assertIn("window.setInterval", html)
