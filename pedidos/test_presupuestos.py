@@ -152,6 +152,70 @@ class PresupuestosTests(TestCase):
         self.assertContains(respuesta, "DESCUENTOS")
         self.assertContains(respuesta, "TOTAL PRESUPUESTADO")
 
+    def test_detalle_prioriza_aprobar_y_mueve_editar_al_menu(self):
+        self._crear_presupuesto()
+        presupuesto = Presupuesto.objects.get()
+
+        respuesta = self.client.get(
+            reverse(
+                "pedidos:presupuesto_detalle",
+                args=[presupuesto.id],
+            )
+        )
+
+        contenido = respuesta.content.decode()
+        self.assertIn("data-dv-primary", contenido)
+        self.assertIn(
+            "APROBAR Y CREAR PEDIDO",
+            contenido,
+        )
+        self.assertIn(
+            'class="dv-page-overflow budget-actions-menu"',
+            contenido,
+        )
+        self.assertGreater(
+            contenido.index("EDITAR"),
+            contenido.index("dv-page-overflow__menu"),
+        )
+
+    def test_mensajes_de_presupuesto_se_renderizan_para_toast(self):
+        respuesta = self._crear_presupuesto()
+        presupuesto = Presupuesto.objects.get()
+
+        detalle = self.client.get(
+            respuesta.url
+        )
+        self.assertContains(
+            detalle,
+            'data-dv-toast-type="success"',
+        )
+        self.assertContains(
+            detalle,
+            f"{presupuesto.codigo} creado correctamente.",
+        )
+
+        self.client.post(
+            reverse(
+                "pedidos:presupuesto_rechazar",
+                args=[presupuesto.id],
+            )
+        )
+        error = self.client.post(
+            reverse(
+                "pedidos:presupuesto_aprobar",
+                args=[presupuesto.id],
+            ),
+            follow=True,
+        )
+        self.assertContains(
+            error,
+            'data-dv-toast-type="error"',
+        )
+        self.assertContains(
+            error,
+            "El presupuesto ya fue resuelto.",
+        )
+
     def test_presupuesto_pendiente_se_puede_editar(self):
         self._crear_presupuesto()
         presupuesto = Presupuesto.objects.get()
