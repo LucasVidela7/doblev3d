@@ -84,6 +84,51 @@ class KitEngineTests(TestCase):
 
         self.assertGreaterEqual(precio, kit.precio)
 
+    def test_libre_por_defecto_no_permite_repetir_producto(self):
+        kit = Kit.objects.create(
+            nombre="Engine libre sin repetidos",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=2,
+            precio=Decimal("3000"),
+            proteger_rentabilidad_libre=False,
+        )
+
+        with self.assertRaisesMessage(
+            ValueError,
+            "no puede repetirse",
+        ):
+            KitEngine.precio_unitario(
+                kit,
+                productos=[self.a, self.a],
+            )
+
+    def test_libre_respeta_maximo_configurable_de_repeticiones(self):
+        kit = Kit.objects.create(
+            nombre="Engine libre max 2",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=3,
+            max_repeticiones_producto=2,
+            precio=Decimal("5000"),
+            proteger_rentabilidad_libre=False,
+        )
+
+        precio = KitEngine.precio_unitario(
+            kit,
+            productos=[self.a, self.a, self.b],
+        )
+        self.assertEqual(precio, kit.precio)
+
+        with self.assertRaisesMessage(
+            ValueError,
+            "como máximo 2 veces",
+        ):
+            KitEngine.precio_unitario(
+                kit,
+                productos=[self.a, self.a, self.a],
+            )
+
     def test_snapshot_congela_identidad_y_componentes(self):
         kit = Kit.objects.create(
             nombre="Engine snapshot",
