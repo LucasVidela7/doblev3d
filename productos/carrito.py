@@ -653,7 +653,16 @@ def _fingerprint(telefono, lineas):
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
+def _antispam_activo():
+    return bool(
+        getattr(settings, "CATALOGO_ANTISPAM_ENABLED", True)
+    )
+
+
 def _validar_turnstile(request):
+    if not _antispam_activo():
+        return True
+
     secret = getattr(settings, "TURNSTILE_SECRET_KEY", "")
     site_key = getattr(settings, "TURNSTILE_SITE_KEY", "")
     if not secret or not site_key:
@@ -699,10 +708,10 @@ def _contexto_checkout(error=""):
             config.whatsapp_numero,
             mensaje_volumen,
         ),
-        "turnstile_site_key": getattr(
-            settings,
-            "TURNSTILE_SITE_KEY",
-            "",
+        "turnstile_site_key": (
+            getattr(settings, "TURNSTILE_SITE_KEY", "")
+            if _antispam_activo()
+            else ""
         ),
         "mensaje_plazo_entrega": (
             config.mensaje_plazo_entrega
@@ -721,7 +730,10 @@ def carrito_checkout(request):
         )
 
     # Honeypot: los usuarios reales nunca completan este campo.
-    if request.POST.get("website", "").strip():
+    if (
+        _antispam_activo()
+        and request.POST.get("website", "").strip()
+    ):
         request.session["solicitud_web_spam"] = True
         request.session.pop("solicitud_web_ultima_id", None)
         return redirect("catalogo_carrito_gracias")
@@ -807,7 +819,7 @@ def carrito_checkout(request):
     ahora = timezone.now()
     ip_hash = _ip_hash(request)
 
-    if ip_hash:
+    if _antispam_activo() and ip_hash:
         por_hora = SolicitudWeb.objects.filter(
             ip_hash=ip_hash,
             creada_en__gte=ahora - timedelta(hours=1),
@@ -827,10 +839,14 @@ def carrito_checkout(request):
                 ),
             )
 
-    por_telefono = SolicitudWeb.objects.filter(
-        telefono_normalizado=telefono_norm,
-        creada_en__gte=ahora - timedelta(hours=2),
-    ).count()
+    por_telefono = (
+        SolicitudWeb.objects.filter(
+            telefono_normalizado=telefono_norm,
+            creada_en__gte=ahora - timedelta(hours=2),
+        ).count()
+        if _antispam_activo()
+        else 0
+    )
     if por_telefono >= 3:
         return render(
             request,

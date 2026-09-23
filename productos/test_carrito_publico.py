@@ -400,6 +400,26 @@ class CarritoPublicoTests(TestCase):
         self.assertEqual(segunda.status_code, 302)
         self.assertEqual(SolicitudWeb.objects.count(), 1)
 
+    @override_settings(CATALOGO_ANTISPAM_ENABLED=False)
+    def test_antispam_desactivado_ignora_honeypot(self):
+        response = self.client.post(
+            reverse("catalogo_carrito"),
+            {
+                "nombre": "Juan",
+                "apellido": "Perez",
+                "telefono": "1155555566",
+                "email": "",
+                "observaciones": "",
+                "cart_payload": json.dumps(
+                    [{"kind": "product", "id": self.producto.id, "qty": 1}]
+                ),
+                "website": "https://spam.example",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(SolicitudWeb.objects.count(), 1)
+
     def test_honeypot_no_crea_solicitud(self):
         response = self.client.post(
             reverse("catalogo_carrito"),

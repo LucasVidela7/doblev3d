@@ -206,6 +206,13 @@ CSRF_FAILURE_VIEW = "config.csrf.csrf_failure"
 TURNSTILE_SITE_KEY = os.getenv("TURNSTILE_SITE_KEY", "").strip()
 TURNSTILE_SECRET_KEY = os.getenv("TURNSTILE_SECRET_KEY", "").strip()
 
+# Permite desactivar las defensas anti-spam en entornos de prueba sin
+# debilitar producción. La protección de doble envío idéntico se mantiene.
+CATALOGO_ANTISPAM_ENABLED = _env_bool(
+    "CATALOGO_ANTISPAM_ENABLED",
+    True,
+)
+
 # Interruptor de emergencia del catálogo público. En producción puede dejarse
 # activo durante un despliegue grande y apagarse luego sin tocar la base.
 CATALOGO_MANTENIMIENTO = _env_bool(
