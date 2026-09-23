@@ -494,6 +494,21 @@ class DashboardProduccionTests(TestCase):
         solicitud.refresh_from_db()
         self.assertEqual(solicitud.estado, "RESUELTA")
 
+    def test_configuracion_redondeo_se_normaliza_a_multiplo_de_100(self):
+        respuesta = self.client.post(
+            reverse("dashboard:configuracion"),
+            {
+                "redondeo_precio_producto": "250",
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 302)
+        config = ConfiguracionCatalogo.objects.get(pk=1)
+        self.assertEqual(
+            config.redondeo_precio_producto,
+            300,
+        )
+
     def test_configuracion_muestra_centro_y_plantillas_whatsapp(self):
         respuesta = self.client.get(
             reverse("dashboard:configuracion")
@@ -548,6 +563,7 @@ class DashboardProduccionTests(TestCase):
                 "mensaje_plazo_entrega": (
                     "Entrega entre 3 y 10 días hábiles desde la confirmación."
                 ),
+                "redondeo_precio_producto": "100",
                 "instagram_usuario": "@doblev3d_nuevo",
                 "whatsapp_numero": "+54 9 11 1234-5678",
                 "whatsapp_pago_alias": "doblev3d.prueba",
@@ -597,6 +613,10 @@ class DashboardProduccionTests(TestCase):
         self.assertEqual(
             config.mensaje_plazo_entrega,
             "Entrega entre 3 y 10 días hábiles desde la confirmación.",
+        )
+        self.assertEqual(
+            config.redondeo_precio_producto,
+            100,
         )
         self.assertEqual(
             config.instagram_usuario,
