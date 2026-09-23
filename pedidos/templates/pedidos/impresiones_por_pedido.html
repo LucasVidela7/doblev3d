@@ -853,7 +853,7 @@
                         <span>PRODUCTOS DEL PEDIDO</span>
                         <span class="pedido-productos-resumen">{{ item_pedido.productos|length }} item{{ item_pedido.productos|length|pluralize:"s" }}</span>
                     </summary>
-                    <section class="productos" data-preparacion-vista-panel="agrupada">
+                    <section class="productos">
                         {% for item in item_pedido.productos %}
                         <div class="producto">
                             {% if item.producto and item.producto.imagen_produccion_url %}
@@ -1176,6 +1176,31 @@
                         {% include "pedidos/_pedido_menu.html" with pedido=item_pedido.pedido mostrar_detalle=1 %}
                     </div>
                 </header>
+
+                <details class="pedido-productos" id="productos-pedido-{{ item_pedido.pedido.id }}">
+                    <summary>
+                        <span>CONTENIDO DEL PEDIDO</span>
+                        <span class="pedido-productos-resumen">{{ item_pedido.total_piezas }} pieza{{ item_pedido.total_piezas|pluralize:"s" }}</span>
+                    </summary>
+                    <section class="productos" data-preparacion-vista-panel="agrupada">
+                    {% for item in item_pedido.productos %}
+                    <div class="producto">
+                        {% if item.producto and item.producto.imagen_produccion_url %}
+                        <img class="producto-thumb" src="{{ item.producto.imagen_produccion_url }}" alt="" loading="lazy">
+                        {% else %}
+                        <span class="producto-thumb vacia">3D</span>
+                        {% endif %}
+                        <div>
+                            <div class="producto-nombre">{{ item.nombre }}</div>
+                            <div class="producto-detalle">Cantidad {{ item.cantidad }}{% if item.producto %} · {{ item.producto.codigo }}{% endif %}</div>
+                        </div>
+                        <div class="stock ok"><span>PREPARADO</span><strong>Listo para entregar</strong></div>
+                    </div>
+                    {% endfor %}
+                    </section>
+                    {% include "pedidos/_preparacion_paquetes.html" %}
+                </details>
+
                 <footer class="pedido-foot">
                     <div class="saldo">{{ item_pedido.estado_pago_display }} · Total <strong>${{ item_pedido.total_pedido|floatformat:0 }}</strong></div>
                     <div class="acciones">
