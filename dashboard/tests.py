@@ -528,6 +528,22 @@ class DashboardProduccionTests(TestCase):
             respuesta,
             '.cfg-section.is-active{display:block}',
         )
+        self.assertContains(
+            respuesta,
+            '[data-config-tab="tienda"],#tienda{--section-color:#2867c7}',
+        )
+        self.assertContains(
+            respuesta,
+            '[data-config-tab="whatsapp"],#whatsapp{--section-color:#27824c}',
+        )
+        self.assertContains(
+            respuesta,
+            'html[data-dv-theme="dark"] .cfg-nav-copy strong{color:#f3f6fb}',
+        )
+        self.assertContains(
+            respuesta,
+            'sectionContent.dataset.section=id',
+        )
 
     def test_configuracion_conserva_seccion_activa_al_guardar(self):
         respuesta = self.client.post(
