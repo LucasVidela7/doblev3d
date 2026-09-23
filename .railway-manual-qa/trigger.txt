@@ -73,3 +73,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-23 - Rotacion de fotos cada 3 segundos
 2026-09-23 - Reorganizar Ahora clientes y WhatsApp por pagos y saldo
 2026-09-23 - Alias y titular configurables en mensajes con pagos pendientes
+2026-09-23 - Corregir emoji en WhatsApp Web de escritorio
