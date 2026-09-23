@@ -295,6 +295,16 @@ class KitEngine:
             for producto in cls.productos_categoria(kit)
         }
 
+        invalidos = [
+            producto
+            for producto in seleccion
+            if producto.id not in ids_validos
+        ]
+        if invalidos:
+            raise ValueError(
+                f"Hay productos que no están disponibles para {kit.nombre}."
+            )
+
         limite_repeticiones = max(
             int(
                 getattr(
@@ -329,16 +339,6 @@ class KitEngine:
                     f"{producto.nombre} puede elegirse como máximo "
                     f"{limite_repeticiones} veces dentro de {kit.nombre}."
                 )
-            )
-
-        invalidos = [
-            producto
-            for producto in seleccion
-            if producto.id not in ids_validos
-        ]
-        if invalidos:
-            raise ValueError(
-                f"Hay productos que no están disponibles para {kit.nombre}."
             )
 
         return seleccion
