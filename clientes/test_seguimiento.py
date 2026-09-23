@@ -692,6 +692,10 @@ class SeguimientoClientesTests(TestCase):
         self.assertIn("Pagado: $3.000", contacto.mensaje)
         self.assertIn("Saldo pendiente: $7.000", contacto.mensaje)
         self.assertIn(
+            "Alias: doblev3d.mp - Lucas Andrés Videla",
+            contacto.mensaje,
+        )
+        self.assertIn(
             "http://testserver"
             + reverse(
                 "pedido_publico",
@@ -742,6 +746,10 @@ class SeguimientoClientesTests(TestCase):
         self.assertIn("2 pagos registrados", contacto.mensaje)
         self.assertIn("Pagado: $10.000", contacto.mensaje)
         self.assertIn("Saldo pendiente: $5.000", contacto.mensaje)
+        self.assertIn(
+            "Alias: doblev3d.mp - Lucas Andrés Videla",
+            contacto.mensaje,
+        )
 
     def test_whatsapp_multiple_muestra_pagos_y_url_de_cada_pedido(self):
         pedido_a = Pedido.objects.create(
@@ -799,6 +807,12 @@ class SeguimientoClientesTests(TestCase):
         self.assertIn("2 pagos registrados", contacto.mensaje)
         self.assertIn("Saldo pendiente: $5.000", contacto.mensaje)
         self.assertIn("Saldo total pendiente: $5.000", contacto.mensaje)
+        self.assertEqual(
+            contacto.mensaje.count(
+                "Alias: doblev3d.mp - Lucas Andrés Videla"
+            ),
+            1,
+        )
         for pedido in (pedido_a, pedido_b):
             self.assertIn(
                 "http://testserver"
@@ -850,6 +864,46 @@ class SeguimientoClientesTests(TestCase):
             seguimientos[0]["url"],
         )
 
+    def test_alias_y_titular_configurados_se_usan_en_saldo(self):
+        config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
+        config.whatsapp_pago_alias = "doblev3d.test"
+        config.whatsapp_pago_titular = "Titular Configurado"
+        config.save(
+            update_fields=[
+                "whatsapp_pago_alias",
+                "whatsapp_pago_titular",
+            ]
+        )
+
+        pedido = Pedido.objects.create(
+            cliente=self.cliente,
+            estado="PENDIENTE",
+        )
+        DetallePedido.objects.create(
+            pedido=pedido,
+            tipo_item="PRODUCTO",
+            producto=self.producto,
+            cantidad=1,
+            precio_unitario=Decimal("8000"),
+        )
+
+        self.client.get(
+            reverse(
+                "clientes:whatsapp",
+                args=[self.cliente.id],
+            ),
+            {
+                "motivo": "SALDO",
+                "pedido": pedido.id,
+            },
+        )
+
+        contacto = ContactoCliente.objects.get()
+        self.assertIn(
+            "Alias: doblev3d.test - Titular Configurado",
+            contacto.mensaje,
+        )
+
     def test_pedido_listo_pagado_solo_coordina_entrega(self):
         pedido = Pedido.objects.create(
             cliente=self.cliente,
@@ -890,4 +944,17 @@ class SeguimientoClientesTests(TestCase):
             "COORDINAR ENTREGA · WHATSAPP",
             count=1,
         )
+
+        self.client.get(
+            reverse(
+                "clientes:whatsapp",
+                args=[self.cliente.id],
+            ),
+            {
+                "motivo": "PEDIDO_LISTO",
+                "pedido": pedido.id,
+            },
+        )
+        contacto = ContactoCliente.objects.get()
+        self.assertNotIn("Alias:", contacto.mensaje)
 
