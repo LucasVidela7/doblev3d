@@ -253,28 +253,35 @@ def _seguimientos_cliente(
                 )
             detalle = " · ".join(detalles)
 
-        items.append(
-            {
-                "prioridad": 1,
-                "tipo": (
-                    "PEDIDO_LISTO"
-                    if cantidad_listos
-                    else "SALDO"
-                ),
-                "titulo": titulo,
-                "detalle": detalle,
-                "accion": accion,
-                "url": (
-                    url_contacto(
-                        cliente,
-                        motivo,
-                        pedidos=pedidos_contacto,
-                    )
-                    if tiene_whatsapp
-                    else ""
-                ),
-            }
-        )
+        # Para un único pedido listo, la acción vive dentro de la
+        # propia tarjeta de "Ahora". Así evitamos mostrar dos botones
+        # de WhatsApp que hacen exactamente lo mismo.
+        if not (
+            cantidad == 1
+            and cantidad_listos == 1
+        ):
+            items.append(
+                {
+                    "prioridad": 1,
+                    "tipo": (
+                        "PEDIDO_LISTO"
+                        if cantidad_listos
+                        else "SALDO"
+                    ),
+                    "titulo": titulo,
+                    "detalle": detalle,
+                    "accion": accion,
+                    "url": (
+                        url_contacto(
+                            cliente,
+                            motivo,
+                            pedidos=pedidos_contacto,
+                        )
+                        if tiene_whatsapp
+                        else ""
+                    ),
+                }
+            )
 
     for presupuesto in presupuestos_pendientes:
         dias = max(
@@ -694,6 +701,43 @@ def detalle_cliente(request, cliente_id):
         )
         for pedido in pedidos_recientes
     ]
+
+    pedidos_listos_ahora = [
+        fila["pedido"]
+        for fila in filas_ahora
+        if fila["pedido"].estado == "LISTO"
+    ]
+    entregas_contactadas = set(
+        ContactoCliente.objects
+        .filter(
+            cliente=cliente,
+            motivo="PEDIDO_LISTO",
+            referencia__in=[
+                pedido.codigo
+                for pedido in pedidos_listos_ahora
+            ],
+        )
+        .values_list("referencia", flat=True)
+    )
+    tiene_whatsapp_cliente = bool(
+        numero_whatsapp(cliente)
+    )
+    for fila in filas_ahora:
+        pedido = fila["pedido"]
+        fila["entrega_contactada"] = False
+        fila["entrega_whatsapp_url"] = ""
+        if pedido.estado != "LISTO":
+            continue
+
+        fila["entrega_contactada"] = (
+            pedido.codigo in entregas_contactadas
+        )
+        if tiene_whatsapp_cliente:
+            fila["entrega_whatsapp_url"] = url_contacto(
+                cliente,
+                "PEDIDO_LISTO",
+                pedido=pedido,
+            )
 
     contactos_recientes = list(
         cliente.contactos.all()[:5]
