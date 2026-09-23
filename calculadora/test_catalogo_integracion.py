@@ -113,6 +113,39 @@ class CalculadoraCatalogoIntegracionTests(TestCase):
             esperado["descuento_porcentaje"],
         )
 
+    def test_x1_respeta_margen_configurado_del_producto(self):
+        self.producto.margen_ganancia = Decimal("60")
+        self.producto.save(
+            update_fields=["margen_ganancia"]
+        )
+
+        respuesta = self.client.post(
+            reverse("calculadora:precios"),
+            {
+                "modo": "existente",
+                "producto_id": str(self.producto.id),
+                "cantidad": "1",
+                "cantidades_lista": "1",
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        resultado = respuesta.context["resultado_existente"]
+        fila = resultado["lista_precios"][0]
+
+        self.assertEqual(
+            fila["cantidad"],
+            1,
+        )
+        self.assertGreaterEqual(
+            fila["margen_real"],
+            Decimal("60"),
+        )
+        self.assertEqual(
+            fila["precio_lista_unitario"],
+            self.producto.subtotal,
+        )
+
     def test_calculadora_kit_usa_el_mismo_motor_de_volumen(self):
         respuesta = self.client.post(
             reverse("calculadora:precios"),
