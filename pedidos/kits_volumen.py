@@ -407,44 +407,77 @@ def calcular_precio_volumen_kits(items):
         if elegible
         else Decimal("0")
     )
-    ahorro_aplicable = min(ahorro_deseado, capacidad_total)
-    limitado_por_margen = ahorro_aplicable < ahorro_deseado
 
-    # Repartimos el ahorro según la capacidad real de descuento de cada línea.
-    # Así una línea con margen justo no subsidia otra con margen amplio.
-    for linea in lineas:
-        capacidad = linea["capacidad_descuento"]
+    # El descuento de una compra de kits es único y equitativo: todas las
+    # líneas reciben el mismo porcentaje. Para conservar la rentabilidad,
+    # ese porcentaje común queda limitado por la línea con menor capacidad
+    # de descuento. Así una combinación más rentable no subsidia a otra,
+    # pero tampoco mostramos porcentajes distintos para la misma compra.
+    descuento_deseado_porcentaje = (
+        ahorro_deseado
+        / precio_lista_total
+        * Decimal("100")
+        if elegible and precio_lista_total > 0
+        else Decimal("0")
+    )
 
-        if ahorro_aplicable <= 0 or capacidad_total <= 0 or capacidad <= 0:
-            ahorro_linea = Decimal("0")
-        else:
-            ahorro_linea = (
-                ahorro_aplicable * capacidad / capacidad_total
-            ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-            ahorro_linea = min(ahorro_linea, capacidad)
-
-        total_propuesto = max(
-            linea["precio_lista_total"] - ahorro_linea,
-            linea["piso_aplicable"],
+    capacidades_porcentaje = [
+        (
+            linea["capacidad_descuento"]
+            / linea["precio_lista_total"]
+            * Decimal("100")
         )
+        for linea in lineas
+        if linea["precio_lista_total"] > 0
+    ]
+    descuento_equilibrado_porcentaje = (
+        min(
+            [descuento_deseado_porcentaje]
+            + capacidades_porcentaje
+        )
+        if capacidades_porcentaje
+        else Decimal("0")
+    )
+    descuento_equilibrado_porcentaje = max(
+        descuento_equilibrado_porcentaje,
+        Decimal("0"),
+    )
 
-        if linea["cantidad_kits"] > 0:
+    ahorro_aplicable = (
+        precio_lista_total
+        * descuento_equilibrado_porcentaje
+        / Decimal("100")
+    )
+    limitado_por_margen = (
+        descuento_equilibrado_porcentaje
+        < descuento_deseado_porcentaje
+    )
+
+    for linea in lineas:
+        if (
+            descuento_equilibrado_porcentaje <= 0
+            or linea["cantidad_kits"] <= 0
+            or linea["precio_lista_total"] <= 0
+        ):
+            precio_unitario = linea["precio_unitario_lista"]
+        else:
             precio_unitario_minimo = (
                 linea["piso_aplicable"]
                 / Decimal(linea["cantidad_kits"])
             ).quantize(Decimal("0.01"), rounding=ROUND_CEILING)
 
             precio_unitario = (
-                total_propuesto
-                / Decimal(linea["cantidad_kits"])
+                linea["precio_unitario_lista"]
+                * (
+                    Decimal("1")
+                    - descuento_equilibrado_porcentaje / Decimal("100")
+                )
             ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
             precio_unitario = min(
                 linea["precio_unitario_lista"],
                 max(precio_unitario, precio_unitario_minimo),
             )
-        else:
-            precio_unitario = linea["precio_unitario_lista"]
 
         precio_final_total = (
             precio_unitario * Decimal(linea["cantidad_kits"])
@@ -458,8 +491,8 @@ def calcular_precio_volumen_kits(items):
         linea["precio_final_total"] = precio_final_total
         linea["ahorro"] = ahorro_real_linea
         linea["descuento_porcentaje"] = (
-            ahorro_real_linea / linea["precio_lista_total"] * Decimal("100")
-            if linea["precio_lista_total"] > 0
+            descuento_equilibrado_porcentaje
+            if ahorro_real_linea > 0
             else Decimal("0")
         ).quantize(Decimal("0.1"))
 
@@ -498,6 +531,9 @@ def calcular_precio_volumen_kits(items):
         "precio_objetivo_tecnico_total": precio_objetivo_tecnico_total,
         "descuento_referencia_porcentaje": descuento_referencia_porcentaje,
         "descuento_maximo_comercial": descuento_maximo_comercial,
+        "descuento_equilibrado_porcentaje": (
+            descuento_equilibrado_porcentaje
+        ).quantize(Decimal("0.1")),
         "ajustado_por_precio_real": ajustado_por_precio_real,
         "precio_objetivo_total": precio_objetivo_total,
         "precio_final_total": precio_final_total,
@@ -731,6 +767,9 @@ def resumen_json(resumen):
         ),
         "descuento_maximo_comercial": float(
             resumen["descuento_maximo_comercial"]
+        ),
+        "descuento_equilibrado_porcentaje": float(
+            resumen["descuento_equilibrado_porcentaje"]
         ),
         "ajustado_por_precio_real": bool(resumen["ajustado_por_precio_real"]),
         "precio_objetivo_total": float(resumen["precio_objetivo_total"]),
