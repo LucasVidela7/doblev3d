@@ -201,7 +201,8 @@ class AnalisisEconomicoKitTests(TestCase):
         )
 
     def test_formulario_guarda_proteccion_de_kit_libre(self):
-        self.crear_producto("Opción formulario", 100)
+        self.crear_producto("Opción formulario A", 100)
+        self.crear_producto("Opción formulario B", 120)
 
         respuesta = self.client.post(
             reverse("kits:nuevo"),
@@ -210,6 +211,7 @@ class AnalisisEconomicoKitTests(TestCase):
                 "modalidad": "LIBRE_CATEGORIA",
                 "tipo_producto": str(self.tipo.id),
                 "cantidad_productos": "2",
+                "max_repeticiones_producto": "1",
                 "precio": "9000",
                 "activo": "1",
                 "proteger_rentabilidad_libre": "1",
@@ -219,6 +221,52 @@ class AnalisisEconomicoKitTests(TestCase):
         self.assertEqual(respuesta.status_code, 302)
         kit = Kit.objects.get(nombre="Kit protegido formulario")
         self.assertTrue(kit.proteger_rentabilidad_libre)
+        self.assertEqual(kit.max_repeticiones_producto, 1)
+
+    def test_formulario_permita_configurar_hasta_dos_repeticiones(self):
+        self.crear_producto("Opción repetible formulario", 100)
+
+        respuesta = self.client.post(
+            reverse("kits:nuevo"),
+            data={
+                "nombre": "Kit repetible formulario",
+                "modalidad": "LIBRE_CATEGORIA",
+                "tipo_producto": str(self.tipo.id),
+                "cantidad_productos": "2",
+                "max_repeticiones_producto": "2",
+                "precio": "9000",
+                "activo": "1",
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 302)
+        kit = Kit.objects.get(nombre="Kit repetible formulario")
+        self.assertEqual(kit.max_repeticiones_producto, 2)
+
+    def test_formulario_rechaza_limite_que_no_permite_completar_kit(self):
+        self.crear_producto("Única opción formulario", 100)
+
+        respuesta = self.client.post(
+            reverse("kits:nuevo"),
+            data={
+                "nombre": "Kit imposible formulario",
+                "modalidad": "LIBRE_CATEGORIA",
+                "tipo_producto": str(self.tipo.id),
+                "cantidad_productos": "4",
+                "max_repeticiones_producto": "2",
+                "precio": "9000",
+                "activo": "1",
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(
+            respuesta,
+            "no hay suficientes productos activos",
+        )
+        self.assertFalse(
+            Kit.objects.filter(nombre="Kit imposible formulario").exists()
+        )
 
     def test_editar_kit_precarga_precio_valido_para_input_number(self):
         kit = Kit.objects.create(
