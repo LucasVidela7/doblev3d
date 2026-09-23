@@ -30,16 +30,13 @@ h1{margin:0;font-size:30px}.sub{margin-top:5px;color:var(--muted);font-size:12px
 .money{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.money > div{padding:9px;border-radius:10px;background:var(--card);border:1px solid var(--border)}.money b{display:block;margin-top:4px;font-size:13px}.discount b{color:#2e7043}
 .totals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.total-box{padding:13px;border-radius:13px;background:var(--soft)}.total-box strong{display:block;margin-top:5px;font-size:21px}.total-box.discount strong{color:#2e7043}.total-box.final{background:#24272b;color:#fff}.obs{white-space:pre-wrap;font-size:11px;line-height:1.5;color:var(--muted)}
 form{margin:0}
+.budget-actions-menu .btn.reject{color:var(--red-t)!important}
 @media(max-width:720px){.head{flex-direction:column}.actions{justify-content:flex-start}.info,.money,.totals{grid-template-columns:1fr}.item-head{gap:8px}}
 </style>
 </head>
 <body>
 <div class="shell">
-    {% if messages %}
-        {% for message in messages %}
-            <div class="card">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
+    {% include "shared/messages_toasts.html" %}
 
     <div class="head">
         <div>
@@ -50,15 +47,25 @@ form{margin:0}
         <div class="actions">
             <a class="btn" href="{% url 'pedidos:presupuestos' %}">← PRESUPUESTOS</a>
             {% if presupuesto.estado == "PENDIENTE" %}
-                <a class="btn" href="{% url 'pedidos:presupuesto_editar' presupuesto.id %}">EDITAR</a>
-                <form method="post" action="{% url 'pedidos:presupuesto_rechazar' presupuesto.id %}">
+                <form
+                    method="post"
+                    action="{% url 'pedidos:presupuesto_aprobar' presupuesto.id %}"
+                    data-dv-primary
+                >
                     {% csrf_token %}
-                    <button class="btn reject" type="submit">RECHAZAR</button>
+                    <button class="btn primary approve" type="submit">APROBAR Y CREAR PEDIDO</button>
                 </form>
-                <form method="post" action="{% url 'pedidos:presupuesto_aprobar' presupuesto.id %}">
-                    {% csrf_token %}
-                    <button class="btn approve" type="submit">APROBAR Y CREAR PEDIDO</button>
-                </form>
+
+                <details class="dv-page-overflow budget-actions-menu">
+                    <summary aria-label="Más acciones">⋯</summary>
+                    <div class="dv-page-overflow__menu">
+                        <a class="btn" href="{% url 'pedidos:presupuesto_editar' presupuesto.id %}">EDITAR</a>
+                        <form method="post" action="{% url 'pedidos:presupuesto_rechazar' presupuesto.id %}">
+                            {% csrf_token %}
+                            <button class="btn reject" type="submit">RECHAZAR</button>
+                        </form>
+                    </div>
+                </details>
             {% elif presupuesto.pedido_generado %}
                 <a class="btn primary" href="{% url 'pedidos:detalle' presupuesto.pedido_generado.id %}">
                     VER {{ presupuesto.pedido_generado.codigo }}
