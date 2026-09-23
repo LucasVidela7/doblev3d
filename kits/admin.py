@@ -17,6 +17,7 @@ class KitAdmin(admin.ModelAdmin):
         "modalidad",
         "tipo_producto",
         "cantidad_productos",
+        "max_repeticiones_producto",
         "precio",
         "activo",
     ]
