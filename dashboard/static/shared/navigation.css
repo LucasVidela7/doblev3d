@@ -72,12 +72,12 @@
     box-shadow:0 4px 14px rgba(19,74,154,.34);
 }
 .dv-global-nav-item.is-primary:not(.is-active){
-    background:var(--dv-brand-red,#f0393b);
+    background:var(--dv-brand-sky,#4f9bd3);
     color:#fff;
-    box-shadow:0 4px 13px rgba(240,57,59,.22);
+    box-shadow:0 4px 13px rgba(79,155,211,.25);
 }
 .dv-global-nav-item.is-primary:hover{
-    background:var(--dv-brand-red-strong,#cf2730);
+    background:var(--dv-brand-blue,#134a9a);
 }
 html[data-dv-theme="dark"] .dv-global-nav{
     border-color:rgba(130,156,196,.18);
@@ -86,7 +86,7 @@ html[data-dv-theme="dark"] .dv-global-nav{
             120deg,
             rgba(19,74,154,.28),
             transparent 45%,
-            rgba(240,57,59,.11)
+            rgba(79,155,211,.13)
         ),
         rgba(12,17,28,.98);
     box-shadow:0 16px 44px rgba(0,0,0,.38);
