@@ -42,7 +42,7 @@
     background:linear-gradient(
         135deg,
         var(--dv-brand-blue,#134a9a) 0 55%,
-        var(--dv-brand-blue,#134a9a) 55% 100%
+        var(--dv-brand-sky,#69b6eb) 55% 100%
     );
     color:#fff;
     font-size:12px;
