@@ -111,6 +111,11 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 </div>
 
 <div class="cfg-box full">
+<div class="cfg-switch-row"><div><div class="cfg-box-title">Mostrar productos sin foto</div><div class="cfg-box-copy">Controla si los productos que todavía no tienen fotos aparecen en la tienda pública.</div></div><label class="cfg-switch"><input type="checkbox" name="mostrar_productos_sin_foto" {% if config.mostrar_productos_sin_foto %}checked{% endif %}><span class="cfg-switch-track"></span></label></div>
+<div class="cfg-note">Al ocultarlos, dejan de aparecer en Productos y su detalle público. Inicio ya muestra únicamente productos con foto. Los kits y Gestión no se modifican.</div>
+</div>
+
+<div class="cfg-box full">
 <label class="cfg-label" for="mensaje_plazo_entrega"><span>PLAZO DE ENTREGA INFORMADO EN EL CATÁLOGO</span><span data-count-for="mensaje_plazo_entrega"></span></label>
 <textarea class="cfg-textarea" id="mensaje_plazo_entrega" name="mensaje_plazo_entrega" maxlength="300" data-counter>{{ config.mensaje_plazo_entrega }}</textarea>
 <div class="cfg-note">Se muestra en la portada, como aviso general en los listados, en detalles, “Cómo comprar”, checkout y confirmación. No ocupa espacio dentro de cada tarjeta de producto o kit.</div>

@@ -514,12 +514,21 @@ class DashboardProduccionTests(TestCase):
             respuesta,
             'id="dvWhatsappDefaults"',
         )
+        self.assertContains(
+            respuesta,
+            'name="mostrar_productos_sin_foto"',
+        )
+        self.assertContains(
+            respuesta,
+            "Mostrar productos sin foto",
+        )
 
     def test_configuracion_guarda_tienda_y_mensajes_whatsapp(self):
         respuesta = self.client.post(
             reverse("dashboard:configuracion"),
             {
                 "catalogo_activo": "on",
+                "mostrar_productos_sin_foto": "on",
                 "notificaciones_pedidos_web_activas": "on",
                 "mostrar_instagram": "on",
                 "mostrar_whatsapp": "on",
@@ -564,6 +573,7 @@ class DashboardProduccionTests(TestCase):
         )
 
         config = ConfiguracionCatalogo.objects.get(pk=1)
+        self.assertTrue(config.mostrar_productos_sin_foto)
         self.assertEqual(
             config.mensaje_plazo_entrega,
             "Entrega entre 3 y 10 días hábiles desde la confirmación.",

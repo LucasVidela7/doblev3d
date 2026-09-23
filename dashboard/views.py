@@ -1004,6 +1004,7 @@ def configuracion(request):
     }
     campos_booleanos = [
         "catalogo_activo",
+        "mostrar_productos_sin_foto",
         "notificaciones_pedidos_web_activas",
         "mostrar_instagram",
         "mostrar_whatsapp",

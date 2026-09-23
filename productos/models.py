@@ -8,6 +8,15 @@ from costos.models import ConfiguracionCostos
 
 
 class ConfiguracionCatalogo(models.Model):
+    mostrar_productos_sin_foto = models.BooleanField(
+        default=True,
+        verbose_name="Mostrar productos sin foto",
+        help_text=(
+            "Si se desactiva, los productos sin imágenes en el ambiente actual "
+            "se ocultan de los listados y de su detalle público. "
+            "Los kits y Gestión no se modifican."
+        ),
+    )
     catalogo_activo = models.BooleanField(
         default=True,
         verbose_name="Catálogo público activo",

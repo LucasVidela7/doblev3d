@@ -228,6 +228,31 @@ class CatalogoPublicoTests(TestCase):
         self.assertEqual(productos[0], self.producto)
         self.assertEqual(productos[-1], sin_imagen)
 
+    def test_configuracion_puede_ocultar_productos_sin_foto(self):
+        sin_imagen = Producto.objects.create(
+            nombre="Producto sin foto ocultable",
+            categoria="PRODUCTO",
+            tipo=self.tipo,
+            activo=True,
+            solo_produccion=False,
+        )
+        ConfiguracionCatalogo.objects.create(
+            pk=1,
+            mostrar_productos_sin_foto=False,
+        )
+
+        response = self.client.get(reverse("catalogo_productos"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(self.producto, response.context["productos"])
+        self.assertNotIn(sin_imagen, response.context["productos"])
+        self.assertIn(self.kit, response.context["kits"])
+
+        detalle = self.client.get(
+            reverse("catalogo_producto_detalle", args=[sin_imagen.id])
+        )
+        self.assertEqual(detalle.status_code, 404)
+
     def test_gestion_interna_usa_prefijo_y_login_separado(self):
         self.assertEqual(reverse("dashboard:inicio"), "/gestion/")
         self.assertEqual(reverse("login"), "/gestion/login/")

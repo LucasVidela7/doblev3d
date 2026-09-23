@@ -91,6 +91,15 @@ def _catalogo_publico(request, vista_catalogo):
         )
     )
 
+    productos_visibles = [
+        producto
+        for producto in productos
+        if (
+            config_catalogo.mostrar_productos_sin_foto
+            or producto.catalogo_imagen
+        )
+    ]
+
     productos_por_tipo = defaultdict(list)
     for producto in productos:
         productos_por_tipo[producto.tipo_id].append(producto)
@@ -177,7 +186,7 @@ def _catalogo_publico(request, vista_catalogo):
     # Kits mantienen todos los ítems activos, tengan foto o no.
     productos_inicio = [
         producto
-        for producto in productos
+        for producto in productos_visibles
         if producto.catalogo_imagen
     ]
     kits_inicio = [
@@ -189,8 +198,13 @@ def _catalogo_publico(request, vista_catalogo):
     categorias = sorted(
         {
             producto.tipo.nombre
-            for producto in productos
+            for producto in productos_visibles
             if producto.tipo_id and producto.tipo
+        }
+        | {
+            kit.tipo_producto.nombre
+            for kit in kits
+            if kit.tipo_producto_id and kit.tipo_producto
         }
     )
 
@@ -204,7 +218,7 @@ def _catalogo_publico(request, vista_catalogo):
         request,
         template,
         {
-            "productos": productos,
+            "productos": productos_visibles,
             "kits": kits,
             "productos_inicio": productos_inicio,
             "kits_inicio": kits_inicio,
@@ -264,6 +278,12 @@ def catalogo_producto_detalle(request, producto_id):
         )
         .order_by("orden", "id")[:2]
     )
+    if (
+        not config_catalogo.mostrar_productos_sin_foto
+        and not imagenes
+    ):
+        raise Http404("Producto no disponible")
+
     producto.catalogo_imagen_url = (
         imagenes[0].url
         if imagenes
