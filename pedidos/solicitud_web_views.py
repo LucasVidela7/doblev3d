@@ -141,6 +141,8 @@ def detalle_solicitud_web(request, solicitud_id):
         config.whatsapp_mensaje_respuesta_solicitud,
         solicitud,
         request=request,
+        config=config,
+        incluir_datos_pago=True,
     )
     whatsapp_url_cliente = whatsapp_url(
         solicitud.telefono_normalizado,
