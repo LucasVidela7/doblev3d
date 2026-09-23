@@ -1113,6 +1113,10 @@
     const config = document.querySelector('[data-dv-kit-config]');
     if (config) {
         const required = Number(config.dataset.required || 0);
+        const maxPerProduct = Math.max(
+            1,
+            Number(config.dataset.maxPerProduct || 1),
+        );
         const mode = config.dataset.mode || 'FIJO';
         const base = Number(config.dataset.basePrice || 0);
         const colorEnabled = config.dataset.colorEnabled === '1';
@@ -1316,7 +1320,22 @@
 
                 if (counter) counter.textContent = String(count);
                 if (plusButton) {
-                    plusButton.disabled = complete;
+                    const reachedProductLimit =
+                        mode === 'LIBRE_CATEGORIA'
+                        && count >= maxPerProduct;
+                    plusButton.disabled =
+                        complete || reachedProductLimit;
+                    if (reachedProductLimit) {
+                        plusButton.title = maxPerProduct === 1
+                            ? 'Este producto ya está incluido'
+                            : (
+                                'Máximo '
+                                + maxPerProduct
+                                + ' del mismo producto'
+                            );
+                    } else {
+                        plusButton.removeAttribute('title');
+                    }
                 }
                 if (minusButton) {
                     minusButton.disabled = count <= 0;
@@ -1359,6 +1378,18 @@
             );
 
             if (plus && selected < required) {
+                if (current >= maxPerProduct) {
+                    showToast(
+                        maxPerProduct === 1
+                            ? 'Este producto ya está incluido en el kit'
+                            : (
+                                'Podés elegir este producto hasta '
+                                + maxPerProduct
+                                + ' veces'
+                            ),
+                    );
+                    return;
+                }
                 node.dataset.count = String(current + 1);
             }
             if (minus && current > 0) {
