@@ -183,6 +183,22 @@ class ConfiguracionCatalogo(models.Model):
             "Podés usar {nombre}, {codigo}, {saldo}, {total} y {pagado}."
         ),
     )
+    whatsapp_mensaje_cliente_multiples_pedidos = models.TextField(
+        blank=True,
+        default=(
+            "Hola {nombre} 👋 Te escribo por {cantidad_pedidos} pedidos "
+            "que tenés activos en Doble V 3D:\n\n"
+            "{pedidos}\n\n"
+            "*Saldo total pendiente: ${saldo_total}*\n\n"
+            "Cuando puedas, escribinos y coordinamos el pago 😊"
+        ),
+        verbose_name="Mensaje de múltiples pedidos",
+        help_text=(
+            "Podés usar {nombre}, {cantidad_pedidos}, {pedidos} y "
+            "{saldo_total}. {pedidos} genera el detalle y la URL pública "
+            "individual de cada pedido."
+        ),
+    )
     whatsapp_mensaje_cliente_presupuesto = models.TextField(
         blank=True,
         default=(

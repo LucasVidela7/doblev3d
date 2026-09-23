@@ -3,6 +3,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
 from config.health import healthcheck
+from pedidos.public_views import pedido_publico
 
 from productos.catalogo import (
     catalogo_404,
@@ -113,6 +114,11 @@ urlpatterns = [
         "solicitud/<uuid:token>/",
         solicitud_publica,
         name="solicitud_publica",
+    ),
+    path(
+        "pedido/<uuid:token>/",
+        pedido_publico,
+        name="pedido_publico",
     ),
 
     # Los enlaces sociales pasan por el sistema para registrar el click antes
