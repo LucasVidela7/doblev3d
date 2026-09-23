@@ -80,16 +80,6 @@ def _bloque_pedido_whatsapp(pedido, request=None):
         f"*{pedido.codigo} · {pedido.get_estado_display()}*"
     ]
 
-    detalles = list(pedido.detalles.all())
-    if detalles:
-        for detalle in detalles:
-            lineas.append(
-                f"• {detalle.cantidad} × "
-                f"{_nombre_detalle_pedido(detalle)}"
-            )
-    else:
-        lineas.append("• Sin detalle de productos")
-
     saldo = max(
         Decimal(pedido.saldo_pendiente or 0),
         Decimal("0"),
