@@ -150,7 +150,7 @@ class PedidoPublicoTests(TestCase):
         )
 
         self.assertEqual(respuesta.status_code, 200)
-        self.assertContains(respuesta, 'class="item-gallery"', count=2)
+        self.assertContains(respuesta, 'class="item-gallery images-', count=2)
         self.assertContains(
             respuesta,
             "https://ik.imagekit.io/demo/pedido-producto-1.jpg",
