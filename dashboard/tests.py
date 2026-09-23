@@ -509,6 +509,41 @@ class DashboardProduccionTests(TestCase):
             300,
         )
 
+    def test_configuracion_sectorizada_muestra_una_seccion_por_vez(self):
+        respuesta = self.client.get(
+            reverse("dashboard:configuracion")
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, 'class="cfg-workspace"')
+        self.assertContains(respuesta, 'data-config-tab="tienda"')
+        self.assertContains(respuesta, 'data-config-tab="whatsapp"')
+        self.assertContains(respuesta, 'id="cfgSectionSelect"')
+        self.assertContains(respuesta, 'class="cfg-save-dock"')
+        self.assertContains(
+            respuesta,
+            '.cfg-section{display:none',
+        )
+        self.assertContains(
+            respuesta,
+            '.cfg-section.is-active{display:block}',
+        )
+
+    def test_configuracion_conserva_seccion_activa_al_guardar(self):
+        respuesta = self.client.post(
+            reverse("dashboard:configuracion"),
+            {
+                "config_seccion": "whatsapp",
+                "redondeo_precio_producto": "100",
+            },
+        )
+
+        self.assertRedirects(
+            respuesta,
+            reverse("dashboard:configuracion")
+            + "?guardado=1&periodo=30#whatsapp",
+        )
+
     def test_configuracion_muestra_centro_y_plantillas_whatsapp(self):
         respuesta = self.client.get(
             reverse("dashboard:configuracion")
@@ -613,7 +648,7 @@ class DashboardProduccionTests(TestCase):
 
         self.assertRedirects(
             respuesta,
-            reverse("dashboard:configuracion") + "?guardado=1&periodo=30",
+            reverse("dashboard:configuracion") + "?guardado=1&periodo=30#tienda",
         )
 
         config = ConfiguracionCatalogo.objects.get(pk=1)
