@@ -8,6 +8,11 @@ from django.utils import timezone
 PORCENTAJE_SENIA = Decimal("0.30")
 
 
+def _primer_nombre(valor):
+    partes = str(valor or "").strip().split()
+    return partes[0] if partes else ""
+
+
 PLACEHOLDERS_SOLICITUD = (
     "{nombre}",
     "{codigo}",
@@ -71,7 +76,7 @@ def contexto_mensaje_solicitud(solicitud, request=None):
         else ruta_publica
     )
     return {
-        "{nombre}": solicitud.nombre or "",
+        "{nombre}": _primer_nombre(solicitud.nombre),
         "{codigo}": solicitud.codigo,
         "{detalle}": detalle_solicitud_texto(solicitud),
         "{total}": _moneda(solicitud.total),

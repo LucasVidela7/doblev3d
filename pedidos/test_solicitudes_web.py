@@ -94,6 +94,15 @@ class SolicitudesWebGestionTests(TestCase):
         self.assertContains(detail, "WHATSAPP")
         self.assertContains(detail, self.producto.nombre)
 
+    def test_whatsapp_respuesta_usa_solo_primer_nombre(self):
+        mensaje = renderizar_mensaje_solicitud(
+            "Hola {nombre}!",
+            self.solicitud,
+        )
+
+        self.assertEqual(mensaje, "Hola Cliente!")
+        self.assertNotIn("desde web", mensaje)
+
     def test_whatsapp_respuesta_calcula_senia_y_fecha_hoy(self):
         mensaje = renderizar_mensaje_solicitud(
             "Seña: {senia} | Fecha: {fecha_hoy}",

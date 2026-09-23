@@ -38,6 +38,11 @@ def _fecha(valor):
         return str(valor)
 
 
+def _primer_nombre(valor, fallback="¿cómo estás?"):
+    partes = str(valor or "").strip().split()
+    return partes[0] if partes else fallback
+
+
 
 def _nombre_detalle_pedido(detalle):
     if detalle.tipo_item == "KIT":
@@ -62,11 +67,7 @@ def _nombre_detalle_pedido(detalle):
 
 def _mensaje_pedidos_whatsapp(cliente, pedidos):
     pedidos = list(pedidos)
-    nombre = (
-        cliente.nombre.strip()
-        if cliente.nombre
-        else "¿cómo estás?"
-    )
+    nombre = _primer_nombre(cliente.nombre)
 
     cantidad = len(pedidos)
     listos = sum(

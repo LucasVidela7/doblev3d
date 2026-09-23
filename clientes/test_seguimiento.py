@@ -86,6 +86,10 @@ class SeguimientoClientesTests(TestCase):
             contacto.motivo,
             "PEDIDO_LISTO",
         )
+        self.assertIn(
+            "Hola Cliente 👋",
+            contacto.mensaje,
+        )
         self.assertEqual(
             contacto.referencia,
             pedido.codigo,
@@ -307,7 +311,7 @@ class SeguimientoClientesTests(TestCase):
         self.assertEqual(respuesta.status_code, 302)
         contacto = ContactoCliente.objects.get()
         self.assertIn(
-            "Hola Cliente Seguimiento",
+            "Hola Cliente",
             contacto.mensaje,
         )
         self.assertIn(
