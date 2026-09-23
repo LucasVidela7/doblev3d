@@ -8,7 +8,7 @@ from django.urls import reverse
 from costos.models import ConfiguracionCostos
 from produccion.models import Produccion
 
-from .models import Producto, TipoProducto
+from .models import ConfiguracionCatalogo, Producto, TipoProducto
 from .views import _enriquecer_productos
 
 
@@ -71,7 +71,32 @@ class CentroProductosTests(TestCase):
         )
         self.assertLess(
             precio - precio_minimo,
-            Decimal("500"),
+            Decimal("100"),
+        )
+
+    def test_redondeo_configurable_cambia_el_subtotal(self):
+        config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
+        config.redondeo_precio_producto = 500
+        config.save(update_fields=["redondeo_precio_producto"])
+
+        precio = self.producto.subtotal
+
+        self.assertEqual(
+            precio % Decimal("500"),
+            Decimal("0"),
+        )
+
+        config.redondeo_precio_producto = 100
+        config.save(update_fields=["redondeo_precio_producto"])
+        precio_100 = self.producto.subtotal
+
+        self.assertEqual(
+            precio_100 % Decimal("100"),
+            Decimal("0"),
+        )
+        self.assertLessEqual(
+            precio_100,
+            precio,
         )
 
     def test_listado_renderiza_centro_operativo(self):
