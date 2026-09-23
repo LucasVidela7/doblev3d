@@ -384,13 +384,7 @@ textarea{
         </div>
     </div>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="card">
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
+    {% include "shared/messages_toasts.html" %}
 
     <form
         method="post"
