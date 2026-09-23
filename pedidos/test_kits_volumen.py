@@ -232,6 +232,75 @@ class PrecioVolumenKitsTests(TestCase):
             resumen["descuento_referencia_porcentaje"],
         )
 
+    def test_kits_distintos_reciben_el_mismo_porcentaje_de_descuento(self):
+        producto_caro = Producto.objects.create(
+            nombre="Pieza más costosa",
+            categoria="PRODUCTO",
+            tipo=self.tipo,
+            horas=0,
+            minutos=1,
+            peso_gramos=Decimal("130"),
+            margen_ganancia=Decimal("60"),
+            requiere_impresion=True,
+            personalizable=False,
+            stock=0,
+            activo=True,
+            tipo_fabricacion="SIMPLE",
+            solo_produccion=False,
+        )
+        kit_caro = Kit.objects.create(
+            nombre="Kit x6 caro",
+            modalidad="FIJO",
+            cantidad_productos=6,
+            precio=Decimal("25000"),
+            activo=True,
+        )
+        KitComponente.objects.create(
+            kit=kit_caro,
+            producto=producto_caro,
+            cantidad=6,
+        )
+        kit_base = Kit.objects.create(
+            nombre="Kit x6 base",
+            modalidad="FIJO",
+            cantidad_productos=6,
+            precio=Decimal("25000"),
+            activo=True,
+        )
+        KitComponente.objects.create(
+            kit=kit_base,
+            producto=self.producto,
+            cantidad=6,
+        )
+
+        resumen = calcular_precio_volumen_kits([
+            self._item(kit_base, 1),
+            self._item(kit_caro, 1),
+        ])
+
+        self.assertTrue(resumen["elegible"])
+        self.assertGreater(
+            resumen["descuento_equilibrado_porcentaje"],
+            Decimal("0"),
+        )
+        descuentos = {
+            linea["descuento_porcentaje"]
+            for linea in resumen["lineas"]
+        }
+        self.assertEqual(
+            len(descuentos),
+            1,
+        )
+        self.assertEqual(
+            descuentos.pop(),
+            resumen["descuento_equilibrado_porcentaje"],
+        )
+        for linea in resumen["lineas"]:
+            self.assertGreaterEqual(
+                linea["precio_final_total"],
+                linea["piso_aplicable"],
+            )
+
     def test_dos_kits_mas_tres_kits_distintos_califican_juntos(self):
         resumen = calcular_precio_volumen_kits([
             self._item(self.kit8, 2),
