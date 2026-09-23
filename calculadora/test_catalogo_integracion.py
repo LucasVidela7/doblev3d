@@ -5,13 +5,13 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from calculadora.precios import calcular_precio_catalogo_producto
+from calculadora.precios import calcular_precio_catalogo_producto, redondear_arriba
 from clientes.models import Cliente
 from costos.models import ConfiguracionCostos
 from kits.models import Kit, KitComponente
 from pedidos.kits_volumen import calcular_precio_volumen_kits
 from pedidos.models import DetallePresupuesto, Presupuesto
-from productos.models import Producto, TipoProducto
+from productos.models import ConfiguracionCatalogo, Producto, TipoProducto
 
 
 TEST_STORAGES = {
@@ -144,6 +144,24 @@ class CalculadoraCatalogoIntegracionTests(TestCase):
         self.assertEqual(
             fila["precio_lista_unitario"],
             self.producto.subtotal,
+        )
+
+    def test_calculadora_respeta_multiplo_configurado(self):
+        config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
+        config.redondeo_precio_producto = 500
+        config.save(update_fields=["redondeo_precio_producto"])
+
+        self.assertEqual(
+            redondear_arriba(Decimal("2301")),
+            Decimal("2500"),
+        )
+
+        config.redondeo_precio_producto = 100
+        config.save(update_fields=["redondeo_precio_producto"])
+
+        self.assertEqual(
+            redondear_arriba(Decimal("2301")),
+            Decimal("2400"),
         )
 
     def test_calculadora_kit_usa_el_mismo_motor_de_volumen(self):
