@@ -145,7 +145,7 @@ def _fila_pedido(pedido, incluir_preparacion=False):
 def _seguimientos_cliente(
     cliente,
     resumen,
-    filas_activas,
+    filas_contexto,
     presupuestos_pendientes,
 ):
     items = []
@@ -154,9 +154,13 @@ def _seguimientos_cliente(
         numero_whatsapp(cliente)
     )
 
+    # El contexto incluye pedidos activos y pedidos ya entregados que
+    # todavía tienen deuda. Si el cliente tiene más de un pedido vigente,
+    # el WhatsApp resume todos para evitar mensajes parciales o
+    # contradictorios.
     filas_contacto = [
         fila
-        for fila in filas_activas
+        for fila in filas_contexto
         if (
             fila["pedido"].estado == "LISTO"
             or fila["saldo"] > 0
@@ -164,9 +168,14 @@ def _seguimientos_cliente(
     ]
 
     if filas_contacto:
+        filas_mensaje = (
+            filas_contexto
+            if len(filas_contexto) > 1
+            else filas_contacto
+        )
         pedidos_contacto = [
             fila["pedido"]
-            for fila in filas_contacto
+            for fila in filas_mensaje
         ]
         cantidad = len(pedidos_contacto)
         cantidad_listos = sum(
@@ -177,111 +186,140 @@ def _seguimientos_cliente(
         saldo_total = sum(
             (
                 Decimal(fila["saldo"] or 0)
-                for fila in filas_contacto
+                for fila in filas_mensaje
             ),
             Decimal("0"),
         )
 
         if cantidad == 1:
-            fila = filas_contacto[0]
+            fila = filas_mensaje[0]
             pedido = fila["pedido"]
+            saldo = Decimal(fila["saldo"] or 0)
 
-            if pedido.estado == "LISTO":
+            if pedido.estado == "LISTO" and saldo > 0:
+                titulo = (
+                    f"{pedido.codigo} listo · saldo pendiente"
+                )
+                detalle = (
+                    f"Saldo pendiente $ {saldo:,.0f}. "
+                    "El mensaje combina pago y entrega."
+                )
+                accion = "COORDINAR PAGO Y ENTREGA"
+                motivo = "PEDIDO_LISTO"
+                tipo = "PEDIDO_LISTO_SALDO"
+            elif pedido.estado == "LISTO":
                 titulo = (
                     f"{pedido.codigo} listo para entregar"
                 )
-                accion = "AVISAR CLIENTE"
+                detalle = (
+                    "Pedido pago. Coordiná la entrega con el cliente."
+                )
+                accion = "COORDINAR ENTREGA"
                 motivo = "PEDIDO_LISTO"
-                detalles = [
-                    (
-                        "Avisale al cliente que ya puede "
-                        "coordinar la entrega."
-                    )
-                ]
+                tipo = "PEDIDO_LISTO"
+            elif pedido.estado == "ENTREGADO":
+                titulo = (
+                    f"{pedido.codigo} entregado · saldo pendiente"
+                )
+                detalle = (
+                    f"Quedan $ {saldo:,.0f} por cobrar después "
+                    "de la entrega."
+                )
+                accion = "RECORDAR PAGO"
+                motivo = "SALDO"
+                tipo = "SALDO"
             else:
                 titulo = (
                     f"{pedido.codigo} tiene saldo pendiente"
                 )
+                detalle = (
+                    f"Saldo pendiente $ {saldo:,.0f}."
+                )
                 accion = "RECORDAR PAGO"
                 motivo = "SALDO"
-                detalles = []
+                tipo = "SALDO"
 
-            if fila["saldo"] > 0:
-                detalles.append(
-                    f"Saldo pendiente $ "
-                    f"{fila['saldo']:,.0f}."
+            contacto_url = (
+                url_contacto(
+                    cliente,
+                    motivo,
+                    pedido=pedido,
                 )
-
-            detalle = " ".join(detalles)
+                if tiene_whatsapp
+                else ""
+            )
         else:
             codigos = ", ".join(
                 pedido.codigo
                 for pedido in pedidos_contacto
             )
+            cantidad_con_saldo = sum(
+                1
+                for fila in filas_mensaje
+                if Decimal(fila["saldo"] or 0) > 0
+            )
 
-            if cantidad_listos == cantidad:
+            if cantidad_listos and saldo_total > 0:
                 titulo = (
-                    f"{cantidad} pedidos listos para entregar"
+                    f"{cantidad} pedidos requieren seguimiento"
                 )
-                accion = "AVISAR CLIENTE"
+                accion = "COORDINAR PAGO Y ENTREGA"
                 motivo = "PEDIDO_LISTO"
+                tipo = "PEDIDO_LISTO_SALDO"
             elif cantidad_listos:
                 titulo = (
-                    f"{cantidad} pedidos requieren contacto"
+                    f"{cantidad_listos} pedido"
+                    f"{'s' if cantidad_listos != 1 else ''} "
+                    "listo"
+                    f"{'s' if cantidad_listos != 1 else ''} "
+                    "para entregar"
                 )
-                accion = "AVISAR CLIENTE"
+                accion = "COORDINAR ENTREGA"
                 motivo = "PEDIDO_LISTO"
+                tipo = "PEDIDO_LISTO"
             else:
                 titulo = (
-                    f"{cantidad} pedidos tienen saldo pendiente"
+                    f"{cantidad} pedidos requieren seguimiento"
                 )
-                accion = "RECORDAR PAGO"
+                accion = "RECORDAR PAGOS"
                 motivo = "SALDO"
+                tipo = "SALDO"
 
             detalles = [codigos]
-            if (
-                cantidad_listos
-                and cantidad_listos < cantidad
-            ):
+            if cantidad_listos:
                 detalles.append(
                     f"{cantidad_listos} listo"
                     f"{'s' if cantidad_listos != 1 else ''}"
+                )
+            if cantidad_con_saldo:
+                detalles.append(
+                    f"{cantidad_con_saldo} con saldo"
                 )
             if saldo_total > 0:
                 detalles.append(
                     f"Saldo total $ {saldo_total:,.0f}"
                 )
             detalle = " · ".join(detalles)
-
-        # Para un único pedido listo, la acción vive dentro de la
-        # propia tarjeta de "Ahora". Así evitamos mostrar dos botones
-        # de WhatsApp que hacen exactamente lo mismo.
-        if not (
-            cantidad == 1
-            and cantidad_listos == 1
-        ):
-            items.append(
-                {
-                    "prioridad": 1,
-                    "tipo": (
-                        "PEDIDO_LISTO"
-                        if cantidad_listos
-                        else "SALDO"
-                    ),
-                    "titulo": titulo,
-                    "detalle": detalle,
-                    "accion": accion,
-                    "url": (
-                        url_contacto(
-                            cliente,
-                            motivo,
-                            pedidos=pedidos_contacto,
-                        )
-                        if tiene_whatsapp
-                        else ""
-                    ),
-                }
+            contacto_url = (
+                url_contacto(
+                    cliente,
+                    motivo,
+                    pedidos=pedidos_contacto,
+                )
+                if tiene_whatsapp
+                else ""
             )
+
+        items.append(
+            {
+                "prioridad": 1,
+                "tipo": tipo,
+                "titulo": titulo,
+                "detalle": detalle,
+                "accion": accion,
+                "url": contacto_url,
+            }
+        )
 
     for presupuesto in presupuestos_pendientes:
         dias = max(
@@ -651,6 +689,17 @@ def detalle_cliente(request, cliente_id):
             estado__in=ESTADOS_PEDIDO_ACTIVOS,
         )
     )
+    pedidos_entregados_con_saldo = [
+        pedido
+        for pedido in (
+            _pedidos_cliente_queryset()
+            .filter(
+                cliente=cliente,
+                estado="ENTREGADO",
+            )
+        )
+        if pedido.saldo_pendiente > 0
+    ]
     pedidos_recientes = list(
         _pedidos_cliente_queryset()
         .filter(cliente=cliente)[:5]
@@ -702,42 +751,17 @@ def detalle_cliente(request, cliente_id):
         for pedido in pedidos_recientes
     ]
 
-    pedidos_listos_ahora = [
-        fila["pedido"]
-        for fila in filas_ahora
-        if fila["pedido"].estado == "LISTO"
+    filas_entregados_con_saldo = [
+        _fila_pedido(
+            pedido,
+            incluir_preparacion=False,
+        )
+        for pedido in pedidos_entregados_con_saldo
     ]
-    entregas_contactadas = set(
-        ContactoCliente.objects
-        .filter(
-            cliente=cliente,
-            motivo="PEDIDO_LISTO",
-            referencia__in=[
-                pedido.codigo
-                for pedido in pedidos_listos_ahora
-            ],
-        )
-        .values_list("referencia", flat=True)
+    filas_contexto_whatsapp = (
+        filas_ahora
+        + filas_entregados_con_saldo
     )
-    tiene_whatsapp_cliente = bool(
-        numero_whatsapp(cliente)
-    )
-    for fila in filas_ahora:
-        pedido = fila["pedido"]
-        fila["entrega_contactada"] = False
-        fila["entrega_whatsapp_url"] = ""
-        if pedido.estado != "LISTO":
-            continue
-
-        fila["entrega_contactada"] = (
-            pedido.codigo in entregas_contactadas
-        )
-        if tiene_whatsapp_cliente:
-            fila["entrega_whatsapp_url"] = url_contacto(
-                cliente,
-                "PEDIDO_LISTO",
-                pedido=pedido,
-            )
 
     contactos_recientes = list(
         cliente.contactos.all()[:5]
@@ -745,7 +769,7 @@ def detalle_cliente(request, cliente_id):
     seguimientos = _seguimientos_cliente(
         cliente,
         resumen,
-        filas_ahora,
+        filas_contexto_whatsapp,
         presupuestos_pendientes,
     )
     preferencias = preferencias_cliente(
