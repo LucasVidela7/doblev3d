@@ -618,6 +618,7 @@
             data-kit-name="{{ kit.nombre }}"
             data-mode="{{ kit.modalidad }}"
             data-required="{{ kit.cantidad_productos }}"
+            data-max-per-product="{{ kit.max_repeticiones_producto|default:'1' }}"
             data-base-price="{{ kit.precio|unlocalize }}"
             data-image="{{ kit.catalogo_imagen_url }}"
             data-color-enabled="{{ kit.permite_elegir_color|yesno:'1,0' }}"
@@ -663,7 +664,13 @@
                         <h2>Elegí los productos de tu kit</h2>
                         <p>
                             Usá <strong>+</strong> para sumar un producto y <strong>−</strong> para quitarlo.
-                            Elegí {{ kit.cantidad_productos }} en total. Cuando completes el kit, se habilita el botón de abajo.
+                            Elegí {{ kit.cantidad_productos }} en total.
+                            {% if kit.max_repeticiones_producto == 1 %}
+                                Cada producto puede elegirse una sola vez.
+                            {% else %}
+                                Podés elegir el mismo producto hasta {{ kit.max_repeticiones_producto }} veces.
+                            {% endif %}
+                            Cuando completes el kit, se habilita el botón de abajo.
                         </p>
                     </div>
                 </div>
