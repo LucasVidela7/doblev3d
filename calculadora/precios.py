@@ -1,6 +1,8 @@
 from decimal import Decimal, ROUND_CEILING
 from math import log10
 
+from productos.models import redondeo_precio_producto_actual
+
 MARGEN_MINIMO = Decimal("22.5")
 CANTIDAD_PISO_MARGEN = Decimal("1500")
 DIFERENCIA_ESCENARIO = Decimal("4")
@@ -11,9 +13,13 @@ SUAVIDAD_DESCUENTO_PRODUCTOS = Decimal("3")
 MAX_CANTIDAD_CATALOGO = 20
 
 
-def redondear_arriba(valor, multiplo=Decimal("100")):
+def redondear_arriba(valor, multiplo=None):
     valor = Decimal(valor)
-    multiplo = Decimal(multiplo)
+    multiplo = (
+        redondeo_precio_producto_actual()
+        if multiplo is None
+        else Decimal(multiplo)
+    )
     if valor <= 0:
         return Decimal("0")
     return (
@@ -120,7 +126,6 @@ def fila_precio(costo_productivo, cantidad, margen=None, margen_tope=Decimal("60
     total_sin_redondear = precio_unitario * Decimal(cantidad)
     total_recomendado = redondear_arriba(
         total_sin_redondear,
-        Decimal("100"),
     )
 
     precio_unitario_pedido = (
@@ -618,11 +623,9 @@ def calcular_escenarios_kit_libre(productos, cantidad):
 
     agresivo = redondear_arriba(
         sum(precios_agresivos, Decimal("0")) / divisor,
-        Decimal("100"),
     )
     recomendado_promedio = redondear_arriba(
         sum(precios_recomendados, Decimal("0")) / divisor,
-        Decimal("100"),
     )
     recomendado = max(
         recomendado_promedio,
