@@ -150,12 +150,13 @@ class PedidoPublicoTests(TestCase):
         )
 
         self.assertEqual(respuesta.status_code, 200)
-        self.assertContains(respuesta, 'class="item-gallery images-', count=2)
+        self.assertContains(respuesta, 'class="item-gallery images-1"', count=1)
+        self.assertContains(respuesta, 'class="item-gallery images-4"', count=1)
         self.assertContains(
             respuesta,
             "https://ik.imagekit.io/demo/pedido-producto-1.jpg",
         )
-        self.assertContains(
+        self.assertNotContains(
             respuesta,
             "https://ik.imagekit.io/demo/pedido-producto-2.jpg",
         )
@@ -168,3 +169,68 @@ class PedidoPublicoTests(TestCase):
                 respuesta,
                 f"https://ik.imagekit.io/demo/pedido-kit-{indice}.jpg",
             )
+
+
+    @patch.dict(os.environ, {"APP_ENV": "qa"}, clear=False)
+    def test_kit_con_menos_de_cuatro_fotos_muestra_solo_principal(self):
+        productos_kit = []
+        for indice in range(1, 4):
+            producto = Producto.objects.create(
+                nombre=f"Kit corto {indice}",
+                categoria="PRODUCTO",
+                tipo=self.producto.tipo,
+                activo=True,
+                requiere_impresion=False,
+            )
+            ProductoImagen.objects.create(
+                producto=producto,
+                ambiente="qa",
+                file_id=f"pedido-publico-kit-corto-{indice}",
+                url=f"https://ik.imagekit.io/demo/kit-corto-{indice}.jpg",
+                thumbnail_url="",
+                orden=1,
+            )
+            productos_kit.append(producto)
+
+        kit = Kit.objects.create(
+            nombre="Kit corto público",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.producto.tipo,
+            cantidad_productos=3,
+            precio=Decimal("15000"),
+            activo=True,
+        )
+        detalle_kit = DetallePedido.objects.create(
+            pedido=self.pedido,
+            tipo_item="KIT",
+            kit=kit,
+            cantidad=1,
+            precio_unitario=Decimal("15000"),
+        )
+        for producto in productos_kit:
+            DetalleKitProducto.objects.create(
+                detalle=detalle_kit,
+                producto=producto,
+                cantidad=1,
+            )
+
+        respuesta = self.client.get(
+            reverse(
+                "pedido_publico",
+                args=[self.pedido.public_token],
+            )
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(
+            respuesta,
+            "https://ik.imagekit.io/demo/kit-corto-1.jpg",
+        )
+        self.assertNotContains(
+            respuesta,
+            "https://ik.imagekit.io/demo/kit-corto-2.jpg",
+        )
+        self.assertNotContains(
+            respuesta,
+            "https://ik.imagekit.io/demo/kit-corto-3.jpg",
+        )
