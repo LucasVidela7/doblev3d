@@ -16,7 +16,6 @@ from productos.models import Producto
 from calculadora.precios import (
     CANTIDAD_MINIMA_DESCUENTO_PRODUCTOS,
     DESCUENTO_MAXIMO_PRODUCTOS,
-    MAX_CANTIDAD_CATALOGO,
     calcular_precio_catalogo_producto,
 )
 
@@ -50,10 +49,7 @@ def _parsear_cantidades(texto):
             continue
 
         cantidad = _entero(parte, 0)
-        if (
-            1 <= cantidad <= MAX_CANTIDAD_CATALOGO
-            and cantidad not in cantidades
-        ):
+        if cantidad >= 1 and cantidad not in cantidades:
             cantidades.append(cantidad)
 
     if not cantidades:
@@ -117,12 +113,6 @@ def _validar_cantidad(cantidad, errores):
     if cantidad < 1:
         errores.append("La cantidad debe ser mayor a 0.")
         return 1
-    if cantidad > MAX_CANTIDAD_CATALOGO:
-        errores.append(
-            f"El catálogo admite hasta {MAX_CANTIDAD_CATALOGO} unidades "
-            "por línea."
-        )
-        return MAX_CANTIDAD_CATALOGO
     return cantidad
 
 
@@ -522,7 +512,6 @@ def calculadora_precios(request):
         "descuento_maximo": DESCUENTO_MAXIMO_PRODUCTOS,
         "cantidad_minima_kits": CANTIDAD_MINIMA_KITS_VOLUMEN,
         "descuento_maximo_kits": DESCUENTO_MAXIMO_KITS,
-        "max_cantidad_catalogo": MAX_CANTIDAD_CATALOGO,
     }
 
     return render(
