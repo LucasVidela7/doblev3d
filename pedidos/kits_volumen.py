@@ -332,125 +332,61 @@ def calcular_precio_volumen_kits(items):
         else Decimal("0")
     )
 
-    # La referencia técnica sigue siendo la guía principal. Si el precio real
-    # ya está por debajo de esa referencia, antes la curva quedaba en 0% aun
-    # cuando todavía había margen rentable disponible. En ese caso usamos la
-    # capacidad real hasta el piso operativo para que el beneficio comience
-    # efectivamente desde la segunda unidad.
-    descuento_curva_disponible = (
-        descuento_tecnico_real
-        if descuento_tecnico_real > 0
-        else descuento_soportable_por_margen
-    )
+    # La curva comercial de kits depende únicamente de la cantidad TOTAL
+    # de kits del carrito. Esto garantiza que x4 tenga el mismo porcentaje
+    # tanto si son cuatro configuraciones distintas como si una misma
+    # configuración se aumenta a cantidad 4.
+    #
+    # Los costos y márgenes se siguen calculando para diagnóstico y control,
+    # pero ya no alteran el porcentaje que ve el cliente.
     descuento_maximo_comercial = descuento_dinamico_por_cantidad(
-        descuento_curva_disponible,
+        DESCUENTO_MAXIMO_KITS,
         total_kits,
         CANTIDAD_MINIMA_KITS_VOLUMEN,
         tope=DESCUENTO_MAXIMO_KITS,
         suavidad=SUAVIDAD_DESCUENTO_KITS,
     )
+
+    descuento_equilibrado_porcentaje = (
+        descuento_maximo_comercial
+        if elegible
+        else Decimal("0")
+    ).quantize(Decimal("0.1"))
+
     precio_curva_sin_redondear = (
         _redondear_centavos(
             precio_lista_total
             * (
                 Decimal("1")
-                - descuento_maximo_comercial / Decimal("100")
+                - descuento_equilibrado_porcentaje / Decimal("100")
             )
         )
         if elegible
         else precio_lista_total
     )
-    precio_minimo_comercial_total = (
-        redondear_arriba(
-            precio_curva_sin_redondear,
-            Decimal("100"),
-        )
-        if elegible
-        else precio_lista_total
-    )
+    precio_objetivo_total = precio_curva_sin_redondear
 
-    # En compras pequeñas un descuento dinámico válido puede ser menor que
-    # $100 sobre el total. Redondear siempre hacia arriba lo borraría por
-    # completo (por ejemplo, $10.000 -> $9.950 -> $10.000). En ese único caso
-    # conservamos el importe de la curva con precisión de centavos para que
-    # desde la segunda unidad exista un beneficio real sin exceder el margen.
-    if (
-        elegible
-        and descuento_maximo_comercial > 0
-        and precio_curva_sin_redondear < precio_lista_total
-        and precio_minimo_comercial_total >= precio_lista_total
-    ):
-        precio_minimo_comercial_total = precio_curva_sin_redondear
-
-    # Cuando existe una baja técnica, la curva limita cuánto se libera por
-    # cantidad. Si la referencia técnica no habilita baja pero todavía existe
-    # margen real, la propia curva comercial define el descuento.
-    if descuento_tecnico_real > 0:
-        precio_objetivo_total = min(
-            precio_lista_total,
-            max(precio_objetivo_total, precio_minimo_comercial_total),
-        )
-    else:
-        precio_objetivo_total = min(
-            precio_lista_total,
-            precio_minimo_comercial_total,
-        )
-
-    ajustado_por_precio_real = (
-        elegible
-        and precio_objetivo_total > precio_objetivo_tecnico_total
-        and precio_lista_total > precio_referencia_conservador_total
-    )
-
+    ajustado_por_precio_real = False
     ahorro_deseado = (
         max(precio_lista_total - precio_objetivo_total, Decimal("0"))
         if elegible
         else Decimal("0")
     )
+    ahorro_aplicable = ahorro_deseado
 
-    # El descuento de una compra de kits es único y equitativo: todas las
-    # líneas reciben el mismo porcentaje. Para conservar la rentabilidad,
-    # ese porcentaje común queda limitado por la línea con menor capacidad
-    # de descuento. Así una combinación más rentable no subsidia a otra,
-    # pero tampoco mostramos porcentajes distintos para la misma compra.
-    descuento_deseado_porcentaje = (
-        ahorro_deseado
-        / precio_lista_total
-        * Decimal("100")
-        if elegible and precio_lista_total > 0
-        else Decimal("0")
-    )
-
-    capacidades_porcentaje = [
+    # Se conserva esta bandera como control técnico. Ya no modifica la curva:
+    # indica si alguna composición queda por debajo del piso histórico con el
+    # descuento comercial uniforme.
+    limitado_por_margen = any(
         (
-            linea["capacidad_descuento"]
-            / linea["precio_lista_total"]
-            * Decimal("100")
-        )
+            linea["precio_lista_total"]
+            * (
+                Decimal("1")
+                - descuento_equilibrado_porcentaje / Decimal("100")
+            )
+        ) < linea["piso_aplicable"]
         for linea in lineas
         if linea["precio_lista_total"] > 0
-    ]
-    descuento_equilibrado_porcentaje = (
-        min(
-            [descuento_deseado_porcentaje]
-            + capacidades_porcentaje
-        )
-        if capacidades_porcentaje
-        else Decimal("0")
-    )
-    descuento_equilibrado_porcentaje = max(
-        descuento_equilibrado_porcentaje,
-        Decimal("0"),
-    )
-
-    ahorro_aplicable = (
-        precio_lista_total
-        * descuento_equilibrado_porcentaje
-        / Decimal("100")
-    )
-    limitado_por_margen = (
-        descuento_equilibrado_porcentaje
-        < descuento_deseado_porcentaje
     )
 
     for linea in lineas:
@@ -461,11 +397,6 @@ def calcular_precio_volumen_kits(items):
         ):
             precio_unitario = linea["precio_unitario_lista"]
         else:
-            precio_unitario_minimo = (
-                linea["piso_aplicable"]
-                / Decimal(linea["cantidad_kits"])
-            ).quantize(Decimal("0.01"), rounding=ROUND_CEILING)
-
             precio_unitario = (
                 linea["precio_unitario_lista"]
                 * (
@@ -473,11 +404,6 @@ def calcular_precio_volumen_kits(items):
                     - descuento_equilibrado_porcentaje / Decimal("100")
                 )
             ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-
-            precio_unitario = min(
-                linea["precio_unitario_lista"],
-                max(precio_unitario, precio_unitario_minimo),
-            )
 
         precio_final_total = (
             precio_unitario * Decimal(linea["cantidad_kits"])
