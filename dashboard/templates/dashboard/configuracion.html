@@ -213,7 +213,7 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 
 <div class="cfg-message wide" data-tone="multi">
 <div class="cfg-message-head"><div><h3>Múltiples pedidos</h3><p>Cuando el cliente tiene 2 o más pedidos relevantes, Gestión arma un único resumen y evita mensajes contradictorios.</p><span class="cfg-message-status">RESUMEN AUTOMÁTICO</span></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_cliente_multiples_pedidos">RESTAURAR</button></div>
-<div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{cantidad_pedidos}</span><span class="cfg-var">{pedidos}</span><span class="cfg-var">{saldo_total}</span><span class="cfg-var">{cantidad_listos}</span><span class="cfg-var">{cantidad_con_saldo}</span><span class="cfg-var">{cierre}</span></div>
+<div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{cantidad_pedidos}</span><span class="cfg-var">{pedidos}</span><span class="cfg-var">{saldo_total}</span><span class="cfg-var">{saldo_resumen}</span><span class="cfg-var">{cantidad_listos}</span><span class="cfg-var">{cantidad_con_saldo}</span><span class="cfg-var">{cierre}</span></div>
 <label class="cfg-label" for="whatsapp_mensaje_cliente_multiples_pedidos"><span>PLANTILLA</span><span data-count-for="whatsapp_mensaje_cliente_multiples_pedidos"></span></label>
 <textarea class="cfg-textarea" id="whatsapp_mensaje_cliente_multiples_pedidos" name="whatsapp_mensaje_cliente_multiples_pedidos" maxlength="4000" data-counter data-preview="preview_multiples_pedidos">{{ config.whatsapp_mensaje_cliente_multiples_pedidos }}</textarea>
 <div class="cfg-note"><b>{pedidos}</b> agrega automáticamente un bloque por pedido con cantidad de pagos, total abonado, saldo y URL pública individual.</div>
@@ -513,7 +513,7 @@ const ejemplos={
 nombre:"Soledad",codigo:"PED0014",saldo:"5.000",total:"25.000",pagado:"20.000",cantidad_pagos:"2",senia:"$ 7.500",
 fecha:"20/09/2026",fecha_hoy:new Intl.DateTimeFormat("es-AR").format(new Date()),fecha_entrega:"22/09/2026",dias_sin_actividad:"78",
 ultima_actividad:"04/07/2026",detalle:"2 × Kit Sensorial\n1 × Pepino",
-cantidad_pedidos:"2",cantidad_listos:"1",cantidad_con_saldo:"1",saldo_total:"5.000",
+cantidad_pedidos:"2",cantidad_listos:"1",cantidad_con_saldo:"1",saldo_total:"5.000",saldo_resumen:"*Saldo total pendiente: $5.000*",
 pedido:"*PED0014 · Listo*\nTotal: $25.000\n2 pagos registrados · Pagado: $20.000\nSaldo pendiente: $5.000\nVer pedido: https://doblev3d.com.ar/pedido/ejemplo-1/",
 pedidos:"*PED0014 · Listo*\nTotal: $25.000\n2 pagos registrados · Pagado: $20.000\nSaldo pendiente: $5.000\nVer pedido: https://doblev3d.com.ar/pedido/ejemplo-1/\n\n*PED0018 · Preparando*\nTotal: $8.000\n1 pago registrado · Pagado: $8.000\nPagado ✓\nVer pedido: https://doblev3d.com.ar/pedido/ejemplo-2/",
 cierre:"Cuando puedas coordinamos el saldo pendiente y la entrega 😊",
