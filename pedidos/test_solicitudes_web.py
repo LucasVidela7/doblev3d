@@ -82,6 +82,11 @@ class SolicitudesWebGestionTests(TestCase):
         self.assertContains(response, self.solicitud.codigo)
         self.assertContains(response, "Cliente desde web")
         self.assertContains(response, "+54 11 4000 1234")
+        self.assertContains(
+            response,
+            "dv-commercial-page dv-commercial-board dv-solicitudes-page",
+        )
+        self.assertContains(response, "pedidos/comercial_gestion")
 
         detail = self.client.get(
             reverse(
@@ -93,6 +98,10 @@ class SolicitudesWebGestionTests(TestCase):
         self.assertContains(detail, "CONVERTIR EN PRESUPUESTO")
         self.assertContains(detail, "WHATSAPP")
         self.assertContains(detail, self.producto.nombre)
+        self.assertContains(
+            detail,
+            "dv-commercial-page dv-commercial-detail dv-solicitudes-page",
+        )
 
     def test_whatsapp_respuesta_usa_solo_primer_nombre(self):
         mensaje = renderizar_mensaje_solicitud(
