@@ -605,3 +605,78 @@ body[data-dv-section] :is(.metrica,.metric).tone-info{
 body[data-dv-section] .panel.tone-info>.panel-head{
     box-shadow:inset 3px 0 0 var(--dv-brand-accent-sky);
 }
+
+
+/* FINANZAS · contraste reforzado para valores monetarios */
+body[data-dv-section="finanzas"]{
+    --dv-fin-positive:#2f7a4a;
+    --dv-fin-negative:#c64650;
+    --dv-fin-negative-soft:#fff0f1;
+}
+body[data-dv-section="finanzas"] .metrica strong{
+    font-size:22px!important;
+    line-height:1.08!important;
+    font-weight:950!important;
+}
+body[data-dv-section="finanzas"] .positive{
+    color:var(--dv-fin-positive)!important;
+    font-weight:950!important;
+}
+body[data-dv-section="finanzas"] .negative{
+    color:var(--dv-fin-negative)!important;
+    font-weight:950!important;
+}
+body[data-dv-section="finanzas"] .metrica:has(strong.negative){
+    border-color:color-mix(
+        in srgb,
+        var(--dv-fin-negative) 34%,
+        var(--dv-border,#dfe5ef)
+    )!important;
+    border-top:3px solid var(--dv-fin-negative)!important;
+    background:color-mix(
+        in srgb,
+        var(--dv-fin-negative-soft) 72%,
+        var(--dv-surface,#fff)
+    )!important;
+}
+body[data-dv-section="finanzas"] :is(
+    .mov-monto.negative,
+    td.negative,
+    .rent-card .negative,
+    .mini .negative
+){
+    color:var(--dv-fin-negative)!important;
+}
+html[data-dv-theme="dark"] body[data-dv-section="finanzas"]{
+    --dv-fin-positive:#8df0ad;
+    --dv-fin-negative:#ff9aa4;
+    --dv-fin-negative-soft:#3a2027;
+}
+html[data-dv-theme="dark"] body[data-dv-section="finanzas"] .negative{
+    color:#ff9aa4!important;
+    text-shadow:0 0 14px rgba(255,154,164,.12);
+}
+html[data-dv-theme="dark"] body[data-dv-section="finanzas"] .positive{
+    color:#8df0ad!important;
+}
+html[data-dv-theme="dark"] body[data-dv-section="finanzas"] .metrica:has(strong.negative){
+    border-color:color-mix(
+        in srgb,
+        #ff9aa4 38%,
+        var(--dv-border,#2d394d)
+    )!important;
+    border-top-color:#ff9aa4!important;
+    background:color-mix(
+        in srgb,
+        #ff9aa4 9%,
+        var(--dv-surface,#171e2c)
+    )!important;
+}
+html[data-dv-theme="dark"] body[data-dv-section="finanzas"] :is(
+    .mov-monto.negative,
+    td.negative,
+    .rent-card .negative,
+    .mini .negative
+){
+    color:#ff9aa4!important;
+}
