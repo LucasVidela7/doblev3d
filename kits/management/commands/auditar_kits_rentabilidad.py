@@ -43,17 +43,31 @@ class Command(BaseCommand):
             Decimal("0"),
         )
 
-    def _peor_distinto(self, productos, extras, costos, n, base):
-        if len(productos) < n:
+    def _peor_con_limite(
+        self,
+        productos,
+        extras,
+        costos,
+        n,
+        base,
+        max_repeticiones,
+    ):
+        max_repeticiones = max(int(max_repeticiones or 1), 1)
+        slots = [
+            producto
+            for producto in productos
+            for _ in range(max_repeticiones)
+        ]
+        if len(slots) < n:
             return None
 
         lam = Decimal("0")
-        seleccion = productos[:n]
+        seleccion = slots[:n]
         ids_previos = None
 
         for _ in range(40):
             ordenados = sorted(
-                productos,
+                slots,
                 key=lambda p: (
                     costos[p.id] - lam * extras[p.id],
                     costos[p.id],
@@ -62,7 +76,10 @@ class Command(BaseCommand):
                 reverse=True,
             )
             seleccion = ordenados[:n]
-            costo = sum((costos[p.id] for p in seleccion), Decimal("0"))
+            costo = sum(
+                (costos[p.id] for p in seleccion),
+                Decimal("0"),
+            )
             precio = base + sum(
                 (extras[p.id] for p in seleccion),
                 Decimal("0"),
@@ -71,7 +88,10 @@ class Command(BaseCommand):
                 break
             nueva = costo / precio
             ids = tuple(sorted(p.id for p in seleccion))
-            if ids == ids_previos and abs(nueva - lam) < Decimal("0.0000001"):
+            if (
+                ids == ids_previos
+                and abs(nueva - lam) < Decimal("0.0000001")
+            ):
                 break
             ids_previos = ids
             lam = nueva
@@ -98,6 +118,18 @@ class Command(BaseCommand):
         }
 
         escenarios = {}
+        max_repeticiones = max(
+            int(
+                getattr(
+                    kit,
+                    "max_repeticiones_producto",
+                    1,
+                )
+                or 1
+            ),
+            1,
+        )
+
         if len(productos) >= n and n > 0:
             baratos = sorted(
                 productos,
@@ -108,39 +140,19 @@ class Command(BaseCommand):
                 key=lambda p: (costos[p.id], -p.id),
                 reverse=True,
             )[:n]
-            peor = self._peor_distinto(
-                productos,
-                extras,
-                costos,
-                n,
-                d(kit.precio),
-            )
             escenarios["mas_barato_distinto"] = baratos
             escenarios["mas_caro_distinto"] = caros
-            if peor:
-                escenarios["peor_margen_distinto"] = peor
 
-        peor_repetido = None
-        peor_ratio = Decimal("-1")
-        for producto in productos:
-            seleccion = [producto] * n
-            try:
-                precio = d(
-                    KitEngine.precio_unitario(
-                        kit,
-                        productos=seleccion,
-                    )
-                )
-            except ValueError:
-                continue
-            costo = costos[producto.id] * Decimal(n)
-            ratio = costo / precio if precio > 0 else Decimal("999999")
-            if ratio > peor_ratio:
-                peor_ratio = ratio
-                peor_repetido = seleccion
-
-        if peor_repetido:
-            escenarios["peor_absoluto_repetidos"] = peor_repetido
+        peor_permitido = self._peor_con_limite(
+            productos,
+            extras,
+            costos,
+            n,
+            d(kit.precio),
+            max_repeticiones,
+        )
+        if peor_permitido:
+            escenarios["peor_margen_permitido"] = peor_permitido
 
         return escenarios, costos, extras, opciones
 
@@ -317,6 +329,9 @@ class Command(BaseCommand):
                         else None
                     ),
                     "proteger_rentabilidad": kit.proteger_rentabilidad_libre,
+                    "max_repeticiones_producto": (
+                        kit.max_repeticiones_producto
+                    ),
                 },
             )
 
