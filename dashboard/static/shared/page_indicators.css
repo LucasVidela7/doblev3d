@@ -1,7 +1,7 @@
 /*
  * Indicadores visuales compartidos de Gestión.
- * La identidad principal usa los colores de Doble V 3D (azul/rojo).
- * Verde, ámbar y rojo semántico quedan reservados para estados reales.
+ * La identidad principal usa azul y celeste.
+ * Verde, ámbar y rojo quedan reservados para estados reales.
  */
 
 body[data-dv-section]{
@@ -597,4 +597,11 @@ body[data-dv-section] .pedido.cancelado{
         var(--dv-border,#dfe5ef)
     )!important;
     box-shadow:inset 4px 0 0 var(--dv-state-danger)!important;
+}
+
+body[data-dv-section] :is(.metrica,.metric).tone-info{
+    --dv-metric-accent:var(--dv-brand-accent-sky)!important;
+}
+body[data-dv-section] .panel.tone-info>.panel-head{
+    box-shadow:inset 3px 0 0 var(--dv-brand-accent-sky);
 }
