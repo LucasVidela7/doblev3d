@@ -75,7 +75,7 @@ a,button,input,textarea,select{touch-action:manipulation}.c{width:min(1220px,100
           <article class="seguimiento-card">
             <div class="seguimiento-top">
               <div><div class="accion-title">{{ seguimiento.titulo }}</div><div class="accion-meta">{{ seguimiento.detalle }}</div></div>
-              <span class="badge {% if seguimiento.tipo == 'PEDIDO_LISTO' %}ok{% else %}warn{% endif %}">{{ seguimiento.tipo }}</span>
+              <span class="badge {% if seguimiento.tipo == 'PEDIDO_LISTO' %}ok{% else %}warn{% endif %}">{{ seguimiento.etiqueta|default:seguimiento.tipo }}</span>
             </div>
             {% if seguimiento.url %}<div class="mini-actions"><a class="btn ok" href="{{ seguimiento.url }}" target="_blank" rel="noopener">{{ seguimiento.accion }} · WHATSAPP</a></div>{% endif %}
           </article>
@@ -87,9 +87,6 @@ a,button,input,textarea,select{touch-action:manipulation}.c{width:min(1220px,100
             {% if item.preparacion_total %}<div class="progreso"><span style="width:{{ item.preparacion_porcentaje }}%"></span></div><div class="accion-meta">{{ item.preparacion_listos }}/{{ item.preparacion_total }} preparados{% if item.faltantes_stock %} · {{ item.faltantes_stock }} con faltante{% endif %}</div>{% endif %}
             <div class="mini-actions">
               <a class="btn" href="{% url 'pedidos:detalle' item.pedido.id %}">VER PEDIDO</a>
-              {% if item.pedido.estado == 'LISTO' and item.entrega_whatsapp_url %}
-                <a class="btn ok" href="{{ item.entrega_whatsapp_url }}" target="_blank" rel="noopener">{% if item.entrega_contactada %}VOLVER A COORDINAR ENTREGA{% else %}COORDINAR ENTREGA · WHATSAPP{% endif %}</a>
-              {% endif %}
               {% if item.saldo > 0 %}<button class="btn" type="button" data-url="{% url 'pedidos:registrar_pago' item.pedido.id %}" data-codigo="{{ item.pedido.codigo }}" data-saldo="{{ item.saldo }}" onclick="abrirPagoCliente(this)">REGISTRAR PAGO</button>{% endif %}
             </div>
           </article>
