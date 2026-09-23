@@ -216,6 +216,39 @@ class PresupuestosTests(TestCase):
             "El presupuesto ya fue resuelto.",
         )
 
+    def test_editar_presupuesto_respeta_tema_y_contexto(self):
+        self._crear_presupuesto()
+        presupuesto = Presupuesto.objects.get()
+
+        respuesta = self.client.get(
+            reverse(
+                "pedidos:presupuesto_editar",
+                args=[presupuesto.id],
+            )
+        )
+
+        contenido = respuesta.content.decode()
+        self.assertIn(
+            "const esPresupuesto = true;",
+            contenido,
+        )
+        self.assertIn(
+            "Ítems del presupuesto",
+            contenido,
+        )
+        self.assertIn(
+            "background:var(--dv-surface,#fff)",
+            contenido,
+        )
+        self.assertIn(
+            "background:var(--dv-brand-blue,#134a9a)!important",
+            contenido,
+        )
+        self.assertIn(
+            "--dv-form-ink:var(--dv-text,#25282d)",
+            contenido,
+        )
+
     def test_presupuesto_pendiente_se_puede_editar(self):
         self._crear_presupuesto()
         presupuesto = Presupuesto.objects.get()
