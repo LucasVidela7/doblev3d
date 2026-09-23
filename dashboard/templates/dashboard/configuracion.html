@@ -39,6 +39,9 @@ body{margin:0;padding-bottom:110px;background:var(--bg);color:var(--text);font-f
 .cfg-message-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.cfg-message{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}.cfg-message.wide{grid-column:1/-1}.cfg-message-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.cfg-message h3{margin:0;font-size:12px}.cfg-message p{margin:4px 0 0;color:var(--muted);font-size:10px;line-height:1.4}.cfg-reset{border:0;background:transparent;color:var(--blue);font-size:9px;font-weight:900;cursor:pointer;padding:2px}
 .cfg-vars{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}.cfg-var{padding:4px 6px;border-radius:999px;background:var(--soft);color:var(--muted);font:700 9px monospace}
 .cfg-preview{margin-top:8px;padding:9px 10px;border:1px dashed var(--line);border-radius:10px;background:var(--soft);white-space:pre-wrap;color:var(--text);font-size:10px;line-height:1.5}.cfg-preview:before{content:"VISTA PREVIA";display:block;margin-bottom:5px;color:var(--muted);font-size:8px;font-weight:900;letter-spacing:.07em}
+#whatsapp{--wa-blue:#2867c7;--wa-green:#27824c;--wa-amber:#b57912;--wa-purple:#7655bd;--wa-teal:#16818a}
+.cfg-wa-guide{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(260px,.6fr);gap:10px;margin-bottom:12px}.cfg-wa-guide-main,.cfg-wa-legend{padding:13px;border:1px solid var(--line);border-radius:14px;background:var(--soft)}.cfg-wa-guide-main strong{display:block;font-size:13px}.cfg-wa-guide-main p{margin:5px 0 0;color:var(--muted);font-size:11px;line-height:1.5}.cfg-wa-legend{display:flex;align-content:flex-start;flex-wrap:wrap;gap:6px}.cfg-wa-chip{display:inline-flex;align-items:center;gap:5px;min-height:28px;padding:0 8px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-size:9px;font-weight:900}.cfg-wa-dot{width:8px;height:8px;border-radius:50%;background:var(--wa-color)}
+.cfg-message{position:relative;overflow:hidden}.cfg-message h3{font-size:13px}.cfg-message p{font-size:11px;line-height:1.45}.cfg-message .cfg-textarea{min-height:116px}.cfg-message[data-tone]{box-shadow:inset 4px 0 0 var(--wa-color);border-color:color-mix(in srgb,var(--wa-color) 28%,var(--line))}.cfg-message[data-tone="order"]{--wa-color:var(--wa-blue)}.cfg-message[data-tone="ready"]{--wa-color:var(--wa-green)}.cfg-message[data-tone="balance"]{--wa-color:var(--wa-amber)}.cfg-message[data-tone="multi"]{--wa-color:var(--wa-purple)}.cfg-message[data-tone="other"]{--wa-color:var(--wa-teal)}.cfg-message-status{display:inline-flex;align-items:center;min-height:24px;margin-top:7px;padding:0 7px;border-radius:999px;background:color-mix(in srgb,var(--wa-color) 13%,var(--surface));color:var(--wa-color);font-size:8px;font-weight:900;letter-spacing:.04em}.cfg-message[data-tone] .cfg-var{background:color-mix(in srgb,var(--wa-color) 10%,var(--soft));color:color-mix(in srgb,var(--wa-color) 76%,var(--text))}
 .cfg-device{width:100%;min-height:56px;display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--text);font:inherit;text-align:left;cursor:pointer}.cfg-device-icon{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:var(--soft)}.cfg-device-copy{min-width:0;flex:1}.cfg-device-copy strong{display:block;font-size:12px}.cfg-device-copy span{display:block;margin-top:3px;color:var(--muted);font-size:10px}.cfg-device.is-active{border-color:#b6dcc0;background:#e8f6ec;color:#24633a}.cfg-device.is-blocked{border-color:#efc3c3;background:#fff2f2;color:#9a3030}.cfg-device:disabled{opacity:.58;cursor:not-allowed}
 .cfg-legal-list{display:grid;gap:7px}.cfg-legal-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:10px;border:1px solid var(--line);border-radius:11px;background:var(--surface)}.cfg-legal-item strong{display:block;font-size:11px}.cfg-legal-item span{display:block;margin-top:3px;color:var(--muted);font-size:10px}.cfg-legal-badge{align-self:start;display:inline-flex;min-height:24px;align-items:center;padding:0 7px;border-radius:999px;background:var(--warn-bg);color:var(--warn);font-size:9px;font-weight:900}.cfg-legal-badge.ok{background:var(--ok-bg);color:var(--ok)}.cfg-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:13px}
 .metrics-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}.metrics-periods{display:flex;gap:5px;flex-wrap:wrap}.metrics-periods a{min-height:31px;display:inline-flex;align-items:center;padding:0 10px;border:1px solid var(--line);border-radius:9px;background:var(--soft);color:var(--muted);text-decoration:none;font-size:10px;font-weight:900}.metrics-periods a.active{border-color:var(--blue);background:var(--blue);color:#fff}.metrics-range{color:var(--muted);font-size:10px;font-weight:800}
@@ -67,7 +70,7 @@ html[data-dv-theme="dark"] .metric-kpi.success strong{
     color:var(--ok);
 }
 html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc8}html[data-dv-theme="dark"] .cfg-device.is-blocked{background:#3b2024;color:#ffc4c4}
-@media(max-width:900px){.metrics-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.metrics-grid{grid-template-columns:1fr}}@media(max-width:760px){.cfg-shell{width:calc(100% - 20px);padding-top:14px}.actions .cfg-btn{flex:1 1 0}.actions .principal{margin-left:0;min-width:0;flex:1.15}.cfg-nav{grid-template-columns:1fr 1fr}.cfg-section{padding:14px;border-radius:15px}.cfg-grid,.cfg-message-grid{grid-template-columns:1fr}.cfg-box.full,.cfg-message.wide{grid-column:auto}.cfg-section-head{margin-bottom:12px}.cfg-footer{display:grid;grid-template-columns:1fr}.cfg-footer .cfg-btn{width:100%}.metrics-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.metrics-secondary{grid-template-columns:1fr}.metric-funnel-row{grid-template-columns:minmax(105px,.9fr) minmax(0,1.1fr) 42px}.metric-chart{height:155px}.metric-bar-row{grid-template-columns:minmax(70px,.8fr) minmax(0,1.2fr) 44px}}
+@media(max-width:900px){.metrics-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.metrics-grid{grid-template-columns:1fr}}@media(max-width:760px){.cfg-wa-guide{grid-template-columns:1fr}.cfg-shell{width:calc(100% - 20px);padding-top:14px}.actions .cfg-btn{flex:1 1 0}.actions .principal{margin-left:0;min-width:0;flex:1.15}.cfg-nav{grid-template-columns:1fr 1fr}.cfg-section{padding:14px;border-radius:15px}.cfg-grid,.cfg-message-grid{grid-template-columns:1fr}.cfg-box.full,.cfg-message.wide{grid-column:auto}.cfg-section-head{margin-bottom:12px}.cfg-footer{display:grid;grid-template-columns:1fr}.cfg-footer .cfg-btn{width:100%}.metrics-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.metrics-secondary{grid-template-columns:1fr}.metric-funnel-row{grid-template-columns:minmax(105px,.9fr) minmax(0,1.1fr) 42px}.metric-chart{height:155px}.metric-bar-row{grid-template-columns:minmax(70px,.8fr) minmax(0,1.2fr) 44px}}
 </style>
 </head>
 <body>
@@ -157,63 +160,91 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 </section>
 
 <section class="cfg-section" id="whatsapp">
-<div class="cfg-section-head"><div><h2>Mensajes de WhatsApp</h2><p>Plantillas editables para seguimiento de clientes y solicitudes del catálogo. Las llaves se reemplazan automáticamente con datos reales.</p></div><div class="cfg-icon">💬</div></div>
+<div class="cfg-section-head"><div><h2>Mensajes de WhatsApp</h2><p>Plantillas editables para seguimiento de clientes y solicitudes. El sistema elige el escenario correcto según estado, pagos y saldo.</p></div><div class="cfg-icon">💬</div></div>
 
-<details class="cfg-fold" open>
-<summary>SEGUIMIENTO DE CLIENTES</summary>
-<div class="cfg-fold-body"><div class="cfg-message-grid">
-
-<div class="cfg-message">
-<div class="cfg-message-head"><div><h3>Mensaje general</h3><p>Contacto manual desde la ficha del cliente.</p></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_cliente_generico">RESTAURAR</button></div>
-<div class="cfg-vars"><span class="cfg-var">{nombre}</span></div>
-<label class="cfg-label" for="whatsapp_mensaje_cliente_generico"><span>PLANTILLA</span><span data-count-for="whatsapp_mensaje_cliente_generico"></span></label>
-<textarea class="cfg-textarea" id="whatsapp_mensaje_cliente_generico" name="whatsapp_mensaje_cliente_generico" maxlength="2000" data-counter data-preview="preview_generico">{{ config.whatsapp_mensaje_cliente_generico }}</textarea>
-<div class="cfg-preview" id="preview_generico"></div>
+<div class="cfg-wa-guide">
+<div class="cfg-wa-guide-main">
+<strong>Los datos operativos se completan solos</strong>
+<p><b>{pedido}</b> y <b>{pedidos}</b> generan código, estado, total, cantidad de pagos, monto abonado, saldo y la URL pública de cada pedido. Así las plantillas sólo definen el tono del mensaje y no la lógica comercial.</p>
+</div>
+<div class="cfg-wa-legend" aria-label="Colores de mensajes">
+<span class="cfg-wa-chip" style="--wa-color:var(--wa-blue)"><i class="cfg-wa-dot"></i>PEDIDOS</span>
+<span class="cfg-wa-chip" style="--wa-color:var(--wa-green)"><i class="cfg-wa-dot"></i>ENTREGA</span>
+<span class="cfg-wa-chip" style="--wa-color:var(--wa-amber)"><i class="cfg-wa-dot"></i>COBROS</span>
+<span class="cfg-wa-chip" style="--wa-color:var(--wa-purple)"><i class="cfg-wa-dot"></i>VARIOS</span>
+</div>
 </div>
 
-<div class="cfg-message">
-<div class="cfg-message-head"><div><h3>Pedido aprobado</h3><p>Se usa al convertir un presupuesto aprobado en pedido para avisarle al cliente y compartirle el detalle público.</p></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_cliente_pedido_aprobado">RESTAURAR</button></div>
+<details class="cfg-fold" open>
+<summary>PEDIDOS Y COBROS</summary>
+<div class="cfg-fold-body"><div class="cfg-message-grid">
+
+<div class="cfg-message" data-tone="order">
+<div class="cfg-message-head"><div><h3>Pedido aprobado</h3><p>Al convertir una solicitud o presupuesto aprobado en pedido.</p><span class="cfg-message-status">ALTA DE PEDIDO</span></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_cliente_pedido_aprobado">RESTAURAR</button></div>
 <div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{codigo}</span><span class="cfg-var">{url}</span><span class="cfg-var">{total}</span><span class="cfg-var">{saldo}</span><span class="cfg-var">{fecha_entrega}</span></div>
 <label class="cfg-label" for="whatsapp_mensaje_cliente_pedido_aprobado"><span>PLANTILLA</span><span data-count-for="whatsapp_mensaje_cliente_pedido_aprobado"></span></label>
 <textarea class="cfg-textarea" id="whatsapp_mensaje_cliente_pedido_aprobado" name="whatsapp_mensaje_cliente_pedido_aprobado" maxlength="2000" data-counter data-preview="preview_aprobado">{{ config.whatsapp_mensaje_cliente_pedido_aprobado }}</textarea>
 <div class="cfg-preview" id="preview_aprobado"></div>
 </div>
 
-<div class="cfg-message">
-<div class="cfg-message-head"><div><h3>Pedido listo</h3><p>Se usa al sugerir avisar que el pedido está preparado.</p></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_cliente_pedido_listo">RESTAURAR</button></div>
-<div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{codigo}</span><span class="cfg-var">{total}</span><span class="cfg-var">{fecha_entrega}</span></div>
+<div class="cfg-message" data-tone="ready">
+<div class="cfg-message-head"><div><h3>Pedido listo · pagado</h3><p>Se usa cuando el pedido está LISTO y su saldo es $0.</p><span class="cfg-message-status">ENTREGA</span></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_cliente_pedido_listo">RESTAURAR</button></div>
+<div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{pedido}</span><span class="cfg-var">{codigo}</span><span class="cfg-var">{url}</span><span class="cfg-var">{cantidad_pagos}</span><span class="cfg-var">{cierre}</span></div>
 <label class="cfg-label" for="whatsapp_mensaje_cliente_pedido_listo"><span>PLANTILLA</span><span data-count-for="whatsapp_mensaje_cliente_pedido_listo"></span></label>
 <textarea class="cfg-textarea" id="whatsapp_mensaje_cliente_pedido_listo" name="whatsapp_mensaje_cliente_pedido_listo" maxlength="2000" data-counter data-preview="preview_listo">{{ config.whatsapp_mensaje_cliente_pedido_listo }}</textarea>
 <div class="cfg-preview" id="preview_listo"></div>
 </div>
 
-<div class="cfg-message">
-<div class="cfg-message-head"><div><h3>Saldo pendiente</h3><p>Recordatorio de pago desde un pedido abierto.</p></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_cliente_saldo">RESTAURAR</button></div>
-<div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{codigo}</span><span class="cfg-var">{saldo}</span><span class="cfg-var">{total}</span><span class="cfg-var">{pagado}</span></div>
+<div class="cfg-message" data-tone="balance">
+<div class="cfg-message-head"><div><h3>Pedido listo · con saldo</h3><p>Se usa automáticamente cuando el pedido está LISTO pero todavía falta cobrar.</p><span class="cfg-message-status">PAGO + ENTREGA</span></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_cliente_pedido_listo_saldo">RESTAURAR</button></div>
+<div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{pedido}</span><span class="cfg-var">{codigo}</span><span class="cfg-var">{url}</span><span class="cfg-var">{pagado}</span><span class="cfg-var">{saldo}</span><span class="cfg-var">{cantidad_pagos}</span><span class="cfg-var">{cierre}</span></div>
+<label class="cfg-label" for="whatsapp_mensaje_cliente_pedido_listo_saldo"><span>PLANTILLA</span><span data-count-for="whatsapp_mensaje_cliente_pedido_listo_saldo"></span></label>
+<textarea class="cfg-textarea" id="whatsapp_mensaje_cliente_pedido_listo_saldo" name="whatsapp_mensaje_cliente_pedido_listo_saldo" maxlength="2000" data-counter data-preview="preview_listo_saldo">{{ config.whatsapp_mensaje_cliente_pedido_listo_saldo }}</textarea>
+<div class="cfg-preview" id="preview_listo_saldo"></div>
+</div>
+
+<div class="cfg-message" data-tone="balance">
+<div class="cfg-message-head"><div><h3>Saldo pendiente</h3><p>Para pedidos pendientes, en preparación o ya entregados que todavía tienen deuda.</p><span class="cfg-message-status">COBRO</span></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_cliente_saldo">RESTAURAR</button></div>
+<div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{pedido}</span><span class="cfg-var">{codigo}</span><span class="cfg-var">{url}</span><span class="cfg-var">{saldo}</span><span class="cfg-var">{pagado}</span><span class="cfg-var">{cantidad_pagos}</span><span class="cfg-var">{cierre}</span></div>
 <label class="cfg-label" for="whatsapp_mensaje_cliente_saldo"><span>PLANTILLA</span><span data-count-for="whatsapp_mensaje_cliente_saldo"></span></label>
 <textarea class="cfg-textarea" id="whatsapp_mensaje_cliente_saldo" name="whatsapp_mensaje_cliente_saldo" maxlength="2000" data-counter data-preview="preview_saldo">{{ config.whatsapp_mensaje_cliente_saldo }}</textarea>
 <div class="cfg-preview" id="preview_saldo"></div>
 </div>
 
-<div class="cfg-message wide">
-<div class="cfg-message-head"><div><h3>Múltiples pedidos</h3><p>Se usa cuando un cliente acumula 2 o más pedidos a contactar y existe saldo pendiente. Cada pedido incluye su URL pública individual.</p></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_cliente_multiples_pedidos">RESTAURAR</button></div>
-<div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{cantidad_pedidos}</span><span class="cfg-var">{pedidos}</span><span class="cfg-var">{saldo_total}</span></div>
+<div class="cfg-message wide" data-tone="multi">
+<div class="cfg-message-head"><div><h3>Múltiples pedidos</h3><p>Cuando el cliente tiene 2 o más pedidos relevantes, Gestión arma un único resumen y evita mensajes contradictorios.</p><span class="cfg-message-status">RESUMEN AUTOMÁTICO</span></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_cliente_multiples_pedidos">RESTAURAR</button></div>
+<div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{cantidad_pedidos}</span><span class="cfg-var">{pedidos}</span><span class="cfg-var">{saldo_total}</span><span class="cfg-var">{cantidad_listos}</span><span class="cfg-var">{cantidad_con_saldo}</span><span class="cfg-var">{cierre}</span></div>
 <label class="cfg-label" for="whatsapp_mensaje_cliente_multiples_pedidos"><span>PLANTILLA</span><span data-count-for="whatsapp_mensaje_cliente_multiples_pedidos"></span></label>
 <textarea class="cfg-textarea" id="whatsapp_mensaje_cliente_multiples_pedidos" name="whatsapp_mensaje_cliente_multiples_pedidos" maxlength="4000" data-counter data-preview="preview_multiples_pedidos">{{ config.whatsapp_mensaje_cliente_multiples_pedidos }}</textarea>
-<div class="cfg-note">{pedidos} se arma automáticamente con código, estado, total, saldo y enlace individual de cada pedido.</div>
+<div class="cfg-note"><b>{pedidos}</b> agrega automáticamente un bloque por pedido con cantidad de pagos, total abonado, saldo y URL pública individual.</div>
 <div class="cfg-preview" id="preview_multiples_pedidos"></div>
 </div>
 
-<div class="cfg-message">
-<div class="cfg-message-head"><div><h3>Presupuesto pendiente</h3><p>Seguimiento comercial de una cotización sin definición.</p></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_cliente_presupuesto">RESTAURAR</button></div>
+</div></div>
+</details>
+
+<details class="cfg-fold">
+<summary>OTROS CONTACTOS CON CLIENTES</summary>
+<div class="cfg-fold-body"><div class="cfg-message-grid">
+
+<div class="cfg-message" data-tone="other">
+<div class="cfg-message-head"><div><h3>Mensaje general</h3><p>Contacto manual desde la ficha del cliente.</p><span class="cfg-message-status">GENERAL</span></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_cliente_generico">RESTAURAR</button></div>
+<div class="cfg-vars"><span class="cfg-var">{nombre}</span></div>
+<label class="cfg-label" for="whatsapp_mensaje_cliente_generico"><span>PLANTILLA</span><span data-count-for="whatsapp_mensaje_cliente_generico"></span></label>
+<textarea class="cfg-textarea" id="whatsapp_mensaje_cliente_generico" name="whatsapp_mensaje_cliente_generico" maxlength="2000" data-counter data-preview="preview_generico">{{ config.whatsapp_mensaje_cliente_generico }}</textarea>
+<div class="cfg-preview" id="preview_generico"></div>
+</div>
+
+<div class="cfg-message" data-tone="other">
+<div class="cfg-message-head"><div><h3>Presupuesto pendiente</h3><p>Seguimiento comercial de una cotización sin definición.</p><span class="cfg-message-status">PRESUPUESTO</span></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_cliente_presupuesto">RESTAURAR</button></div>
 <div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{codigo}</span><span class="cfg-var">{total}</span><span class="cfg-var">{fecha}</span></div>
 <label class="cfg-label" for="whatsapp_mensaje_cliente_presupuesto"><span>PLANTILLA</span><span data-count-for="whatsapp_mensaje_cliente_presupuesto"></span></label>
 <textarea class="cfg-textarea" id="whatsapp_mensaje_cliente_presupuesto" name="whatsapp_mensaje_cliente_presupuesto" maxlength="2000" data-counter data-preview="preview_presupuesto">{{ config.whatsapp_mensaje_cliente_presupuesto }}</textarea>
 <div class="cfg-preview" id="preview_presupuesto"></div>
 </div>
 
-<div class="cfg-message wide">
-<div class="cfg-message-head"><div><h3>Reactivar cliente</h3><p>Para clientes sin actividad reciente.</p></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_cliente_reactivacion">RESTAURAR</button></div>
+<div class="cfg-message wide" data-tone="other">
+<div class="cfg-message-head"><div><h3>Reactivar cliente</h3><p>Para clientes sin pedidos ni presupuestos activos y sin actividad reciente.</p><span class="cfg-message-status">REACTIVACIÓN</span></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_cliente_reactivacion">RESTAURAR</button></div>
 <div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{dias_sin_actividad}</span><span class="cfg-var">{ultima_actividad}</span></div>
 <label class="cfg-label" for="whatsapp_mensaje_cliente_reactivacion"><span>PLANTILLA</span><span data-count-for="whatsapp_mensaje_cliente_reactivacion"></span></label>
 <textarea class="cfg-textarea" id="whatsapp_mensaje_cliente_reactivacion" name="whatsapp_mensaje_cliente_reactivacion" maxlength="2000" data-counter data-preview="preview_reactivacion">{{ config.whatsapp_mensaje_cliente_reactivacion }}</textarea>
@@ -227,22 +258,22 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 <summary>CATÁLOGO Y SOLICITUDES WEB</summary>
 <div class="cfg-fold-body"><div class="cfg-message-grid">
 
-<div class="cfg-message wide">
-<div class="cfg-message-head"><div><h3>Inicio de conversación desde el catálogo</h3><p>Texto inicial al abrir el WhatsApp público del negocio.</p></div></div>
+<div class="cfg-message wide" data-tone="order">
+<div class="cfg-message-head"><div><h3>Inicio de conversación desde el catálogo</h3><p>Texto inicial al abrir el WhatsApp público del negocio.</p><span class="cfg-message-status">CATÁLOGO</span></div></div>
 <label class="cfg-label" for="whatsapp_mensaje"><span>MENSAJE</span><span data-count-for="whatsapp_mensaje"></span></label>
 <textarea class="cfg-textarea" id="whatsapp_mensaje" name="whatsapp_mensaje" maxlength="240" data-counter>{{ config.whatsapp_mensaje }}</textarea>
 </div>
 
-<div class="cfg-message">
-<div class="cfg-message-head"><div><h3>Responder una solicitud</h3><p>Mensaje que abre Gestión para confirmar la solicitud, informar la seña y el plazo de entrega.</p></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_respuesta_solicitud">RESTAURAR</button></div>
+<div class="cfg-message" data-tone="order">
+<div class="cfg-message-head"><div><h3>Responder una solicitud</h3><p>Mensaje que abre Gestión para confirmar la solicitud, informar la seña y el plazo.</p><span class="cfg-message-status">RESPUESTA</span></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_respuesta_solicitud">RESTAURAR</button></div>
 <div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{codigo}</span><span class="cfg-var">{detalle}</span><span class="cfg-var">{url}</span><span class="cfg-var">{total}</span><span class="cfg-var">{senia}</span><span class="cfg-var">{fecha_hoy}</span><span class="cfg-var">{observaciones}</span></div>
 <label class="cfg-label" for="whatsapp_mensaje_respuesta_solicitud"><span>PLANTILLA</span><span data-count-for="whatsapp_mensaje_respuesta_solicitud"></span></label>
 <textarea class="cfg-textarea" id="whatsapp_mensaje_respuesta_solicitud" name="whatsapp_mensaje_respuesta_solicitud" maxlength="4000" data-counter data-preview="preview_solicitud_respuesta">{{ config.whatsapp_mensaje_respuesta_solicitud }}</textarea>
 <div class="cfg-preview" id="preview_solicitud_respuesta"></div>
 </div>
 
-<div class="cfg-message">
-<div class="cfg-message-head"><div><h3>Después de enviar solicitud</h3><p>Mensaje que el comprador puede abrir hacia tu WhatsApp luego de confirmar el carrito.</p></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_post_solicitud">RESTAURAR</button></div>
+<div class="cfg-message" data-tone="order">
+<div class="cfg-message-head"><div><h3>Después de enviar solicitud</h3><p>Mensaje que el comprador puede abrir hacia tu WhatsApp luego de confirmar el carrito.</p><span class="cfg-message-status">POST SOLICITUD</span></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_post_solicitud">RESTAURAR</button></div>
 <div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{codigo}</span><span class="cfg-var">{detalle}</span><span class="cfg-var">{url}</span><span class="cfg-var">{total}</span><span class="cfg-var">{observaciones}</span></div>
 <label class="cfg-label" for="whatsapp_mensaje_post_solicitud"><span>PLANTILLA</span><span data-count-for="whatsapp_mensaje_post_solicitud"></span></label>
 <textarea class="cfg-textarea" id="whatsapp_mensaje_post_solicitud" name="whatsapp_mensaje_post_solicitud" maxlength="4000" data-counter data-preview="preview_solicitud_post">{{ config.whatsapp_mensaje_post_solicitud }}</textarea>
@@ -479,11 +510,13 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 <script>
 (function(){
 const ejemplos={
-nombre:"Lucas",codigo:"PED0014",saldo:"12.500",total:"25.000",pagado:"12.500",senia:"$ 7.500",
+nombre:"Soledad",codigo:"PED0014",saldo:"5.000",total:"25.000",pagado:"20.000",cantidad_pagos:"2",senia:"$ 7.500",
 fecha:"20/09/2026",fecha_hoy:new Intl.DateTimeFormat("es-AR").format(new Date()),fecha_entrega:"22/09/2026",dias_sin_actividad:"78",
 ultima_actividad:"04/07/2026",detalle:"2 × Kit Sensorial\n1 × Pepino",
-cantidad_pedidos:"2",saldo_total:"20.500",
-pedidos:"*PED0014 · Listo*\nTotal: $25.000\nSaldo pendiente: $12.500\nVer pedido: https://doblev3d.com.ar/pedido/ejemplo-1/\n\n*PED0018 · Preparando*\nTotal: $8.000\nSaldo pendiente: $8.000\nVer pedido: https://doblev3d.com.ar/pedido/ejemplo-2/",
+cantidad_pedidos:"2",cantidad_listos:"1",cantidad_con_saldo:"1",saldo_total:"5.000",
+pedido:"*PED0014 · Listo*\nTotal: $25.000\n2 pagos registrados · Pagado: $20.000\nSaldo pendiente: $5.000\nVer pedido: https://doblev3d.com.ar/pedido/ejemplo-1/",
+pedidos:"*PED0014 · Listo*\nTotal: $25.000\n2 pagos registrados · Pagado: $20.000\nSaldo pendiente: $5.000\nVer pedido: https://doblev3d.com.ar/pedido/ejemplo-1/\n\n*PED0018 · Preparando*\nTotal: $8.000\n1 pago registrado · Pagado: $8.000\nPagado ✓\nVer pedido: https://doblev3d.com.ar/pedido/ejemplo-2/",
+cierre:"Cuando puedas coordinamos el saldo pendiente y la entrega 😊",
 url:"https://doblev3d.com.ar/pedido/ejemplo/",observaciones:"Entrega en Morón"
 };
 let defaults={};
