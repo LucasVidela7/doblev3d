@@ -33,6 +33,7 @@ class CatalogMetricsMiddleware:
             or response.status_code != 200
             or getattr(response, "streaming", False)
             or "text/html" not in response.get("Content-Type", "")
+            or getattr(request.user, "is_authenticated", False)
         ):
             return response
 

@@ -88,7 +88,11 @@ def registrar_evento_request(
     origen="",
 ):
     config = configuracion_metricas()
-    if not config.activas or _es_bot(request):
+    if (
+        not config.activas
+        or _es_bot(request)
+        or getattr(request.user, "is_authenticated", False)
+    ):
         return None
 
     visitor_raw = (

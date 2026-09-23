@@ -67,6 +67,32 @@ class MetricasCatalogoTests(TestCase):
         self.assertEqual(response.status_code, 204)
         self.assertFalse(EventoCatalogo.objects.exists())
 
+    def test_usuario_gestion_logueado_no_registra_eventos(self):
+        User = get_user_model()
+        user = User.objects.create_user(
+            username="operador_metricas",
+            password="clave-segura",
+        )
+        self.client.force_login(user)
+
+        response = self._evento()
+
+        self.assertEqual(response.status_code, 204)
+        self.assertFalse(EventoCatalogo.objects.exists())
+
+    def test_tracker_no_se_inyecta_para_usuario_logueado(self):
+        User = get_user_model()
+        user = User.objects.create_user(
+            username="operador_catalogo",
+            password="clave-segura",
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("catalogo"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "data-dv-metrics-script")
+
     def test_tracker_se_inyecta_en_catalogo_publico(self):
         response = self.client.get(reverse("catalogo"))
 
