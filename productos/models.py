@@ -63,6 +63,14 @@ class ConfiguracionCatalogo(models.Model):
         default=0,
         verbose_name="Cargo por producto por color en kit libre",
     )
+    redondeo_precio_producto = models.PositiveIntegerField(
+        default=100,
+        verbose_name="Múltiplo de redondeo para precios",
+        help_text=(
+            "Los precios de lista de productos se redondean siempre hacia arriba "
+            "al próximo múltiplo configurado. Ejemplo: 100."
+        ),
+    )
 
     @property
     def colores_disponibles_lista(self):
@@ -315,7 +323,27 @@ class ConfiguracionCatalogo(models.Model):
         self.instagram_usuario = (self.instagram_usuario or "").strip().lstrip("@")
         self.whatsapp_numero = re.sub(r"\D+", "", self.whatsapp_numero or "")
         super().save(*args, **kwargs)
+        cache.delete("dv-redondeo-precio-producto-v1")
 
+
+
+def redondeo_precio_producto_actual():
+    cache_key = "dv-redondeo-precio-producto-v1"
+    valor = cache.get(cache_key)
+    if valor is None:
+        valor = (
+            ConfiguracionCatalogo.objects
+            .filter(pk=1)
+            .values_list("redondeo_precio_producto", flat=True)
+            .first()
+        )
+        try:
+            valor = int(valor or 100)
+        except (TypeError, ValueError):
+            valor = 100
+        valor = max(valor, 100)
+        cache.set(cache_key, valor, 60)
+    return Decimal(valor)
 
 
 class SolicitudArrepentimiento(models.Model):
@@ -616,9 +644,9 @@ class Producto(models.Model):
             / (Decimal("1") - margen)
         )
 
-        # Precio de lista redondeado siempre hacia arriba al siguiente
-        # múltiplo de $100.
-        multiplo = Decimal("100")
+        # El múltiplo comercial se administra desde Configuración.
+        # El redondeo siempre es hacia arriba, para no degradar el margen.
+        multiplo = redondeo_precio_producto_actual()
         return (
             (precio_sin_redondear / multiplo)
             .to_integral_value(rounding=ROUND_CEILING)
