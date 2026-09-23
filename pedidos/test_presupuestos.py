@@ -151,6 +151,11 @@ class PresupuestosTests(TestCase):
         self.assertContains(respuesta, "SUBTOTAL LISTA")
         self.assertContains(respuesta, "DESCUENTOS")
         self.assertContains(respuesta, "TOTAL PRESUPUESTADO")
+        self.assertContains(
+            respuesta,
+            "dv-commercial-page dv-commercial-detail dv-presupuestos-page",
+        )
+        self.assertContains(respuesta, "pedidos/comercial_gestion")
 
     def test_detalle_prioriza_aprobar_y_mueve_editar_al_menu(self):
         self._crear_presupuesto()
@@ -329,6 +334,23 @@ class PresupuestosTests(TestCase):
         presupuesto.refresh_from_db()
         self.assertEqual(presupuesto.estado, "RECHAZADO")
         self.assertEqual(Pedido.objects.count(), 0)
+
+    def test_listado_usa_kanban_comercial_legible(self):
+        Presupuesto.objects.create(
+            cliente=self.cliente,
+            estado="PENDIENTE",
+        )
+
+        respuesta = self.client.get(
+            reverse("pedidos:presupuestos")
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(
+            respuesta,
+            "dv-commercial-page dv-commercial-board dv-presupuestos-page",
+        )
+        self.assertContains(respuesta, "pedidos/comercial_gestion")
 
     def test_listado_filtra_por_estado(self):
         pendiente = Presupuesto.objects.create(
