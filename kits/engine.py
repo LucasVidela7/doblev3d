@@ -493,6 +493,14 @@ class KitEngine:
                     False,
                 )
             ),
+            "max_repeticiones_producto": int(
+                getattr(
+                    kit,
+                    "max_repeticiones_producto",
+                    1,
+                )
+                or 1
+            ),
             "precio_base": cls._decimal_json(kit.precio),
             "precio_unitario_vendido": cls._decimal_json(
                 precio_unitario
