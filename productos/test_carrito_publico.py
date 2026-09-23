@@ -722,6 +722,97 @@ class CarritoPublicoTests(TestCase):
         self.assertContains(gracias, "WEB0001")
 
 
+    def test_cuatro_kits_libres_separados_equivalen_a_un_x4(self):
+        opciones = [self.producto]
+        for indice, peso in enumerate(("80", "120", "170"), start=1):
+            opciones.append(
+                Producto.objects.create(
+                    nombre=f"Opción kit x4 {indice}",
+                    categoria="PRODUCTO",
+                    tipo=self.tipo,
+                    peso_gramos=Decimal(peso),
+                    margen_ganancia=Decimal("50"),
+                    activo=True,
+                    solo_produccion=False,
+                )
+            )
+
+        kit = Kit.objects.create(
+            nombre="Kit libre equivalencia x4",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=2,
+            precio=Decimal("25000"),
+            proteger_rentabilidad_libre=False,
+            activo=True,
+        )
+
+        combinaciones = [
+            [opciones[0], opciones[1]],
+            [opciones[0], opciones[2]],
+            [opciones[1], opciones[3]],
+            [opciones[2], opciones[3]],
+        ]
+        payload_separado = []
+        for indice, seleccion in enumerate(combinaciones, start=1):
+            payload_separado.append(
+                {
+                    "key": f"kit-separado-{indice}",
+                    "kind": "kit",
+                    "id": kit.id,
+                    "qty": 1,
+                    "selections": [
+                        {"id": producto.id}
+                        for producto in seleccion
+                    ],
+                }
+            )
+
+        separado = self.client.post(
+            reverse("catalogo_carrito_precios"),
+            data=json.dumps(payload_separado),
+            content_type="application/json",
+        )
+        agrupado = self.client.post(
+            reverse("catalogo_carrito_precios"),
+            data=json.dumps(
+                [
+                    {
+                        "key": "kit-agrupado-x4",
+                        "kind": "kit",
+                        "id": kit.id,
+                        "qty": 4,
+                        "selections": [
+                            {"id": opciones[0].id},
+                            {"id": opciones[1].id},
+                        ],
+                    }
+                ]
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(separado.status_code, 200)
+        self.assertEqual(agrupado.status_code, 200)
+
+        lineas_separadas = separado.json()["lineas"]
+        linea_agrupada = agrupado.json()["lineas"][0]
+        descuentos = {
+            Decimal(str(linea["descuento_porcentaje"]))
+            for linea in lineas_separadas
+        }
+
+        self.assertEqual(len(descuentos), 1)
+        descuento_separado = descuentos.pop()
+        descuento_agrupado = Decimal(
+            str(linea_agrupada["descuento_porcentaje"])
+        )
+        self.assertGreater(descuento_separado, Decimal("0"))
+        self.assertEqual(
+            descuento_separado,
+            descuento_agrupado,
+        )
+
     def test_kits_fijos_distintos_no_combinan_descuento(self):
         kit_a = Kit.objects.create(
             nombre="Kit fijo A independiente",
