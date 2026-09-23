@@ -989,6 +989,8 @@ def configuracion(request):
         "colores_disponibles": 2000,
         "instagram_usuario": 100,
         "whatsapp_numero": 30,
+        "whatsapp_pago_alias": 120,
+        "whatsapp_pago_titular": 180,
         "whatsapp_mensaje": 240,
         "whatsapp_mensaje_respuesta_solicitud": 4000,
         "whatsapp_mensaje_post_solicitud": 4000,
