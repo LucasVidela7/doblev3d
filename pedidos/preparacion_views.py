@@ -23,6 +23,17 @@ def _asignar_miniaturas_filas(filas):
             if producto:
                 productos.append(producto)
 
+        for paquete in fila.get("paquetes", []):
+            for item in paquete.get("productos", []):
+                producto = item.get("producto")
+                if producto:
+                    productos.append(producto)
+
+        for item in fila.get("productos_sueltos", []):
+            producto = item.get("producto")
+            if producto:
+                productos.append(producto)
+
     asignar_miniaturas_productos(productos)
 
 
