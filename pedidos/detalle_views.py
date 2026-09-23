@@ -209,6 +209,8 @@ def detalle_pedido(request, pedido_id):
     )
     aprobacion_contactada = False
     aprobacion_whatsapp_url = ""
+    entrega_contactada = False
+    entrega_whatsapp_url = ""
 
     if tiene_origen_aprobado:
         aprobacion_contactada = (
@@ -224,6 +226,23 @@ def detalle_pedido(request, pedido_id):
             aprobacion_whatsapp_url = url_contacto(
                 pedido.cliente,
                 "PEDIDO_APROBADO",
+                pedido=pedido,
+            )
+
+    if pedido.estado == "LISTO":
+        entrega_contactada = (
+            ContactoCliente.objects
+            .filter(
+                cliente=pedido.cliente,
+                motivo="PEDIDO_LISTO",
+                referencia=pedido.codigo,
+            )
+            .exists()
+        )
+        if numero_whatsapp(pedido.cliente):
+            entrega_whatsapp_url = url_contacto(
+                pedido.cliente,
+                "PEDIDO_LISTO",
                 pedido=pedido,
             )
 
@@ -246,6 +265,8 @@ def detalle_pedido(request, pedido_id):
             "tiene_origen_aprobado": tiene_origen_aprobado,
             "aprobacion_contactada": aprobacion_contactada,
             "aprobacion_whatsapp_url": aprobacion_whatsapp_url,
+            "entrega_contactada": entrega_contactada,
+            "entrega_whatsapp_url": entrega_whatsapp_url,
         },
     )
 

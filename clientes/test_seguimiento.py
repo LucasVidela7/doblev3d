@@ -565,3 +565,91 @@ class SeguimientoClientesTests(TestCase):
         )
         self.assertIn(pedido.codigo, contacto.mensaje)
         self.assertIn("total 9.000", contacto.mensaje)
+
+
+    def test_ahora_pedido_listo_muestra_whatsapp_de_entrega_sin_duplicar(self):
+        pedido = Pedido.objects.create(
+            cliente=self.cliente,
+            estado="LISTO",
+        )
+        DetallePedido.objects.create(
+            pedido=pedido,
+            tipo_item="PRODUCTO",
+            producto=self.producto,
+            cantidad=1,
+            precio_unitario=Decimal("5000"),
+        )
+
+        respuesta = self.client.get(
+            reverse(
+                "clientes:detalle",
+                args=[self.cliente.id],
+            )
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(
+            respuesta,
+            "COORDINAR ENTREGA · WHATSAPP",
+            count=1,
+        )
+        seguimientos_listos = [
+            item
+            for item in respuesta.context["seguimientos"]
+            if item["tipo"] == "PEDIDO_LISTO"
+        ]
+        self.assertEqual(seguimientos_listos, [])
+        fila = next(
+            item
+            for item in respuesta.context["filas_ahora"]
+            if item["pedido"].id == pedido.id
+        )
+        self.assertIn("motivo=PEDIDO_LISTO", fila["entrega_whatsapp_url"])
+        self.assertFalse(fila["entrega_contactada"])
+
+    def test_detalle_pedido_listo_muestra_paso_de_entrega_y_registra_contacto(self):
+        pedido = Pedido.objects.create(
+            cliente=self.cliente,
+            estado="LISTO",
+        )
+        DetallePedido.objects.create(
+            pedido=pedido,
+            tipo_item="PRODUCTO",
+            producto=self.producto,
+            cantidad=1,
+            precio_unitario=Decimal("5000"),
+        )
+
+        detalle = self.client.get(
+            reverse("pedidos:detalle", args=[pedido.id])
+        )
+        self.assertEqual(detalle.status_code, 200)
+        self.assertContains(detalle, "COMUNICACIÓN CON CLIENTE")
+        self.assertContains(detalle, "Coordinar entrega con el cliente")
+        self.assertContains(
+            detalle,
+            "COORDINAR ENTREGA · WHATSAPP",
+        )
+
+        self.client.get(
+            reverse(
+                "clientes:whatsapp",
+                args=[self.cliente.id],
+            ),
+            {
+                "motivo": "PEDIDO_LISTO",
+                "pedido": pedido.id,
+            },
+        )
+
+        detalle = self.client.get(
+            reverse("pedidos:detalle", args=[pedido.id])
+        )
+        self.assertContains(
+            detalle,
+            "Contacto de entrega iniciado",
+        )
+        self.assertContains(
+            detalle,
+            "✓ CONTACTO INICIADO",
+        )

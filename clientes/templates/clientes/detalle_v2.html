@@ -85,7 +85,13 @@ a,button,input,textarea,select{touch-action:manipulation}.c{width:min(1220px,100
           <article class="accion-card">
             <div class="accion-top"><div class="venta-identidad">{% if item.pedido.imagen_resumen_url %}<img class="venta-thumb" src="{{ item.pedido.imagen_resumen_url }}" alt="" loading="lazy">{% else %}<span class="venta-thumb vacia">3D</span>{% endif %}<div><div class="accion-title">{{ item.pedido.codigo }} · {{ item.pedido.get_estado_display }}</div><div class="accion-meta">{% if item.pedido.fecha_entrega %}Entrega {{ item.pedido.fecha_entrega|date:"d/m/Y" }} · {% endif %}$ {{ item.total|floatformat:0 }} · saldo $ {{ item.saldo|floatformat:0 }}</div></div></div><span class="badge {% if item.pedido.estado == 'LISTO' %}ok{% else %}warn{% endif %}">{{ item.pedido.get_estado_display|upper }}</span></div>
             {% if item.preparacion_total %}<div class="progreso"><span style="width:{{ item.preparacion_porcentaje }}%"></span></div><div class="accion-meta">{{ item.preparacion_listos }}/{{ item.preparacion_total }} preparados{% if item.faltantes_stock %} · {{ item.faltantes_stock }} con faltante{% endif %}</div>{% endif %}
-            <div class="mini-actions"><a class="btn" href="{% url 'pedidos:detalle' item.pedido.id %}">VER PEDIDO</a>{% if item.saldo > 0 %}<button class="btn" type="button" data-url="{% url 'pedidos:registrar_pago' item.pedido.id %}" data-codigo="{{ item.pedido.codigo }}" data-saldo="{{ item.saldo }}" onclick="abrirPagoCliente(this)">REGISTRAR PAGO</button>{% endif %}</div>
+            <div class="mini-actions">
+              <a class="btn" href="{% url 'pedidos:detalle' item.pedido.id %}">VER PEDIDO</a>
+              {% if item.pedido.estado == 'LISTO' and item.entrega_whatsapp_url %}
+                <a class="btn ok" href="{{ item.entrega_whatsapp_url }}" target="_blank" rel="noopener">{% if item.entrega_contactada %}VOLVER A COORDINAR ENTREGA{% else %}COORDINAR ENTREGA · WHATSAPP{% endif %}</a>
+              {% endif %}
+              {% if item.saldo > 0 %}<button class="btn" type="button" data-url="{% url 'pedidos:registrar_pago' item.pedido.id %}" data-codigo="{{ item.pedido.codigo }}" data-saldo="{{ item.saldo }}" onclick="abrirPagoCliente(this)">REGISTRAR PAGO</button>{% endif %}
+            </div>
           </article>
           {% endfor %}
 
