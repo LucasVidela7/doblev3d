@@ -84,18 +84,21 @@
             <div class="comunicacion-paso entrega">
                 <div class="comunicacion-numero">{% if tiene_origen_aprobado %}2{% else %}1{% endif %}</div>
                 <div class="comunicacion-copy">
-                    <div class="comunicacion-kicker">ENTREGA</div>
+                    <div class="comunicacion-kicker">{% if entrega_con_saldo %}PAGO + ENTREGA{% else %}ENTREGA{% endif %}</div>
                     {% if entrega_contactada %}
-                        <strong>Contacto de entrega iniciado</strong>
-                        <p>Ya abriste el WhatsApp para coordinar la entrega de {{ pedido.codigo }}.</p>
+                        <strong>Contacto con el cliente iniciado</strong>
+                        <p>Ya abriste el WhatsApp para {% if entrega_con_saldo %}coordinar el saldo pendiente y la entrega{% else %}coordinar la entrega{% endif %} de {{ pedido.codigo }}.</p>
+                    {% elif entrega_con_saldo %}
+                        <strong>Coordinar saldo y entrega</strong>
+                        <p>El pedido está listo, pero todavía tiene un saldo de $ {{ pedido.saldo_pendiente|floatformat:0 }}. El WhatsApp incluye los pagos registrados, el saldo y la URL pública.</p>
                     {% else %}
                         <strong>Coordinar entrega con el cliente</strong>
-                        <p>El pedido está listo. Avisale al cliente para coordinar cómo y cuándo entregarlo.</p>
+                        <p>El pedido está listo y pago. Avisale al cliente para coordinar cómo y cuándo entregarlo.</p>
                     {% endif %}
                 </div>
                 <div class="comunicacion-actions">
                     {% if entrega_whatsapp_url %}
-                        <a class="btn btn-principal" href="{{ entrega_whatsapp_url }}" target="_blank" rel="noopener">{% if entrega_contactada %}VOLVER A COORDINAR{% else %}COORDINAR ENTREGA · WHATSAPP{% endif %}</a>
+                        <a class="btn btn-principal" href="{{ entrega_whatsapp_url }}" target="_blank" rel="noopener">{% if entrega_contactada %}VOLVER A COORDINAR{% elif entrega_con_saldo %}COORDINAR PAGO Y ENTREGA · WHATSAPP{% else %}COORDINAR ENTREGA · WHATSAPP{% endif %}</a>
                     {% else %}
                         <span class="comunicacion-status">SIN WHATSAPP VÁLIDO</span>
                     {% endif %}
