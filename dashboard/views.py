@@ -993,6 +993,7 @@ def configuracion(request):
         "whatsapp_mensaje_respuesta_solicitud": 4000,
         "whatsapp_mensaje_post_solicitud": 4000,
         "whatsapp_mensaje_cliente_generico": 2000,
+        "whatsapp_mensaje_cliente_pedido_aprobado": 2000,
         "whatsapp_mensaje_cliente_pedido_listo": 2000,
         "whatsapp_mensaje_cliente_saldo": 2000,
         "whatsapp_mensaje_cliente_multiples_pedidos": 4000,
@@ -1078,6 +1079,7 @@ def configuracion(request):
     whatsapp_defaults = {}
     for campo in [
         "whatsapp_mensaje_cliente_generico",
+        "whatsapp_mensaje_cliente_pedido_aprobado",
         "whatsapp_mensaje_cliente_pedido_listo",
         "whatsapp_mensaje_cliente_saldo",
         "whatsapp_mensaje_cliente_multiples_pedidos",
