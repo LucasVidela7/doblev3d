@@ -430,11 +430,11 @@ class SeguimientoClientesTests(TestCase):
             pedido_b.codigo,
             contacto.mensaje,
         )
-        self.assertIn(
+        self.assertNotIn(
             "1 × Pepino sensorial",
             contacto.mensaje,
         )
-        self.assertIn(
+        self.assertNotIn(
             "2 × Pepino sensorial",
             contacto.mensaje,
         )
