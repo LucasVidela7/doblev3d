@@ -57,7 +57,7 @@ a,button,input,select{touch-action:manipulation}.c{width:min(1280px,100%);margin
 
   <form class="filtros" method="get">
     <div class="filtro-head"><strong>FILTROS</strong><span>{{ filas|length }} cliente{{ filas|length|pluralize }}</span></div>
-    <div class="campo buscar"><label>BUSCAR</label><input name="q" value="{{ busqueda }}" placeholder="Nombre, teléfono o email..."></div>
+    <div class="campo buscar"><label>BUSCAR</label><input name="q" value="{{ busqueda }}" placeholder="Nombre, apellido, teléfono o email..."></div>
     <div class="campo"><label>ESTADO</label><select name="estado"><option value="">Todos</option><option value="contactar" {% if estado_seleccionado == 'contactar' %}selected{% endif %}>Para contactar</option><option value="atencion" {% if estado_seleccionado == 'atencion' %}selected{% endif %}>Atención operativa</option><option value="pedidos" {% if estado_seleccionado == 'pedidos' %}selected{% endif %}>Con pedidos activos</option><option value="saldo" {% if estado_seleccionado == 'saldo' %}selected{% endif %}>Con saldo</option><option value="presupuestos" {% if estado_seleccionado == 'presupuestos' %}selected{% endif %}>Con presupuestos</option><option value="sin_actividad" {% if estado_seleccionado == 'sin_actividad' %}selected{% endif %}>Sin actividad reciente</option></select></div>
     <button class="btn primary" type="submit">FILTRAR</button>
     <a class="filtro-clear" href="{% url 'clientes:lista' %}">LIMPIAR FILTROS</a>

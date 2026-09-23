@@ -50,7 +50,8 @@ class CarritoPublicoTests(TestCase):
         return self.client.post(
             reverse("catalogo_carrito"),
             {
-                "nombre": "Cliente Web",
+                "nombre": "Cliente",
+                "apellido": "Web",
                 "telefono": telefono,
                 "email": "cliente@example.com",
                 "observaciones": "Prueba web",
@@ -59,6 +60,56 @@ class CarritoPublicoTests(TestCase):
             },
         )
 
+
+    def test_checkout_pide_nombre_y_apellido_por_separado(self):
+        response = self.client.get(reverse("catalogo_carrito"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="nombre"')
+        self.assertContains(response, 'autocomplete="given-name"')
+        self.assertContains(response, 'name="apellido"')
+        self.assertContains(response, 'autocomplete="family-name"')
+
+    def test_checkout_rechaza_solicitud_sin_apellido(self):
+        response = self.client.post(
+            reverse("catalogo_carrito"),
+            {
+                "nombre": "Lucas",
+                "apellido": "",
+                "telefono": "+54 11 5555 1200",
+                "email": "",
+                "observaciones": "",
+                "cart_payload": json.dumps(
+                    [
+                        {
+                            "kind": "product",
+                            "id": self.producto.id,
+                            "qty": 1,
+                        }
+                    ]
+                ),
+                "website": "",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Ingresá tu apellido.")
+        self.assertEqual(SolicitudWeb.objects.count(), 0)
+
+    def test_checkout_guarda_nombre_completo(self):
+        self._post(
+            [
+                {
+                    "kind": "product",
+                    "id": self.producto.id,
+                    "qty": 1,
+                }
+            ],
+            telefono="+54 11 5555 1201",
+        )
+
+        solicitud = SolicitudWeb.objects.get()
+        self.assertEqual(solicitud.nombre, "Cliente Web")
 
     def test_detalle_publico_muestra_acceso_gestion_solo_con_sesion(self):
         self._post(

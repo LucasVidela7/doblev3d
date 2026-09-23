@@ -201,9 +201,30 @@ def _buscar_cliente(solicitud):
             solicitud.telefono
         )
         if cliente:
+            campos_actualizados = []
+            nombre_nuevo = " ".join(
+                (solicitud.nombre or "").split()
+            )
+            telefono_nuevo = (solicitud.telefono or "").strip()
+            email_nuevo = (solicitud.email or "").strip()
+
+            if nombre_nuevo and cliente.nombre != nombre_nuevo:
+                cliente.nombre = nombre_nuevo
+                campos_actualizados.append("nombre")
+            if telefono_nuevo and cliente.telefono != telefono_nuevo:
+                cliente.telefono = telefono_nuevo
+                campos_actualizados.append("telefono")
+            if email_nuevo and cliente.email != email_nuevo:
+                cliente.email = email_nuevo
+                campos_actualizados.append("email")
             if not cliente.activo:
                 cliente.activo = True
-                cliente.save(update_fields=["activo"])
+                campos_actualizados.append("activo")
+
+            if campos_actualizados:
+                cliente.save(
+                    update_fields=list(dict.fromkeys(campos_actualizados))
+                )
             return cliente
 
     if solicitud.email:

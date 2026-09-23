@@ -726,7 +726,15 @@ def carrito_checkout(request):
         request.session.pop("solicitud_web_ultima_id", None)
         return redirect("catalogo_carrito_gracias")
 
-    nombre = request.POST.get("nombre", "").strip()
+    nombre = " ".join(
+        request.POST.get("nombre", "").split()
+    )
+    apellido = " ".join(
+        request.POST.get("apellido", "").split()
+    )
+    nombre_completo = " ".join(
+        parte for parte in [nombre, apellido] if parte
+    )
     telefono = request.POST.get("telefono", "").strip()
     telefono_norm = _telefono_normalizado(telefono)
     email = request.POST.get("email", "").strip()
@@ -737,6 +745,22 @@ def carrito_checkout(request):
             request,
             "productos/catalogo_checkout.html",
             _contexto_checkout("Ingresá tu nombre."),
+        )
+
+    if len(apellido) < 2:
+        return render(
+            request,
+            "productos/catalogo_checkout.html",
+            _contexto_checkout("Ingresá tu apellido."),
+        )
+
+    if len(nombre_completo) > 150:
+        return render(
+            request,
+            "productos/catalogo_checkout.html",
+            _contexto_checkout(
+                "El nombre y apellido son demasiado largos."
+            ),
         )
 
     if len(telefono_norm) < 8:
@@ -833,7 +857,7 @@ def carrito_checkout(request):
         return redirect("catalogo_carrito_gracias")
 
     solicitud = SolicitudWeb.objects.create(
-        nombre=nombre[:150],
+        nombre=nombre_completo[:150],
         telefono=telefono[:40],
         telefono_normalizado=telefono_norm,
         email=email,

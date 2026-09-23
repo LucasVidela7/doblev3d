@@ -49,7 +49,8 @@ class SolicitudesWebGestionTests(TestCase):
         response = self.client.post(
             reverse("catalogo_carrito"),
             {
-                "nombre": "Cliente desde web",
+                "nombre": "Cliente",
+                "apellido": "desde web",
                 "telefono": "+54 11 4000 1234",
                 "email": "web@example.com",
                 "observaciones": "Color azul",
@@ -163,6 +164,11 @@ class SolicitudesWebGestionTests(TestCase):
         self.assertEqual(presupuesto.cliente_id, existente.id)
         self.assertEqual(Cliente.objects.count(), 1)
 
+        existente.refresh_from_db()
+        self.assertEqual(existente.nombre, "Cliente desde web")
+        self.assertEqual(existente.telefono, "+54 11 4000 1234")
+        self.assertEqual(existente.email, "web@example.com")
+
     def test_marcar_contactada_no_convierte(self):
         response = self.client.post(
             reverse(
@@ -242,7 +248,8 @@ class SolicitudesWebGestionTests(TestCase):
         respuesta = self.client.post(
             reverse("catalogo_carrito"),
             {
-                "nombre": "Cliente kit web",
+                "nombre": "Cliente",
+                "apellido": "kit web",
                 "telefono": "+54 11 4999 7788",
                 "email": "kitweb@example.com",
                 "observaciones": "",
