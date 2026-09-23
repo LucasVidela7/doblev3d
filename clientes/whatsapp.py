@@ -251,6 +251,13 @@ def _mensaje_pedidos_whatsapp(cliente, pedidos, request=None):
             "saldo_total": _dinero(
                 resumen["saldo_total"]
             ),
+            "saldo_resumen": (
+                "*Saldo total pendiente: $"
+                + _dinero(resumen["saldo_total"])
+                + "*"
+                if resumen["saldo_total"] > 0
+                else "*Todos los pedidos están pagos ✓*"
+            ),
             "cantidad_listos": resumen["cantidad_listos"],
             "cantidad_con_saldo": resumen[
                 "cantidad_con_saldo"
