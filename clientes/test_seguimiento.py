@@ -6,6 +6,7 @@ from django.urls import reverse
 
 from pedidos.models import (
     DetallePedido,
+    Pago,
     Pedido,
     Presupuesto,
 )
@@ -365,6 +366,7 @@ class SeguimientoClientesTests(TestCase):
             for item in respuesta.context["seguimientos"]
             if item["tipo"] in {
                 "PEDIDO_LISTO",
+                "PEDIDO_LISTO_SALDO",
                 "SALDO",
             }
         ]
@@ -375,7 +377,7 @@ class SeguimientoClientesTests(TestCase):
         seguimiento = seguimientos_pedidos[0]
         self.assertEqual(
             seguimiento["titulo"],
-            "2 pedidos listos para entregar",
+            "2 pedidos requieren seguimiento",
         )
         self.assertIn(
             pedido_a.codigo,
@@ -567,7 +569,7 @@ class SeguimientoClientesTests(TestCase):
         self.assertIn("total 9.000", contacto.mensaje)
 
 
-    def test_ahora_pedido_listo_muestra_whatsapp_de_entrega_sin_duplicar(self):
+    def test_ahora_pedido_listo_con_saldo_coordina_pago_y_entrega(self):
         pedido = Pedido.objects.create(
             cliente=self.cliente,
             estado="LISTO",
@@ -590,22 +592,23 @@ class SeguimientoClientesTests(TestCase):
         self.assertEqual(respuesta.status_code, 200)
         self.assertContains(
             respuesta,
-            "COORDINAR ENTREGA · WHATSAPP",
+            "COORDINAR PAGO Y ENTREGA · WHATSAPP",
             count=1,
         )
-        seguimientos_listos = [
+        seguimientos = [
             item
             for item in respuesta.context["seguimientos"]
-            if item["tipo"] == "PEDIDO_LISTO"
+            if item["tipo"] == "PEDIDO_LISTO_SALDO"
         ]
-        self.assertEqual(seguimientos_listos, [])
-        fila = next(
-            item
-            for item in respuesta.context["filas_ahora"]
-            if item["pedido"].id == pedido.id
+        self.assertEqual(len(seguimientos), 1)
+        self.assertEqual(
+            seguimientos[0]["accion"],
+            "COORDINAR PAGO Y ENTREGA",
         )
-        self.assertIn("motivo=PEDIDO_LISTO", fila["entrega_whatsapp_url"])
-        self.assertFalse(fila["entrega_contactada"])
+        self.assertIn(
+            "motivo=PEDIDO_LISTO",
+            seguimientos[0]["url"],
+        )
 
     def test_detalle_pedido_listo_muestra_paso_de_entrega_y_registra_contacto(self):
         pedido = Pedido.objects.create(
@@ -625,10 +628,10 @@ class SeguimientoClientesTests(TestCase):
         )
         self.assertEqual(detalle.status_code, 200)
         self.assertContains(detalle, "COMUNICACIÓN CON CLIENTE")
-        self.assertContains(detalle, "Coordinar entrega con el cliente")
+        self.assertContains(detalle, "Coordinar saldo y entrega")
         self.assertContains(
             detalle,
-            "COORDINAR ENTREGA · WHATSAPP",
+            "COORDINAR PAGO Y ENTREGA · WHATSAPP",
         )
 
         self.client.get(
@@ -647,9 +650,244 @@ class SeguimientoClientesTests(TestCase):
         )
         self.assertContains(
             detalle,
-            "Contacto de entrega iniciado",
+            "Contacto con el cliente iniciado",
         )
         self.assertContains(
             detalle,
             "✓ CONTACTO INICIADO",
         )
+
+    def test_whatsapp_listo_con_un_pago_incluye_pago_saldo_y_url(self):
+        pedido = Pedido.objects.create(
+            cliente=self.cliente,
+            estado="LISTO",
+        )
+        DetallePedido.objects.create(
+            pedido=pedido,
+            tipo_item="PRODUCTO",
+            producto=self.producto,
+            cantidad=1,
+            precio_unitario=Decimal("10000"),
+        )
+        Pago.objects.create(
+            pedido=pedido,
+            monto=Decimal("3000"),
+            medio="TRANSFERENCIA",
+        )
+
+        self.client.get(
+            reverse(
+                "clientes:whatsapp",
+                args=[self.cliente.id],
+            ),
+            {
+                "motivo": "PEDIDO_LISTO",
+                "pedido": pedido.id,
+            },
+        )
+
+        contacto = ContactoCliente.objects.get()
+        self.assertIn("Hola Cliente", contacto.mensaje)
+        self.assertIn("1 pago registrado", contacto.mensaje)
+        self.assertIn("Pagado: $3.000", contacto.mensaje)
+        self.assertIn("Saldo pendiente: $7.000", contacto.mensaje)
+        self.assertIn(
+            "http://testserver"
+            + reverse(
+                "pedido_publico",
+                args=[pedido.public_token],
+            ),
+            contacto.mensaje,
+        )
+        self.assertIn(
+            "saldo pendiente y la entrega",
+            contacto.mensaje,
+        )
+
+    def test_whatsapp_listo_con_dos_pagos_incluye_total_abonado(self):
+        pedido = Pedido.objects.create(
+            cliente=self.cliente,
+            estado="LISTO",
+        )
+        DetallePedido.objects.create(
+            pedido=pedido,
+            tipo_item="PRODUCTO",
+            producto=self.producto,
+            cantidad=1,
+            precio_unitario=Decimal("15000"),
+        )
+        Pago.objects.create(
+            pedido=pedido,
+            monto=Decimal("4000"),
+            medio="TRANSFERENCIA",
+        )
+        Pago.objects.create(
+            pedido=pedido,
+            monto=Decimal("6000"),
+            medio="EFECTIVO",
+        )
+
+        self.client.get(
+            reverse(
+                "clientes:whatsapp",
+                args=[self.cliente.id],
+            ),
+            {
+                "motivo": "PEDIDO_LISTO",
+                "pedido": pedido.id,
+            },
+        )
+
+        contacto = ContactoCliente.objects.get()
+        self.assertIn("2 pagos registrados", contacto.mensaje)
+        self.assertIn("Pagado: $10.000", contacto.mensaje)
+        self.assertIn("Saldo pendiente: $5.000", contacto.mensaje)
+
+    def test_whatsapp_multiple_muestra_pagos_y_url_de_cada_pedido(self):
+        pedido_a = Pedido.objects.create(
+            cliente=self.cliente,
+            estado="LISTO",
+        )
+        DetallePedido.objects.create(
+            pedido=pedido_a,
+            tipo_item="PRODUCTO",
+            producto=self.producto,
+            cantidad=1,
+            precio_unitario=Decimal("10000"),
+        )
+        Pago.objects.create(
+            pedido=pedido_a,
+            monto=Decimal("10000"),
+            medio="TRANSFERENCIA",
+        )
+
+        pedido_b = Pedido.objects.create(
+            cliente=self.cliente,
+            estado="PREPARANDO",
+        )
+        DetallePedido.objects.create(
+            pedido=pedido_b,
+            tipo_item="PRODUCTO",
+            producto=self.producto,
+            cantidad=1,
+            precio_unitario=Decimal("12000"),
+        )
+        Pago.objects.create(
+            pedido=pedido_b,
+            monto=Decimal("3000"),
+            medio="TRANSFERENCIA",
+        )
+        Pago.objects.create(
+            pedido=pedido_b,
+            monto=Decimal("4000"),
+            medio="EFECTIVO",
+        )
+
+        self.client.get(
+            reverse(
+                "clientes:whatsapp",
+                args=[self.cliente.id],
+            ),
+            {
+                "motivo": "PEDIDO_LISTO",
+                "pedidos": f"{pedido_a.id},{pedido_b.id}",
+            },
+        )
+
+        contacto = ContactoCliente.objects.get()
+        self.assertIn("1 pago registrado", contacto.mensaje)
+        self.assertIn("2 pagos registrados", contacto.mensaje)
+        self.assertIn("Saldo pendiente: $5.000", contacto.mensaje)
+        self.assertIn("Saldo total pendiente: $5.000", contacto.mensaje)
+        for pedido in (pedido_a, pedido_b):
+            self.assertIn(
+                "http://testserver"
+                + reverse(
+                    "pedido_publico",
+                    args=[pedido.public_token],
+                ),
+                contacto.mensaje,
+            )
+
+    def test_entregado_con_saldo_sigue_apareciendo_en_ahora(self):
+        pedido = Pedido.objects.create(
+            cliente=self.cliente,
+            estado="ENTREGADO",
+        )
+        DetallePedido.objects.create(
+            pedido=pedido,
+            tipo_item="PRODUCTO",
+            producto=self.producto,
+            cantidad=1,
+            precio_unitario=Decimal("10000"),
+        )
+        Pago.objects.create(
+            pedido=pedido,
+            monto=Decimal("4000"),
+            medio="TRANSFERENCIA",
+        )
+
+        respuesta = self.client.get(
+            reverse(
+                "clientes:detalle",
+                args=[self.cliente.id],
+            )
+        )
+
+        seguimientos = [
+            item
+            for item in respuesta.context["seguimientos"]
+            if item["tipo"] == "SALDO"
+        ]
+        self.assertEqual(len(seguimientos), 1)
+        self.assertIn("entregado", seguimientos[0]["titulo"])
+        self.assertEqual(
+            seguimientos[0]["accion"],
+            "RECORDAR PAGO",
+        )
+        self.assertIn(
+            "motivo=SALDO",
+            seguimientos[0]["url"],
+        )
+
+    def test_pedido_listo_pagado_solo_coordina_entrega(self):
+        pedido = Pedido.objects.create(
+            cliente=self.cliente,
+            estado="LISTO",
+        )
+        DetallePedido.objects.create(
+            pedido=pedido,
+            tipo_item="PRODUCTO",
+            producto=self.producto,
+            cantidad=1,
+            precio_unitario=Decimal("5000"),
+        )
+        Pago.objects.create(
+            pedido=pedido,
+            monto=Decimal("5000"),
+            medio="TRANSFERENCIA",
+        )
+
+        respuesta = self.client.get(
+            reverse(
+                "clientes:detalle",
+                args=[self.cliente.id],
+            )
+        )
+
+        seguimientos = [
+            item
+            for item in respuesta.context["seguimientos"]
+            if item["tipo"] == "PEDIDO_LISTO"
+        ]
+        self.assertEqual(len(seguimientos), 1)
+        self.assertEqual(
+            seguimientos[0]["accion"],
+            "COORDINAR ENTREGA",
+        )
+        self.assertContains(
+            respuesta,
+            "COORDINAR ENTREGA · WHATSAPP",
+            count=1,
+        )
+
