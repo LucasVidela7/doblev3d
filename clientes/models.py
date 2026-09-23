@@ -35,6 +35,7 @@ class Cliente(models.Model):
 class ContactoCliente(models.Model):
     MOTIVOS = [
         ("GENERICO", "Contacto general"),
+        ("PEDIDO_APROBADO", "Pedido aprobado"),
         ("PEDIDO_LISTO", "Pedido listo"),
         ("SALDO", "Saldo pendiente"),
         ("PRESUPUESTO", "Presupuesto pendiente"),

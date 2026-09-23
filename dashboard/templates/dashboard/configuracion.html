@@ -172,6 +172,14 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 </div>
 
 <div class="cfg-message">
+<div class="cfg-message-head"><div><h3>Pedido aprobado</h3><p>Se usa al convertir un presupuesto aprobado en pedido para avisarle al cliente y compartirle el detalle público.</p></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_cliente_pedido_aprobado">RESTAURAR</button></div>
+<div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{codigo}</span><span class="cfg-var">{url}</span><span class="cfg-var">{total}</span><span class="cfg-var">{saldo}</span><span class="cfg-var">{fecha_entrega}</span></div>
+<label class="cfg-label" for="whatsapp_mensaje_cliente_pedido_aprobado"><span>PLANTILLA</span><span data-count-for="whatsapp_mensaje_cliente_pedido_aprobado"></span></label>
+<textarea class="cfg-textarea" id="whatsapp_mensaje_cliente_pedido_aprobado" name="whatsapp_mensaje_cliente_pedido_aprobado" maxlength="2000" data-counter data-preview="preview_aprobado">{{ config.whatsapp_mensaje_cliente_pedido_aprobado }}</textarea>
+<div class="cfg-preview" id="preview_aprobado"></div>
+</div>
+
+<div class="cfg-message">
 <div class="cfg-message-head"><div><h3>Pedido listo</h3><p>Se usa al sugerir avisar que el pedido está preparado.</p></div><button class="cfg-reset" type="button" data-reset="whatsapp_mensaje_cliente_pedido_listo">RESTAURAR</button></div>
 <div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{codigo}</span><span class="cfg-var">{total}</span><span class="cfg-var">{fecha_entrega}</span></div>
 <label class="cfg-label" for="whatsapp_mensaje_cliente_pedido_listo"><span>PLANTILLA</span><span data-count-for="whatsapp_mensaje_cliente_pedido_listo"></span></label>
@@ -476,7 +484,7 @@ fecha:"20/09/2026",fecha_hoy:new Intl.DateTimeFormat("es-AR").format(new Date())
 ultima_actividad:"04/07/2026",detalle:"2 × Kit Sensorial\n1 × Pepino",
 cantidad_pedidos:"2",saldo_total:"20.500",
 pedidos:"*PED0014 · Listo*\nTotal: $25.000\nSaldo pendiente: $12.500\nVer pedido: https://doblev3d.com.ar/pedido/ejemplo-1/\n\n*PED0018 · Preparando*\nTotal: $8.000\nSaldo pendiente: $8.000\nVer pedido: https://doblev3d.com.ar/pedido/ejemplo-2/",
-url:"https://doblev3d.com.ar/solicitud/ejemplo/",observaciones:"Entrega en Morón"
+url:"https://doblev3d.com.ar/pedido/ejemplo/",observaciones:"Entrega en Morón"
 };
 let defaults={};
 try{defaults=JSON.parse(document.getElementById("dvWhatsappDefaults")?.textContent||"{}");}catch(e){}

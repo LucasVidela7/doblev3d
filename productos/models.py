@@ -160,6 +160,20 @@ class ConfiguracionCatalogo(models.Model):
         verbose_name="Mensaje general a clientes",
         help_text="Podés usar {nombre}.",
     )
+    whatsapp_mensaje_cliente_pedido_aprobado = models.TextField(
+        blank=True,
+        default=(
+            "Hola {nombre} 👋 Tu solicitud fue aprobada y ya quedó registrada "
+            "como el pedido {codigo} de Doble V 3D.\n\n"
+            "Podés ver el detalle y seguir su estado acá:\n{url}\n\n"
+            "¡Gracias!"
+        ),
+        verbose_name="Mensaje de pedido aprobado",
+        help_text=(
+            "Podés usar {nombre}, {codigo}, {url}, {total}, {saldo} "
+            "y {fecha_entrega}."
+        ),
+    )
     whatsapp_mensaje_cliente_pedido_listo = models.TextField(
         blank=True,
         default=(

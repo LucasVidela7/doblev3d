@@ -515,3 +515,53 @@ class SeguimientoClientesTests(TestCase):
                 contacto.mensaje,
             )
 
+
+
+    def test_whatsapp_pedido_aprobado_incluye_url_publica_y_registra_contacto(self):
+        config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
+        config.whatsapp_mensaje_cliente_pedido_aprobado = (
+            "Hola {nombre} | pedido {codigo} aprobado | {url} | total {total}"
+        )
+        config.save(
+            update_fields=[
+                "whatsapp_mensaje_cliente_pedido_aprobado",
+            ]
+        )
+
+        pedido = Pedido.objects.create(
+            cliente=self.cliente,
+            estado="PENDIENTE",
+        )
+        DetallePedido.objects.create(
+            pedido=pedido,
+            tipo_item="PRODUCTO",
+            producto=self.producto,
+            cantidad=1,
+            precio_unitario=Decimal("9000"),
+        )
+
+        respuesta = self.client.get(
+            reverse(
+                "clientes:whatsapp",
+                args=[self.cliente.id],
+            ),
+            {
+                "motivo": "PEDIDO_APROBADO",
+                "pedido": pedido.id,
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 302)
+        contacto = ContactoCliente.objects.get()
+        self.assertEqual(contacto.motivo, "PEDIDO_APROBADO")
+        self.assertEqual(contacto.referencia, pedido.codigo)
+        self.assertIn(
+            "http://testserver"
+            + reverse(
+                "pedido_publico",
+                args=[pedido.public_token],
+            ),
+            contacto.mensaje,
+        )
+        self.assertIn(pedido.codigo, contacto.mensaje)
+        self.assertIn("total 9.000", contacto.mensaje)
