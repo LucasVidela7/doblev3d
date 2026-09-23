@@ -119,6 +119,20 @@ class ConfiguracionCatalogo(models.Model):
         default="Hola! Te escribo desde el catálogo de Doble V 3D.",
         verbose_name="Mensaje inicial de WhatsApp",
     )
+    whatsapp_pago_alias = models.CharField(
+        max_length=120,
+        blank=True,
+        default="doblev3d.mp",
+        verbose_name="Alias de pago",
+        help_text="Alias que se informa automáticamente cuando hay un pago pendiente.",
+    )
+    whatsapp_pago_titular = models.CharField(
+        max_length=180,
+        blank=True,
+        default="Lucas Andrés Videla",
+        verbose_name="Titular del medio de pago",
+        help_text="Nombre del titular que se muestra junto al alias.",
+    )
     whatsapp_mensaje_respuesta_solicitud = models.TextField(
         blank=True,
         default=(
@@ -126,6 +140,7 @@ class ConfiguracionCatalogo(models.Model):
             "Podés revisar el detalle completo acá:\n{url}\n\n"
             "Total de productos: {total}\n\n"
             "Para confirmar tu pedido solicitamos una seña del 30%: {senia}.\n\n"
+            "{datos_pago}\n\n"
             "El plazo estimado de entrega es de 3 a 10 días hábiles "
             "a partir del {fecha_hoy}.\n\n"
             "Si querés avanzar, realizá la seña y enviame el comprobante "
@@ -134,7 +149,7 @@ class ConfiguracionCatalogo(models.Model):
         verbose_name="Mensaje para responder solicitudes",
         help_text=(
             "Podés usar {nombre}, {codigo}, {detalle}, {url}, {total}, {senia}, "
-            "{fecha_hoy} y {observaciones}."
+            "{datos_pago}, {fecha_hoy} y {observaciones}."
         ),
     )
     whatsapp_mensaje_post_solicitud = models.TextField(
@@ -194,13 +209,14 @@ class ConfiguracionCatalogo(models.Model):
         default=(
             "Hola {nombre} 👋 Tu pedido de Doble V 3D ya está listo.\n\n"
             "{pedido}\n\n"
+            "{datos_pago}\n\n"
             "{cierre}"
         ),
         verbose_name="Mensaje de pedido listo con saldo",
         help_text=(
             "Se usa automáticamente cuando un pedido LISTO todavía tiene saldo. "
             "Podés usar {nombre}, {pedido}, {codigo}, {url}, {total}, {pagado}, "
-            "{saldo}, {cantidad_pagos}, {fecha_entrega} y {cierre}."
+            "{saldo}, {cantidad_pagos}, {datos_pago}, {fecha_entrega} y {cierre}."
         ),
     )
     whatsapp_mensaje_cliente_saldo = models.TextField(
@@ -208,12 +224,13 @@ class ConfiguracionCatalogo(models.Model):
         default=(
             "Hola {nombre} 👋 Te escribo por tu pedido de Doble V 3D.\n\n"
             "{pedido}\n\n"
+            "{datos_pago}\n\n"
             "{cierre}"
         ),
         verbose_name="Mensaje de saldo pendiente",
         help_text=(
             "Podés usar {nombre}, {pedido}, {codigo}, {url}, {saldo}, {total}, "
-            "{pagado}, {cantidad_pagos} y {cierre}. Se usa para pedidos en "
+            "{pagado}, {cantidad_pagos}, {datos_pago} y {cierre}. Se usa para pedidos en "
             "preparación o entregados que todavía tienen saldo."
         ),
     )
@@ -224,12 +241,13 @@ class ConfiguracionCatalogo(models.Model):
             "pedidos de Doble V 3D:\n\n"
             "{pedidos}\n\n"
             "{saldo_resumen}\n\n"
+            "{datos_pago}\n\n"
             "{cierre}"
         ),
         verbose_name="Mensaje de múltiples pedidos",
         help_text=(
             "Podés usar {nombre}, {cantidad_pedidos}, {pedidos}, {saldo_total}, "
-            "{saldo_resumen}, {cantidad_listos}, {cantidad_con_saldo} y {cierre}. "
+            "{saldo_resumen}, {datos_pago}, {cantidad_listos}, {cantidad_con_saldo} y {cierre}. "
             "{pedidos} "
             "incluye estado, cantidad de pagos, total pagado, saldo y URL "
             "individual de cada pedido."
