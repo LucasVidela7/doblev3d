@@ -95,7 +95,7 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 <div>
 <p class="cfg-eyebrow">Gestión</p>
 <h1 class="cfg-title">Configuración</h1>
-<p class="cfg-subtitle">Centralizá tienda pública, mensajes de WhatsApp, avisos, métricas y apariencia. Los cambios se aplican al guardar sin reiniciar Railway.</p>
+<p class="cfg-subtitle">La configuración está organizada por áreas. Elegí una sección y trabajá sólo con lo que necesitás; los cambios se guardan juntos.</p>
 </div>
 <div class="actions">
 <a class="cfg-btn" href="{% url 'catalogo' %}" target="_blank" rel="noopener">VER CATÁLOGO</a>
@@ -135,7 +135,7 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 {% csrf_token %}
 <input type="hidden" name="config_seccion" id="configSeccion" value="tienda">
 
-<section class="cfg-section" id="tienda">
+<section class="cfg-section is-active" id="tienda">
 <div class="cfg-section-head"><div><h2>Tienda pública</h2><p>Disponibilidad del catálogo, redes y canales públicos.</p></div><div class="cfg-icon">🛍</div></div>
 <div class="cfg-grid">
 <div class="cfg-box">
