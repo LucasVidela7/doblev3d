@@ -54,6 +54,88 @@ class SeguimientoClientesTests(TestCase):
             activo=True,
         )
 
+    def test_whatsapp_escritorio_abre_web_directo_y_conserva_emoji(self):
+        pedido = Pedido.objects.create(
+            cliente=self.cliente,
+            estado="LISTO",
+        )
+        DetallePedido.objects.create(
+            pedido=pedido,
+            tipo_item="PRODUCTO",
+            producto=self.producto,
+            cantidad=1,
+            precio_unitario=Decimal("5000"),
+        )
+        Pago.objects.create(
+            pedido=pedido,
+            monto=Decimal("5000"),
+            medio="TRANSFERENCIA",
+        )
+
+        respuesta = self.client.get(
+            reverse(
+                "clientes:whatsapp",
+                args=[self.cliente.id],
+            ),
+            {
+                "motivo": "PEDIDO_LISTO",
+                "pedido": pedido.id,
+            },
+            HTTP_USER_AGENT=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 Chrome/153.0 Safari/537.36"
+            ),
+        )
+
+        self.assertEqual(respuesta.status_code, 302)
+        self.assertTrue(
+            respuesta.url.startswith(
+                "https://web.whatsapp.com/send?"
+            )
+        )
+        self.assertIn("%F0%9F%91%8B", respuesta.url)
+        self.assertNotIn("%EF%BF%BD", respuesta.url)
+
+    def test_whatsapp_mobile_mantiene_wa_me_y_conserva_emoji(self):
+        pedido = Pedido.objects.create(
+            cliente=self.cliente,
+            estado="LISTO",
+        )
+        DetallePedido.objects.create(
+            pedido=pedido,
+            tipo_item="PRODUCTO",
+            producto=self.producto,
+            cantidad=1,
+            precio_unitario=Decimal("5000"),
+        )
+        Pago.objects.create(
+            pedido=pedido,
+            monto=Decimal("5000"),
+            medio="TRANSFERENCIA",
+        )
+
+        respuesta = self.client.get(
+            reverse(
+                "clientes:whatsapp",
+                args=[self.cliente.id],
+            ),
+            {
+                "motivo": "PEDIDO_LISTO",
+                "pedido": pedido.id,
+            },
+            HTTP_USER_AGENT=(
+                "Mozilla/5.0 (Linux; Android 16; Mobile) "
+                "AppleWebKit/537.36 Chrome/153.0 Mobile Safari/537.36"
+            ),
+        )
+
+        self.assertEqual(respuesta.status_code, 302)
+        self.assertTrue(
+            respuesta.url.startswith("https://wa.me/")
+        )
+        self.assertIn("%F0%9F%91%8B", respuesta.url)
+        self.assertNotIn("%EF%BF%BD", respuesta.url)
+
     def test_whatsapp_listo_registra_apertura_no_envio(self):
         pedido = Pedido.objects.create(
             cliente=self.cliente,
