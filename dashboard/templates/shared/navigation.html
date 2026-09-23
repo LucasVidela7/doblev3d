@@ -3,6 +3,7 @@
 <link rel="stylesheet" href="{% static 'shared/theme.css' %}">
 <link rel="stylesheet" href="{% static 'shared/navigation.css' %}">
 <link rel="stylesheet" href="{% static 'shared/management_menu.css' %}">
+<link rel="stylesheet" href="{% static 'shared/page_indicators.css' %}">
 <button
     type="button"
     id="dvManagementMenuToggle"
@@ -40,6 +41,7 @@
     <nav class="dv-management-menu__links" aria-label="Accesos de gestión">
         <a
             href="{% url 'pedidos:nuevo' %}"
+            data-dv-section="nuevo"
             class="dv-management-menu__link is-primary {% if request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name == 'nuevo' %}is-active{% endif %}"
         >
             <span class="dv-management-menu__icon">＋</span>
@@ -51,6 +53,7 @@
 
         <a
             href="{% url 'pedidos:solicitudes_web' %}"
+            data-dv-section="solicitudes"
             class="dv-management-menu__link {% if request.resolver_match.url_name == 'solicitudes_web' or request.resolver_match.url_name == 'solicitud_web_detalle' %}is-active{% endif %}"
         >
             <span class="dv-management-menu__icon">🛒</span>
@@ -62,6 +65,7 @@
 
         <a
             href="{% url 'pedidos:presupuestos' %}"
+            data-dv-section="presupuestos"
             class="dv-management-menu__link {% if request.resolver_match.url_name == 'presupuestos' or request.resolver_match.url_name == 'presupuesto_detalle' or request.resolver_match.url_name == 'presupuesto_editar' %}is-active{% endif %}"
         >
             <span class="dv-management-menu__icon">📄</span>
@@ -73,6 +77,7 @@
 
         <a
             href="{% url 'pedidos:impresiones' %}"
+            data-dv-section="preparacion"
             class="dv-management-menu__link {% if request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name == 'impresiones' or request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name == 'detalle' or request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name == 'editar' or request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name == 'cancelados' %}is-active{% endif %}"
         >
             <span class="dv-management-menu__icon">📦</span>
@@ -84,6 +89,7 @@
 
         <a
             href="{% url 'produccion:lista' %}"
+            data-dv-section="produccion"
             class="dv-management-menu__link {% if request.resolver_match.namespace == 'produccion' %}is-active{% endif %}"
         >
             <span class="dv-management-menu__icon">🖨</span>
@@ -95,6 +101,7 @@
 
         <a
             href="{% url 'productos:lista' %}"
+            data-dv-section="productos"
             class="dv-management-menu__link {% if request.resolver_match.namespace == 'productos' or request.resolver_match.namespace == 'calculadora' %}is-active{% endif %}"
         >
             <span class="dv-management-menu__icon">▦</span>
@@ -106,6 +113,7 @@
 
         <a
             href="{% url 'kits:lista' %}"
+            data-dv-section="kits"
             class="dv-management-menu__link {% if request.resolver_match.namespace == 'kits' %}is-active{% endif %}"
         >
             <span class="dv-management-menu__icon">🧰</span>
@@ -117,6 +125,7 @@
 
         <a
             href="{% url 'clientes:lista' %}"
+            data-dv-section="clientes"
             class="dv-management-menu__link {% if request.resolver_match.namespace == 'clientes' %}is-active{% endif %}"
         >
             <span class="dv-management-menu__icon">👥</span>
@@ -128,6 +137,7 @@
 
         <a
             href="{% url 'pedidos:finanzas' %}"
+            data-dv-section="finanzas"
             class="dv-management-menu__link {% if request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name == 'finanzas' %}is-active{% endif %}"
         >
             <span class="dv-management-menu__icon">↗</span>
@@ -139,6 +149,7 @@
 
         <a
             href="{% url 'dashboard:configuracion' %}"
+            data-dv-section="configuracion"
             class="dv-management-menu__link {% if request.resolver_match.namespace == 'dashboard' and request.resolver_match.url_name == 'configuracion' %}is-active{% endif %}"
         >
             <span class="dv-management-menu__icon">⚙</span>
@@ -247,6 +258,14 @@
 
 <script>
 (function(){
+    function aplicarIndicadorPagina(){
+        const activa=document.querySelector(
+            "#dvManagementMenu .dv-management-menu__link.is-active[data-dv-section]"
+        );
+        if(!activa || !document.body) return;
+        document.body.dataset.dvSection=activa.dataset.dvSection||"";
+    }
+
     function limpiarNavegacionRedundante(){
         document.querySelectorAll("a,button").forEach(function(el){
             if(el.closest("#dvManagementMenu") || el.closest(".dv-global-nav")) return;
@@ -264,10 +283,14 @@
             }
         });
     }
-    if(document.readyState==="loading"){
-        document.addEventListener("DOMContentLoaded",limpiarNavegacionRedundante);
-    }else{
+    function iniciarNavegacionCompartida(){
+        aplicarIndicadorPagina();
         limpiarNavegacionRedundante();
+    }
+    if(document.readyState==="loading"){
+        document.addEventListener("DOMContentLoaded",iniciarNavegacionCompartida);
+    }else{
+        iniciarNavegacionCompartida();
     }
 })();
 </script>
