@@ -418,8 +418,9 @@ def _aplicar_descuentos_carrito(lineas):
     - Productos: mantiene precio de lista hasta 4 unidades. Desde 5 libera
       progresivamente el descuento técnico que permiten costos y margen,
       con un tope comercial de 15%.
-    - Kits: usa la curva dinámica de volumen desde 2 kits totales y puede
-      combinar kits distintos.
+    - Kits: usa una única curva por cantidad total desde 2 kits. En kits
+      libres de la misma categoría, x4 recibe el mismo porcentaje tanto si
+      son cuatro configuraciones distintas como una configuración con qty=4.
     """
     for linea in lineas:
         precio_lista_unitario = (
@@ -539,17 +540,12 @@ def _aplicar_descuentos_carrito(lineas):
                     ahorro_unitario
                     * Decimal(int(linea["cantidad"]))
                 )
-                lista_unitaria = _decimal(
-                    linea["precio_lista_unitario"]
-                )
-                linea["descuento_porcentaje"] = (
-                    (
-                        ahorro_unitario
-                        / lista_unitaria
-                        * Decimal("100")
-                    ).quantize(Decimal("0.1"))
-                    if lista_unitaria > 0
-                    else Decimal("0")
+                # El porcentaje de volumen lo define el grupo completo
+                # de kits y debe ser idéntico en todas sus líneas. No lo
+                # recalculamos por línea porque adicionales fijos (por ejemplo
+                # color) o redondeos podrían mostrar porcentajes distintos.
+                linea["descuento_porcentaje"] = _decimal(
+                    calculada.get("descuento_porcentaje")
                 )
 
     return lineas
