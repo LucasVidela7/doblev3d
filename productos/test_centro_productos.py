@@ -45,6 +45,35 @@ class CentroProductosTests(TestCase):
             activo=True,
         )
 
+    def test_margen_producto_se_aplica_sobre_costo_productivo_completo(self):
+        costo_productivo = (
+            self.producto.costo
+            + self.producto.seguro
+        )
+        precio = self.producto.subtotal
+        margen_real = (
+            (precio - costo_productivo)
+            / precio
+            * Decimal("100")
+        )
+        precio_minimo = (
+            costo_productivo
+            / (Decimal("1") - Decimal("0.60"))
+        )
+
+        self.assertGreaterEqual(
+            margen_real,
+            Decimal("60"),
+        )
+        self.assertGreaterEqual(
+            precio,
+            precio_minimo,
+        )
+        self.assertLess(
+            precio - precio_minimo,
+            Decimal("500"),
+        )
+
     def test_listado_renderiza_centro_operativo(self):
         respuesta = self.client.get(
             reverse("productos:lista"),
