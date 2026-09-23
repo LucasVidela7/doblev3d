@@ -510,10 +510,57 @@ def mensaje_whatsapp(
     return mensaje
 
 
-def enlace_whatsapp(numero, mensaje):
+def _es_dispositivo_movil(request):
+    if request is None:
+        return False
+
+    user_agent = str(
+        request.META.get("HTTP_USER_AGENT", "") or ""
+    ).lower()
+
+    if not user_agent:
+        return False
+
+    marcadores = (
+        "android",
+        "iphone",
+        "ipad",
+        "ipod",
+        "mobile",
+        "windows phone",
+    )
+    return any(
+        marcador in user_agent
+        for marcador in marcadores
+    )
+
+
+def enlace_whatsapp(numero, mensaje, request=None):
     if not numero:
         return ""
-    return f"https://wa.me/{numero}?text={quote(mensaje)}"
+
+    texto = quote(
+        str(mensaje or ""),
+        safe="",
+        encoding="utf-8",
+        errors="strict",
+    )
+
+    # En móvil mantenemos wa.me porque abre correctamente WhatsApp/Business.
+    # En escritorio evitamos la pantalla intermedia de wa.me y enviamos el
+    # texto UTF-8 directamente a WhatsApp Web. Esa pantalla intermedia puede
+    # mostrar algunos emoji como el carácter de reemplazo "�".
+    if (
+        request is not None
+        and request.META.get("HTTP_USER_AGENT")
+        and not _es_dispositivo_movil(request)
+    ):
+        return (
+            "https://web.whatsapp.com/send"
+            f"?phone={numero}&text={texto}"
+        )
+
+    return f"https://wa.me/{numero}?text={texto}"
 
 
 def url_contacto(
