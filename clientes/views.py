@@ -314,6 +314,15 @@ def _seguimientos_cliente(
             {
                 "prioridad": 1,
                 "tipo": tipo,
+                "etiqueta": (
+                    "LISTO + SALDO"
+                    if tipo == "PEDIDO_LISTO_SALDO"
+                    else (
+                        "LISTO"
+                        if tipo == "PEDIDO_LISTO"
+                        else "SALDO"
+                    )
+                ),
                 "titulo": titulo,
                 "detalle": detalle,
                 "accion": accion,
