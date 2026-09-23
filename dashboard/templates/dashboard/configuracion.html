@@ -192,7 +192,7 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 <div class="cfg-vars"><span class="cfg-var">{nombre}</span><span class="cfg-var">{cantidad_pedidos}</span><span class="cfg-var">{pedidos}</span><span class="cfg-var">{saldo_total}</span></div>
 <label class="cfg-label" for="whatsapp_mensaje_cliente_multiples_pedidos"><span>PLANTILLA</span><span data-count-for="whatsapp_mensaje_cliente_multiples_pedidos"></span></label>
 <textarea class="cfg-textarea" id="whatsapp_mensaje_cliente_multiples_pedidos" name="whatsapp_mensaje_cliente_multiples_pedidos" maxlength="4000" data-counter data-preview="preview_multiples_pedidos">{{ config.whatsapp_mensaje_cliente_multiples_pedidos }}</textarea>
-<div class="cfg-note">{pedidos} se arma automáticamente con código, estado, productos, total, saldo y enlace individual de cada pedido.</div>
+<div class="cfg-note">{pedidos} se arma automáticamente con código, estado, total, saldo y enlace individual de cada pedido.</div>
 <div class="cfg-preview" id="preview_multiples_pedidos"></div>
 </div>
 
@@ -475,7 +475,7 @@ nombre:"Lucas",codigo:"PED0014",saldo:"12.500",total:"25.000",pagado:"12.500",se
 fecha:"20/09/2026",fecha_hoy:new Intl.DateTimeFormat("es-AR").format(new Date()),fecha_entrega:"22/09/2026",dias_sin_actividad:"78",
 ultima_actividad:"04/07/2026",detalle:"2 × Kit Sensorial\n1 × Pepino",
 cantidad_pedidos:"2",saldo_total:"20.500",
-pedidos:"*PED0014 · Listo*\n• 1 × Kit Sensorial\nTotal: $25.000\nSaldo pendiente: $12.500\nVer pedido: https://doblev3d.com.ar/pedido/ejemplo-1/\n\n*PED0018 · Preparando*\n• 1 × Pepino\nTotal: $8.000\nSaldo pendiente: $8.000\nVer pedido: https://doblev3d.com.ar/pedido/ejemplo-2/",
+pedidos:"*PED0014 · Listo*\nTotal: $25.000\nSaldo pendiente: $12.500\nVer pedido: https://doblev3d.com.ar/pedido/ejemplo-1/\n\n*PED0018 · Preparando*\nTotal: $8.000\nSaldo pendiente: $8.000\nVer pedido: https://doblev3d.com.ar/pedido/ejemplo-2/",
 url:"https://doblev3d.com.ar/solicitud/ejemplo/",observaciones:"Entrega en Morón"
 };
 let defaults={};
