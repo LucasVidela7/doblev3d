@@ -367,7 +367,7 @@ CATALOG_ROTATOR_SCRIPT = r"""
             if (grid.dataset.visible === '0' || grid.matches(':hover')) return;
             advanceSensory(grid);
         });
-    }, 2100);
+    }, 3000);
 })();
 </script>
 """
