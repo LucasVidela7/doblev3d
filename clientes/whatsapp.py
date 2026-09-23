@@ -12,6 +12,7 @@ from .telefonos import normalizar_telefono
 
 MOTIVOS_VALIDOS = {
     "GENERICO",
+    "PEDIDO_APROBADO",
     "PEDIDO_LISTO",
     "SALDO",
     "PRESUPUESTO",
@@ -202,6 +203,7 @@ def mensaje_whatsapp(
     *,
     pedido=None,
     presupuesto=None,
+    request=None,
 ):
     motivo = motivo if motivo in MOTIVOS_VALIDOS else "GENERICO"
     config, _ = ConfiguracionCatalogo.objects.get_or_create(
@@ -228,7 +230,29 @@ def mensaje_whatsapp(
 
     campo = "whatsapp_mensaje_cliente_generico"
 
-    if motivo == "PEDIDO_LISTO" and pedido:
+    if motivo == "PEDIDO_APROBADO" and pedido:
+        campo = (
+            "whatsapp_mensaje_cliente_pedido_aprobado"
+        )
+        variables.update(
+            {
+                "nombre": _primer_nombre(cliente.nombre),
+                "codigo": pedido.codigo,
+                "url": _url_publica_pedido(
+                    pedido,
+                    request=request,
+                ),
+                "total": _dinero(pedido.total),
+                "pagado": _dinero(pedido.total_pagado),
+                "saldo": _dinero(pedido.saldo_pendiente),
+                "fecha": _fecha(pedido.fecha),
+                "fecha_entrega": _fecha(
+                    pedido.fecha_entrega
+                ),
+            }
+        )
+
+    elif motivo == "PEDIDO_LISTO" and pedido:
         campo = (
             "whatsapp_mensaje_cliente_pedido_listo"
         )
@@ -494,7 +518,7 @@ def resolver_contexto(
         )
 
     if (
-        motivo in {"PEDIDO_LISTO", "SALDO"}
+        motivo in {"PEDIDO_APROBADO", "PEDIDO_LISTO", "SALDO"}
         and not pedidos
     ):
         motivo = "GENERICO"
@@ -523,6 +547,7 @@ def resolver_contexto(
             motivo,
             pedido=pedido,
             presupuesto=presupuesto,
+            request=request,
         )
 
     referencia = ""
