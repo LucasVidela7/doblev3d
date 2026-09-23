@@ -211,6 +211,7 @@
 <nav class="dv-global-nav" aria-label="Navegación principal">
     <a
         href="{% url 'dashboard:inicio' %}"
+        data-dv-section="inicio"
         class="dv-global-nav-item {% if request.resolver_match.namespace == 'dashboard' and request.resolver_match.url_name == 'inicio' %}is-active{% endif %}"
         {% if request.resolver_match.namespace == 'dashboard' and request.resolver_match.url_name == 'inicio' %}aria-current="page"{% endif %}
     >
@@ -259,9 +260,13 @@
 <script>
 (function(){
     function aplicarIndicadorPagina(){
-        const activa=document.querySelector(
+        const activaMenu=document.querySelector(
             "#dvManagementMenu .dv-management-menu__link.is-active[data-dv-section]"
         );
+        const activaGlobal=document.querySelector(
+            ".dv-global-nav-item.is-active[data-dv-section]"
+        );
+        const activa=activaMenu||activaGlobal;
         if(!activa || !document.body) return;
         document.body.dataset.dvSection=activa.dataset.dvSection||"";
     }
