@@ -6,6 +6,9 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.dateparse import parse_date
 
+from clientes.models import ContactoCliente
+from clientes.whatsapp import numero_whatsapp, url_contacto
+
 from . import acciones_impresion
 from .miniaturas import asignar_miniaturas_items
 from .models import EstadoImpresionPedido, Pago, Pedido
@@ -159,7 +162,7 @@ def _armar_preparacion(pedido):
 def detalle_pedido(request, pedido_id):
     pedido = get_object_or_404(
         Pedido.objects
-        .select_related("cliente")
+        .select_related("cliente", "presupuesto_origen")
         .prefetch_related(
             "detalles__producto",
             "detalles__kit__componentes__producto",
@@ -195,6 +198,35 @@ def detalle_pedido(request, pedido_id):
         else 0
     )
 
+    presupuesto_origen = getattr(
+        pedido,
+        "presupuesto_origen",
+        None,
+    )
+    tiene_origen_aprobado = bool(
+        presupuesto_origen
+        and presupuesto_origen.estado == "APROBADO"
+    )
+    aprobacion_contactada = False
+    aprobacion_whatsapp_url = ""
+
+    if tiene_origen_aprobado:
+        aprobacion_contactada = (
+            ContactoCliente.objects
+            .filter(
+                cliente=pedido.cliente,
+                motivo="PEDIDO_APROBADO",
+                referencia=pedido.codigo,
+            )
+            .exists()
+        )
+        if numero_whatsapp(pedido.cliente):
+            aprobacion_whatsapp_url = url_contacto(
+                pedido.cliente,
+                "PEDIDO_APROBADO",
+                pedido=pedido,
+            )
+
     return render(
         request,
         "pedidos/detalle.html",
@@ -211,6 +243,9 @@ def detalle_pedido(request, pedido_id):
             "preparacion_editable": pedido.estado not in {"ENTREGADO", "CANCELADO"},
             "pedido_activo": pedido.estado not in {"ENTREGADO", "CANCELADO"},
             "medios_pago": Pago.MEDIOS,
+            "tiene_origen_aprobado": tiene_origen_aprobado,
+            "aprobacion_contactada": aprobacion_contactada,
+            "aprobacion_whatsapp_url": aprobacion_whatsapp_url,
         },
     )
 
