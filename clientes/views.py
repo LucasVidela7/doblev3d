@@ -981,6 +981,7 @@ def whatsapp_cliente(request, cliente_id):
         enlace_whatsapp(
             numero,
             contexto["mensaje"],
+            request=request,
         )
     )
 
