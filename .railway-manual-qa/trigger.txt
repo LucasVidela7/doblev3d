@@ -48,3 +48,5 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-22 - Bloquear modificacion masiva sin seleccion
 
 2026-09-22 - Quitar texto introductorio detalle producto
+
+2026-09-23 - Checkout con nombre y apellido obligatorios
