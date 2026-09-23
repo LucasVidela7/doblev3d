@@ -442,4 +442,76 @@ class SeguimientoClientesTests(TestCase):
             "Saldo total pendiente: $20.000",
             contacto.mensaje,
         )
+        self.assertIn(
+            "http://testserver"
+            + reverse(
+                "pedido_publico",
+                args=[pedido_a.public_token],
+            ),
+            contacto.mensaje,
+        )
+        self.assertIn(
+            "http://testserver"
+            + reverse(
+                "pedido_publico",
+                args=[pedido_b.public_token],
+            ),
+            contacto.mensaje,
+        )
+
+    def test_whatsapp_multiples_pedidos_usa_plantilla_configurada(self):
+        config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
+        config.whatsapp_mensaje_cliente_multiples_pedidos = (
+            "Hola {nombre} | {cantidad_pedidos} pedidos | "
+            "{pedidos} | total pendiente {saldo_total}"
+        )
+        config.save(
+            update_fields=[
+                "whatsapp_mensaje_cliente_multiples_pedidos",
+            ]
+        )
+
+        pedidos = []
+        for precio in (Decimal("4000"), Decimal("6000")):
+            pedido = Pedido.objects.create(
+                cliente=self.cliente,
+                estado="PENDIENTE",
+            )
+            DetallePedido.objects.create(
+                pedido=pedido,
+                tipo_item="PRODUCTO",
+                producto=self.producto,
+                cantidad=1,
+                precio_unitario=precio,
+            )
+            pedidos.append(pedido)
+
+        respuesta = self.client.get(
+            reverse(
+                "clientes:whatsapp",
+                args=[self.cliente.id],
+            ),
+            {
+                "motivo": "SALDO",
+                "pedidos": ",".join(
+                    str(pedido.id)
+                    for pedido in pedidos
+                ),
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 302)
+        contacto = ContactoCliente.objects.get()
+        self.assertIn("Hola Cliente | 2 pedidos", contacto.mensaje)
+        self.assertIn("total pendiente 10.000", contacto.mensaje)
+        for pedido in pedidos:
+            self.assertIn(pedido.codigo, contacto.mensaje)
+            self.assertIn(
+                "http://testserver"
+                + reverse(
+                    "pedido_publico",
+                    args=[pedido.public_token],
+                ),
+                contacto.mensaje,
+            )
 
