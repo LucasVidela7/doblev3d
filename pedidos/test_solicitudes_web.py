@@ -11,7 +11,7 @@ from clientes.models import Cliente
 from costos.models import ConfiguracionCostos
 from kits.models import Kit, KitComponente
 from pedidos.models import Presupuesto, SolicitudWeb
-from productos.models import Producto, TipoProducto
+from productos.models import ConfiguracionCatalogo, Producto, TipoProducto
 from productos.whatsapp import renderizar_mensaje_solicitud
 from productos.image_models import ProductoImagen
 
@@ -114,6 +114,30 @@ class SolicitudesWebGestionTests(TestCase):
         self.assertIn(f"Seña: {senia_formateada}", mensaje)
         self.assertIn(
             timezone.localdate().strftime("%d/%m/%Y"),
+            mensaje,
+        )
+
+
+    def test_whatsapp_respuesta_solicitud_incluye_alias_configurado(self):
+        config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
+        config.whatsapp_pago_alias = "doblev3d.senia"
+        config.whatsapp_pago_titular = "Titular Seña"
+        config.save(
+            update_fields=[
+                "whatsapp_pago_alias",
+                "whatsapp_pago_titular",
+            ]
+        )
+
+        mensaje = renderizar_mensaje_solicitud(
+            "Seña: {senia}\n{datos_pago}",
+            self.solicitud,
+            config=config,
+            incluir_datos_pago=True,
+        )
+
+        self.assertIn(
+            "Alias: doblev3d.senia - Titular Seña",
             mensaje,
         )
 
