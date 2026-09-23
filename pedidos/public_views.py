@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.cache import never_cache
 
@@ -80,19 +78,19 @@ def pedido_publico(request, token):
 
         productos_por_detalle[detalle.id] = unicos
 
-    imagenes_por_producto = defaultdict(list)
-    for imagen in (
-        ProductoImagen.objects
-        .filter(
-            producto_id__in=ids_productos,
-            ambiente=entorno_imagenes(),
-        )
-        .order_by("producto_id", "orden", "id")
-    ):
-        if len(imagenes_por_producto[imagen.producto_id]) < 2:
-            imagenes_por_producto[imagen.producto_id].append(
-                imagen.url or imagen.thumbnail_url
+    imagen_principal_por_producto = {
+        imagen.producto_id: (imagen.url or imagen.thumbnail_url)
+        for imagen in (
+            ProductoImagen.objects
+            .filter(
+                producto_id__in=ids_productos,
+                ambiente=entorno_imagenes(),
+                orden=1,
             )
+            .order_by("producto_id", "id")
+        )
+        if (imagen.url or imagen.thumbnail_url)
+    }
 
     items = []
     for detalle in detalles:
@@ -100,24 +98,22 @@ def pedido_publico(request, token):
         imagenes = []
 
         if detalle.tipo_item == "KIT":
-            principales = []
-            secundarias = []
-            for producto in productos:
-                urls = [
-                    url
-                    for url in imagenes_por_producto.get(producto.id, [])
-                    if url
-                ]
-                if urls:
-                    principales.append(urls[0])
-                    secundarias.extend(urls[1:])
-            imagenes = (principales + secundarias)[:4]
+            principales = [
+                imagen_principal_por_producto[producto.id]
+                for producto in productos
+                if imagen_principal_por_producto.get(producto.id)
+            ]
+            imagenes = (
+                principales[:4]
+                if len(principales) >= 4
+                else principales[:1]
+            )
         elif productos:
-            imagenes = [
-                url
-                for url in imagenes_por_producto.get(productos[0].id, [])
-                if url
-            ][:2]
+            principal = imagen_principal_por_producto.get(
+                productos[0].id,
+                "",
+            )
+            imagenes = [principal] if principal else []
 
         items.append(
             {
