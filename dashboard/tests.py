@@ -502,8 +502,10 @@ class DashboardProduccionTests(TestCase):
         self.assertEqual(respuesta.status_code, 200)
         self.assertContains(respuesta, "Tienda pública")
         self.assertContains(respuesta, "Mensajes de WhatsApp")
-        self.assertContains(respuesta, "SEGUIMIENTO DE CLIENTES")
-        self.assertContains(respuesta, "Pedido listo")
+        self.assertContains(respuesta, "PEDIDOS Y COBROS")
+        self.assertContains(respuesta, "OTROS CONTACTOS CON CLIENTES")
+        self.assertContains(respuesta, "Pedido listo · pagado")
+        self.assertContains(respuesta, "Pedido listo · con saldo")
         self.assertContains(respuesta, "Saldo pendiente")
         self.assertContains(respuesta, "Múltiples pedidos")
         self.assertContains(respuesta, "Reactivar cliente")
@@ -552,6 +554,9 @@ class DashboardProduccionTests(TestCase):
                 "whatsapp_mensaje_cliente_pedido_listo": (
                     "{nombre}: {codigo} listo"
                 ),
+                "whatsapp_mensaje_cliente_pedido_listo_saldo": (
+                    "{nombre}: {codigo} listo con saldo {saldo}"
+                ),
                 "whatsapp_mensaje_cliente_saldo": (
                     "{nombre}: saldo {saldo}"
                 ),
@@ -573,7 +578,7 @@ class DashboardProduccionTests(TestCase):
 
         self.assertRedirects(
             respuesta,
-            reverse("dashboard:configuracion") + "?guardado=1",
+            reverse("dashboard:configuracion") + "?guardado=1&periodo=30",
         )
 
         config = ConfiguracionCatalogo.objects.get(pk=1)
@@ -593,6 +598,10 @@ class DashboardProduccionTests(TestCase):
         self.assertEqual(
             config.whatsapp_mensaje_cliente_pedido_listo,
             "{nombre}: {codigo} listo",
+        )
+        self.assertEqual(
+            config.whatsapp_mensaje_cliente_pedido_listo_saldo,
+            "{nombre}: {codigo} listo con saldo {saldo}",
         )
         self.assertEqual(
             config.whatsapp_mensaje_cliente_saldo,
