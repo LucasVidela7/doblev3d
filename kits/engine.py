@@ -124,10 +124,31 @@ class KitEngine:
                 errores.append(
                     "El kit libre no tiene categoría configurada."
                 )
-            if int(kit.cantidad_productos or 0) <= 0:
+            cantidad = int(kit.cantidad_productos or 0)
+            if cantidad <= 0:
                 errores.append(
                     "La cantidad a elegir debe ser mayor a cero."
                 )
+
+            max_repeticiones = int(
+                getattr(
+                    kit,
+                    "max_repeticiones_producto",
+                    1,
+                )
+                or 0
+            )
+            if (
+                max_repeticiones <= 0
+                or (
+                    cantidad > 0
+                    and max_repeticiones > cantidad
+                )
+            ):
+                errores.append(
+                    "El límite de repetición por producto no es válido."
+                )
+
             if kit.tipo_producto_id:
                 productos = (
                     list(productos_categoria)
@@ -137,6 +158,17 @@ class KitEngine:
                 if not productos:
                     errores.append(
                         "La categoría no tiene productos comerciales activos."
+                    )
+                elif (
+                    cantidad > 0
+                    and max_repeticiones > 0
+                    and len(productos) * max_repeticiones < cantidad
+                ):
+                    errores.append(
+                        (
+                            "No hay suficientes opciones activas para completar "
+                            "el kit con el límite de repetición configurado."
+                        )
                     )
 
         return {
