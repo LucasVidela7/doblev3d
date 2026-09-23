@@ -526,6 +526,72 @@ class CarritoPublicoTests(TestCase):
         self.assertEqual(SolicitudWeb.objects.count(), 0)
 
 
+    def test_kit_libre_rechaza_repeticion_por_encima_del_limite(self):
+        kit = Kit.objects.create(
+            nombre="Kit sin repetidos",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=2,
+            max_repeticiones_producto=1,
+            precio=Decimal("5000"),
+            proteger_rentabilidad_libre=False,
+            activo=True,
+        )
+
+        response = self._post(
+            [
+                {
+                    "kind": "kit",
+                    "id": kit.id,
+                    "qty": 1,
+                    "selections": [
+                        {"id": self.producto.id},
+                        {"id": self.producto.id},
+                    ],
+                }
+            ],
+            telefono="+54 11 5555 8899",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "no puede repetirse")
+        self.assertEqual(SolicitudWeb.objects.count(), 0)
+
+    def test_detalle_publico_expone_limite_de_repeticion(self):
+        otro = Producto.objects.create(
+            nombre="Otra opción repetición",
+            categoria="PRODUCTO",
+            tipo=self.tipo,
+            peso_gramos=Decimal("80"),
+            margen_ganancia=Decimal("50"),
+            activo=True,
+            solo_produccion=False,
+        )
+        kit = Kit.objects.create(
+            nombre="Kit límite público",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=2,
+            max_repeticiones_producto=1,
+            precio=Decimal("5000"),
+            proteger_rentabilidad_libre=False,
+            activo=True,
+        )
+
+        response = self.client.get(
+            reverse("catalogo_kit_detalle", args=[kit.id])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            'data-max-per-product="1"',
+        )
+        self.assertContains(
+            response,
+            "Cada producto puede elegirse una sola vez.",
+        )
+
     def test_api_precios_aplica_descuento_de_producto_por_cantidad(self):
         response = self.client.post(
             reverse("catalogo_carrito_precios"),
