@@ -1,0 +1,471 @@
+/* Solicitudes web + Presupuestos · Gestión 2026
+   Tipografía legible, azul/celeste para identidad y semáforo sólo para estados. */
+
+body.dv-commercial-page{
+    --dv-commerce-blue:var(--dv-brand-blue,#134a9a);
+    --dv-commerce-sky:var(--dv-brand-sky,#69b6eb);
+    --dv-commerce-sky-strong:var(--dv-brand-sky-strong,#4f9bd3);
+    --dv-commerce-surface:var(--dv-surface,#fff);
+    --dv-commerce-soft:var(--dv-surface-soft,#f8faff);
+    --dv-commerce-text:var(--dv-text,#17233a);
+    --dv-commerce-muted:var(--dv-muted,#667085);
+    --dv-commerce-line:var(--dv-border,#dfe5ef);
+    --dv-commerce-ok:var(--dv-success-text,#287044);
+    --dv-commerce-ok-soft:var(--dv-success-soft,#eaf7ee);
+    --dv-commerce-warn:var(--dv-warning-text,#8a6417);
+    --dv-commerce-warn-soft:var(--dv-warning-soft,#fff7db);
+    --dv-commerce-danger:var(--dv-danger-text,#a63d3d);
+    --dv-commerce-danger-soft:var(--dv-danger-soft,#fff0f0);
+    font-size:16px!important;
+    line-height:1.5!important;
+}
+
+body.dv-commercial-page .shell{
+    width:min(1360px,calc(100% - 48px))!important;
+    max-width:none!important;
+    margin-inline:auto!important;
+    padding-top:24px!important;
+}
+
+body.dv-commercial-detail .shell{
+    width:min(1180px,calc(100% - 48px))!important;
+}
+
+body.dv-commercial-page h1{
+    font-size:clamp(32px,3.4vw,42px)!important;
+    line-height:1.06!important;
+    letter-spacing:-.035em!important;
+}
+body.dv-commercial-page .sub{
+    font-size:13.5px!important;
+    line-height:1.5!important;
+}
+body.dv-commercial-page .btn{
+    min-height:44px!important;
+    padding-inline:14px!important;
+    font-size:13px!important;
+    line-height:1.15!important;
+}
+body.dv-commercial-page .actions{
+    gap:9px!important;
+}
+
+/* ----- KANBAN ----- */
+body.dv-commercial-board .dv-kanban-board{
+    gap:12px!important;
+}
+body.dv-commercial-board .dv-kanban-column{
+    --dv-commerce-state:var(--dv-kanban-state,var(--dv-commerce-blue));
+    border-top-width:4px!important;
+    border-color:color-mix(
+        in srgb,
+        var(--dv-commerce-state) 23%,
+        var(--dv-commerce-line)
+    )!important;
+    border-top-color:var(--dv-commerce-state)!important;
+    border-radius:18px!important;
+    background:var(--dv-commerce-surface)!important;
+}
+body.dv-commercial-board .dv-kanban-column__head{
+    padding:14px 14px 12px!important;
+    background:color-mix(
+        in srgb,
+        var(--dv-commerce-state) 7%,
+        var(--dv-commerce-surface)
+    )!important;
+    border-bottom-color:color-mix(
+        in srgb,
+        var(--dv-commerce-state) 18%,
+        var(--dv-commerce-line)
+    )!important;
+}
+body.dv-commercial-board .dv-kanban-column__head h2{
+    font-size:17px!important;
+    line-height:1.18!important;
+}
+body.dv-commercial-board .dv-kanban-column__head p{
+    margin-top:5px!important;
+    font-size:12.5px!important;
+    line-height:1.42!important;
+}
+body.dv-commercial-board .dv-kanban-count{
+    min-width:31px!important;
+    min-height:31px!important;
+    padding-inline:9px!important;
+    font-size:12px!important;
+    background:color-mix(
+        in srgb,
+        var(--dv-commerce-state) 13%,
+        var(--dv-commerce-surface)
+    )!important;
+    border-color:color-mix(
+        in srgb,
+        var(--dv-commerce-state) 30%,
+        var(--dv-commerce-line)
+    )!important;
+    color:color-mix(
+        in srgb,
+        var(--dv-commerce-state) 80%,
+        var(--dv-commerce-text)
+    )!important;
+}
+body.dv-commercial-board .dv-kanban-list{
+    gap:10px!important;
+    padding:10px!important;
+}
+body.dv-commercial-board .dv-kanban-card{
+    padding:14px!important;
+    border:1px solid color-mix(
+        in srgb,
+        var(--dv-commerce-state) 18%,
+        var(--dv-commerce-line)
+    )!important;
+    border-left:4px solid var(--dv-commerce-state)!important;
+    border-radius:15px!important;
+    background:color-mix(
+        in srgb,
+        var(--dv-commerce-state) 2.8%,
+        var(--dv-commerce-soft)
+    )!important;
+    transition:transform .14s ease,border-color .14s ease,background .14s ease!important;
+}
+body.dv-commercial-board .dv-kanban-card:hover{
+    transform:translateY(-1px)!important;
+    border-color:color-mix(
+        in srgb,
+        var(--dv-commerce-state) 42%,
+        var(--dv-commerce-line)
+    )!important;
+    background:color-mix(
+        in srgb,
+        var(--dv-commerce-state) 5%,
+        var(--dv-commerce-surface)
+    )!important;
+}
+body.dv-commercial-board .dv-kanban-card__code{
+    font-size:11.5px!important;
+    color:var(--dv-commerce-muted)!important;
+}
+body.dv-commercial-board .dv-kanban-card__title{
+    margin-top:4px!important;
+    font-size:16px!important;
+    line-height:1.22!important;
+}
+body.dv-commercial-board .dv-kanban-card__meta{
+    margin-top:7px!important;
+    font-size:12px!important;
+    line-height:1.4!important;
+}
+body.dv-commercial-board .dv-kanban-card__amount{
+    margin-top:9px!important;
+    font-size:20px!important;
+    line-height:1.1!important;
+}
+body.dv-commercial-board .dv-kanban-card__thumb{
+    width:48px!important;
+    height:48px!important;
+    border-radius:11px!important;
+}
+body.dv-commercial-board .dv-kanban-card__thumb.is-empty{
+    font-size:10.5px!important;
+}
+body.dv-commercial-board .dv-kanban-card__footer{
+    margin-top:11px!important;
+    padding-top:10px!important;
+    border-top-color:color-mix(
+        in srgb,
+        var(--dv-commerce-state) 16%,
+        var(--dv-commerce-line)
+    )!important;
+}
+body.dv-commercial-board .dv-kanban-badge{
+    min-height:27px!important;
+    padding-inline:9px!important;
+    font-size:10.5px!important;
+    border-color:color-mix(
+        in srgb,
+        var(--dv-commerce-state) 26%,
+        var(--dv-commerce-line)
+    )!important;
+    background:color-mix(
+        in srgb,
+        var(--dv-commerce-state) 10%,
+        var(--dv-commerce-surface)
+    )!important;
+    color:color-mix(
+        in srgb,
+        var(--dv-commerce-state) 80%,
+        var(--dv-commerce-text)
+    )!important;
+}
+body.dv-commercial-board .dv-kanban-empty{
+    min-height:112px!important;
+    font-size:12.5px!important;
+    line-height:1.45!important;
+}
+body.dv-commercial-board .board-nav a{
+    min-height:39px!important;
+    padding-inline:12px!important;
+    font-size:11.5px!important;
+}
+
+/* Solicitudes */
+body.dv-solicitudes-page .request-phone-main{
+    margin-top:6px!important;
+    gap:7px!important;
+    font-size:12.5px!important;
+}
+body.dv-solicitudes-page .request-phone-main span{
+    padding:3px 6px!important;
+    font-size:9.5px!important;
+}
+body.dv-solicitudes-page .request-phone-main strong{
+    font-size:12.5px!important;
+}
+body.dv-solicitudes-page .request-volume{
+    margin-top:7px!important;
+    padding:5px 8px!important;
+    font-size:10.5px!important;
+    background:var(--dv-commerce-warn-soft)!important;
+    color:var(--dv-commerce-warn)!important;
+}
+body.dv-solicitudes-page .request-generated{
+    background:var(--dv-commerce-ok-soft)!important;
+    color:var(--dv-commerce-ok)!important;
+}
+
+/* ----- DETALLES ----- */
+body.dv-commercial-detail .head{
+    gap:18px!important;
+    margin-bottom:17px!important;
+}
+body.dv-commercial-detail .status{
+    margin-top:10px!important;
+    padding:7px 11px!important;
+    border:1px solid transparent!important;
+    font-size:11px!important;
+}
+body.dv-commercial-detail .status.NUEVA,
+body.dv-commercial-detail .status.PENDIENTE{
+    border-color:color-mix(in srgb,var(--dv-commerce-warn) 28%,var(--dv-commerce-line))!important;
+    background:var(--dv-commerce-warn-soft)!important;
+    color:var(--dv-commerce-warn)!important;
+}
+body.dv-commercial-detail .status.CONTACTADA{
+    border-color:color-mix(in srgb,var(--dv-commerce-sky) 30%,var(--dv-commerce-line))!important;
+    background:color-mix(in srgb,var(--dv-commerce-sky) 12%,var(--dv-commerce-surface))!important;
+    color:var(--dv-commerce-blue)!important;
+}
+body.dv-commercial-detail .status.CONVERTIDA,
+body.dv-commercial-detail .status.APROBADO{
+    border-color:color-mix(in srgb,var(--dv-commerce-ok) 28%,var(--dv-commerce-line))!important;
+    background:var(--dv-commerce-ok-soft)!important;
+    color:var(--dv-commerce-ok)!important;
+}
+body.dv-commercial-detail .status.RECHAZADA,
+body.dv-commercial-detail .status.RECHAZADO{
+    border-color:color-mix(in srgb,var(--dv-commerce-danger) 28%,var(--dv-commerce-line))!important;
+    background:var(--dv-commerce-danger-soft)!important;
+    color:var(--dv-commerce-danger)!important;
+}
+body.dv-commercial-detail .card{
+    padding:18px!important;
+    margin-bottom:14px!important;
+    border-color:color-mix(
+        in srgb,
+        var(--dv-commerce-sky) 17%,
+        var(--dv-commerce-line)
+    )!important;
+    border-radius:18px!important;
+    background:var(--dv-commerce-surface)!important;
+}
+body.dv-commercial-detail .card:not(.totals){
+    box-shadow:
+        inset 3px 0 0 color-mix(in srgb,var(--dv-commerce-sky) 78%,transparent),
+        var(--dv-shadow-soft,0 4px 15px rgba(20,25,35,.05))!important;
+}
+body.dv-commercial-detail .label{
+    font-size:11.5px!important;
+    line-height:1.25!important;
+}
+body.dv-commercial-detail .value{
+    margin-top:6px!important;
+    font-size:14.5px!important;
+    line-height:1.35!important;
+}
+body.dv-commercial-detail .item{
+    padding:15px!important;
+    border-color:color-mix(in srgb,var(--dv-commerce-sky) 15%,var(--dv-commerce-line))!important;
+    background:var(--dv-commerce-soft)!important;
+}
+body.dv-commercial-detail .item-title{
+    font-size:14.5px!important;
+    line-height:1.28!important;
+}
+body.dv-commercial-detail .item-type{
+    font-size:11.5px!important;
+}
+body.dv-commercial-detail .qty{
+    font-size:12.5px!important;
+}
+body.dv-commercial-detail .chip{
+    padding:6px 9px!important;
+    border:1px solid color-mix(in srgb,var(--dv-commerce-sky) 20%,var(--dv-commerce-line))!important;
+    background:color-mix(in srgb,var(--dv-commerce-sky) 8%,var(--dv-commerce-surface))!important;
+    color:var(--dv-commerce-blue)!important;
+    font-size:11px!important;
+}
+body.dv-commercial-detail .money{
+    gap:9px!important;
+}
+body.dv-commercial-detail .money>div{
+    padding:11px!important;
+    border-color:color-mix(in srgb,var(--dv-commerce-sky) 16%,var(--dv-commerce-line))!important;
+    background:var(--dv-commerce-surface)!important;
+}
+body.dv-commercial-detail .money b{
+    margin-top:5px!important;
+    font-size:14.5px!important;
+}
+body.dv-commercial-detail .obs{
+    font-size:12.5px!important;
+    line-height:1.55!important;
+}
+body.dv-commercial-detail .total strong{
+    font-size:30px!important;
+}
+
+/* Presupuesto: neutral/comercial en celeste; verde sólo aprobación/ahorro. */
+body.dv-presupuestos-page .total-box{
+    border:1px solid color-mix(in srgb,var(--dv-commerce-sky) 18%,var(--dv-commerce-line))!important;
+    background:color-mix(in srgb,var(--dv-commerce-sky) 5%,var(--dv-commerce-surface))!important;
+}
+body.dv-presupuestos-page .total-box strong{
+    font-size:23px!important;
+}
+body.dv-presupuestos-page .total-box.discount{
+    border-color:color-mix(in srgb,var(--dv-commerce-ok) 22%,var(--dv-commerce-line))!important;
+    background:var(--dv-commerce-ok-soft)!important;
+}
+body.dv-presupuestos-page .total-box.discount strong{
+    color:var(--dv-commerce-ok)!important;
+}
+body.dv-presupuestos-page .total-box.final{
+    border-color:var(--dv-commerce-blue)!important;
+    background:var(--dv-commerce-blue)!important;
+    color:#fff!important;
+}
+body.dv-presupuestos-page .personal{
+    border:1px solid color-mix(in srgb,var(--dv-commerce-sky) 24%,var(--dv-commerce-line))!important;
+    background:color-mix(in srgb,var(--dv-commerce-sky) 10%,var(--dv-commerce-surface))!important;
+    color:var(--dv-commerce-blue)!important;
+    font-size:12px!important;
+}
+body.dv-presupuestos-page .discount b{
+    color:var(--dv-commerce-ok)!important;
+}
+body.dv-presupuestos-page .btn.reject,
+body.dv-solicitudes-page .btn.reject{
+    border-color:color-mix(in srgb,var(--dv-commerce-danger) 28%,var(--dv-commerce-line))!important;
+    background:var(--dv-commerce-danger-soft)!important;
+    color:var(--dv-commerce-danger)!important;
+}
+
+/* Solicitud detalle */
+body.dv-solicitudes-page .customer-alert{
+    padding:16px!important;
+}
+body.dv-solicitudes-page .customer-alert h2{font-size:15px!important}
+body.dv-solicitudes-page .customer-alert p{font-size:12.5px!important}
+body.dv-solicitudes-page .customer-compare small{font-size:10.5px!important}
+body.dv-solicitudes-page .customer-compare strong{font-size:13px!important}
+body.dv-solicitudes-page .volume-high{
+    padding:7px 10px!important;
+    font-size:10.5px!important;
+    background:var(--dv-commerce-warn-soft)!important;
+    color:var(--dv-commerce-warn)!important;
+}
+
+/* DARK */
+html[data-dv-theme="dark"] body.dv-commercial-page{
+    --dv-commerce-sky:#78c3f3;
+    --dv-commerce-sky-strong:#69b6eb;
+}
+html[data-dv-theme="dark"] body.dv-commercial-board .dv-kanban-column{
+    background:var(--dv-surface,#171e2c)!important;
+}
+html[data-dv-theme="dark"] body.dv-commercial-board .dv-kanban-column__head{
+    background:color-mix(in srgb,var(--dv-commerce-state) 10%,var(--dv-surface,#171e2c))!important;
+}
+html[data-dv-theme="dark"] body.dv-commercial-board .dv-kanban-card{
+    background:color-mix(in srgb,var(--dv-commerce-state) 7%,var(--dv-surface-soft,#1b2434))!important;
+}
+html[data-dv-theme="dark"] body.dv-commercial-detail :is(.card,.money>div){
+    background:var(--dv-surface,#171e2c)!important;
+    color:var(--dv-text,#edf3ff)!important;
+}
+html[data-dv-theme="dark"] body.dv-commercial-detail .item{
+    background:var(--dv-surface-soft,#1b2434)!important;
+}
+html[data-dv-theme="dark"] body.dv-commercial-detail .chip,
+html[data-dv-theme="dark"] body.dv-presupuestos-page .personal{
+    background:color-mix(in srgb,var(--dv-commerce-sky) 12%,var(--dv-surface,#171e2c))!important;
+    color:#9bd8ff!important;
+}
+html[data-dv-theme="dark"] body.dv-presupuestos-page .total-box{
+    background:color-mix(in srgb,var(--dv-commerce-sky) 9%,var(--dv-surface,#171e2c))!important;
+}
+html[data-dv-theme="dark"] body.dv-presupuestos-page .total-box.final{
+    background:var(--dv-brand-blue,#134a9a)!important;
+}
+
+/* RESPONSIVE */
+@media(max-width:1180px){
+    body.dv-commercial-page .shell,
+    body.dv-commercial-detail .shell{
+        width:calc(100% - 32px)!important;
+    }
+}
+@media(max-width:760px){
+    body.dv-commercial-page .shell,
+    body.dv-commercial-detail .shell{
+        width:calc(100% - 18px)!important;
+        padding-top:15px!important;
+    }
+    body.dv-commercial-page h1{font-size:30px!important}
+    body.dv-commercial-page .sub{font-size:12.5px!important}
+    body.dv-commercial-board .dv-kanban-board{
+        grid-auto-columns:min(88vw,390px)!important;
+    }
+    body.dv-commercial-board .dv-kanban-column{
+        max-height:calc(100vh - 215px)!important;
+    }
+    body.dv-commercial-detail .info,
+    body.dv-commercial-detail .money,
+    body.dv-commercial-detail .totals,
+    body.dv-commercial-detail .customer-compare{
+        grid-template-columns:1fr!important;
+    }
+    body.dv-commercial-detail .actions{
+        width:100%!important;
+        justify-content:flex-start!important;
+    }
+    body.dv-commercial-detail .actions .btn{
+        flex:1 1 auto!important;
+    }
+}
+@media(max-width:480px){
+    body.dv-commercial-board .dv-kanban-board{
+        grid-auto-columns:calc(100vw - 36px)!important;
+    }
+    body.dv-commercial-board .dv-kanban-card{
+        padding:13px!important;
+    }
+    body.dv-commercial-detail .item-identidad{
+        grid-template-columns:44px minmax(0,1fr)!important;
+    }
+    body.dv-commercial-detail .item-thumb{
+        width:44px!important;
+        height:44px!important;
+    }
+}
