@@ -82,3 +82,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-23 - Sectorizar configuracion por areas con navegacion lateral
 2026-09-23 - Colores indicadores y contraste en configuracion
 2026-09-23 - Descuento equitativo entre kits y colores indicadores en gestion
+2026-09-23 - Equivalencia descuento kits separados versus cantidad x4
