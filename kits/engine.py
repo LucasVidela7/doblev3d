@@ -263,6 +263,42 @@ class KitEngine:
             for producto in cls.productos_categoria(kit)
         }
 
+        limite_repeticiones = max(
+            int(
+                getattr(
+                    kit,
+                    "max_repeticiones_producto",
+                    1,
+                )
+                or 1
+            ),
+            1,
+        )
+        conteo = Counter(
+            producto.id
+            for producto in seleccion
+        )
+        excedidos = [
+            producto
+            for producto in seleccion
+            if conteo[producto.id] > limite_repeticiones
+        ]
+        if excedidos:
+            producto = excedidos[0]
+            if limite_repeticiones == 1:
+                raise ValueError(
+                    (
+                        f"{producto.nombre} no puede repetirse dentro "
+                        f"de {kit.nombre}."
+                    )
+                )
+            raise ValueError(
+                (
+                    f"{producto.nombre} puede elegirse como máximo "
+                    f"{limite_repeticiones} veces dentro de {kit.nombre}."
+                )
+            )
+
         invalidos = [
             producto
             for producto in seleccion
