@@ -1086,10 +1086,27 @@ def configuracion(request):
         )
         invalidar_configuracion_metricas()
 
+        secciones_validas = {
+            "tienda",
+            "whatsapp",
+            "avisos",
+            "metricas",
+            "legal",
+            "apariencia",
+        }
+        seccion = (
+            request.POST.get("config_seccion")
+            or "tienda"
+        ).strip()
+        if seccion not in secciones_validas:
+            seccion = "tienda"
+
         return redirect(
             reverse("dashboard:configuracion")
             + "?guardado=1&periodo="
             + str(periodo_metricas)
+            + "#"
+            + seccion
         )
 
     whatsapp_defaults = {}
