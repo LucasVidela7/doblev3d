@@ -505,6 +505,7 @@ class DashboardProduccionTests(TestCase):
         self.assertContains(respuesta, "SEGUIMIENTO DE CLIENTES")
         self.assertContains(respuesta, "Pedido listo")
         self.assertContains(respuesta, "Saldo pendiente")
+        self.assertContains(respuesta, "Múltiples pedidos")
         self.assertContains(respuesta, "Reactivar cliente")
         self.assertContains(
             respuesta,
@@ -554,6 +555,9 @@ class DashboardProduccionTests(TestCase):
                 "whatsapp_mensaje_cliente_saldo": (
                     "{nombre}: saldo {saldo}"
                 ),
+                "whatsapp_mensaje_cliente_multiples_pedidos": (
+                    "{nombre}: {cantidad_pedidos} pedidos por {saldo_total}"
+                ),
                 "whatsapp_mensaje_cliente_presupuesto": (
                     "{nombre}: presupuesto {codigo}"
                 ),
@@ -593,6 +597,10 @@ class DashboardProduccionTests(TestCase):
         self.assertEqual(
             config.whatsapp_mensaje_cliente_saldo,
             "{nombre}: saldo {saldo}",
+        )
+        self.assertEqual(
+            config.whatsapp_mensaje_cliente_multiples_pedidos,
+            "{nombre}: {cantidad_pedidos} pedidos por {saldo_total}",
         )
         self.assertEqual(
             config.razon_social,
