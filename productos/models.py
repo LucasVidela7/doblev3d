@@ -4,6 +4,7 @@ import unicodedata
 
 from django.core.cache import cache
 from django.db import models
+from django.utils import timezone
 
 from costos.models import ConfiguracionCostos
 
@@ -216,6 +217,16 @@ class ConfiguracionCatalogo(models.Model):
         help_text=(
             "Los precios de lista de productos se redondean siempre hacia arriba "
             "al próximo múltiplo configurado. Ejemplo: 100."
+        ),
+    )
+    incremento_insumos_por_defecto = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        default=Decimal("10.00"),
+        verbose_name="Incremento general de insumos",
+        help_text=(
+            "Porcentaje de provisión aplicado al costo unitario de los insumos "
+            "que no tengan un porcentaje particular."
         ),
     )
 
@@ -478,6 +489,7 @@ class ConfiguracionCatalogo(models.Model):
         self.whatsapp_numero = re.sub(r"\D+", "", self.whatsapp_numero or "")
         super().save(*args, **kwargs)
         cache.delete("dv-redondeo-precio-producto-v1")
+        cache.delete("dv-incremento-insumos-v1")
 
 
 
@@ -498,6 +510,25 @@ def redondeo_precio_producto_actual():
         valor = max(valor, 100)
         cache.set(cache_key, valor, 60)
     return Decimal(valor)
+
+
+def incremento_insumos_actual():
+    cache_key = "dv-incremento-insumos-v1"
+    valor = cache.get(cache_key)
+    if valor is None:
+        valor = (
+            ConfiguracionCatalogo.objects
+            .filter(pk=1)
+            .values_list("incremento_insumos_por_defecto", flat=True)
+            .first()
+        )
+        try:
+            valor = Decimal(str(valor if valor is not None else "10"))
+        except Exception:
+            valor = Decimal("10")
+        valor = max(valor, Decimal("0"))
+        cache.set(cache_key, valor, 60)
+    return Decimal(str(valor))
 
 
 class SolicitudArrepentimiento(models.Model):
@@ -540,6 +571,111 @@ class SolicitudArrepentimiento(models.Model):
 
     def __str__(self):
         return f"{self.codigo} · {self.contacto}"
+
+class Insumo(models.Model):
+    TIPOS_USO = [
+        ("PRODUCTO", "Producto"),
+        ("EMPAQUE", "Empaque"),
+        ("DESPACHO", "Despacho"),
+    ]
+    UNIDADES_MEDIDA = [
+        ("UNIDAD", "Unidad"),
+        ("METRO", "Metro"),
+        ("GRAMO", "Gramo"),
+        ("MILILITRO", "Mililitro"),
+    ]
+
+    nombre = models.CharField(max_length=160, unique=True)
+    tipo_uso = models.CharField(
+        max_length=20,
+        choices=TIPOS_USO,
+        default="PRODUCTO",
+    )
+    unidad_medida = models.CharField(
+        max_length=20,
+        choices=UNIDADES_MEDIDA,
+        default="UNIDAD",
+    )
+    precio_compra = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        help_text="Precio total pagado por la compra o presentación.",
+    )
+    cantidad_compra = models.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        default=1,
+        help_text="Cantidad de unidades base incluidas en el precio de compra.",
+    )
+    stock = models.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        default=0,
+        help_text="Stock disponible expresado en la unidad base.",
+    )
+    proveedor = models.CharField(
+        max_length=160,
+        blank=True,
+        default="",
+    )
+    url_referencia = models.URLField(
+        max_length=500,
+        blank=True,
+        default="",
+    )
+    incremento_personalizado = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text=(
+            "Si se deja vacío, utiliza el incremento general configurado "
+            "para todos los insumos."
+        ),
+    )
+    precio_actualizado_en = models.DateTimeField(
+        default=timezone.now,
+    )
+    activo = models.BooleanField(default=True)
+    creado_en = models.DateTimeField(auto_now_add=True)
+    actualizado_en = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-activo", "tipo_uso", "nombre"]
+
+    def __str__(self):
+        return f"{self.codigo} - {self.nombre}" if self.pk else self.nombre
+
+    @property
+    def codigo(self):
+        return f"I{self.id:04d}" if self.id else "I-NUEVO"
+
+    @property
+    def costo_unitario(self):
+        cantidad = Decimal(str(self.cantidad_compra or 0))
+        if cantidad <= 0:
+            return Decimal("0")
+        return Decimal(str(self.precio_compra or 0)) / cantidad
+
+    @property
+    def incremento_efectivo(self):
+        if self.incremento_personalizado is not None:
+            return max(
+                Decimal(str(self.incremento_personalizado)),
+                Decimal("0"),
+            )
+        return incremento_insumos_actual()
+
+    @property
+    def usa_incremento_general(self):
+        return self.incremento_personalizado is None
+
+    @property
+    def costo_unitario_aplicado(self):
+        porcentaje = self.incremento_efectivo / Decimal("100")
+        return self.costo_unitario * (Decimal("1") + porcentaje)
+
 
 class TipoProducto(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
