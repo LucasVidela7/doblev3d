@@ -109,6 +109,43 @@
         `;
     }
 
+    function chipEmpaque(data){
+        const empaque = data.empaque || {};
+        const costo = Number(empaque.costo || 0);
+
+        if (empaque.fuente === "REGLA") {
+            const complementos = Array.isArray(empaque.complementarios)
+                ? empaque.complementarios.map(item => item.nombre).filter(Boolean)
+                : [];
+            const detalle = [
+                empaque.principal || "Empaque",
+                ...complementos
+            ].join(" + ");
+
+            return `
+                <span class="dv-kit-costo-chip">
+                    Empaque real ${dinero(costo)}
+                    · ${detalle}
+                    ${empaque.regla ? " · " + empaque.regla : ""}
+                </span>
+            `;
+        }
+
+        if (empaque.fuente === "PROVISION") {
+            return `
+                <span class="dv-kit-costo-chip">
+                    Empaque estimado ${dinero(costo)} · provisión global
+                </span>
+            `;
+        }
+
+        return `
+            <span class="dv-kit-costo-chip riesgo">
+                Sin costo de empaque configurado
+            </span>
+        `;
+    }
+
     function estadoPrecioActual(data){
         const precioActual = Number(
             document.getElementById("precio_kit")?.value || 0
@@ -192,7 +229,8 @@
                         El kit usa el costo de filamento para cantidad cuando está configurado. Los productos individuales siguen conservando el costo estándar.
                     </div>
                     <div class="dv-kit-costos">
-                        <span class="dv-kit-costo-chip">Costo productivo ${dinero(data.costo_total)}</span>
+                        <span class="dv-kit-costo-chip">Costo total ${dinero(data.costo_total)}</span>
+                        ${chipEmpaque(data)}
                         ${chipFilamento(data)}
                         <span class="dv-kit-costo-chip">Piso calculadora ${porcentaje(data.margen_piso)}</span>
                     </div>
@@ -322,6 +360,7 @@
                                 <span class="dv-kit-costo-chip riesgo">
                                     Mayor costo incluido ${dinero(data.costo_peor_caso)}
                                 </span>
+                                ${chipEmpaque(data)}
                                 ${chipFilamento(data)}
                             `}
                         </div>
@@ -372,6 +411,7 @@
                     <div class="dv-kit-costos">
                         <span class="dv-kit-costo-chip">Costo promedio ${dinero(data.costo_promedio)}</span>
                         <span class="dv-kit-costo-chip riesgo">Peor costo ${dinero(data.costo_peor_caso)}</span>
+                        ${chipEmpaque(data)}
                         ${chipFilamento(data)}
                         <span class="dv-kit-costo-chip">Piso calculadora ${porcentaje(data.margen_piso)}</span>
                     </div>
@@ -406,6 +446,11 @@
         const modalidad = modalidadActual();
         const datos = new FormData();
         agregarCsrf(datos);
+
+        const kitId = panel?.dataset.kitId || "";
+        if (kitId) {
+            datos.append("kit_id", kitId);
+        }
 
         if (modalidad === "FIJO") {
             const componentes = componentesActuales();
