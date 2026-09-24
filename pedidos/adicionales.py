@@ -149,11 +149,18 @@ def _desglose_desde_snapshot(detalle):
     if adicional_total <= 0:
         adicional_total = adicional_opciones + adicional_color
 
-    if adicional_total <= 0 and not getattr(
-        detalle,
-        "precio_kit_manual",
-        False,
-    ):
+    precio_manual_snapshot = bool(
+        snapshot.get(
+            "precio_manual",
+            getattr(
+                detalle,
+                "precio_kit_manual",
+                False,
+            ),
+        )
+    )
+
+    if adicional_total <= 0 and not precio_manual_snapshot:
         precio_base = max(
             _decimal(snapshot.get("precio_base")),
             CERO,
