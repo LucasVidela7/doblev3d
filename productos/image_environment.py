@@ -51,3 +51,23 @@ def clave_imagen_lectura(imagen):
         int(getattr(imagen, "orden", 99) or 99),
         int(getattr(imagen, "id", 0) or 0),
     )
+
+
+def seleccionar_imagenes_lectura(imagenes, limite=None):
+    """Usa un único ambiente: QA si tiene fotos; production sólo si QA no tiene."""
+    imagenes = list(imagenes or [])
+    for ambiente in ambientes_imagenes_lectura():
+        candidatas = [
+            imagen
+            for imagen in imagenes
+            if getattr(imagen, "ambiente", "") == ambiente
+        ]
+        if candidatas:
+            candidatas.sort(
+                key=lambda imagen: (
+                    int(getattr(imagen, "orden", 99) or 99),
+                    int(getattr(imagen, "id", 0) or 0),
+                )
+            )
+            return candidatas[:limite] if limite else candidatas
+    return []
