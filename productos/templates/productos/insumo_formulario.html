@@ -1,4 +1,4 @@
-{% load static %}
+{% load static l10n %}
 <!doctype html>
 <html lang="es">
 <head>
@@ -76,25 +76,25 @@ html[data-dv-theme="dark"] .errors{background:#351f27;border-color:#6e3340;color
 
       <div class="field">
         <label for="precio_compra"><span>PRECIO DE COMPRA</span><span>$ total</span></label>
-        <input id="precio_compra" name="precio_compra" type="number" min="0" step="0.01" required value="{{ valores.precio_compra|default:'' }}" placeholder="8000">
+        <input id="precio_compra" name="precio_compra" type="number" min="0" step="0.01" required value="{% if valores.precio_compra != '' %}{{ valores.precio_compra|unlocalize }}{% endif %}" placeholder="8000">
         <div class="help">Monto total pagado por la presentación.</div>
       </div>
 
       <div class="field">
         <label for="cantidad_compra"><span>CANTIDAD COMPRADA</span><span>unidades base</span></label>
-        <input id="cantidad_compra" name="cantidad_compra" type="number" min="0.001" step="0.001" required value="{{ valores.cantidad_compra|default:'1' }}" placeholder="100">
+        <input id="cantidad_compra" name="cantidad_compra" type="number" min="0.001" step="0.001" required value="{% if valores.cantidad_compra != '' and valores.cantidad_compra is not None %}{{ valores.cantidad_compra|unlocalize }}{% else %}1{% endif %}" placeholder="100">
         <div class="help">Ejemplo: si $8.000 trae 100 argollas, cargá 100.</div>
       </div>
 
       <div class="field">
-        <label for="stock"><span>STOCK ACTUAL</span><span>opcional al iniciar</span></label>
-        <input id="stock" name="stock" type="number" min="0" step="0.001" value="{{ valores.stock|default:'0' }}">
+        <label for="stock"><span>STOCK ACTUAL</span><span>0 si todavía no cargaste stock</span></label>
+        <input id="stock" name="stock" type="number" min="0" step="0.001" value="{% if valores.stock != '' and valores.stock is not None %}{{ valores.stock|unlocalize }}{% else %}0{% endif %}">
       </div>
 
       <div class="field">
         <label for="incremento_personalizado"><span>INCREMENTO PARTICULAR</span><span>% opcional</span></label>
-        <input id="incremento_personalizado" name="incremento_personalizado" type="number" min="0" step="0.01" value="{{ valores.incremento_personalizado|default:'' }}" placeholder="{{ incremento_general|floatformat:'2' }}">
-        <div class="help">Vacío = usa el general de {{ incremento_general|floatformat:"2" }}% configurado en BO.</div>
+        <input id="incremento_personalizado" name="incremento_personalizado" type="number" min="0" step="0.01" value="{% if valores.incremento_personalizado != '' and valores.incremento_personalizado is not None %}{{ valores.incremento_personalizado|unlocalize }}{% endif %}" placeholder="{{ incremento_general|floatformat:'2' }}">
+        <div class="help">Dejalo vacío para usar automáticamente el general de {{ incremento_general|floatformat:"2" }}% configurado en BO.</div>
       </div>
 
       <div class="field">
