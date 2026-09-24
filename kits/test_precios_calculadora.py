@@ -12,7 +12,16 @@ from calculadora.precios import (
     redondear_arriba,
 )
 from costos.models import ConfiguracionCostos
-from productos.models import Producto, TipoProducto
+from pedidos.models import (
+    ReglaEmpaque,
+    ReglaEmpaqueComplemento,
+)
+from productos.models import (
+    ConfiguracionCatalogo,
+    Insumo,
+    Producto,
+    TipoProducto,
+)
 
 from .models import Kit
 
@@ -416,4 +425,215 @@ class PreciosKitCalculadoraTests(TestCase):
                 reverse("kits:recomendacion_libre")
             ).view_name,
             "kits:recomendacion_libre",
+        )
+
+
+    def test_api_libre_usa_costo_real_de_regla_de_empaque(self):
+        producto = self.crear_producto(
+            "Producto con empaque real",
+            500,
+            60,
+        )
+        kit = Kit.objects.create(
+            nombre="Kit libre con empaque real",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=2,
+            precio=Decimal("5000"),
+            activo=True,
+        )
+        bolsa = Insumo.objects.create(
+            nombre="Bolsa kit precio",
+            tipo_uso="EMPAQUE",
+            unidad_medida="UNIDAD",
+            precio_compra=Decimal("1000"),
+            cantidad_compra=Decimal("10"),
+            stock=Decimal("20"),
+            incremento_personalizado=Decimal("0"),
+        )
+        sticker = Insumo.objects.create(
+            nombre="Sticker kit precio",
+            tipo_uso="EMPAQUE",
+            unidad_medida="UNIDAD",
+            precio_compra=Decimal("500"),
+            cantidad_compra=Decimal("50"),
+            stock=Decimal("20"),
+            incremento_personalizado=Decimal("0"),
+            disponible_como_complementario=True,
+        )
+        regla = ReglaEmpaque.objects.create(
+            nombre="Sensoriales x2 precio",
+            insumo=bolsa,
+            alcance="CATEGORIA",
+            tipo_producto=self.tipo,
+            desde_unidades=1,
+            hasta_unidades=3,
+            cantidad_insumo=Decimal("1"),
+        )
+        ReglaEmpaqueComplemento.objects.create(
+            regla=regla,
+            insumo=sticker,
+            cantidad=Decimal("1"),
+        )
+
+        respuesta = self.client.post(
+            reverse("kits:recomendacion_libre"),
+            data={
+                "kit_id": str(kit.id),
+                "tipo_producto": str(self.tipo.id),
+                "cantidad": "2",
+                "precio": "5000",
+                "proteger_rentabilidad": "0",
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        data = respuesta.json()
+        self.assertEqual(data["empaque"]["fuente"], "REGLA")
+        self.assertEqual(
+            data["empaque"]["regla"],
+            "Sensoriales x2 precio",
+        )
+        self.assertEqual(
+            data["empaque"]["principal"],
+            "Bolsa kit precio",
+        )
+        self.assertEqual(
+            Decimal(data["empaque"]["costo"]),
+            Decimal("110.00"),
+        )
+        self.assertEqual(
+            data["empaque"]["complementarios"][0]["nombre"],
+            "Sticker kit precio",
+        )
+
+        sin_empaque = calcular_escenarios_kit_libre(
+            [producto],
+            2,
+            costo_empaque=Decimal("0"),
+        )
+        self.assertGreater(
+            Decimal(
+                data["escenarios"]["recomendado"]["precio"]
+            ),
+            sin_empaque["escenarios"]["recomendado"][
+                "total_recomendado"
+            ],
+        )
+
+    def test_api_fija_prioriza_regla_especifica_del_kit(self):
+        producto = self.crear_producto(
+            "Producto fijo empaque específico",
+            500,
+            60,
+        )
+        kit = Kit.objects.create(
+            nombre="Kit fijo empaque específico",
+            modalidad="FIJO",
+            cantidad_productos=2,
+            precio=Decimal("5000"),
+            activo=True,
+        )
+        bolsa_general = Insumo.objects.create(
+            nombre="Bolsa general precio kit",
+            tipo_uso="EMPAQUE",
+            unidad_medida="UNIDAD",
+            precio_compra=Decimal("500"),
+            cantidad_compra=Decimal("10"),
+            stock=Decimal("20"),
+            incremento_personalizado=Decimal("0"),
+        )
+        bolsa_especifica = Insumo.objects.create(
+            nombre="Bolsa específica precio kit",
+            tipo_uso="EMPAQUE",
+            unidad_medida="UNIDAD",
+            precio_compra=Decimal("2000"),
+            cantidad_compra=Decimal("10"),
+            stock=Decimal("20"),
+            incremento_personalizado=Decimal("0"),
+        )
+        ReglaEmpaque.objects.create(
+            nombre="General precio kit",
+            insumo=bolsa_general,
+            alcance="GENERAL",
+            desde_unidades=1,
+            hasta_unidades=3,
+            prioridad=1,
+        )
+        ReglaEmpaque.objects.create(
+            nombre="Específica precio kit",
+            insumo=bolsa_especifica,
+            alcance="KIT",
+            kit=kit,
+            desde_unidades=1,
+            hasta_unidades=3,
+            prioridad=100,
+        )
+
+        respuesta = self.client.post(
+            reverse("kits:recomendacion_fija"),
+            data={
+                "kit_id": str(kit.id),
+                "producto_id": [str(producto.id)],
+                "cantidad": ["2"],
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        data = respuesta.json()
+        self.assertEqual(data["empaque"]["fuente"], "REGLA")
+        self.assertEqual(
+            data["empaque"]["regla"],
+            "Específica precio kit",
+        )
+        self.assertEqual(
+            data["empaque"]["principal"],
+            "Bolsa específica precio kit",
+        )
+        self.assertEqual(
+            Decimal(data["empaque"]["costo"]),
+            Decimal("200.00"),
+        )
+
+    def test_recomendacion_kit_usa_provision_solo_sin_regla(self):
+        producto = self.crear_producto(
+            "Producto fallback empaque",
+            500,
+            60,
+        )
+        kit = Kit.objects.create(
+            nombre="Kit fallback empaque",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=2,
+            precio=Decimal("5000"),
+            activo=True,
+        )
+        ConfiguracionCatalogo.objects.update_or_create(
+            pk=1,
+            defaults={
+                "provision_empaque_unitaria": Decimal("75"),
+            },
+        )
+
+        respuesta = self.client.post(
+            reverse("kits:recomendacion_libre"),
+            data={
+                "kit_id": str(kit.id),
+                "tipo_producto": str(self.tipo.id),
+                "cantidad": "2",
+                "precio": "5000",
+                "proteger_rentabilidad": "0",
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        data = respuesta.json()
+        self.assertEqual(
+            data["empaque"]["fuente"],
+            "PROVISION",
+        )
+        self.assertEqual(
+            Decimal(data["empaque"]["costo"]),
+            Decimal("75.00"),
         )
