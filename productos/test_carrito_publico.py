@@ -579,7 +579,7 @@ class CarritoPublicoTests(TestCase):
         )
 
         response = self.client.get(
-            reverse("catalogo_kit_detalle", args=[kit.id])
+            reverse("catalogo_kit_detalle", args=[kit.slug])
         )
 
         self.assertEqual(response.status_code, 200)
