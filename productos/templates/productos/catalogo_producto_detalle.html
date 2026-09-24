@@ -106,7 +106,7 @@ body{margin:0;padding-bottom:156px;background:radial-gradient(circle at top righ
   <span class="sep" aria-hidden="true">›</span>
   <a class="breadcrumb-link" href="{% url 'catalogo_productos' %}">Productos</a>
   <span class="sep" aria-hidden="true">›</span>
-  <a class="breadcrumb-link" href="{% url 'catalogo_categoria' producto.tipo.slug %}">{{ producto.tipo.nombre }}</a>
+  <a class="breadcrumb-link" href="{% url 'catalogo_categoria_productos' producto.tipo.slug %}">{{ producto.tipo.nombre }}</a>
   <span class="sep" aria-hidden="true">›</span>
   <span aria-current="page">{{ producto.nombre }}</span>
 </nav>
