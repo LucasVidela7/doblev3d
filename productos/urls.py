@@ -3,6 +3,7 @@ from django.urls import path
 from . import views
 from . import imagenes_views
 from . import imagenes_masivas
+from . import insumos
 from . import modificacion_masiva
 from .tipos import crear_tipo_producto
 
@@ -20,6 +21,26 @@ urlpatterns = [
         "nuevo/",
         views.nuevo,
         name="nuevo",
+    ),
+    path(
+        "insumos/",
+        insumos.lista,
+        name="insumos",
+    ),
+    path(
+        "insumos/nuevo/",
+        insumos.nuevo,
+        name="insumo_nuevo",
+    ),
+    path(
+        "insumos/<int:insumo_id>/editar/",
+        insumos.editar,
+        name="insumo_editar",
+    ),
+    path(
+        "insumos/<int:insumo_id>/activo/",
+        insumos.cambiar_activo,
+        name="insumo_activo",
     ),
     path(
         "imagenes/carga-masiva/",
