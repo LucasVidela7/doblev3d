@@ -1,0 +1,52 @@
+{% load l10n %}
+<div class="pedido-empaque">
+    <div class="pedido-empaque-info">
+        <span class="pedido-empaque-kicker">
+            {% if paquete.empaque_usado %}EMPAQUE REGISTRADO{% elif paquete.empaque_sugerido %}EMPAQUE SUGERIDO{% else %}EMPAQUE{% endif %}
+        </span>
+        {% if paquete.empaque_usado %}
+            <strong>{{ paquete.empaque_usado.cantidad|floatformat:"-3" }} × {{ paquete.empaque_usado.insumo.nombre }}</strong>
+            <span>Costo interno real: $ {{ paquete.empaque_usado.costo_total_snapshot|floatformat:"2g" }} · stock ya descontado</span>
+        {% elif paquete.empaque_sugerido %}
+            <strong>{{ paquete.cantidad_empaque_sugerida|floatformat:"-3" }} × {{ paquete.empaque_sugerido.nombre }}</strong>
+            <span>{{ paquete.unidades_contenido }} unidad{{ paquete.unidades_contenido|pluralize:"es" }} en este paquete{% if paquete.regla_empaque %} · {{ paquete.regla_empaque.nombre }}{% endif %}</span>
+        {% else %}
+            <strong>Sin sugerencia automática</strong>
+            <span>{{ paquete.unidades_contenido }} unidad{{ paquete.unidades_contenido|pluralize:"es" }} · podés elegir un empaque manualmente</span>
+        {% endif %}
+    </div>
+
+    {% if preparacion_editable and paquete.opciones_empaque %}
+    <form method="post" action="{% url 'pedidos:usar_empaque' pedido.id %}" class="pedido-empaque-form">
+        {% csrf_token %}
+        <input type="hidden" name="clave_paquete" value="{{ paquete.clave }}">
+        <select name="insumo_id" aria-label="Empaque para {{ paquete.descripcion|default:paquete.nombre_kit }}" required>
+            <option value="">Elegir empaque...</option>
+            {% for insumo in paquete.opciones_empaque %}
+            <option
+                value="{{ insumo.id }}"
+                {% if paquete.empaque_usado and paquete.empaque_usado.insumo_id == insumo.id %}selected{% elif not paquete.empaque_usado and paquete.empaque_sugerido and paquete.empaque_sugerido.id == insumo.id %}selected{% endif %}
+            >{{ insumo.nombre }} · stock {{ insumo.stock|floatformat:"-3" }}</option>
+            {% endfor %}
+        </select>
+        <input
+            type="number"
+            name="cantidad"
+            min="0.001"
+            step="0.001"
+            value="{% if paquete.empaque_usado %}{{ paquete.empaque_usado.cantidad|unlocalize }}{% else %}{{ paquete.cantidad_empaque_sugerida|unlocalize }}{% endif %}"
+            aria-label="Cantidad de empaque"
+            required
+        >
+        <button type="submit">{% if paquete.empaque_usado %}ACTUALIZAR{% else %}USAR EMPAQUE{% endif %}</button>
+    </form>
+    {% endif %}
+
+    {% if preparacion_editable and paquete.empaque_usado %}
+    <form method="post" action="{% url 'pedidos:liberar_empaque' pedido.id %}" class="pedido-empaque-liberar">
+        {% csrf_token %}
+        <input type="hidden" name="clave_paquete" value="{{ paquete.clave }}">
+        <button type="submit">LIBERAR Y DEVOLVER STOCK</button>
+    </form>
+    {% endif %}
+</div>
