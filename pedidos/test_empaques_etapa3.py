@@ -583,3 +583,52 @@ class EmpaquesEtapa3Tests(TestCase):
         costo, estimado = costo_embalaje_para_rentabilidad(pedido)
         self.assertEqual(costo, Decimal("110"))
         self.assertFalse(estimado)
+
+
+    def test_formulario_reglas_lista_solo_complementarios_habilitados(self):
+        sticker = Insumo.objects.create(
+            nombre="Sticker habilitado selector",
+            tipo_uso="EMPAQUE",
+            unidad_medida="UNIDAD",
+            precio_compra=Decimal("1000"),
+            cantidad_compra=Decimal("100"),
+            stock=Decimal("20"),
+            incremento_personalizado=Decimal("0"),
+            disponible_como_complementario=True,
+        )
+
+        response = self.client.get(
+            reverse("pedidos:reglas_empaque")
+        )
+
+        self.assertEqual(response.status_code, 200)
+        candidatos = list(response.context["insumos_complementarios"])
+        self.assertIn(sticker, candidatos)
+        self.assertNotIn(self.doypack_chica, candidatos)
+        self.assertNotIn(self.doypack_grande, candidatos)
+
+    def test_formulario_reglas_rechaza_complementario_no_habilitado(self):
+        response = self.client.post(
+            reverse("pedidos:reglas_empaque"),
+            {
+                "nombre": "Regla inválida",
+                "alcance": "GENERAL",
+                "insumo_id": self.doypack_chica.id,
+                "desde_unidades": "1",
+                "hasta_unidades": "2",
+                "cantidad_insumo": "1",
+                "prioridad": "100",
+                "activo": "on",
+                "complemento_id": [str(self.doypack_grande.id)],
+                f"complemento_cantidad_{self.doypack_grande.id}": "1",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Ese insumo no está habilitado como complementario.",
+        )
+        self.assertFalse(
+            ReglaEmpaque.objects.filter(nombre="Regla inválida").exists()
+        )
