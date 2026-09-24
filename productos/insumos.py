@@ -3,7 +3,7 @@ from decimal import Decimal, InvalidOperation
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -32,7 +32,12 @@ def lista(request):
     tipo = (request.GET.get("tipo") or "").strip().upper()
     estado = (request.GET.get("estado") or "activos").strip().lower()
 
-    qs = Insumo.objects.all()
+    qs = Insumo.objects.annotate(
+        productos_asignados_count=Count(
+            "productos_asignados",
+            distinct=True,
+        )
+    )
 
     if busqueda:
         qs = qs.filter(
