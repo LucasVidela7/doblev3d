@@ -998,6 +998,89 @@ def accion_rapida_necesidad(request):
 
 
 # ============================================================
+# PLANIFICAR DESDE DETALLE DE PRODUCTO
+# ============================================================
+
+@transaction.atomic
+def planificar_desde_producto(request, producto_id):
+    producto = get_object_or_404(
+        Producto,
+        id=producto_id,
+        activo=True,
+        requiere_impresion=True,
+    )
+
+    if request.method != "POST":
+        return redirect(
+            "productos:detalle",
+            producto_id=producto.id,
+        )
+
+    try:
+        cantidad = int(
+            request.POST.get("cantidad", "0")
+        )
+    except (TypeError, ValueError):
+        cantidad = 0
+
+    if cantidad <= 0:
+        messages.error(
+            request,
+            "La cantidad a planificar debe ser mayor a cero.",
+        )
+        return redirect(
+            "productos:detalle",
+            producto_id=producto.id,
+        )
+
+    tiempo_total = _tiempo_sugerido_produccion(
+        producto,
+        cantidad,
+    )
+
+    if tiempo_total <= 0:
+        messages.error(
+            request,
+            (
+                f"{producto.nombre} no tiene tiempo de impresión "
+                "configurado y tampoco existe una referencia histórica "
+                f"para {cantidad} unidad(es)."
+            ),
+        )
+        return redirect(
+            "productos:detalle",
+            producto_id=producto.id,
+        )
+
+    produccion = Produccion.objects.create(
+        producto=producto,
+        cantidad=cantidad,
+        destino="STOCK",
+        estado="PENDIENTE",
+        impresora=None,
+        inicio_impresion=timezone.now(),
+        tiempo_impresion_minutos=tiempo_total,
+        observaciones=(
+            "Planificada desde el detalle del producto."
+        ),
+    )
+
+    messages.success(
+        request,
+        (
+            f"{produccion.codigo} planificada: "
+            f"{producto.nombre} x{cantidad}. "
+            "Quedó agregada a la cola de producción."
+        ),
+    )
+
+    return redirect(
+        "productos:detalle",
+        producto_id=producto.id,
+    )
+
+
+# ============================================================
 # NUEVA PRODUCCIÓN / PLANIFICACIÓN
 # ============================================================
 
