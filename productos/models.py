@@ -882,6 +882,51 @@ class Producto(models.Model):
             cache.set(cache_key, config, 15)
         return config
 
+    def _relaciones_insumos_directos(self):
+        if not self.pk:
+            return []
+
+        prefetched = getattr(self, "_prefetched_objects_cache", {})
+        if "insumos_asignados" in prefetched:
+            return prefetched["insumos_asignados"]
+
+        return self.insumos_asignados.select_related("insumo").all()
+
+    @property
+    def costo_insumos_directos(self):
+        total = Decimal("0")
+        for relacion in self._relaciones_insumos_directos():
+            total += Decimal(str(relacion.costo_total or 0))
+        return total
+
+    @property
+    def costo_insumos_componentes(self):
+        if not self.es_compuesto or not self.pk:
+            return Decimal("0")
+
+        total = Decimal("0")
+        for relacion in self._relaciones_componentes():
+            total += (
+                Decimal(str(relacion.componente.costo_insumos_total or 0))
+                * Decimal(int(relacion.cantidad or 0))
+            )
+        return total
+
+    @property
+    def costo_insumos_total(self):
+        return (
+            self.costo_insumos_directos
+            + self.costo_insumos_componentes
+        )
+
+    @property
+    def costo_productivo_total(self):
+        return (
+            Decimal(str(self.costo or 0))
+            + Decimal(str(self.seguro or 0))
+            + Decimal(str(self.costo_insumos_total or 0))
+        )
+
     @property
     def costo(self):
         if not self.requiere_impresion:
@@ -934,7 +979,10 @@ class Producto(models.Model):
 
     @property
     def subtotal(self):
-        if not self.requiere_impresion:
+        if (
+            not self.requiere_impresion
+            and self.costo_insumos_total <= 0
+        ):
             return Decimal("0")
 
         margen = self.margen_ganancia / Decimal("100")
@@ -946,7 +994,7 @@ class Producto(models.Model):
         # por lo que un producto configurado al 60% podía terminar con un
         # margen real inferior. Seguro, amortización y provisión por fallos
         # deben formar parte de la base sobre la que se protege el margen.
-        costo_productivo = self.costo + self.seguro
+        costo_productivo = self.costo_productivo_total
         precio_sin_redondear = (
             costo_productivo
             / (Decimal("1") - margen)
@@ -963,7 +1011,7 @@ class Producto(models.Model):
 
     @property
     def ganancia(self):
-        return self.subtotal - self.costo - self.seguro
+        return self.subtotal - self.costo_productivo_total
 
     @property
     def codigo(self):
@@ -1006,3 +1054,58 @@ class ProductoComponente(models.Model):
         resultado = super().delete(*args, **kwargs)
         producto.recalcular_desde_componentes()
         return resultado
+
+
+
+class ProductoInsumo(models.Model):
+    producto = models.ForeignKey(
+        Producto,
+        on_delete=models.CASCADE,
+        related_name="insumos_asignados",
+    )
+    insumo = models.ForeignKey(
+        Insumo,
+        on_delete=models.PROTECT,
+        related_name="productos_asignados",
+    )
+    cantidad = models.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        default=1,
+        help_text="Cantidad de unidad base consumida por cada unidad del producto.",
+    )
+
+    class Meta:
+        ordering = ["insumo__nombre"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["producto", "insumo"],
+                name="producto_insumo_unico",
+            )
+        ]
+
+    @property
+    def costo_unitario_aplicado(self):
+        return Decimal(str(self.insumo.costo_unitario_aplicado or 0))
+
+    @property
+    def costo_total(self):
+        return (
+            self.costo_unitario_aplicado
+            * Decimal(str(self.cantidad or 0))
+        )
+
+    def __str__(self):
+        return (
+            f"{self.producto.nombre} · {self.insumo.nombre} "
+            f"x{self.cantidad}"
+        )
+
+    def save(self, *args, **kwargs):
+        if self.insumo.tipo_uso != "PRODUCTO":
+            raise ValueError(
+                "Sólo los insumos de tipo Producto pueden asignarse directamente."
+            )
+        if Decimal(str(self.cantidad or 0)) <= 0:
+            raise ValueError("La cantidad del insumo debe ser mayor a cero.")
+        super().save(*args, **kwargs)
