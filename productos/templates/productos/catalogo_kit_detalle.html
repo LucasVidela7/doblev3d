@@ -91,15 +91,37 @@
             text-transform: uppercase;
         }
 
-        .back {
-            display: inline-flex;
+        .breadcrumbs {
+            display: flex;
             align-items: center;
+            flex-wrap: wrap;
             gap: 7px;
             margin: 12px 0 0;
+            color: var(--muted);
+            font-size: .78rem;
+            font-weight: 800;
+        }
+
+        .breadcrumbs a {
             color: var(--brand-blue-strong);
             text-decoration: none;
-            font-size: .88rem;
-            font-weight: 800;
+        }
+
+        .breadcrumbs a:hover {
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        .breadcrumbs .sep {
+            color: #9aa4b2;
+        }
+
+        .breadcrumbs [aria-current="page"] {
+            min-width: 0;
+            max-width: 52ch;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .hero {
@@ -514,7 +536,13 @@
 
     <main>
         <div class="shell">
-            <a class="back" href="{% url 'catalogo_kits' %}">← Volver a kits</a>
+            <nav class="breadcrumbs" aria-label="Migas de pan">
+                <a href="{% url 'catalogo' %}">Inicio</a>
+                <span class="sep" aria-hidden="true">›</span>
+                <a href="{% url 'catalogo_kits' %}">Kits</a>
+                <span class="sep" aria-hidden="true">›</span>
+                <span aria-current="page">{{ kit.nombre }}</span>
+            </nav>
         </div>
 
         <section class="shell hero">
@@ -605,6 +633,7 @@
                         aria-checked="false"
                         aria-label="{{ color.nombre }}"
                         title="{{ color.nombre }}"
+                        data-tooltip="{{ color.nombre }}"
                     ><span class="dv-color-swatch__check" aria-hidden="true">✓</span></button>
                     {% endfor %}
                 </div>
