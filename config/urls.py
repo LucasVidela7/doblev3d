@@ -18,6 +18,7 @@ from productos.social_previews import (
     kit_social_preview,
     producto_social_preview,
 )
+from productos.seo import robots_txt, sitemap_xml
 from productos.legal import (
     arrepentimiento,
     arrepentimiento_gracias,
@@ -36,6 +37,8 @@ handler404 = catalogo_404
 
 
 urlpatterns = [
+    path("robots.txt", robots_txt, name="robots_txt"),
+    path("sitemap.xml", sitemap_xml, name="sitemap_xml"),
     path("healthz/", healthcheck, name="healthcheck"),
     path("metricas/", include("metricas.urls")),
     # Sitio publico
