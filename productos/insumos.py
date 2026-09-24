@@ -158,6 +158,23 @@ def _leer_post(request, insumo=None):
             "antes de cambiarlo a Empaque o Despacho."
         )
 
+    if (
+        insumo
+        and insumo.pk
+        and insumo.tipo_uso == "EMPAQUE"
+        and valores["tipo_uso"] != "EMPAQUE"
+        and (
+            getattr(insumo, "reglas_empaque", None)
+            and insumo.reglas_empaque.exists()
+            or getattr(insumo, "usos_empaque", None)
+            and insumo.usos_empaque.exists()
+        )
+    ):
+        errores.append(
+            "Este insumo está usado por reglas o pedidos de empaque. "
+            "Quitá esas relaciones antes de cambiar su tipo."
+        )
+
     duplicado = Insumo.objects.filter(nombre__iexact=valores["nombre"])
     if insumo and insumo.pk:
         duplicado = duplicado.exclude(pk=insumo.pk)
