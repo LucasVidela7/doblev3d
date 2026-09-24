@@ -376,6 +376,11 @@ def enriquecer_empaques_pedido(pedido, paquetes, productos_sueltos):
         )
         _aplicar_estimacion_paquete(paquete, regla)
         paquete["empaque_usado"] = usos.get(paquete["clave"])
+        paquete["costo_empaque_real"] = (
+            _costo_uso_completo(paquete["empaque_usado"])
+            if paquete["empaque_usado"]
+            else Decimal("0")
+        )
         paquete["opciones_empaque"] = opciones
 
     paquete_sueltos = None
@@ -411,6 +416,11 @@ def enriquecer_empaques_pedido(pedido, paquetes, productos_sueltos):
             "empaque_usado": usos.get("sueltos"),
             "opciones_empaque": opciones,
         }
+        paquete_sueltos["costo_empaque_real"] = (
+            _costo_uso_completo(paquete_sueltos["empaque_usado"])
+            if paquete_sueltos["empaque_usado"]
+            else Decimal("0")
+        )
         _aplicar_estimacion_paquete(paquete_sueltos, regla)
 
     return paquetes, paquete_sueltos
