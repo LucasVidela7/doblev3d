@@ -25,7 +25,14 @@ from pedidos.models import (
 from pedidos.impresiones_stock import obtener_impresiones_por_producto
 from produccion import views as produccion_views
 from produccion.models import Impresora, Produccion
-from productos.models import ConfiguracionCatalogo, Producto, SolicitudArrepentimiento
+from productos.models import (
+    COLORES_CATALOGO_PREDEFINIDOS,
+    ConfiguracionCatalogo,
+    Producto,
+    SolicitudArrepentimiento,
+    color_hex_catalogo,
+    normalizar_color_catalogo,
+)
 from productos.miniaturas import asignar_miniaturas_productos
 
 
@@ -1031,6 +1038,18 @@ def configuracion(request):
                 request.POST.get(campo)
                 or ""
             ).strip()[:limite]
+
+            if campo == "colores_disponibles":
+                colores = []
+                vistos = set()
+                for linea in valor.splitlines():
+                    color = normalizar_color_catalogo(linea)
+                    clave = color.casefold()
+                    if color and clave not in vistos:
+                        vistos.add(clave)
+                        colores.append(color)
+                valor = "\n".join(colores)[:limite]
+
             setattr(config, campo, valor)
             actualizados.append(campo)
 
@@ -1136,11 +1155,39 @@ def configuracion(request):
 
     webpush_habilitado = _webpush_habilitado()
 
+    colores_actuales = config.colores_disponibles_lista
+    claves_actuales = {
+        color.casefold()
+        for color in colores_actuales
+    }
+    colores_predefinidos = [
+        {
+            "nombre": nombre,
+            "hex": hexa,
+            "seleccionado": nombre.casefold() in claves_actuales,
+        }
+        for nombre, hexa in COLORES_CATALOGO_PREDEFINIDOS
+    ]
+    nombres_predefinidos = {
+        nombre.casefold()
+        for nombre, _hexa in COLORES_CATALOGO_PREDEFINIDOS
+    }
+    colores_personalizados = [
+        {
+            "valor": color,
+            "hex": color_hex_catalogo(color),
+        }
+        for color in colores_actuales
+        if color.casefold() not in nombres_predefinidos
+    ]
+
     return render(
         request,
         "dashboard/configuracion.html",
         {
             "config": config,
+            "colores_predefinidos": colores_predefinidos,
+            "colores_personalizados": colores_personalizados,
             "webpush_configurado": webpush_habilitado,
             "webpush_habilitado": webpush_habilitado,
             "webpush_public_key": getattr(
