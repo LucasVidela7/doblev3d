@@ -1156,5 +1156,17 @@ class CatalogoPublicoTests(TestCase):
         )
         self.assertContains(
             response,
+            'document.querySelector(".dv-catalog-header")',
+        )
+        self.assertContains(
+            response,
+            'const visualGap = 14',
+        )
+        self.assertNotContains(
+            response,
+            'explore.scrollIntoView',
+        )
+        self.assertContains(
+            response,
             "Buscar dentro de Sensoriales",
         )
