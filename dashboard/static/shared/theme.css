@@ -1524,6 +1524,218 @@ html[data-dv-theme="dark"] .personal p{
 }
 
 
+
+/* =========================================================
+   GESTIÓN · ESCALA TIPOGRÁFICA COMPARTIDA
+   Evita textos heredados de 6–8px en vistas históricas.
+   Los títulos/cifras específicas pueden conservar tamaños mayores.
+   ========================================================= */
+body.dv-management-page{
+    --dv-type-caption:10px;
+    --dv-type-meta:11px;
+    --dv-type-body:12px;
+    --dv-type-control:12px;
+    --dv-type-section:13px;
+    --dv-type-title:14px;
+    font-size:var(--dv-type-body);
+    line-height:1.42;
+}
+
+body.dv-management-page h1{
+    font-size:clamp(28px,3.5vw,36px);
+    line-height:1.08;
+}
+
+body.dv-management-page :is(
+    input,
+    select,
+    textarea
+){
+    font-size:var(--dv-type-control)!important;
+}
+
+body.dv-management-page :is(
+    .btn,
+    .boton,
+    .small-btn,
+    .navbtn,
+    .btn-head,
+    .fin-action,
+    .period-btn,
+    .tab,
+    .state-btn,
+    .boton-volver,
+    .boton-inicio,
+    .boton-agregar,
+    .boton-guardar,
+    .accion-principal,
+    .accion-secundaria
+){
+    font-size:11px!important;
+}
+
+body.dv-management-page :is(
+    label,
+    .label,
+    .campo label,
+    .field label,
+    .metrica-label,
+    .metric-label,
+    .dato-label,
+    .pago-label,
+    .prep-dato,
+    .prep-contador,
+    .eyebrow,
+    .kicker,
+    .pedido-empaque-kicker,
+    .comunicacion-kicker
+){
+    font-size:var(--dv-type-caption)!important;
+    line-height:1.3;
+}
+
+body.dv-management-page :is(
+    .sub,
+    .subtitle,
+    .subtitulo,
+    .section-copy
+){
+    font-size:12px!important;
+    line-height:1.45;
+}
+
+body.dv-management-page :is(
+    .help,
+    .ayuda,
+    .note,
+    .muted,
+    .meta,
+    .codigo,
+    .cod,
+    .code,
+    .ref-date,
+    .stock-unit,
+    .metric-note,
+    .metrica-nota,
+    .metrica-ayuda,
+    .seccion-ayuda,
+    .panel-sub,
+    .trabajo-meta,
+    .queue-meta,
+    .printer-meta,
+    .item-type,
+    .item-meta,
+    .obs,
+    .campo-ayuda,
+    .hint,
+    .description,
+    .card-head span,
+    .toggle-copy span,
+    .switch-copy small,
+    .complement-meta
+){
+    font-size:var(--dv-type-meta)!important;
+    line-height:1.4;
+}
+
+body.dv-management-page :is(
+    th,
+    .table th,
+    .pieza-row.header
+){
+    font-size:10px!important;
+    line-height:1.3;
+}
+
+body.dv-management-page :is(
+    td,
+    .table td
+){
+    font-size:12px!important;
+    line-height:1.4;
+}
+
+body.dv-management-page :is(
+    .badge,
+    .chip,
+    .status,
+    .pill,
+    .prioridad,
+    .volume-high,
+    .dv-kanban-badge,
+    .pedido-meta span
+){
+    font-size:10px!important;
+    line-height:1.25;
+}
+
+body.dv-management-page :is(
+    .titulo,
+    .section-title,
+    .seccion-titulo,
+    .panel-title,
+    .card-title,
+    .item-title,
+    .rule-name,
+    .dv-kanban-card__title
+){
+    font-size:var(--dv-type-section)!important;
+    line-height:1.35;
+}
+
+body.dv-management-page :is(
+    .name,
+    .producto-nombre,
+    .cliente-nombre,
+    .pedido-titulo
+){
+    font-size:var(--dv-type-title)!important;
+    line-height:1.35;
+}
+
+/* Los controles compactos pueden seguir siendo pequeños, pero nunca microscópicos. */
+body.dv-management-page :is(
+    small,
+    .mini,
+    .datum small,
+    .cost-line span,
+    .card-cost-row span
+){
+    font-size:max(10px,.82em);
+}
+
+/* Mobile: se privilegia legibilidad sobre densidad extrema. */
+@media(max-width:720px){
+    body.dv-management-page{
+        --dv-type-caption:10px;
+        --dv-type-meta:11px;
+        --dv-type-body:12px;
+        --dv-type-control:13px;
+        --dv-type-section:13px;
+        --dv-type-title:14px;
+    }
+
+    body.dv-management-page :is(
+        input,
+        select,
+        textarea
+    ){
+        font-size:13px!important;
+    }
+
+    body.dv-management-page :is(
+        .btn,
+        .boton,
+        .small-btn,
+        .navbtn,
+        .btn-head,
+        .fin-action
+    ){
+        font-size:11px!important;
+    }
+}
+
+
 /* =========================================================
    GESTIÓN · AVISOS FLOTANTES
    Convierte los mensajes de Django en toasts globales.
