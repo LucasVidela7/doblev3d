@@ -16,12 +16,18 @@ from productos.models import (
     TipoProducto,
 )
 
-from .empaques import sugerir_regla_empaque
+from .empaques import (
+    costo_embalaje_para_rentabilidad,
+    estimar_embalaje_items,
+    sugerir_regla_empaque,
+)
 from .models import (
     DetallePedido,
     Pedido,
     PedidoEmpaque,
+    PedidoEmpaqueComplemento,
     ReglaEmpaque,
+    ReglaEmpaqueComplemento,
 )
 
 
@@ -392,3 +398,188 @@ class EmpaquesEtapa3Tests(TestCase):
         )
         self.assertEqual(fila["costo_empaque"], Decimal("100"))
         self.assertEqual(fila["costo"], Decimal("200"))
+
+
+    def test_regla_categoria_prioriza_general_para_sensoriales(self):
+        general = ReglaEmpaque.objects.create(
+            nombre="General 1 a 4",
+            insumo=self.doypack_chica,
+            alcance="GENERAL",
+            desde_unidades=1,
+            hasta_unidades=4,
+            prioridad=1,
+        )
+        categoria = ReglaEmpaque.objects.create(
+            nombre="Sensoriales 1 a 4",
+            insumo=self.doypack_grande,
+            alcance="CATEGORIA",
+            tipo_producto=self.tipo,
+            desde_unidades=1,
+            hasta_unidades=4,
+            prioridad=100,
+        )
+
+        sugerida = sugerir_regla_empaque(
+            3,
+            producto=self.producto,
+            tipo_producto=self.tipo,
+        )
+
+        self.assertNotEqual(sugerida, general)
+        self.assertEqual(sugerida, categoria)
+
+    def test_complementario_descuenta_stock_y_suma_costo_real(self):
+        sticker = Insumo.objects.create(
+            nombre="Sticker bolsa",
+            tipo_uso="EMPAQUE",
+            unidad_medida="UNIDAD",
+            precio_compra=Decimal("1000"),
+            cantidad_compra=Decimal("100"),
+            stock=Decimal("20"),
+            incremento_personalizado=Decimal("0"),
+        )
+        regla = ReglaEmpaque.objects.create(
+            nombre="Grande con sticker",
+            insumo=self.doypack_grande,
+            alcance="CATEGORIA",
+            tipo_producto=self.tipo,
+            desde_unidades=1,
+            hasta_unidades=10,
+        )
+        ReglaEmpaqueComplemento.objects.create(
+            regla=regla,
+            insumo=sticker,
+            cantidad=Decimal("1"),
+        )
+        pedido = self._pedido_suelto(cantidad=3)
+
+        response = self.client.post(
+            reverse("pedidos:usar_empaque", args=[pedido.id]),
+            {
+                "clave_paquete": "sueltos",
+                "insumo_id": self.doypack_grande.id,
+                "cantidad": "1",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.doypack_grande.refresh_from_db()
+        sticker.refresh_from_db()
+        uso = PedidoEmpaque.objects.get(
+            pedido=pedido,
+            clave_paquete="sueltos",
+        )
+        complemento = PedidoEmpaqueComplemento.objects.get(
+            pedido_empaque=uso,
+            insumo=sticker,
+        )
+
+        self.assertEqual(self.doypack_grande.stock, Decimal("7"))
+        self.assertEqual(sticker.stock, Decimal("19"))
+        self.assertEqual(complemento.cantidad, Decimal("1.000"))
+        self.assertEqual(
+            pedido.costo_empaque_real,
+            Decimal("310.0000"),
+        )
+
+        self.client.post(
+            reverse("pedidos:liberar_empaque", args=[pedido.id]),
+            {"clave_paquete": "sueltos"},
+        )
+        self.doypack_grande.refresh_from_db()
+        sticker.refresh_from_db()
+        self.assertEqual(self.doypack_grande.stock, Decimal("8"))
+        self.assertEqual(sticker.stock, Decimal("20"))
+
+    def test_estimacion_incluye_principal_y_complementario(self):
+        sticker = Insumo.objects.create(
+            nombre="Sticker estimado",
+            tipo_uso="EMPAQUE",
+            unidad_medida="UNIDAD",
+            precio_compra=Decimal("500"),
+            cantidad_compra=Decimal("50"),
+            stock=Decimal("50"),
+            incremento_personalizado=Decimal("0"),
+        )
+        regla = ReglaEmpaque.objects.create(
+            nombre="Sensorial estimado",
+            insumo=self.doypack_chica,
+            alcance="CATEGORIA",
+            tipo_producto=self.tipo,
+            desde_unidades=1,
+            hasta_unidades=4,
+        )
+        ReglaEmpaqueComplemento.objects.create(
+            regla=regla,
+            insumo=sticker,
+            cantidad=Decimal("1"),
+        )
+        pedido = self._pedido_suelto(cantidad=3)
+
+        estimacion = estimar_embalaje_items(
+            list(pedido.detalles.all())
+        )
+
+        self.assertEqual(len(estimacion["paquetes"]), 1)
+        self.assertEqual(
+            estimacion["paquetes"][0]["regla"],
+            regla,
+        )
+        self.assertEqual(
+            len(estimacion["paquetes"][0]["insumos"]),
+            2,
+        )
+        self.assertEqual(
+            estimacion["total"],
+            Decimal("110"),
+        )
+
+    def test_rentabilidad_usa_estimado_hasta_registrar_real(self):
+        sticker = Insumo.objects.create(
+            nombre="Sticker rentabilidad",
+            tipo_uso="EMPAQUE",
+            unidad_medida="UNIDAD",
+            precio_compra=Decimal("500"),
+            cantidad_compra=Decimal("50"),
+            stock=Decimal("50"),
+            incremento_personalizado=Decimal("0"),
+        )
+        regla = ReglaEmpaque.objects.create(
+            nombre="Sensorial rentabilidad",
+            insumo=self.doypack_chica,
+            alcance="CATEGORIA",
+            tipo_producto=self.tipo,
+            desde_unidades=1,
+            hasta_unidades=4,
+        )
+        ReglaEmpaqueComplemento.objects.create(
+            regla=regla,
+            insumo=sticker,
+            cantidad=Decimal("1"),
+        )
+        pedido = self._pedido_suelto(cantidad=3)
+
+        costo, estimado = costo_embalaje_para_rentabilidad(pedido)
+        self.assertEqual(costo, Decimal("110"))
+        self.assertTrue(estimado)
+
+        self.client.post(
+            reverse("pedidos:usar_empaque", args=[pedido.id]),
+            {
+                "clave_paquete": "sueltos",
+                "insumo_id": self.doypack_chica.id,
+                "cantidad": "1",
+            },
+        )
+
+        pedido = (
+            Pedido.objects
+            .prefetch_related(
+                "detalles__producto__tipo",
+                "empaques_usados__complementos__insumo",
+            )
+            .get(id=pedido.id)
+        )
+        costo, estimado = costo_embalaje_para_rentabilidad(pedido)
+        self.assertEqual(costo, Decimal("110"))
+        self.assertFalse(estimado)
