@@ -500,10 +500,7 @@ class CatalogoPublicoTests(TestCase):
 
     def test_producto_tiene_detalle_publico_y_ayuda_de_compra(self):
         response = self.client.get(
-            reverse(
-                "catalogo_producto_detalle",
-                args=[self.producto.id],
-            )
+            reverse("catalogo_producto_detalle", args=[self.producto.slug])
         )
 
         self.assertEqual(response.status_code, 200)
@@ -581,10 +578,7 @@ class CatalogoPublicoTests(TestCase):
         self.producto.save(update_fields=["permite_elegir_color"])
 
         response = self.client.get(
-            reverse(
-                "catalogo_producto_detalle",
-                args=[self.producto.id],
-            )
+            reverse("catalogo_producto_detalle", args=[self.producto.slug])
         )
 
         self.assertEqual(response.status_code, 200)
@@ -615,10 +609,7 @@ class CatalogoPublicoTests(TestCase):
         self.producto.save(update_fields=["permite_elegir_color"])
 
         response = self.client.get(
-            reverse(
-                "catalogo_producto_detalle",
-                args=[self.producto.id],
-            )
+            reverse("catalogo_producto_detalle", args=[self.producto.slug])
         )
 
         self.assertEqual(response.status_code, 200)
@@ -682,10 +673,7 @@ class CatalogoPublicoTests(TestCase):
         self.producto.save(update_fields=["activo"])
 
         response = self.client.get(
-            reverse(
-                "catalogo_producto_detalle",
-                args=[self.producto.id],
-            )
+            reverse("catalogo_producto_detalle", args=[self.producto.slug])
         )
 
         self.assertEqual(response.status_code, 404)
@@ -698,10 +686,7 @@ class CatalogoPublicoTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(
             response,
-            reverse(
-                "catalogo_producto_detalle",
-                args=[self.producto.id],
-            ),
+            reverse("catalogo_producto_detalle", args=[self.producto.slug]),
         )
         self.assertContains(response, "Precio unitario")
 
@@ -846,10 +831,7 @@ class CatalogoPublicoTests(TestCase):
 
     def test_detalle_producto_publica_open_graph_con_foto_principal(self):
         response = self.client.get(
-            reverse(
-                "catalogo_producto_detalle",
-                args=[self.producto.id],
-            )
+            reverse("catalogo_producto_detalle", args=[self.producto.slug])
         )
 
         self.assertEqual(response.status_code, 200)
@@ -889,10 +871,7 @@ class CatalogoPublicoTests(TestCase):
 
     def test_detalle_kit_publica_open_graph_con_collage_2x2(self):
         response = self.client.get(
-            reverse(
-                "catalogo_kit_detalle",
-                args=[self.kit.id],
-            )
+            reverse("catalogo_kit_detalle", args=[self.kit.slug])
         )
 
         self.assertEqual(response.status_code, 200)
