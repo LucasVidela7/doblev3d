@@ -53,6 +53,8 @@
                 <span class="chip">{{ regla.get_alcance_display }}</span>
                 {% if regla.kit %}<span class="chip">Kit: {{ regla.kit.nombre }}</span>{% endif %}
                 {% if regla.producto %}<span class="chip">Producto: {{ regla.producto.nombre }}</span>{% endif %}
+                {% if regla.tipo_producto %}<span class="chip">Categoría: {{ regla.tipo_producto.nombre }}</span>{% endif %}
+                {% for complemento in regla.complementos.all %}<span class="chip">+ {{ complemento.cantidad|floatformat:"-3" }} {{ complemento.insumo.nombre }}</span>{% endfor %}
                 {% if not regla.activo %}<span class="chip off">INACTIVA</span>{% endif %}
               </div>
             </div>
