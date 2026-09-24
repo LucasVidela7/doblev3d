@@ -11,6 +11,7 @@ from clientes.whatsapp import numero_whatsapp, url_contacto
 
 from . import acciones_impresion
 from .miniaturas import asignar_miniaturas_items
+from .adicionales import enriquecer_detalles_pedido
 from .models import EstadoImpresionPedido, Pago, Pedido
 
 
