@@ -73,7 +73,7 @@ html[data-dv-theme="dark"] .badge.empaque{background:#183326;color:#8fe0aa}html[
           <td><strong>{{ insumo.incremento_efectivo|floatformat:"2" }}%</strong><div class="code">{% if insumo.usa_incremento_general %}general{% else %}particular{% endif %}</div></td>
           <td><span class="cost">$ {{ insumo.costo_unitario_aplicado|floatformat:"2g" }}</span></td>
           <td>{% if insumo.unidad_medida == 'UNIDAD' %}{{ insumo.stock|floatformat:"0g" }}{% else %}{{ insumo.stock|floatformat:"-3g" }}{% endif %} <span class="muted">{{ insumo.get_unidad_medida_display|lower }}</span></td>
-          <td class="provider">{% if insumo.proveedor %}<strong>{{ insumo.proveedor }}</strong>{% else %}<span class="muted">Sin proveedor</span>{% endif %}{% if insumo.url_referencia %}<div class="code"><a href="{{ insumo.url_referencia }}" target="_blank" rel="noopener">VER REFERENCIA ↗</a></div>{% endif %}</td>
+          <td class="provider">{% if insumo.proveedor %}{% if insumo.url_referencia %}<strong><a href="{{ insumo.url_referencia }}" target="_blank" rel="noopener">{{ insumo.proveedor }} ↗</a></strong>{% else %}<strong>{{ insumo.proveedor }}</strong>{% endif %}{% else %}<span class="muted">Sin proveedor</span>{% endif %}</td>
           <td>{{ insumo.precio_actualizado_en|date:"d/m/Y" }}</td>
           <td><div class="row-actions"><a class="small-btn" href="{% url 'productos:compras_insumos' %}?insumo={{ insumo.id }}">COMPRAR</a><a class="small-btn" href="{% url 'productos:insumo_editar' insumo.id %}">EDITAR</a><form method="post" action="{% url 'productos:insumo_activo' insumo.id %}">{% csrf_token %}<button class="small-btn {% if insumo.activo %}danger{% endif %}" type="submit">{% if insumo.activo %}DESACTIVAR{% else %}ACTIVAR{% endif %}</button></form></div></td>
         </tr>
@@ -95,7 +95,7 @@ html[data-dv-theme="dark"] .badge.empaque{background:#183326;color:#8fe0aa}html[
         <div class="datum"><small>INCREMENTO</small><strong>{{ insumo.incremento_efectivo|floatformat:"2" }}% {% if insumo.usa_incremento_general %}general{% endif %}</strong></div>
         <div class="datum"><small>COSTO APLICADO</small><strong>$ {{ insumo.costo_unitario_aplicado|floatformat:"2g" }}</strong></div>
         <div class="datum"><small>STOCK</small><strong>{% if insumo.unidad_medida == 'UNIDAD' %}{{ insumo.stock|floatformat:"0g" }}{% else %}{{ insumo.stock|floatformat:"-3g" }}{% endif %} {{ insumo.get_unidad_medida_display|lower }}</strong></div>
-        <div class="datum"><small>PROVEEDOR</small><strong>{{ insumo.proveedor|default:"—" }}</strong></div>
+        <div class="datum provider"><small>PROVEEDOR</small>{% if insumo.proveedor %}<strong>{% if insumo.url_referencia %}<a href="{{ insumo.url_referencia }}" target="_blank" rel="noopener">{{ insumo.proveedor }} ↗</a>{% else %}{{ insumo.proveedor }}{% endif %}</strong>{% else %}<strong>—</strong>{% endif %}</div>
       </div>
       <div class="card-actions"><a class="small-btn" href="{% url 'productos:compras_insumos' %}?insumo={{ insumo.id }}">COMPRAR</a><a class="small-btn" href="{% url 'productos:insumo_editar' insumo.id %}">EDITAR</a><form method="post" action="{% url 'productos:insumo_activo' insumo.id %}">{% csrf_token %}<button class="small-btn {% if insumo.activo %}danger{% endif %}" type="submit">{% if insumo.activo %}DESACTIVAR{% else %}ACTIVAR{% endif %}</button></form></div>
     </article>
