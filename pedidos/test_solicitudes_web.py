@@ -108,7 +108,7 @@ class SolicitudesWebGestionTests(TestCase):
             "dv-commercial-page dv-commercial-detail dv-solicitudes-page",
         )
 
-    def test_adicionales_se_ven_en_solicitud_y_pedido_publico_y_gestion(self):
+    def test_adicionales_se_ven_en_solicitud_presupuesto_y_pedido(self):
         kit = Kit.objects.create(
             nombre="Kit con adicionales visibles",
             modalidad="LIBRE_CATEGORIA",
@@ -178,6 +178,33 @@ class SolicitudesWebGestionTests(TestCase):
         self.assertEqual(convertir.status_code, 302)
         solicitud.refresh_from_db()
         presupuesto = solicitud.presupuesto_generado
+
+        detalle_presupuesto_http = self.client.get(
+            reverse(
+                "pedidos:presupuesto_detalle",
+                args=[presupuesto.id],
+            )
+        )
+        self.assertEqual(
+            detalle_presupuesto_http.status_code,
+            200,
+        )
+        self.assertContains(
+            detalle_presupuesto_http,
+            "Este presupuesto incluye adicionales",
+        )
+        self.assertContains(
+            detalle_presupuesto_http,
+            "1.500",
+        )
+        self.assertContains(
+            detalle_presupuesto_http,
+            "500",
+        )
+        self.assertContains(
+            detalle_presupuesto_http,
+            "4.000",
+        )
 
         aprobar = self.client.post(
             reverse(
