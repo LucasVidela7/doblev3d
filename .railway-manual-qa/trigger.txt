@@ -114,3 +114,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-24 - Etapa 3 Empaques: fix final productos sueltos
 
 2026-09-24 - Etapa 3.1 Empaques: categorias, complementarios y estimacion interna
+2026-09-24 - Rediseño reglas de empaque + selector de complementarios habilitados
