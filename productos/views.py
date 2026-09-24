@@ -7,7 +7,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from calculadora.precios import MARGEN_MINIMO
 
-from .image_environment import entorno_imagenes
+from .image_environment import (
+    ambientes_imagenes_lectura,
+    clave_imagen_lectura,
+)
 from .image_models import ProductoImagen
 from .models import Producto, ProductoComponente, TipoProducto
 
@@ -37,7 +40,7 @@ def _imagen_prefetch():
         "imagenes",
         queryset=(
             ProductoImagen.objects
-            .filter(ambiente=entorno_imagenes())
+            .filter(ambiente__in=ambientes_imagenes_lectura())
             .order_by("orden", "id")
         ),
         to_attr="imagenes_entorno",
@@ -149,7 +152,10 @@ def _enriquecer_productos(productos):
     }
 
     for producto in productos:
-        imagenes = getattr(producto, "imagenes_entorno", [])
+        imagenes = sorted(
+            getattr(producto, "imagenes_entorno", []),
+            key=clave_imagen_lectura,
+        )
         imagen = imagenes[0] if imagenes else None
         producto.imagen_principal_url = (
             (imagen.thumbnail_url or imagen.url)
