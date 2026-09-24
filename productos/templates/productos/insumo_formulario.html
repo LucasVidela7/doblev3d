@@ -14,7 +14,7 @@ body{margin:0;padding:0 0 105px;font-family:Arial,sans-serif;background:var(--dv
 .head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:14px}h1{margin:0;font-size:32px}.sub{margin-top:5px;color:var(--dv-muted,#667085);font-size:13px;line-height:1.45}.btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 14px;border:1px solid var(--dv-border,#dfe5ef);border-radius:11px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);font-size:12px;font-weight:900;text-decoration:none;cursor:pointer}.btn.primary{background:var(--dv-brand-blue,#134a9a);border-color:var(--dv-brand-blue,#134a9a);color:#fff}
 .errors{margin-bottom:13px;padding:12px 14px;border:1px solid #e4a8a8;border-radius:13px;background:#fff0f0;color:#8a2828}.errors strong{display:block;margin-bottom:4px}.errors ul{margin:0;padding-left:18px;font-size:12px;line-height:1.5}
 .form-card{padding:18px;border:1px solid var(--dv-border,#dfe5ef);border-radius:18px;background:var(--dv-surface,#fff);box-shadow:var(--dv-shadow-soft,0 4px 14px rgba(19,74,154,.055))}
-.section-title{margin:0 0 5px;font-size:17px}.section-copy{margin:0 0 15px;color:var(--dv-muted,#667085);font-size:12px;line-height:1.45}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.field.full{grid-column:1/-1}.field label{display:flex;justify-content:space-between;gap:8px;margin-bottom:6px;color:var(--dv-muted,#667085);font-size:10px;font-weight:900}.field label span:last-child{font-weight:700}.field input,.field select{width:100%;min-height:46px;padding:10px 11px;border:1px solid var(--dv-border,#dfe5ef);border-radius:10px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);font-size:14px}.help{margin-top:5px;color:var(--dv-muted,#667085);font-size:10px;line-height:1.4}.switch-row{display:flex;justify-content:space-between;gap:12px;align-items:center;min-height:46px;padding:9px 11px;border:1px solid var(--dv-border,#dfe5ef);border-radius:10px;background:var(--dv-surface-soft,#f8faff)}.switch-row span{font-size:12px;font-weight:900}.switch-row input{width:20px;height:20px}
+.section-title{margin:0 0 5px;font-size:17px}.section-copy{margin:0 0 15px;color:var(--dv-muted,#667085);font-size:12px;line-height:1.45}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.field.full{grid-column:1/-1}.field label{display:flex;justify-content:space-between;gap:8px;margin-bottom:6px;color:var(--dv-muted,#667085);font-size:10px;font-weight:900}.field label span:last-child{font-weight:700}.field input,.field select{width:100%;min-height:46px;padding:10px 11px;border:1px solid var(--dv-border,#dfe5ef);border-radius:10px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);font-size:14px}.help{margin-top:5px;color:var(--dv-muted,#667085);font-size:10px;line-height:1.4}.switch-row{display:flex;justify-content:space-between;gap:12px;align-items:center;min-height:46px;padding:9px 11px;border:1px solid var(--dv-border,#dfe5ef);border-radius:10px;background:var(--dv-surface-soft,#f8faff)}.switch-row>span{font-size:12px;font-weight:900}.switch-row input{width:20px;height:20px}.switch-copy{min-width:0}.switch-copy strong{display:block;font-size:12px}.switch-copy small{display:block;margin-top:3px;color:var(--dv-muted,#667085);font-size:9px;line-height:1.35}.conditional-complement{display:none}.conditional-complement.is-visible{display:block}
 .preview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:18px;padding-top:16px;border-top:1px solid var(--dv-border,#dfe5ef)}.preview-box{padding:12px;border-radius:12px;background:var(--dv-surface-soft,#f8faff);border:1px solid var(--dv-border,#dfe5ef)}.preview-box small{display:block;color:var(--dv-muted,#667085);font-size:9px;font-weight:900}.preview-box strong{display:block;margin-top:5px;font-size:18px}.preview-box.applied{background:var(--dv-brand-blue-soft,#eef4ff);color:var(--dv-accent-blue-text,#0d376f)}
 .footer{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}.note{margin-top:14px;padding:11px 13px;border-radius:12px;background:var(--dv-brand-blue-soft,#eef4ff);color:var(--dv-accent-blue-text,#0d376f);font-size:11px;line-height:1.45}
 html[data-dv-theme="dark"] .errors{background:#351f27;border-color:#6e3340;color:#ffb4ba}
@@ -55,6 +55,16 @@ html[data-dv-theme="dark"] .errors{background:#351f27;border-color:#6e3340;color
           {% for tipo in tipos_uso %}<option value="{{ tipo.valor }}" {% if valores.tipo_uso|default:'PRODUCTO' == tipo.valor %}selected{% endif %}>{{ tipo.nombre }}</option>{% endfor %}
         </select>
         <div class="help">Producto: forma parte de una unidad vendida. Empaque: depende del paquete. Despacho: depende del envío.</div>
+      </div>
+
+      <div class="field full conditional-complement" id="complementarioField">
+        <div class="switch-row">
+          <span class="switch-copy">
+            <strong>Disponible como complementario</strong>
+            <small>Activá esto para stickers, tarjetas, cintas u otros consumibles que acompañan al empaque principal.</small>
+          </span>
+          <input type="checkbox" name="disponible_como_complementario" {% if valores.disponible_como_complementario %}checked{% endif %} aria-label="Disponible como complementario">
+        </div>
       </div>
 
       <div class="field">
@@ -120,6 +130,8 @@ html[data-dv-theme="dark"] .errors{background:#351f27;border-color:#6e3340;color
 
 <script>
 (function(){
+  const type=document.getElementById("tipo_uso");
+  const complementField=document.getElementById("complementarioField");
   const price=document.getElementById("precio_compra");
   const qty=document.getElementById("cantidad_compra");
   const own=document.getElementById("incremento_personalizado");
@@ -138,7 +150,12 @@ html[data-dv-theme="dark"] .errors{background:#351f27;border-color:#6e3340;color
     pctNode.textContent=(Math.max(pct,0)).toLocaleString("es-AR",{maximumFractionDigits:2})+"%"+(own?.value===""?" · general":" · particular");
     appliedNode.textContent=money(applied);
   }
+  function syncComplementario(){
+    complementField?.classList.toggle("is-visible",type?.value==="EMPAQUE");
+  }
+  type?.addEventListener("change",syncComplementario);
   [price,qty,own].forEach(el=>el?.addEventListener("input",update));
+  syncComplementario();
   update();
 })();
 </script>
