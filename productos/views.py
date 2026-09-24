@@ -793,6 +793,15 @@ def _guardar_producto_desde_post(request, producto=None):
     categoria = request.POST.get("categoria", "").strip()
     tipo_id = request.POST.get("tipo", "").strip()
     tipo_fabricacion = request.POST.get("tipo_fabricacion", "SIMPLE").strip()
+    descripcion_catalogo = (
+        request.POST.get("descripcion_catalogo", "").strip()
+    )
+    seo_titulo = (
+        request.POST.get("seo_titulo", "").strip()[:180]
+    )
+    seo_descripcion = (
+        request.POST.get("seo_descripcion", "").strip()[:320]
+    )
 
     horas = max(_entero(request.POST.get("horas"), 0), 0)
     minutos = max(_entero(request.POST.get("minutos"), 0), 0)
@@ -866,6 +875,9 @@ def _guardar_producto_desde_post(request, producto=None):
         producto = Producto()
 
     producto.nombre = nombre
+    producto.descripcion_catalogo = descripcion_catalogo
+    producto.seo_titulo = seo_titulo
+    producto.seo_descripcion = seo_descripcion
     producto.categoria = categoria
     producto.tipo = tipo
     producto.margen_ganancia = margen_ganancia
