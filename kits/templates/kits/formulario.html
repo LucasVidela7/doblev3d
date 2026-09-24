@@ -64,11 +64,7 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
         </div>
     </div>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="card">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
+    {% include "shared/messages_toasts.html" %}
 
     <nav class="secciones">
         <a href="#identidad">1 · IDENTIDAD</a>
