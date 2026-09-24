@@ -451,6 +451,7 @@ def calcular_escenarios_producto(
     producto,
     cantidad,
     forzar_filamento_economico=False,
+    incluir_provision_empaque=True,
 ):
     cantidad = max(int(cantidad or 1), 1)
 
@@ -458,6 +459,7 @@ def calcular_escenarios_producto(
         producto,
         cantidad,
         forzar_filamento_economico=forzar_filamento_economico,
+        incluir_provision_empaque=incluir_provision_empaque,
     )
     costo_productivo = desglose["costo_productivo"]
     costo_comercial = desglose.get(
@@ -526,6 +528,7 @@ def calcular_escenarios_kit_fijo(componentes):
             producto,
             cantidad,
             forzar_filamento_economico=True,
+            incluir_provision_empaque=False,
         )
         costo_componente = (
             calculo["costo_productivo"]
@@ -558,6 +561,22 @@ def calcular_escenarios_kit_fijo(componentes):
             }
         )
 
+    provision_empaque_kit = provision_empaque_unitaria_actual()
+    if provision_empaque_kit > 0:
+        costo_total += provision_empaque_kit
+        divisor_margen = Decimal("1") - MARGEN_MINIMO / Decimal("100")
+        adicional_precio_empaque = (
+            redondear_arriba(
+                provision_empaque_kit / divisor_margen
+            )
+            if divisor_margen > 0
+            else provision_empaque_kit
+        )
+        for clave in acumulados:
+            acumulados[clave] += adicional_precio_empaque
+    else:
+        adicional_precio_empaque = Decimal("0")
+
     escenarios = {}
     for clave, total in acumulados.items():
         ganancia = total - costo_total
@@ -577,6 +596,8 @@ def calcular_escenarios_kit_fijo(componentes):
 
     return {
         "costo_total": costo_total,
+        "provision_empaque": provision_empaque_kit,
+        "adicional_precio_empaque": adicional_precio_empaque,
         "margen_piso": MARGEN_MINIMO,
         "precio_filamento_kg": precio_filamento_kg,
         "filamento_economico": filamento_economico,
@@ -627,6 +648,7 @@ def calcular_escenarios_kit_libre(productos, cantidad):
             producto,
             cantidad,
             forzar_filamento_economico=True,
+            incluir_provision_empaque=False,
         )
         for producto in productos
     ]
@@ -638,6 +660,10 @@ def calcular_escenarios_kit_libre(productos, cantidad):
     ]
     costo_promedio = sum(costos_totales, Decimal("0")) / divisor
     costo_peor = max(costos_totales)
+
+    provision_empaque_kit = provision_empaque_unitaria_actual()
+    costo_promedio += provision_empaque_kit
+    costo_peor += provision_empaque_kit
 
     precios_agresivos = [
         calculo["escenarios"]["agresivo"]["total_recomendado"]
@@ -663,6 +689,21 @@ def calcular_escenarios_kit_libre(productos, cantidad):
         max(precios_agresivos),
     )
     conservador = max(precios_conservadores)
+
+    if provision_empaque_kit > 0:
+        divisor_margen = Decimal("1") - MARGEN_MINIMO / Decimal("100")
+        adicional_precio_empaque = (
+            redondear_arriba(
+                provision_empaque_kit / divisor_margen
+            )
+            if divisor_margen > 0
+            else provision_empaque_kit
+        )
+        agresivo += adicional_precio_empaque
+        recomendado += adicional_precio_empaque
+        conservador += adicional_precio_empaque
+    else:
+        adicional_precio_empaque = Decimal("0")
 
     precios = {
         "agresivo": agresivo,
@@ -704,6 +745,8 @@ def calcular_escenarios_kit_libre(productos, cantidad):
         "cantidad_productos_categoria": len(calculos),
         "costo_promedio": costo_promedio,
         "costo_peor_caso": costo_peor,
+        "provision_empaque": provision_empaque_kit,
+        "adicional_precio_empaque": adicional_precio_empaque,
         "margen_piso": MARGEN_MINIMO,
         "precio_filamento_kg": precio_filamento_kg,
         "filamento_economico": filamento_economico,
