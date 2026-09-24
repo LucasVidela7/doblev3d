@@ -175,7 +175,9 @@
         }
 
         .catalog-explore {
-            scroll-margin-top: 8px;
+            scroll-margin-top: calc(
+                var(--dv-catalog-header-height, 0px) + 14px
+            );
         }
 
         .toolbar {
@@ -1183,15 +1185,55 @@
                     return;
                 }
 
-                requestAnimationFrame(() => {
-                    explore.scrollIntoView({
-                        block: "start",
+                // El header del catálogo es fixed y en mobile ocupa dos filas.
+                // scrollIntoView() posicionaba el bloque por detrás del header,
+                // ocultando parte del buscador y, a veces, las categorías.
+                const placeBelowHeader = () => {
+                    const fixedHeader = document.querySelector(
+                        ".dv-catalog-header"
+                    );
+                    const headerBottom = fixedHeader
+                        ? fixedHeader.getBoundingClientRect().bottom
+                        : 0;
+                    const exploreTop =
+                        window.scrollY
+                        + explore.getBoundingClientRect().top;
+                    const visualGap = 14;
+
+                    window.scrollTo({
+                        top: Math.max(
+                            0,
+                            exploreTop
+                            - headerBottom
+                            - visualGap,
+                        ),
                         behavior: "auto",
                     });
+                };
+
+                // Dos frames aseguran que el header inyectado, fuentes y layout
+                // mobile ya tengan su altura final antes de posicionar.
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(placeBelowHeader);
                 });
             };
 
             search.addEventListener("input", () => applySearch());
+            window.addEventListener(
+                "resize",
+                () => {
+                    if (
+                        window.location.hash
+                        === "#catalogo-explorar"
+                    ) {
+                        restoreExplorePosition();
+                        requestAnimationFrame(
+                            centerActiveCategory
+                        );
+                    }
+                },
+                { passive: true },
+            );
 
             restoreSearch();
             requestAnimationFrame(centerActiveCategory);
