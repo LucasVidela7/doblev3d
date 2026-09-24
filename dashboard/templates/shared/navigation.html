@@ -290,6 +290,9 @@
         });
     }
     function iniciarNavegacionCompartida(){
+        if(document.body){
+            document.body.classList.add("dv-management-page");
+        }
         aplicarIndicadorPagina();
         limpiarNavegacionRedundante();
     }
