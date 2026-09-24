@@ -1,7 +1,10 @@
 from decimal import Decimal, ROUND_CEILING
 from math import log10
 
-from productos.models import redondeo_precio_producto_actual
+from productos.models import (
+    provision_empaque_unitaria_actual,
+    redondeo_precio_producto_actual,
+)
 
 MARGEN_MINIMO = Decimal("22.5")
 CANTIDAD_PISO_MARGEN = Decimal("1500")
@@ -178,6 +181,7 @@ def calcular_costo_productivo_producto(
     producto,
     cantidad=1,
     forzar_filamento_economico=False,
+    incluir_provision_empaque=True,
 ):
     """Recalcula el costo sin modificar el costo minorista del producto.
 
@@ -189,6 +193,12 @@ def calcular_costo_productivo_producto(
     cero = Decimal("0")
     costo_insumos = Decimal(
         str(getattr(producto, "costo_insumos_total", 0) or 0)
+    )
+    provision_empaque = (
+        provision_empaque_unitaria_actual()
+        if incluir_provision_empaque
+        and not getattr(producto, "solo_produccion", False)
+        else Decimal("0")
     )
 
     if not producto.requiere_impresion:
@@ -207,7 +217,9 @@ def calcular_costo_productivo_producto(
             "costo": cero,
             "seguro": cero,
             "costo_insumos": costo_insumos,
+            "provision_empaque": provision_empaque,
             "costo_productivo": costo_insumos,
+            "costo_comercial": costo_insumos + provision_empaque,
         }
 
     config = producto.obtener_configuracion()
@@ -227,7 +239,9 @@ def calcular_costo_productivo_producto(
             "costo": cero,
             "seguro": cero,
             "costo_insumos": costo_insumos,
+            "provision_empaque": provision_empaque,
             "costo_productivo": costo_insumos,
+            "costo_comercial": costo_insumos + provision_empaque,
         }
 
     precio_estandar = max(
@@ -317,7 +331,11 @@ def calcular_costo_productivo_producto(
         "costo": costo,
         "seguro": seguro,
         "costo_insumos": costo_insumos,
+        "provision_empaque": provision_empaque,
         "costo_productivo": costo + seguro + costo_insumos,
+        "costo_comercial": (
+            costo + seguro + costo_insumos + provision_empaque
+        ),
     }
 
 
@@ -338,7 +356,9 @@ def calcular_precio_catalogo_producto(producto, cantidad):
 
     calculo = calcular_escenarios_producto(producto, cantidad)
     desglose = calculo["desglose"]
-    costo_productivo_unitario = Decimal(str(calculo["costo_productivo"] or 0))
+    costo_productivo_unitario = Decimal(
+        str(calculo.get("costo_comercial", calculo["costo_productivo"]) or 0)
+    )
     costo_total = costo_productivo_unitario * Decimal(cantidad)
 
     recomendado = Decimal(str(
@@ -440,6 +460,10 @@ def calcular_escenarios_producto(
         forzar_filamento_economico=forzar_filamento_economico,
     )
     costo_productivo = desglose["costo_productivo"]
+    costo_comercial = desglose.get(
+        "costo_comercial",
+        costo_productivo,
+    )
 
     margen_tope = max(
         Decimal(str(producto.margen_ganancia)),
@@ -449,7 +473,7 @@ def calcular_escenarios_producto(
     margenes = margenes_escenario(cantidad, margen_tope)
     escenarios = {
         clave: fila_precio(
-            costo_productivo,
+            costo_comercial,
             cantidad,
             margen=margen,
             margen_tope=margen_tope,
@@ -464,6 +488,7 @@ def calcular_escenarios_producto(
         "cantidad": cantidad,
         "precio_lista": Decimal(str(producto.subtotal)),
         "costo_productivo": costo_productivo,
+        "costo_comercial": costo_comercial,
         "precio_filamento_kg": desglose["precio_filamento_kg"],
         "filamento_economico": desglose["filamento_economico"],
         "tipo_filamento": desglose["tipo_filamento"],
