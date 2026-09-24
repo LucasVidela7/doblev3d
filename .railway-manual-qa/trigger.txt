@@ -125,3 +125,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-24 - Optimizar listado de insumos por bloques
 2026-09-24 - Normalizar Gestion: producto, finanzas y solicitudes + planificador modal
 2026-09-24 - Unificar alertas de Gestion con toasts flotantes
+2026-09-24 - Normalizacion tipografica global de Gestion
