@@ -127,3 +127,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-24 - Unificar alertas de Gestion con toasts flotantes
 2026-09-24 - Normalizacion tipografica global de Gestion
 2026-09-24 - Open Graph con foto de producto y collage 2x2 de kits
+2026-09-24 - Precio kits con empaque real por reglas y fallback
