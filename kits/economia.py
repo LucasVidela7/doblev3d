@@ -6,7 +6,10 @@ from calculadora.precios import (
     calcular_escenarios_producto,
     redondear_arriba,
 )
-from productos.models import Producto
+from productos.models import (
+    Producto,
+    provision_empaque_unitaria_actual,
+)
 
 from .precio_fijo_combinado import calcular_escenarios_kit_fijo
 
@@ -75,6 +78,23 @@ def _productos_categoria(kit):
     )
 
 
+def _resolver_empaque_kit(
+    kit,
+    unidades,
+    *,
+    productos=None,
+    tipo_producto=None,
+):
+    from .empaque_costos import costo_empaque_kit
+
+    return costo_empaque_kit(
+        kit=kit,
+        unidades=unidades,
+        productos=productos,
+        tipo_producto=tipo_producto,
+    )
+
+
 EXTRA_MULTIPLO = Decimal("500")
 
 
@@ -83,6 +103,7 @@ def analizar_opciones_libres(
     cantidad_productos,
     precio_kit,
     proteger_rentabilidad=True,
+    costo_empaque=None,
 ):
     """
     Clasifica las opciones de un kit libre según su capacidad de sostener
@@ -103,6 +124,7 @@ def analizar_opciones_libres(
         "cantidad_productos": cantidad,
         "precio_kit": precio,
         "precio_base_por_lugar": Decimal("0"),
+        "costo_empaque": Decimal("0"),
         "margen_piso": MARGEN_MINIMO,
         "incluidos": [],
         "premium": [],
@@ -123,6 +145,27 @@ def analizar_opciones_libres(
     precio_base_por_lugar = precio / divisor
     resultado["precio_base_por_lugar"] = precio_base_por_lugar
 
+    costo_empaque = (
+        _decimal(costo_empaque)
+        if costo_empaque is not None
+        else _decimal(provision_empaque_unitaria_actual())
+    )
+    costo_empaque = max(costo_empaque, Decimal("0"))
+    resultado["costo_empaque"] = costo_empaque
+
+    divisor_margen = (
+        Decimal("1")
+        - MARGEN_MINIMO / Decimal("100")
+    )
+    adicional_precio_empaque = (
+        redondear_arriba(
+            costo_empaque / divisor_margen
+        )
+        if costo_empaque > 0
+        and divisor_margen > 0
+        else Decimal("0")
+    )
+
     extras_positivos = []
     extras_sugeridos = []
 
@@ -131,10 +174,14 @@ def analizar_opciones_libres(
             producto,
             cantidad,
             forzar_filamento_economico=True,
+            incluir_provision_empaque=False,
         )
         escenario_agresivo = calculo["escenarios"]["agresivo"]
-        referencia_total = _decimal(
-            escenario_agresivo["total_recomendado"]
+        referencia_total = (
+            _decimal(
+                escenario_agresivo["total_recomendado"]
+            )
+            + adicional_precio_empaque
         )
         referencia_por_lugar = (
             referencia_total / divisor
@@ -236,11 +283,23 @@ def analizar_opciones_kit(kit, productos_categoria=None):
         else _productos_categoria(kit)
     )
 
+    empaque = _resolver_empaque_kit(
+        kit,
+        kit.cantidad_productos,
+        productos=productos,
+        tipo_producto=getattr(
+            kit,
+            "tipo_producto",
+            None,
+        ),
+    )
+
     return analizar_opciones_libres(
         productos,
         kit.cantidad_productos,
         kit.precio,
         getattr(kit, "proteger_rentabilidad_libre", False),
+        costo_empaque=empaque["costo"],
     )
 
 
@@ -313,6 +372,11 @@ def recomendacion_kit(kit, productos_categoria=None):
         "precio_conservador": Decimal("0"),
         "costo_estimado": Decimal("0"),
         "costo_peor_caso": Decimal("0"),
+        "costo_empaque": Decimal("0"),
+        "empaque_fuente": "SIN_CONFIGURACION",
+        "empaque_regla": "",
+        "empaque_principal": "",
+        "empaque_complementarios": [],
         "margen_actual": None,
         "margen_peor_caso": None,
         "margen_piso": MARGEN_MINIMO,
@@ -333,10 +397,33 @@ def recomendacion_kit(kit, productos_categoria=None):
             )
             return resultado
 
+        cantidad_empaque = sum(
+            int(item["cantidad"] or 0)
+            for item in componentes
+        )
+        empaque = _resolver_empaque_kit(
+            kit,
+            cantidad_empaque,
+            productos=[
+                item["producto"]
+                for item in componentes
+            ],
+        )
         calculo = calcular_escenarios_kit_fijo(
-            componentes
+            componentes,
+            costo_empaque=empaque["costo"],
         )
         costo = _decimal(calculo["costo_total"])
+        resultado["costo_empaque"] = _decimal(
+            empaque["costo"]
+        )
+        resultado["empaque_fuente"] = empaque["fuente"]
+        resultado["empaque_regla"] = empaque["regla_nombre"]
+        resultado["empaque_principal"] = empaque["empaque_nombre"]
+        resultado["empaque_complementarios"] = [
+            item["nombre"]
+            for item in empaque["complementarios"]
+        ]
 
         if costo <= 0:
             resultado["motivo"] = (
@@ -402,10 +489,27 @@ def recomendacion_kit(kit, productos_categoria=None):
             )
             return resultado
 
+        empaque = _resolver_empaque_kit(
+            kit,
+            kit.cantidad_productos,
+            productos=productos,
+            tipo_producto=kit.tipo_producto,
+        )
         calculo = calcular_escenarios_kit_libre(
             productos,
             kit.cantidad_productos,
+            costo_empaque=empaque["costo"],
         )
+        resultado["costo_empaque"] = _decimal(
+            empaque["costo"]
+        )
+        resultado["empaque_fuente"] = empaque["fuente"]
+        resultado["empaque_regla"] = empaque["regla_nombre"]
+        resultado["empaque_principal"] = empaque["empaque_nombre"]
+        resultado["empaque_complementarios"] = [
+            item["nombre"]
+            for item in empaque["complementarios"]
+        ]
 
         costo_promedio = _decimal(
             calculo["costo_promedio"]
