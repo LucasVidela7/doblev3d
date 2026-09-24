@@ -101,3 +101,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-24 - Ejecutar clonacion final production -> QA via HTTPS protegido
 2026-09-24 - Reintento sync production -> QA tras bypass autenticado
 2026-09-24 - Cleanup sync temporal y volver a deploy QA normal
+2026-09-24 - QA usa fotos de production como fallback de solo lectura
