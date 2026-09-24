@@ -55,6 +55,8 @@
     </div>
   </div>
 
+  {% include "productos/_productos_subnav.html" %}
+
   {% if messages %}{% for message in messages %}<div class="mensaje">{{ message }}</div>{% endfor %}{% endif %}
 
   <div class="salud {{ producto.salud_clase }}">
