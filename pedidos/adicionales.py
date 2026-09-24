@@ -229,6 +229,49 @@ def _desglose_desde_snapshot(detalle):
     }
 
 
+def enriquecer_detalles_presupuesto(presupuesto, detalles):
+    """Agrega el desglose de adicionales antes de aprobar un presupuesto."""
+    detalles = list(detalles)
+
+    try:
+        solicitud = presupuesto.solicitud_web_origen
+    except Exception:
+        solicitud = None
+
+    disponibles = (
+        list(solicitud.items.all().order_by("id"))
+        if solicitud
+        else []
+    )
+
+    for detalle in detalles:
+        desglose = None
+        identidad = _identidad_detalle(detalle)
+
+        for posicion, item in enumerate(disponibles):
+            if identidad[0] == "PERSONALIZADO":
+                continue
+            if _identidad_item_solicitud(item) != identidad:
+                continue
+
+            desglose = desglose_item_solicitud(item)
+            disponibles.pop(posicion)
+            break
+
+        if (
+            desglose is not None
+            and not desglose["tiene_adicionales"]
+        ):
+            desglose = None
+
+        if desglose is None and detalle.tipo_item == "KIT":
+            desglose = _desglose_desde_snapshot(detalle)
+
+        detalle.adicionales = desglose
+
+    return detalles
+
+
 def enriquecer_detalles_pedido(pedido, detalles):
     """Agrega un desglose transitorio de adicionales a cada detalle."""
     detalles = list(detalles)
