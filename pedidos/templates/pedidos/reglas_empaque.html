@@ -81,7 +81,22 @@
         {% if regla_editar %}<input type="hidden" name="regla_id" value="{{ regla_editar.id }}">{% endif %}
         <div class="grid">
           <div class="field full"><label>NOMBRE</label><input name="nombre" required value="{{ regla_editar.nombre|default:'' }}" placeholder="Doypack chica · 1 a 2"></div>
-          <div class="field full"><label>INSUMO DE EMPAQUE</label><select name="insumo_id" required><option value="">Seleccionar...</option>{% for insumo in insumos_empaque %}<option value="{{ insumo.id }}" {% if regla_editar and regla_editar.insumo_id == insumo.id %}selected{% endif %}>{{ insumo.nombre }} · stock {{ insumo.stock|floatformat:"-3" }} · ${{ insumo.costo_unitario_aplicado|floatformat:"2g" }}</option>{% endfor %}</select><div class="help">Sólo aparecen insumos cargados como tipo Empaque.</div></div>
+          <div class="field full"><label>INSUMO DE EMPAQUE</label><select name="insumo_id" required><option value="">Seleccionar...</option>{% for insumo in insumos_empaque %}<option value="{{ insumo.id }}" {% if regla_editar and regla_editar.insumo_id == insumo.id %}selected{% endif %}>{{ insumo.nombre }} · stock {{ insumo.stock|floatformat:"-3" }} · $ {{ insumo.costo_unitario_aplicado|floatformat:"2g" }}</option>{% endfor %}</select><div class="help">Empaque principal: bolsa, caja, sobre, etc.</div></div>
+          <div class="field full">
+            <label>INSUMOS COMPLEMENTARIOS</label>
+            <div class="complementos">
+              {% for insumo in insumos_empaque %}
+              <label class="complemento-row">
+                <input type="checkbox" name="complemento_id" value="{{ insumo.id }}" {% if insumo.es_complemento_regla %}checked{% endif %}>
+                <span><strong>{{ insumo.nombre }}</strong><span>Stock {{ insumo.stock|floatformat:"-3" }} · costo $ {{ insumo.costo_unitario_aplicado|floatformat:"2g" }}</span></span>
+                <input type="number" min="0.001" step="0.001" name="complemento_cantidad_{{ insumo.id }}" value="{{ insumo.cantidad_complemento_regla }}" aria-label="Cantidad de {{ insumo.nombre }}">
+              </label>
+              {% empty %}
+              <div class="help">Primero cargá insumos de tipo Empaque.</div>
+              {% endfor %}
+            </div>
+            <div class="help">Se descuentan automáticamente junto al empaque principal. Ejemplo: Sticker Doble V ×1.</div>
+          </div>
           <div class="field"><label>DESDE UNIDADES</label><input type="number" min="1" name="desde_unidades" value="{{ regla_editar.desde_unidades|default:1 }}"></div>
           <div class="field"><label>HASTA UNIDADES</label><input type="number" min="1" name="hasta_unidades" value="{{ regla_editar.hasta_unidades|default:'' }}" placeholder="Sin límite"></div>
           <div class="field"><label>CANTIDAD DE EMPAQUE</label><input type="number" min="0.001" step="0.001" name="cantidad_insumo" value="{{ regla_editar.cantidad_insumo|default:1 }}"></div>
