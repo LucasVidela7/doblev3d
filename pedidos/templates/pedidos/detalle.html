@@ -187,10 +187,10 @@
                         {% if detalle.adicionales %}
                         <div class="adicionales-precio">
                             <div class="adicionales-precio-titulo">ADICIONALES INCLUIDOS EN EL PRECIO</div>
-                            {% if detalle.adicionales.adicional_opciones_unitario %}<span class="adicional-chip">Opciones premium +$ {{ detalle.adicionales.adicional_opciones_unitario|floatformat:0 }} / u.</span>{% endif %}
-                            {% if detalle.adicionales.adicional_color_unitario %}<span class="adicional-chip">Color +$ {{ detalle.adicionales.adicional_color_unitario|floatformat:0 }} / u.</span>{% endif %}
-                            {% if detalle.cantidad > 1 %}<span class="adicional-chip total">Total adicionales +$ {{ detalle.adicionales.adicional_total_linea|floatformat:0 }}</span>{% endif %}
-                            {% if detalle.adicionales.tiene_descuento %}<span class="adicional-chip descuento">Descuento aplicado -$ {{ detalle.adicionales.descuento_unitario|floatformat:0 }} / u.</span>{% endif %}
+                            {% if detalle.adicionales.adicional_opciones_unitario %}<span class="adicional-chip">Opciones premium +$ {{ detalle.adicionales.adicional_opciones_unitario|floatformat:"0g" }} / u.</span>{% endif %}
+                            {% if detalle.adicionales.adicional_color_unitario %}<span class="adicional-chip">Color +$ {{ detalle.adicionales.adicional_color_unitario|floatformat:"0g" }} / u.</span>{% endif %}
+                            {% if detalle.cantidad > 1 %}<span class="adicional-chip total">Total adicionales +$ {{ detalle.adicionales.adicional_total_linea|floatformat:"0g" }}</span>{% endif %}
+                            {% if detalle.adicionales.tiene_descuento %}<span class="adicional-chip descuento">Descuento aplicado -$ {{ detalle.adicionales.descuento_unitario|floatformat:"0g" }} / u.</span>{% endif %}
                         </div>
                         {% endif %}
                         {% if detalle.tipo_item == 'KIT' and detalle.productos_kit.all %}
