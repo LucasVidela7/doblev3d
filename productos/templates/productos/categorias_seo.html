@@ -43,7 +43,7 @@ body{margin:0;background:var(--dv-bg,#f5f7fb);color:var(--text);font-family:Inte
       <div class="card-head">
         <div>
           <h2>{{ tipo.nombre }}</h2>
-          <span class="slug">/categorias/{{ tipo.slug }}/</span>
+          <span class="slug">/{{ tipo.slug }}/ · URLs separadas para Productos y Kits</span>
         </div>
         <span class="status{% if not tipo.activo %} off{% endif %}">{% if tipo.activo %}ACTIVA{% else %}INACTIVA{% endif %}</span>
       </div>
@@ -65,7 +65,11 @@ body{margin:0;background:var(--dv-bg,#f5f7fb);color:var(--text);font-family:Inte
         </div>
         <div class="actions">
           {% if tipo.activo %}
-          <a class="public-link" href="{% url 'catalogo_categoria' tipo.slug %}" target="_blank" rel="noopener">VER LANDING ↗</a>
+          <span>
+            <a class="public-link" href="{% url 'catalogo_categoria_productos' tipo.slug %}" target="_blank" rel="noopener">VER PRODUCTOS ↗</a>
+            <span aria-hidden="true"> · </span>
+            <a class="public-link" href="{% url 'catalogo_categoria_kits' tipo.slug %}" target="_blank" rel="noopener">VER KITS ↗</a>
+          </span>
           {% else %}
           <span></span>
           {% endif %}
