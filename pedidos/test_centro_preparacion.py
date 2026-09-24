@@ -329,20 +329,34 @@ class CentroPreparacionTests(TestCase):
             cantidad=6,
         )
 
-        respuesta = self.client.get(
+        preparacion = self.client.get(
             reverse("pedidos:impresiones")
         )
-
-        self.assertEqual(respuesta.status_code, 200)
-        fila = next(
-            item
-            for item in respuesta.context["para_preparar"]
-            if item["pedido"].id == pedido.id
+        detalle_pedido = self.client.get(
+            reverse("pedidos:detalle", args=[pedido.id])
         )
-        self.assertEqual(fila["total_paquetes"], 6)
-        self.assertEqual(len(fila["paquetes"]), 6)
 
-        for paquete in fila["paquetes"]:
+        self.assertEqual(preparacion.status_code, 200)
+        self.assertNotContains(
+            preparacion,
+            'data-pedido-vista="paquetes"',
+        )
+        self.assertNotContains(
+            preparacion,
+            'data-preparacion-vista="paquetes"',
+        )
+
+        self.assertEqual(detalle_pedido.status_code, 200)
+        self.assertEqual(
+            detalle_pedido.context["total_paquetes"],
+            6,
+        )
+        self.assertEqual(
+            len(detalle_pedido.context["paquetes"]),
+            6,
+        )
+
+        for paquete in detalle_pedido.context["paquetes"]:
             self.assertEqual(len(paquete["productos"]), 2)
             self.assertTrue(
                 all(
@@ -351,11 +365,11 @@ class CentroPreparacionTests(TestCase):
                 )
             )
 
-        self.assertContains(respuesta, "POR PAQUETE")
-        self.assertContains(respuesta, "PAQUETE 1 DE 6")
+        self.assertContains(detalle_pedido, "POR PAQUETE")
+        self.assertContains(detalle_pedido, "PAQUETE 1 DE 6")
         self.assertContains(
-            respuesta,
-            'data-preparacion-vista="paquetes"',
+            detalle_pedido,
+            'data-pedido-vista="paquetes"',
         )
 
     def test_cancelados_muestran_miniatura_del_producto(self):
