@@ -5,7 +5,9 @@ from .models import (
     DetallePedido,
     DetalleKitProducto,
     PedidoEmpaque,
+    PedidoEmpaqueComplemento,
     ReglaEmpaque,
+    ReglaEmpaqueComplemento,
 )
 
 
@@ -131,6 +133,12 @@ class DetallePedidoAdmin(admin.ModelAdmin):
         return f"${obj.subtotal:,.0f}"
 
 
+class ReglaEmpaqueComplementoInline(admin.TabularInline):
+    model = ReglaEmpaqueComplemento
+    extra = 0
+    autocomplete_fields = ("insumo",)
+
+
 @admin.register(ReglaEmpaque)
 class ReglaEmpaqueAdmin(admin.ModelAdmin):
     list_display = (
@@ -149,8 +157,22 @@ class ReglaEmpaqueAdmin(admin.ModelAdmin):
         "insumo__nombre",
         "kit__nombre",
         "producto__nombre",
+        "tipo_producto__nombre",
+        "complementos__insumo__nombre",
     )
-    autocomplete_fields = ("insumo", "kit", "producto")
+    autocomplete_fields = (
+        "insumo",
+        "kit",
+        "producto",
+        "tipo_producto",
+    )
+    inlines = (ReglaEmpaqueComplementoInline,)
+
+
+class PedidoEmpaqueComplementoInline(admin.TabularInline):
+    model = PedidoEmpaqueComplemento
+    extra = 0
+    autocomplete_fields = ("insumo",)
 
 
 @admin.register(PedidoEmpaque)
@@ -170,3 +192,4 @@ class PedidoEmpaqueAdmin(admin.ModelAdmin):
         "insumo__nombre",
     )
     autocomplete_fields = ("pedido", "insumo")
+    inlines = (PedidoEmpaqueComplementoInline,)
