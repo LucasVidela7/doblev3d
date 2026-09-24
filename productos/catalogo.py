@@ -59,7 +59,11 @@ def _catalogo_publico(request, vista_catalogo):
             solo_produccion=False,
         )
         .select_related("tipo")
-        .prefetch_related("componentes__componente")
+        .prefetch_related(
+            "componentes__componente",
+            "insumos_asignados__insumo",
+            "componentes__componente__insumos_asignados__insumo",
+        )
         .order_by("tipo__nombre", "nombre")
     )
 
@@ -117,7 +121,11 @@ def _catalogo_publico(request, vista_catalogo):
         Kit.objects
         .filter(activo=True)
         .select_related("tipo_producto")
-        .prefetch_related("componentes__producto__tipo")
+        .prefetch_related(
+            "componentes__producto__tipo",
+            "componentes__producto__insumos_asignados__insumo",
+            "componentes__producto__componentes__componente__insumos_asignados__insumo",
+        )
         .order_by("nombre")
     )
 
@@ -274,7 +282,11 @@ def catalogo_producto_detalle(request, producto_id):
             solo_produccion=False,
         )
         .select_related("tipo")
-        .prefetch_related("componentes__componente"),
+        .prefetch_related(
+            "componentes__componente",
+            "insumos_asignados__insumo",
+            "componentes__componente__insumos_asignados__insumo",
+        ),
         id=producto_id,
     )
     producto.catalogo_precio = producto.subtotal
@@ -331,7 +343,11 @@ def catalogo_kit_detalle(request, kit_id):
         Kit.objects
         .filter(activo=True)
         .select_related("tipo_producto")
-        .prefetch_related("componentes__producto__tipo"),
+        .prefetch_related(
+            "componentes__producto__tipo",
+            "componentes__producto__insumos_asignados__insumo",
+            "componentes__producto__componentes__componente__insumos_asignados__insumo",
+        ),
         id=kit_id,
     )
 
@@ -349,6 +365,10 @@ def catalogo_kit_detalle(request, kit_id):
                 solo_produccion=False,
             )
             .select_related("tipo")
+            .prefetch_related(
+                "insumos_asignados__insumo",
+                "componentes__componente__insumos_asignados__insumo",
+            )
             .order_by("nombre", "id")
         )
 
