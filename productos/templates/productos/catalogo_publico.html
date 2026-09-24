@@ -845,15 +845,16 @@
         {% if categorias %}
             <nav class="shell categories" aria-label="Categorías">
                 {% if vista_catalogo == "productos" %}
-                    <a class="filter{% if not categoria_actual %} is-active{% endif %}" href="{% url 'catalogo_productos' %}">Todas</a>
+                    <a class="filter{% if not categoria_actual %} is-active{% endif %}" data-category="" href="{% url 'catalogo_productos' %}">Todas</a>
                 {% elif vista_catalogo == "kits" %}
-                    <a class="filter{% if not categoria_actual %} is-active{% endif %}" href="{% url 'catalogo_kits' %}">Todas</a>
+                    <a class="filter{% if not categoria_actual %} is-active{% endif %}" data-category="" href="{% url 'catalogo_kits' %}">Todas</a>
                 {% else %}
                     <a class="filter" href="{% url 'catalogo' %}">Inicio</a>
                 {% endif %}
                 {% for categoria in categorias %}
                     <a
                         class="filter{% if categoria_actual and categoria.id == categoria_actual.id %} is-active{% endif %}"
+                        data-category="{{ categoria.nombre|lower }}"
                         href="{% url 'catalogo_categoria' categoria.slug %}"
                     >{{ categoria.nombre }}</a>
                 {% endfor %}
