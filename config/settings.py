@@ -129,6 +129,7 @@ MIDDLEWARE = [
     "config.product_images_ui_middleware.ProductImagesUIMiddleware",
     "config.operaciones_ui_middleware.OperacionesUIMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "config.seo_headers_middleware.SEOHeadersMiddleware",
     "config.ui_middleware.NormalizarNavegacionMiddleware",
     "config.kit_volume_ui_middleware.KitVolumeUIMiddleware",
     "config.pedido_form_experience_middleware.PedidoFormExperienceMiddleware",
