@@ -2,6 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.test import TestCase
 from django.urls import resolve, reverse
 
@@ -45,6 +46,11 @@ class PreciosKitCalculadoraTests(TestCase):
         self.tipo = TipoProducto.objects.create(
             nombre="Kit test",
             activo=True,
+        )
+        cache.delete("dv-provision-empaque-unitaria-v1")
+        self.addCleanup(
+            cache.delete,
+            "dv-provision-empaque-unitaria-v1",
         )
 
     def crear_producto(
