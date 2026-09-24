@@ -116,3 +116,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-24 - Etapa 3.1 Empaques: categorias, complementarios y estimacion interna
 2026-09-24 - Rediseño reglas de empaque + selector de complementarios habilitados
 2026-09-24 - Fix decimales en Configuración de costos
+2026-09-24 - Normalizar numéricos en formulario de insumos
