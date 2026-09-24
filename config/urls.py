@@ -14,6 +14,7 @@ from productos.catalogo import (
     catalogo_kit_detalle,
 )
 from productos.catalogo_contacto import catalogo_contacto
+from productos.social_previews import kit_social_preview
 from productos.legal import (
     arrepentimiento,
     arrepentimiento_gracias,
@@ -70,6 +71,11 @@ urlpatterns = [
         "kits/<int:kit_id>/",
         catalogo_kit_detalle,
         name="catalogo_kit_detalle",
+    ),
+    path(
+        "social/kits/<int:kit_id>/preview.jpg",
+        kit_social_preview,
+        name="catalogo_kit_social_preview",
     ),
 
     # Información legal y derechos del consumidor.
