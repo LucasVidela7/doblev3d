@@ -794,12 +794,22 @@
                         Explorá productos individuales, buscá por nombre o categoría
                         y agregalos directamente al carrito.
                     </p>
-                {% else %}
+                {% elif vista_catalogo == "kits" %}
                     <p class="eyebrow">Kits</p>
                     <h1>Más opciones, en un solo kit.</h1>
                     <p>
                         Descubrí kits listos o configurables. Entrá al detalle,
                         elegí tus piezas y armá la combinación que quieras.
+                    </p>
+                {% else %}
+                    <p class="eyebrow">Categoría</p>
+                    <h1>{{ categoria_actual.nombre }}</h1>
+                    <p>
+                        {% if categoria_actual.descripcion_catalogo %}
+                            {{ categoria_actual.descripcion_catalogo }}
+                        {% else %}
+                            Explorá productos y kits de {{ categoria_actual.nombre }} disponibles en Doble V 3D.
+                        {% endif %}
                     </p>
                 {% endif %}
             </div>
@@ -829,15 +839,24 @@
         </div>
 
         {% if categorias %}
-            <div class="shell categories" aria-label="Categorías">
-                <button class="filter is-active" type="button" data-category="">Todas las categorías</button>
+            <nav class="shell categories" aria-label="Categorías">
+                {% if vista_catalogo == "productos" %}
+                    <a class="filter{% if not categoria_actual %} is-active{% endif %}" href="{% url 'catalogo_productos' %}">Todas</a>
+                {% elif vista_catalogo == "kits" %}
+                    <a class="filter{% if not categoria_actual %} is-active{% endif %}" href="{% url 'catalogo_kits' %}">Todas</a>
+                {% else %}
+                    <a class="filter" href="{% url 'catalogo' %}">Inicio</a>
+                {% endif %}
                 {% for categoria in categorias %}
-                    <button class="filter" type="button" data-category="{{ categoria|lower }}">{{ categoria }}</button>
+                    <a
+                        class="filter{% if categoria_actual and categoria.id == categoria_actual.id %} is-active{% endif %}"
+                        href="{% url 'catalogo_categoria' categoria.slug %}"
+                    >{{ categoria.nombre }}</a>
                 {% endfor %}
-            </div>
+            </nav>
         {% endif %}
 
-        {% if vista_catalogo == "productos" %}
+        {% if vista_catalogo == "productos" or vista_catalogo == "categoria" %}
         <section class="shell section" data-section="producto">
             <div class="section-head">
                 <h2>Productos</h2>
@@ -855,7 +874,7 @@
                             data-category="{{ producto.tipo.nombre|lower }}"
                             data-search="{{ producto.nombre|lower }} {{ producto.tipo.nombre|lower }} {{ producto.descripcion_componentes_catalogo|lower }}"
                         >
-                            <a class="catalog-media-link" href="{% url 'catalogo_producto_detalle' producto.id %}" aria-label="Ver {{ producto.nombre }}">
+                            <a class="catalog-media-link" href="{% url 'catalogo_producto_detalle' producto.slug %}" aria-label="Ver {{ producto.nombre }}">
                                 <div class="media">
                                     <span class="badge">{{ producto.tipo.nombre }}</span>
                                     {% if producto.catalogo_imagen %}
@@ -867,7 +886,7 @@
                             </a>
                             <div class="content">
                                 <div class="meta">Producto</div>
-                                <h3 class="title"><a class="catalog-title-link" href="{% url 'catalogo_producto_detalle' producto.id %}">{{ producto.nombre }}</a></h3>
+                                <h3 class="title"><a class="catalog-title-link" href="{% url 'catalogo_producto_detalle' producto.slug %}">{{ producto.nombre }}</a></h3>
                                 <p class="detail">
                                     {% if producto.es_compuesto and producto.descripcion_componentes_catalogo %}
                                         {{ producto.descripcion_componentes_catalogo }}
@@ -889,7 +908,7 @@
                                     </div>
                                     {% if producto.catalogo_precio %}
                                         <div class="product-actions">
-                                            <a class="catalog-detail-link" href="{% url 'catalogo_producto_detalle' producto.id %}" aria-label="Ver detalle de {{ producto.nombre }}">VER</a>
+                                            <a class="catalog-detail-link" href="{% url 'catalogo_producto_detalle' producto.slug %}" aria-label="Ver detalle de {{ producto.nombre }}">VER</a>
                                         <div
                                             class="dv-cart-card-control"
                                             data-dv-product-control
@@ -925,7 +944,7 @@
 
         {% endif %}
 
-        {% if vista_catalogo == "kits" %}
+        {% if vista_catalogo == "kits" or vista_catalogo == "categoria" %}
         <section class="shell section" data-section="kit">
             <div class="section-head">
                 <h2>Kits</h2>
@@ -945,7 +964,7 @@
                         >
                             <a
                                 class="catalog-media-link"
-                                href="{% url 'catalogo_kit_detalle' kit.id %}"
+                                href="{% url 'catalogo_kit_detalle' kit.slug %}"
                                 aria-label="Ver {{ kit.nombre }}"
                             >
                                 <div class="media">
@@ -1029,7 +1048,7 @@
                                     </div>
                                     <a
                                         class="catalog-detail-link"
-                                        href="{% url 'catalogo_kit_detalle' kit.id %}"
+                                        href="{% url 'catalogo_kit_detalle' kit.slug %}"
                                         aria-label="Ver detalle de {{ kit.nombre }}"
                                     >
                                         VER DETALLE
@@ -1062,9 +1081,9 @@
             const sections = [...document.querySelectorAll("[data-section]")];
             const noResults = document.getElementById("no-results");
             const kindButtons = [...document.querySelectorAll("[data-kind].filter")];
-            const categoryButtons = [...document.querySelectorAll("[data-category].filter")];
+            const categoryButtons = [];
 
-            let activeKind = {% if vista_catalogo == "productos" %}"producto"{% else %}"kit"{% endif %};
+            let activeKind = {% if vista_catalogo == "productos" %}"producto"{% elif vista_catalogo == "kits" %}"kit"{% else %}"all"{% endif %};
             let activeCategory = "";
 
             const normalize = (value) =>
@@ -1147,7 +1166,7 @@
                 const requestedQuery = params.get("q") || "";
                 const validKinds = new Set(kindButtons.map((button) => button.dataset.kind));
 
-                activeKind = {% if vista_catalogo == "productos" %}"producto"{% else %}"kit"{% endif %};
+                activeKind = {% if vista_catalogo == "productos" %}"producto"{% elif vista_catalogo == "kits" %}"kit"{% else %}"all"{% endif %};
 
                 const matchingCategory = categoryButtons.find(
                     (button) => normalize(button.dataset.category) === normalize(requestedCategory),
