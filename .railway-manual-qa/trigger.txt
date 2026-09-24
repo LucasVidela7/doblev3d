@@ -108,3 +108,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-24 - Etapa 1 Insumos: modelo, CRUD, submenu y configuracion de incremento
 2026-09-24 - Etapa 1 Insumos: cierre navegacion y deploy final
 2026-09-24 - Etapa 2 Insumos: asignacion a productos y costo productivo
+2026-09-24 - Etapa 2 Insumos: deploy final con optimizacion de catalogo
