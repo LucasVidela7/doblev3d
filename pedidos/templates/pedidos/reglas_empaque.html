@@ -16,6 +16,7 @@
 .rules{display:grid}.rule{padding:13px 15px;border-top:1px solid var(--dv-border,#dfe5ef)}.rule:first-child{border-top:0}.rule-top{display:flex;justify-content:space-between;gap:12px}.rule-name{font-weight:950;font-size:13px}.rule-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.chip{min-height:27px;display:inline-flex;align-items:center;padding:0 8px;border-radius:8px;background:var(--dv-surface-soft,#f8faff);color:var(--dv-muted,#667085);font-size:10px;font-weight:850}.chip.main{background:var(--dv-brand-blue-soft,#eef4ff);color:var(--dv-accent-blue-text,#0d376f)}.chip.off{background:#fff0f0;color:#8a2828}.actions{display:flex;gap:6px;flex-wrap:wrap}.btn{min-height:36px;display:inline-flex;align-items:center;justify-content:center;padding:0 11px;border:1px solid var(--dv-border,#dfe5ef);border-radius:9px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);font-size:10px;font-weight:900;text-decoration:none;cursor:pointer}.btn.primary{background:var(--dv-brand-blue,#134a9a);border-color:var(--dv-brand-blue,#134a9a);color:#fff}.btn.danger{color:#9b3030}.empty{padding:28px 16px;text-align:center;color:var(--dv-muted,#667085);font-size:12px}
 .form{padding:15px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.field.full{grid-column:1/-1}.field label{display:block;margin-bottom:5px;color:var(--dv-muted,#667085);font-size:9px;font-weight:900}.field input,.field select{width:100%;min-height:44px;padding:9px 10px;border:1px solid var(--dv-border,#dfe5ef);border-radius:10px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);font-size:13px}.help{margin-top:5px;color:var(--dv-muted,#667085);font-size:9px;line-height:1.4}.switch{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;border:1px solid var(--dv-border,#dfe5ef);border-radius:10px;background:var(--dv-surface-soft,#f8faff);font-size:11px;font-weight:850}.switch input{width:20px;height:20px}.form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.notice{margin:0 0 14px;padding:12px 14px;border:1px solid color-mix(in srgb,var(--dv-brand-blue,#134a9a) 18%,var(--dv-border,#dfe5ef));border-radius:13px;background:var(--dv-brand-blue-soft,#eef4ff);color:var(--dv-accent-blue-text,#0d376f);font-size:11px;line-height:1.45}
 .scope-target{display:none}.scope-target.is-visible{display:block}
+.complementos{display:grid;gap:7px}.complemento-row{display:grid;grid-template-columns:24px minmax(0,1fr) 90px;gap:8px;align-items:center;padding:8px 9px;border:1px solid var(--dv-border,#dfe5ef);border-radius:10px;background:var(--dv-surface-soft,#f8faff)}.complemento-row input[type=checkbox]{width:18px;height:18px}.complemento-row strong{font-size:10px}.complemento-row span{display:block;margin-top:2px;color:var(--dv-muted,#667085);font-size:8px}.complemento-row input[type=number]{min-height:34px}
 @media(max-width:850px){.layout{grid-template-columns:1fr}.form-card{order:-1}}
 @media(max-width:560px){.page{padding:15px 10px}.grid{grid-template-columns:1fr}.field.full{grid-column:auto}.rule-top{flex-direction:column}.actions>*{flex:1}.form-actions{position:sticky;bottom:72px;padding:8px;border:1px solid var(--dv-border,#dfe5ef);border-radius:12px;background:var(--dv-surface,#fff)}.form-actions>*{flex:1}}
 </style>
@@ -32,12 +33,13 @@
 
   <div class="notice">
     Estas reglas son <strong>internas</strong>. El cliente nunca ve el costo ni el nombre del empaque.
+    Podés definir un empaque principal y sumar complementarios consumibles, por ejemplo sticker, tarjeta o cinta.
     En Preparación podés aceptar la sugerencia o elegir otro empaque manualmente.
   </div>
 
   <div class="layout">
     <section class="card">
-      <div class="card-head"><strong>Reglas activas</strong><span>Las reglas específicas de kit/producto tienen prioridad sobre las generales.</span></div>
+      <div class="card-head"><strong>Reglas activas</strong><span>Prioridad: kit/producto → categoría → general.</span></div>
       <div class="rules">
       {% for regla in reglas %}
         <article class="rule">
