@@ -857,9 +857,24 @@ class CatalogoPublicoTests(TestCase):
             response,
             'property="og:title" content="Piña sensorial | Doble V 3D"',
         )
+        social_url = (
+            "http://testserver"
+            + reverse(
+                "catalogo_producto_social_preview",
+                args=[self.producto.id],
+            )
+        )
         self.assertContains(
             response,
-            'property="og:image" content="https://example.com/qa-pina.jpg"',
+            f'property="og:image" content="{social_url}"',
+        )
+        self.assertContains(
+            response,
+            'property="og:image:type" content="image/jpeg"',
+        )
+        self.assertContains(
+            response,
+            'property="og:image:width" content="1200"',
         )
         self.assertContains(
             response,
@@ -930,3 +945,62 @@ class CatalogoPublicoTests(TestCase):
             b"fake-jpeg-social-preview",
         )
         collage_mock.assert_called_once()
+
+
+    @patch(
+        "productos.social_previews._imagen_social_jpeg",
+        return_value=b"fake-product-jpeg-social-preview",
+    )
+    def test_endpoint_social_de_producto_es_publico_y_devuelve_jpeg(
+        self,
+        imagen_mock,
+    ):
+        response = self.client.get(
+            reverse(
+                "catalogo_producto_social_preview",
+                args=[self.producto.id],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response["Content-Type"],
+            "image/jpeg",
+        )
+        self.assertNotIn(
+            "/gestion/login/",
+            response.get("Location", ""),
+        )
+        self.assertIn(
+            "public",
+            response["Cache-Control"],
+        )
+        self.assertEqual(
+            response.content,
+            b"fake-product-jpeg-social-preview",
+        )
+        imagen_mock.assert_called_once()
+
+    def test_rutas_sociales_no_redirigen_al_login(self):
+        with patch(
+            "productos.social_previews._imagen_social_jpeg",
+            return_value=b"producto",
+        ), patch(
+            "productos.social_previews._collage_jpeg",
+            return_value=b"kit",
+        ):
+            producto = self.client.get(
+                reverse(
+                    "catalogo_producto_social_preview",
+                    args=[self.producto.id],
+                )
+            )
+            kit = self.client.get(
+                reverse(
+                    "catalogo_kit_social_preview",
+                    args=[self.kit.id],
+                )
+            )
+
+        self.assertEqual(producto.status_code, 200)
+        self.assertEqual(kit.status_code, 200)
