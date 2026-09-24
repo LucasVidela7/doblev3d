@@ -280,7 +280,7 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
                 {% endif %}
             </div>
             {% if kit and kit.id %}
-                <a class="btn" style="margin-top:12px" href="{% url 'catalogo_kit_detalle' kit.id %}" target="_blank" rel="noopener">VER EN CATÁLOGO</a>
+                <a class="btn" style="margin-top:12px" href="{% url 'catalogo_kit_detalle' kit.slug %}" target="_blank" rel="noopener">VER EN CATÁLOGO</a>
             {% endif %}
         </div>
 
