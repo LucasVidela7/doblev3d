@@ -911,6 +911,7 @@ def reglas(request):
             "regla_editar": regla_editar,
             "insumos_empaque": insumos_form,
             "insumos_complementarios": insumos_complementarios,
+            "usar_complementarios_inicial": bool(complementos_edicion),
             "productos": Producto.objects.filter(
                 activo=True,
                 solo_produccion=False,
