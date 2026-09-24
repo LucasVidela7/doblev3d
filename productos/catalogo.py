@@ -12,6 +12,7 @@ from .image_environment import (
     ambientes_imagenes_lectura,
     clave_imagen_lectura,
     entorno_imagenes,
+    seleccionar_imagenes_lectura,
 )
 from .image_models import ProductoImagen
 from .models import ConfiguracionCatalogo, Producto
@@ -62,24 +63,21 @@ def _catalogo_publico(request, vista_catalogo):
         .order_by("tipo__nombre", "nombre")
     )
 
-    imagenes_por_producto = defaultdict(list)
-    imagenes_catalogo = list(
+    candidatas_por_producto = defaultdict(list)
+    for imagen in (
         ProductoImagen.objects
         .filter(
             producto_id__in=[producto.id for producto in productos],
             ambiente__in=ambientes_imagenes_lectura(),
         )
         .order_by("producto_id", "orden", "id")
-    )
-    imagenes_catalogo.sort(
-        key=lambda imagen: (
-            imagen.producto_id,
-            *clave_imagen_lectura(imagen),
-        )
-    )
-    for imagen in imagenes_catalogo:
-        if len(imagenes_por_producto[imagen.producto_id]) < 2:
-            imagenes_por_producto[imagen.producto_id].append(imagen)
+    ):
+        candidatas_por_producto[imagen.producto_id].append(imagen)
+
+    imagenes_por_producto = {
+        producto_id: seleccionar_imagenes_lectura(imagenes, limite=2)
+        for producto_id, imagenes in candidatas_por_producto.items()
+    }
 
     for producto in productos:
         producto.catalogo_imagenes_preview = (
@@ -289,8 +287,7 @@ def catalogo_producto_detalle(request, producto_id):
         )
         .order_by("orden", "id")
     )
-    imagenes.sort(key=clave_imagen_lectura)
-    imagenes = imagenes[:2]
+    imagenes = seleccionar_imagenes_lectura(imagenes, limite=2)
     if (
         not config_catalogo.mostrar_productos_sin_foto
         and not imagenes
