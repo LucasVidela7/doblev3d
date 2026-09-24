@@ -467,7 +467,16 @@ class CatalogRotatorMiddleware:
         view_name = match.view_name if match else ''
 
         if (
-            view_name not in {'catalogo', 'catalogo_legacy', 'catalogo_productos', 'catalogo_categoria', 'catalogo_kits', 'catalogo_kit_detalle'}
+            view_name not in {
+                'catalogo',
+                'catalogo_legacy',
+                'catalogo_productos',
+                'catalogo_categoria',
+                'catalogo_categoria_productos',
+                'catalogo_categoria_kits',
+                'catalogo_kits',
+                'catalogo_kit_detalle',
+            }
             or response.status_code != 200
             or getattr(response, 'streaming', False)
             or 'text/html' not in response.get('Content-Type', '')
