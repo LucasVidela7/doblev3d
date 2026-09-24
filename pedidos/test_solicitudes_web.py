@@ -10,7 +10,12 @@ from django.utils import timezone
 from clientes.models import Cliente
 from costos.models import ConfiguracionCostos
 from kits.models import Kit, KitComponente
-from pedidos.models import Presupuesto, SolicitudWeb
+from pedidos.models import (
+    Presupuesto,
+    SolicitudWeb,
+    SolicitudWebItem,
+    SolicitudWebKitProducto,
+)
 from productos.models import ConfiguracionCatalogo, Producto, TipoProducto
 from productos.whatsapp import renderizar_mensaje_solicitud
 from productos.image_models import ProductoImagen
@@ -101,6 +106,124 @@ class SolicitudesWebGestionTests(TestCase):
         self.assertContains(
             detail,
             "dv-commercial-page dv-commercial-detail dv-solicitudes-page",
+        )
+
+    def test_adicionales_se_ven_en_solicitud_y_pedido_publico_y_gestion(self):
+        kit = Kit.objects.create(
+            nombre="Kit con adicionales visibles",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.producto.tipo,
+            cantidad_productos=1,
+            precio=Decimal("25000"),
+            activo=True,
+        )
+        solicitud = SolicitudWeb.objects.create(
+            nombre="Cliente adicionales",
+            telefono="+54 11 4777 8899",
+            email="extras@example.com",
+            estado="NUEVA",
+        )
+        item = SolicitudWebItem.objects.create(
+            solicitud=solicitud,
+            tipo_item="KIT",
+            kit=kit,
+            cantidad=2,
+            nombre_snapshot=kit.nombre,
+            precio_base_unitario=Decimal("25000"),
+            adicional_unitario=Decimal("2000"),
+            adicional_color_unitario=Decimal("500"),
+            precio_unitario=Decimal("26000"),
+            modo_color="ESPECIFICO",
+            color_elegido="Acqua",
+            kit_snapshot={
+                "nombre": kit.nombre,
+                "precio_base": "25000",
+                "precio_unitario_vendido": "26000",
+            },
+        )
+        SolicitudWebKitProducto.objects.create(
+            item=item,
+            producto=self.producto,
+            cantidad=2,
+        )
+
+        gestion_solicitud = self.client.get(
+            reverse(
+                "pedidos:solicitud_web_detalle",
+                args=[solicitud.id],
+            )
+        )
+        publica_solicitud = self.client.get(
+            reverse(
+                "solicitud_publica",
+                args=[solicitud.public_token],
+            )
+        )
+
+        for respuesta in (
+            gestion_solicitud,
+            publica_solicitud,
+        ):
+            self.assertEqual(respuesta.status_code, 200)
+            self.assertContains(respuesta, "1.500")
+            self.assertContains(respuesta, "500")
+            self.assertContains(respuesta, "4.000")
+
+        convertir = self.client.post(
+            reverse(
+                "pedidos:solicitud_web_convertir",
+                args=[solicitud.id],
+            )
+        )
+        self.assertEqual(convertir.status_code, 302)
+        solicitud.refresh_from_db()
+        presupuesto = solicitud.presupuesto_generado
+
+        aprobar = self.client.post(
+            reverse(
+                "pedidos:presupuesto_aprobar",
+                args=[presupuesto.id],
+            )
+        )
+        self.assertEqual(aprobar.status_code, 302)
+        presupuesto.refresh_from_db()
+        pedido = presupuesto.pedido_generado
+
+        gestion_pedido = self.client.get(
+            reverse(
+                "pedidos:detalle",
+                args=[pedido.id],
+            )
+        )
+        publico_pedido = self.client.get(
+            reverse(
+                "pedido_publico",
+                args=[pedido.public_token],
+            )
+        )
+
+        for respuesta in (
+            gestion_pedido,
+            publico_pedido,
+        ):
+            self.assertEqual(respuesta.status_code, 200)
+            self.assertContains(respuesta, "1.500")
+            self.assertContains(respuesta, "500")
+            self.assertContains(respuesta, "4.000")
+            self.assertContains(respuesta, "1.000")
+
+        detalle_presupuesto = presupuesto.detalles.get()
+        self.assertEqual(
+            detalle_presupuesto.kit_snapshot[
+                "adicional_opciones_unitario"
+            ],
+            "1500",
+        )
+        self.assertEqual(
+            detalle_presupuesto.kit_snapshot[
+                "adicional_color_unitario"
+            ],
+            "500",
         )
 
     def test_whatsapp_respuesta_usa_solo_primer_nombre(self):
