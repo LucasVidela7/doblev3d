@@ -66,6 +66,57 @@ body{margin:0;padding-bottom:110px;background:var(--bg);color:var(--text);font-f
 .cfg-label{display:flex;justify-content:space-between;gap:10px;margin:13px 0 7px;color:color-mix(in srgb,var(--section-color,var(--text)) 44%,var(--text));font-size:10px;font-weight:900}.cfg-label span:last-child{color:var(--muted);font-weight:700}
 .cfg-input,.cfg-textarea{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);font:inherit;font-size:13px;outline:none}.cfg-input{min-height:42px;padding:8px 10px}.cfg-textarea{min-height:92px;resize:vertical;padding:10px 11px;line-height:1.45}.cfg-section .cfg-input:focus,.cfg-section .cfg-textarea:focus,.cfg-section .metric-select:focus{border-color:color-mix(in srgb,var(--section-color) 58%,var(--line));box-shadow:0 0 0 3px color-mix(in srgb,var(--section-color) 13%,transparent)}
 .cfg-note{margin-top:9px;padding:9px 10px;border-radius:10px;background:var(--surface);color:var(--muted);font-size:10px;line-height:1.5}
+.cfg-color-manager{display:grid;gap:12px;margin-top:10px}
+.cfg-color-grid{display:flex;flex-wrap:wrap;gap:10px}
+.cfg-color-swatch{
+    position:relative;width:44px;height:44px;display:grid;place-items:center;padding:0;
+    border:2px solid color-mix(in srgb,var(--line) 82%,transparent);border-radius:999px;
+    background:var(--cfg-color,#d8dde5);box-shadow:0 2px 8px rgba(0,0,0,.08);
+    cursor:pointer;transition:.14s
+}
+.cfg-color-swatch:hover{transform:translateY(-1px);border-color:color-mix(in srgb,var(--blue) 48%,var(--line))}
+.cfg-color-swatch.is-selected{border-color:var(--blue);box-shadow:0 0 0 4px color-mix(in srgb,var(--blue) 13%,transparent)}
+.cfg-color-swatch::after{
+    content:"✓";display:none;align-items:center;justify-content:center;width:19px;height:19px;
+    border-radius:999px;background:rgba(17,24,39,.72);color:#fff;font-size:11px;font-weight:950
+}
+.cfg-color-swatch.is-selected::after{display:flex}
+.cfg-color-swatch.is-light::after{background:rgba(17,24,39,.72);color:#fff}
+.cfg-color-custom{
+    display:grid;grid-template-columns:54px minmax(150px,1fr) minmax(150px,210px) auto;gap:9px;align-items:end;
+    padding:11px;border:1px dashed color-mix(in srgb,var(--section-color) 28%,var(--line));
+    border-radius:12px;background:color-mix(in srgb,var(--section-color) 4%,var(--soft))
+}
+.cfg-color-picker{
+    width:54px;height:42px;padding:3px;border:1px solid var(--line);border-radius:10px;
+    background:var(--surface);cursor:pointer
+}
+.cfg-color-name .cfg-label,.cfg-color-hex .cfg-label{margin-top:0}
+.cfg-color-add{min-height:42px;padding:0 13px;border:1px solid var(--blue);border-radius:10px;background:var(--blue);color:#fff;font-size:10px;font-weight:900;cursor:pointer}
+.cfg-color-custom-list{display:grid;gap:8px}
+.cfg-color-custom-chip{
+    display:grid;grid-template-columns:44px minmax(150px,1fr) auto 30px;gap:9px;align-items:center;
+    padding:9px;border:1px solid var(--line);border-radius:12px;background:var(--surface)
+}
+.cfg-color-custom-chip .cfg-color-swatch{width:38px;height:38px;cursor:default}
+.cfg-color-custom-name-input{min-height:38px}
+.cfg-color-code{color:var(--muted);font:800 10px monospace;white-space:nowrap}
+.cfg-color-remove{
+    width:28px;height:28px;padding:0;border:1px solid var(--line);border-radius:9px;
+    background:var(--soft);color:var(--text);font-size:15px;font-weight:900;line-height:26px;cursor:pointer
+}
+.cfg-color-remove:hover{border-color:#d08a8a;color:#a63d3d}
+@media(max-width:760px){
+    .cfg-color-custom{grid-template-columns:54px minmax(0,1fr)}
+    .cfg-color-custom .cfg-color-name,.cfg-color-custom .cfg-color-hex{min-width:0}
+    .cfg-color-custom .cfg-color-add{grid-column:1/-1}
+    .cfg-color-custom-chip{grid-template-columns:40px minmax(0,1fr) 28px}
+    .cfg-color-custom-chip .cfg-color-code{grid-column:2/3}
+    .cfg-color-custom-chip .cfg-color-remove{grid-column:3;grid-row:1/3}
+}
+.cfg-color-count{color:var(--muted);font-size:10px;font-weight:800}
+.cfg-color-error{display:none;color:#a63d3d;font-size:10px;font-weight:900}
+.cfg-color-error.is-visible{display:block}
 .cfg-status{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:0 8px;border-radius:999px;background:var(--ok-bg);color:var(--ok);font-size:9px;font-weight:900}.cfg-status.warn{background:var(--warn-bg);color:var(--warn)}
 .cfg-fold{border:1px solid var(--line);border-radius:14px;background:var(--soft);overflow:hidden}.cfg-fold+.cfg-fold{margin-top:10px}.cfg-fold>summary{list-style:none;cursor:pointer;padding:14px 15px;font-size:12px;font-weight:900}.cfg-fold>summary::-webkit-details-marker{display:none}.cfg-fold>summary:after{content:"＋";float:right;color:var(--muted)}.cfg-fold[open]>summary:after{content:"−"}.cfg-fold-body{padding:0 12px 12px}
 .cfg-message-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.cfg-message{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}.cfg-message.wide{grid-column:1/-1}.cfg-message-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.cfg-message h3{margin:0;font-size:12px}.cfg-message p{margin:4px 0 0;color:var(--muted);font-size:10px;line-height:1.4}.cfg-reset{border:0;background:transparent;color:var(--blue);font-size:9px;font-weight:900;cursor:pointer;padding:2px}
@@ -102,7 +153,7 @@ html[data-dv-theme="dark"] .metric-kpi.success small{
 html[data-dv-theme="dark"] .metric-kpi.success strong{
     color:var(--ok);
 }
-html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc8}html[data-dv-theme="dark"] .cfg-device.is-blocked{background:#3b2024;color:#ffc4c4}
+html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc8}html[data-dv-theme="dark"] .cfg-device.is-blocked{background:#3b2024;color:#ffc4c4}html[data-dv-theme="dark"] .cfg-color-custom{background:color-mix(in srgb,var(--section-color) 8%,var(--surface));border-color:color-mix(in srgb,var(--section-color) 28%,var(--line))}html[data-dv-theme="dark"] .cfg-color-picker{background:var(--surface);border-color:var(--line)}html[data-dv-theme="dark"] .cfg-color-remove{border-color:var(--surface);background:#111827}
 html[data-dv-theme="dark"] [data-config-tab="tienda"],html[data-dv-theme="dark"] #tienda{--section-color:#6aa6ff}
 html[data-dv-theme="dark"] [data-config-tab="whatsapp"],html[data-dv-theme="dark"] #whatsapp{--section-color:#69cf92}
 html[data-dv-theme="dark"] [data-config-tab="avisos"],html[data-dv-theme="dark"] #avisos{--section-color:#f0bd57}
@@ -202,9 +253,78 @@ html[data-dv-theme="dark"] .cfg-nav a.is-active .cfg-nav-copy small{color:#d9e2e
 </div>
 
 <div class="cfg-box full">
-<label class="cfg-label" for="colores_disponibles"><span>COLORES DISPONIBLES PARA PERSONALIZACIÓN</span><span>uno por línea</span></label>
-<textarea class="cfg-textarea" id="colores_disponibles" name="colores_disponibles" maxlength="2000" placeholder="Ejemplo:&#10;Rojo&#10;Azul&#10;Verde">{{ config.colores_disponibles }}</textarea>
-<div class="cfg-note">Sólo aparecen en productos y kits que tengan activada “Permite elegir color”. La opción predeterminada sigue siendo colores surtidos según disponibilidad.</div>
+<div class="cfg-box-title">Colores disponibles para personalización</div>
+<div class="cfg-box-copy">Activá los colores que querés ofrecer en el catálogo. Se muestran visualmente como círculos, igual que en la tienda.</div>
+
+<textarea id="colores_disponibles" name="colores_disponibles" maxlength="2000" hidden>{{ config.colores_disponibles }}</textarea>
+
+<div class="cfg-color-manager" id="cfgColorManager">
+    <div>
+        <label class="cfg-label"><span>COLORES PRECARGADOS</span><span id="cfgColorCount"></span></label>
+        <div class="cfg-color-grid" id="cfgColorPresetGrid" aria-label="Colores precargados">
+            {% for color in colores_predefinidos %}
+            <button
+                type="button"
+                class="cfg-color-swatch{% if color.seleccionado %} is-selected{% endif %}"
+                style="--cfg-color:{{ color.hex }}"
+                data-cfg-color-preset
+                data-color-value="{{ color.nombre }}"
+                data-color-hex="{{ color.hex }}"
+                aria-pressed="{% if color.seleccionado %}true{% else %}false{% endif %}"
+                aria-label="{{ color.nombre }}"
+                title="{{ color.nombre }}"
+            ></button>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="cfg-color-custom">
+        <input class="cfg-color-picker" id="cfgColorPicker" type="color" value="#63D8E5" aria-label="Elegir color personalizado">
+        <div class="cfg-color-name">
+            <label class="cfg-label" for="cfgColorName"><span>NOMBRE</span><span>visible al cliente</span></label>
+            <input class="cfg-input" id="cfgColorName" type="text" maxlength="60" placeholder="Ej. Verde manzana" autocomplete="off">
+        </div>
+        <div class="cfg-color-hex">
+            <label class="cfg-label" for="cfgColorHex"><span>CÓDIGO HEXA</span><span>#RRGGBB</span></label>
+            <input class="cfg-input" id="cfgColorHex" type="text" inputmode="text" maxlength="7" value="#63D8E5" placeholder="#63D8E5" autocomplete="off">
+        </div>
+        <button class="cfg-color-add" id="cfgColorAdd" type="button">AGREGAR COLOR</button>
+    </div>
+    <div class="cfg-color-error" id="cfgColorError">Ingresá un código hexadecimal válido, por ejemplo #63D8E5.</div>
+
+    <div>
+        <label class="cfg-label"><span>COLORES PERSONALIZADOS</span><span>podés editar el nombre</span></label>
+        <div class="cfg-color-custom-list" id="cfgColorCustomList">
+            {% for color in colores_personalizados %}
+            <div
+                class="cfg-color-custom-chip"
+                data-cfg-custom-name="{{ color.nombre }}"
+                data-cfg-custom-hex="{{ color.hex }}"
+            >
+                <span
+                    class="cfg-color-swatch is-selected"
+                    style="--cfg-color:{{ color.hex }}"
+                    title="{{ color.nombre }}"
+                    aria-label="{{ color.nombre }}"
+                ></span>
+                <input
+                    class="cfg-input cfg-color-custom-name-input"
+                    type="text"
+                    maxlength="60"
+                    value="{{ color.nombre }}"
+                    data-cfg-color-name
+                    aria-label="Nombre del color {{ color.hex }}"
+                >
+                <span class="cfg-color-code">{{ color.hex }}</span>
+                <button class="cfg-color-remove" type="button" data-cfg-color-remove aria-label="Quitar {{ color.nombre }}">×</button>
+            </div>
+            {% empty %}
+            <span class="cfg-color-count" data-cfg-color-empty>Sin colores personalizados.</span>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<div class="cfg-note">Los círculos seleccionados son los que aparecen en productos y kits con “Permite elegir color”. Los códigos HEX personalizados también se mostrarán con su color real en el catálogo. La opción predeterminada continúa siendo colores surtidos según disponibilidad.</div>
 </div>
 
 <div class="cfg-box">
@@ -638,6 +758,239 @@ document.querySelectorAll("[data-counter]").forEach(function(campo){
 actualizarCampo(campo);
 campo.addEventListener("input",function(){actualizarCampo(campo);});
 });
+
+const colorField=document.getElementById("colores_disponibles");
+const colorPresetButtons=Array.from(document.querySelectorAll("[data-cfg-color-preset]"));
+const colorCustomList=document.getElementById("cfgColorCustomList");
+const colorPicker=document.getElementById("cfgColorPicker");
+const colorName=document.getElementById("cfgColorName");
+const colorHex=document.getElementById("cfgColorHex");
+const colorAdd=document.getElementById("cfgColorAdd");
+const colorError=document.getElementById("cfgColorError");
+const colorCount=document.getElementById("cfgColorCount");
+
+function colorKey(value){
+return String(value||"").trim().toLocaleLowerCase("es-AR");
+}
+function normalizeHex(value){
+const clean=String(value||"").trim().replace(/^#/,"");
+return /^[0-9a-fA-F]{6}$/.test(clean)?"#"+clean.toUpperCase():"";
+}
+function isLightHex(value){
+const hex=normalizeHex(value);
+if(!hex)return false;
+const r=parseInt(hex.slice(1,3),16);
+const g=parseInt(hex.slice(3,5),16);
+const b=parseInt(hex.slice(5,7),16);
+return ((r*299+g*587+b*114)/1000)>180;
+}
+function cleanColorName(value){
+return String(value||"").replace(/[|\\r\\n]+/g," ").trim().slice(0,60);
+}
+function currentCustomEntries(){
+return Array.from(colorCustomList?.querySelectorAll("[data-cfg-custom-hex]")||[])
+.map(function(node){
+const input=node.querySelector("[data-cfg-color-name]");
+const hex=normalizeHex(node.dataset.cfgCustomHex||"");
+const name=cleanColorName(input?.value||node.dataset.cfgCustomName||"")||hex;
+return {node:node,name:name,hex:hex};
+})
+.filter(function(entry){return Boolean(entry.hex);});
+}
+function selectedPresetValues(){
+return colorPresetButtons
+.filter(function(btn){return btn.classList.contains("is-selected");})
+.map(function(btn){return String(btn.dataset.colorValue||"").trim();})
+.filter(Boolean);
+}
+function syncColorField(){
+if(!colorField)return;
+const values=[];
+const seen=new Set();
+
+selectedPresetValues().forEach(function(value){
+const key=colorKey(value);
+if(!key||seen.has(key))return;
+seen.add(key);
+values.push(value);
+});
+
+currentCustomEntries().forEach(function(entry){
+const key=colorKey(entry.name);
+if(!key||seen.has(key))return;
+seen.add(key);
+values.push(
+colorKey(entry.name)===colorKey(entry.hex)
+?entry.hex
+:entry.name+"|"+entry.hex
+);
+entry.node.dataset.cfgCustomName=entry.name;
+});
+
+colorField.value=values.join("\n");
+if(colorCount){colorCount.textContent=values.length+" activos";}
+}
+function syncPresetButton(btn,selected){
+btn.classList.toggle("is-selected",selected);
+btn.setAttribute("aria-pressed",selected?"true":"false");
+btn.classList.toggle("is-light",isLightHex(btn.dataset.colorHex||""));
+}
+function renderEmptyCustom(){
+if(!colorCustomList)return;
+const hasCustom=Boolean(colorCustomList.querySelector("[data-cfg-custom-hex]"));
+const existing=colorCustomList.querySelector("[data-cfg-color-empty]");
+if(hasCustom&&existing)existing.remove();
+if(!hasCustom&&!existing){
+const empty=document.createElement("span");
+empty.className="cfg-color-count";
+empty.dataset.cfgColorEmpty="";
+empty.textContent="Sin colores personalizados.";
+colorCustomList.appendChild(empty);
+}
+}
+function syncCustomChip(chip){
+const input=chip.querySelector("[data-cfg-color-name]");
+const swatch=chip.querySelector(".cfg-color-swatch");
+const remove=chip.querySelector("[data-cfg-color-remove]");
+const hex=normalizeHex(chip.dataset.cfgCustomHex||"");
+const name=cleanColorName(input?.value||chip.dataset.cfgCustomName||"")||hex;
+chip.dataset.cfgCustomName=name;
+if(swatch){
+swatch.title=name;
+swatch.setAttribute("aria-label",name);
+swatch.style.setProperty("--cfg-color",hex);
+swatch.classList.toggle("is-light",isLightHex(hex));
+}
+if(remove){remove.setAttribute("aria-label","Quitar "+name);}
+}
+function bindCustomChip(chip){
+const input=chip.querySelector("[data-cfg-color-name]");
+const remove=chip.querySelector("[data-cfg-color-remove]");
+input?.addEventListener("input",function(){
+syncCustomChip(chip);
+syncColorField();
+});
+input?.addEventListener("change",function(){
+const clean=cleanColorName(input.value)||normalizeHex(chip.dataset.cfgCustomHex||"");
+input.value=clean;
+syncCustomChip(chip);
+syncColorField();
+});
+remove?.addEventListener("click",function(){
+chip.remove();
+renderEmptyCustom();
+syncColorField();
+});
+syncCustomChip(chip);
+}
+function buildCustomChip(name,hex){
+const chip=document.createElement("div");
+chip.className="cfg-color-custom-chip";
+chip.dataset.cfgCustomName=name;
+chip.dataset.cfgCustomHex=hex;
+
+const swatch=document.createElement("span");
+swatch.className="cfg-color-swatch is-selected"+(isLightHex(hex)?" is-light":"");
+swatch.style.setProperty("--cfg-color",hex);
+
+const input=document.createElement("input");
+input.className="cfg-input cfg-color-custom-name-input";
+input.type="text";
+input.maxLength=60;
+input.value=name;
+input.dataset.cfgColorName="";
+input.setAttribute("aria-label","Nombre del color "+hex);
+
+const code=document.createElement("span");
+code.className="cfg-color-code";
+code.textContent=hex;
+
+const remove=document.createElement("button");
+remove.className="cfg-color-remove";
+remove.type="button";
+remove.dataset.cfgColorRemove="";
+remove.textContent="×";
+
+chip.appendChild(swatch);
+chip.appendChild(input);
+chip.appendChild(code);
+chip.appendChild(remove);
+bindCustomChip(chip);
+return chip;
+}
+function addCustomColor(nameValue,value){
+if(!colorCustomList)return;
+const hex=normalizeHex(value);
+if(!hex){
+colorError?.classList.add("is-visible");
+return;
+}
+colorError?.classList.remove("is-visible");
+
+const existingPreset=colorPresetButtons.find(function(btn){
+return String(btn.dataset.colorHex||"").toUpperCase()===hex;
+});
+if(existingPreset){
+syncPresetButton(existingPreset,true);
+syncColorField();
+return;
+}
+
+const name=cleanColorName(nameValue)||hex;
+const existing=currentCustomEntries().find(function(entry){
+return entry.hex===hex;
+});
+if(existing){
+const input=existing.node.querySelector("[data-cfg-color-name]");
+if(input){input.value=name;}
+existing.node.dataset.cfgCustomName=name;
+syncCustomChip(existing.node);
+syncColorField();
+return;
+}
+
+colorCustomList.querySelector("[data-cfg-color-empty]")?.remove();
+colorCustomList.appendChild(buildCustomChip(name,hex));
+syncColorField();
+if(colorName){colorName.value="";}
+}
+document.querySelectorAll("[data-cfg-custom-hex]").forEach(bindCustomChip);
+colorPresetButtons.forEach(function(btn){
+syncPresetButton(btn,btn.classList.contains("is-selected"));
+btn.addEventListener("click",function(){
+syncPresetButton(btn,!btn.classList.contains("is-selected"));
+syncColorField();
+});
+});
+colorPicker?.addEventListener("input",function(){
+const hex=normalizeHex(colorPicker.value);
+if(colorHex&&hex)colorHex.value=hex;
+colorError?.classList.remove("is-visible");
+});
+colorHex?.addEventListener("input",function(){
+const hex=normalizeHex(colorHex.value);
+if(hex&&colorPicker)colorPicker.value=hex;
+colorError?.classList.remove("is-visible");
+});
+colorAdd?.addEventListener("click",function(){
+addCustomColor(
+colorName?.value||"",
+colorHex?.value||colorPicker?.value||""
+);
+});
+[colorName,colorHex].forEach(function(input){
+input?.addEventListener("keydown",function(event){
+if(event.key==="Enter"){
+event.preventDefault();
+addCustomColor(
+colorName?.value||"",
+colorHex?.value||colorPicker?.value||""
+);
+}
+});
+});
+renderEmptyCustom();
+syncColorField();
 const pagoAlias=document.getElementById("whatsapp_pago_alias");
 const pagoTitular=document.getElementById("whatsapp_pago_titular");
 const pagoPreview=document.getElementById("dvPaymentPreview");

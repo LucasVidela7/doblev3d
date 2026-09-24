@@ -510,7 +510,7 @@ class CatalogoPublicoTests(TestCase):
 
     def test_producto_con_color_muestra_surtido_y_eleccion(self):
         config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
-        config.colores_disponibles = "Rojo\nAzul"
+        config.colores_disponibles = "Rojo\nAzul\n#12AB34"
         config.save(update_fields=["colores_disponibles"])
         self.producto.permite_elegir_color = True
         self.producto.save(update_fields=["permite_elegir_color"])
@@ -530,12 +530,44 @@ class CatalogoPublicoTests(TestCase):
         self.assertContains(response, "mayor tiempo de preparación")
         self.assertContains(response, 'data-dv-color-swatch')
         self.assertContains(response, 'data-color-value="Rojo"')
+        self.assertContains(response, 'data-color-hex="#EF1111"')
         self.assertContains(response, 'data-color-value="Azul"')
+        self.assertContains(response, 'data-color-hex="#0B66C3"')
+        self.assertContains(response, 'data-color-value="#12AB34"')
+        self.assertContains(response, 'data-color-hex="#12AB34"')
         self.assertContains(response, 'data-dv-color-current')
         self.assertNotContains(response, '<select id="dv-product-color-')
 
         listado = self.client.get(reverse("catalogo_productos"))
         self.assertContains(listado, "Color a elección")
+
+    def test_producto_muestra_nombre_de_color_personalizado_y_su_hex(self):
+        config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
+        config.colores_disponibles = "Verde manzana|#12AB34"
+        config.save(update_fields=["colores_disponibles"])
+        self.producto.permite_elegir_color = True
+        self.producto.save(update_fields=["permite_elegir_color"])
+
+        response = self.client.get(
+            reverse(
+                "catalogo_producto_detalle",
+                args=[self.producto.id],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            'data-color-value="Verde manzana"',
+        )
+        self.assertContains(
+            response,
+            'data-color-hex="#12AB34"',
+        )
+        self.assertContains(
+            response,
+            'aria-label="Verde manzana"',
+        )
 
     def test_kit_libre_muestra_adicional_por_mismo_color(self):
         config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)

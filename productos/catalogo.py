@@ -302,7 +302,7 @@ def catalogo_producto_detalle(request, producto_id):
                 config_catalogo.mensaje_plazo_entrega
             ),
             "colores_disponibles": (
-                config_catalogo.colores_disponibles_lista
+                config_catalogo.colores_disponibles_detalle
             ),
         },
     )
@@ -459,7 +459,7 @@ def catalogo_kit_detalle(request, kit_id):
                 config_catalogo.mensaje_plazo_entrega
             ),
             "colores_disponibles": (
-                config_catalogo.colores_disponibles_lista
+                config_catalogo.colores_disponibles_detalle
             ),
             "adicional_color_kit": adicional_color_kit,
         },

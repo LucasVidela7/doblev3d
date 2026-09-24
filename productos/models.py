@@ -1,10 +1,157 @@
 from decimal import Decimal, ROUND_CEILING
 import re
+import unicodedata
 
 from django.core.cache import cache
 from django.db import models
 
 from costos.models import ConfiguracionCostos
+
+
+COLORES_CATALOGO_PREDEFINIDOS = (
+    ("Blanco", "#FFFFFF"),
+    ("Negro", "#000000"),
+    ("Rojo", "#EF1111"),
+    ("Azul", "#0B66C3"),
+    ("Celeste", "#67D3EA"),
+    ("Acqua", "#63D8E5"),
+    ("Turquesa", "#22C7C9"),
+    ("Verde", "#00963F"),
+    ("Amarillo", "#FFE000"),
+    ("Naranja", "#FF8A00"),
+    ("Rosa", "#F05CAB"),
+    ("Fucsia", "#E83E8C"),
+    ("Violeta", "#7C3AED"),
+    ("Lila", "#B89AF3"),
+    ("Gris", "#9B9B9B"),
+    ("Plateado", "#B8BCC2"),
+    ("Beige", "#D7B98B"),
+    ("Marrón", "#A96438"),
+    ("Bordó", "#7F1D1D"),
+    ("Dorado", "#D4A017"),
+)
+
+
+def _clave_color_catalogo(valor):
+    return (
+        unicodedata.normalize(
+            "NFD",
+            str(valor or "").strip().casefold(),
+        )
+        .encode("ascii", "ignore")
+        .decode("ascii")
+    )
+
+
+_COLORES_CATALOGO_POR_NOMBRE = {
+    _clave_color_catalogo(nombre): (nombre, hexa)
+    for nombre, hexa in COLORES_CATALOGO_PREDEFINIDOS
+}
+
+
+def _normalizar_hex_color(valor):
+    valor = str(valor or "").strip()
+    if re.fullmatch(r"#?[0-9A-Fa-f]{6}", valor):
+        return "#" + valor.lstrip("#").upper()
+    return ""
+
+
+def _nombre_color_personalizado(valor):
+    return re.sub(r"[|\\r\\n]+", " ", str(valor or "")).strip()[:60]
+
+
+def normalizar_color_catalogo(valor):
+    """Canoniza presets, HEX y colores personalizados con nombre + HEX."""
+    valor = str(valor or "").strip()
+    if not valor:
+        return ""
+
+    if "|" in valor:
+        nombre, posible_hex = valor.rsplit("|", 1)
+        hexa = _normalizar_hex_color(posible_hex)
+        if hexa:
+            nombre = _nombre_color_personalizado(nombre) or hexa
+            return f"{nombre}|{hexa}"
+
+    hexa = _normalizar_hex_color(valor)
+    if hexa:
+        return hexa
+
+    predefinido = _COLORES_CATALOGO_POR_NOMBRE.get(
+        _clave_color_catalogo(valor)
+    )
+    if predefinido:
+        return predefinido[0]
+
+    # Conserva nombres históricos que ya pudieran existir.
+    return _nombre_color_personalizado(valor)
+
+
+def detalle_color_catalogo(valor):
+    """Devuelve valor visible, nombre y HEX de un color configurado."""
+    normalizado = normalizar_color_catalogo(valor)
+    if not normalizado:
+        return {
+            "valor": "",
+            "nombre": "",
+            "hex": "#D8DDE5",
+            "personalizado": False,
+            "predefinido": False,
+            "almacenado": "",
+        }
+
+    if "|" in normalizado:
+        nombre, hexa = normalizado.rsplit("|", 1)
+        return {
+            "valor": nombre,
+            "nombre": nombre,
+            "hex": hexa,
+            "personalizado": True,
+            "predefinido": False,
+            "almacenado": normalizado,
+        }
+
+    if re.fullmatch(r"#[0-9A-F]{6}", normalizado):
+        return {
+            "valor": normalizado,
+            "nombre": normalizado,
+            "hex": normalizado,
+            "personalizado": True,
+            "predefinido": False,
+            "almacenado": normalizado,
+        }
+
+    predefinido = _COLORES_CATALOGO_POR_NOMBRE.get(
+        _clave_color_catalogo(normalizado)
+    )
+    if predefinido:
+        nombre, hexa = predefinido
+        return {
+            "valor": nombre,
+            "nombre": nombre,
+            "hex": hexa,
+            "personalizado": False,
+            "predefinido": True,
+            "almacenado": nombre,
+        }
+
+    return {
+        "valor": normalizado,
+        "nombre": normalizado,
+        "hex": "#D8DDE5",
+        "personalizado": False,
+        "predefinido": False,
+        "almacenado": normalizado,
+    }
+
+
+def nombre_color_catalogo(valor):
+    return detalle_color_catalogo(valor)["nombre"]
+
+
+def color_hex_catalogo(valor):
+    """Devuelve un color CSS seguro para la muestra visual."""
+    return detalle_color_catalogo(valor)["hex"]
 
 
 class ConfiguracionCatalogo(models.Model):
@@ -74,12 +221,19 @@ class ConfiguracionCatalogo(models.Model):
 
     @property
     def colores_disponibles_lista(self):
+        return [
+            color["valor"]
+            for color in self.colores_disponibles_detalle
+        ]
+
+    @property
+    def colores_disponibles_detalle(self):
         vistos = set()
         colores = []
         for linea in (self.colores_disponibles or "").splitlines():
-            color = linea.strip()
-            clave = color.casefold()
-            if color and clave not in vistos:
+            color = detalle_color_catalogo(linea)
+            clave = _clave_color_catalogo(color["valor"])
+            if color["valor"] and clave not in vistos:
                 vistos.add(clave)
                 colores.append(color)
         return colores

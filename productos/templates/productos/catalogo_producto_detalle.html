@@ -114,11 +114,12 @@ body{margin:0;padding-bottom:156px;background:radial-gradient(circle at top righ
           class="dv-color-swatch"
           type="button"
           data-dv-color-swatch
-          data-color-value="{{ color }}"
+          data-color-value="{{ color.valor }}"
+          data-color-hex="{{ color.hex }}"
           role="radio"
           aria-checked="false"
-          aria-label="{{ color }}"
-          title="{{ color }}"
+          aria-label="{{ color.nombre }}"
+          title="{{ color.nombre }}"
         ><span class="dv-color-swatch__check" aria-hidden="true">✓</span></button>
         {% endfor %}
       </div>

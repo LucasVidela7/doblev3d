@@ -25,7 +25,14 @@ from pedidos.models import (
 from pedidos.impresiones_stock import obtener_impresiones_por_producto
 from produccion import views as produccion_views
 from produccion.models import Impresora, Produccion
-from productos.models import ConfiguracionCatalogo, Producto, SolicitudArrepentimiento
+from productos.models import (
+    COLORES_CATALOGO_PREDEFINIDOS,
+    ConfiguracionCatalogo,
+    Producto,
+    SolicitudArrepentimiento,
+    nombre_color_catalogo,
+    normalizar_color_catalogo,
+)
 from productos.miniaturas import asignar_miniaturas_productos
 
 
@@ -1031,6 +1038,19 @@ def configuracion(request):
                 request.POST.get(campo)
                 or ""
             ).strip()[:limite]
+
+            if campo == "colores_disponibles":
+                colores = []
+                vistos = set()
+                for linea in valor.splitlines():
+                    color = normalizar_color_catalogo(linea)
+                    nombre = nombre_color_catalogo(color)
+                    clave = nombre.casefold()
+                    if color and nombre and clave not in vistos:
+                        vistos.add(clave)
+                        colores.append(color)
+                valor = "\n".join(colores)[:limite]
+
             setattr(config, campo, valor)
             actualizados.append(campo)
 
@@ -1136,11 +1156,33 @@ def configuracion(request):
 
     webpush_habilitado = _webpush_habilitado()
 
+    colores_actuales = config.colores_disponibles_detalle
+    claves_predefinidas_activas = {
+        color["nombre"].casefold()
+        for color in colores_actuales
+        if color.get("predefinido")
+    }
+    colores_predefinidos = [
+        {
+            "nombre": nombre,
+            "hex": hexa,
+            "seleccionado": nombre.casefold() in claves_predefinidas_activas,
+        }
+        for nombre, hexa in COLORES_CATALOGO_PREDEFINIDOS
+    ]
+    colores_personalizados = [
+        color
+        for color in colores_actuales
+        if not color.get("predefinido")
+    ]
+
     return render(
         request,
         "dashboard/configuracion.html",
         {
             "config": config,
+            "colores_predefinidos": colores_predefinidos,
+            "colores_personalizados": colores_personalizados,
             "webpush_configurado": webpush_habilitado,
             "webpush_habilitado": webpush_habilitado,
             "webpush_public_key": getattr(
