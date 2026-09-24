@@ -1,6 +1,7 @@
 from decimal import Decimal, ROUND_CEILING
 
 from django.db import models
+from django.utils.text import slugify
 
 from calculadora.precios import MARGEN_MINIMO
 from productos.models import (
@@ -29,6 +30,34 @@ class Kit(models.Model):
     nombre = models.CharField(
         max_length=150,
         unique=True,
+    )
+    slug = models.SlugField(
+        max_length=180,
+        unique=True,
+        blank=True,
+    )
+    descripcion_catalogo = models.TextField(
+        blank=True,
+        default="",
+        help_text=(
+            "Descripción visible en el detalle público del kit."
+        ),
+    )
+    seo_titulo = models.CharField(
+        max_length=180,
+        blank=True,
+        default="",
+        help_text=(
+            "Título SEO opcional. Si se deja vacío, se genera automáticamente."
+        ),
+    )
+    seo_descripcion = models.CharField(
+        max_length=320,
+        blank=True,
+        default="",
+        help_text=(
+            "Descripción SEO opcional para buscadores y enlaces compartidos."
+        ),
     )
 
     modalidad = models.CharField(
@@ -91,6 +120,28 @@ class Kit(models.Model):
     activo = models.BooleanField(
         default=True,
     )
+
+    def _slug_disponible(self):
+        base = slugify(self.nombre)[:160] or "kit"
+        if base.isdigit():
+            base = f"kit-{base}"
+        slug = base
+        indice = 2
+        while (
+            Kit.objects
+            .exclude(pk=self.pk)
+            .filter(slug=slug)
+            .exists()
+        ):
+            sufijo = f"-{indice}"
+            slug = f"{base[:180-len(sufijo)]}{sufijo}"
+            indice += 1
+        return slug
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self._slug_disponible()
+        return super().save(*args, **kwargs)
 
     @property
     def codigo(self):
