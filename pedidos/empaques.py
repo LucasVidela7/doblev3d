@@ -186,6 +186,63 @@ def _cantidad_de_componente(componente):
     return max(int(getattr(componente, "cantidad", 0) or 0), 0)
 
 
+def _tipo_producto_comun(productos):
+    productos_validos = [
+        producto
+        for producto in productos
+        if producto is not None
+        and getattr(producto, "tipo_id", None)
+    ]
+    ids_tipo = {
+        producto.tipo_id
+        for producto in productos_validos
+    }
+    if len(ids_tipo) != 1:
+        return None
+    return productos_validos[0].tipo
+
+
+def _tipo_producto_kit(kit, componentes=None):
+    if not kit:
+        return None
+
+    if getattr(kit, "tipo_producto_id", None):
+        return kit.tipo_producto
+
+    productos = []
+    for componente in componentes or []:
+        producto = _producto_de_componente(componente)
+        if producto is not None:
+            productos.append(producto)
+
+    tipo = _tipo_producto_comun(productos)
+    if tipo is not None:
+        return tipo
+
+    if getattr(kit, "modalidad", "") == "FIJO":
+        productos_fijos = [
+            componente.producto
+            for componente in kit.componentes.select_related(
+                "producto__tipo"
+            ).all()
+        ]
+        return _tipo_producto_comun(productos_fijos)
+
+    return None
+
+
+def _tipo_producto_paquete(paquete):
+    productos = [
+        item.get("producto")
+        for item in paquete.get("productos", [])
+        if item.get("producto")
+    ]
+    tipo = _tipo_producto_comun(productos)
+    if tipo is not None:
+        return tipo
+    return _tipo_producto_kit(paquete.get("kit"))
+
+
 def estimar_embalaje_items(items):
     paquetes = []
     sueltos = []
@@ -199,6 +256,10 @@ def estimar_embalaje_items(items):
         if tipo_item == "KIT" and getattr(item, "kit", None):
             kit = item.kit
             componentes, cantidades_totales = _componentes_item_kit(item)
+            tipo_producto_kit = _tipo_producto_kit(
+                kit,
+                componentes,
+            )
 
             for unidad in range(cantidad_linea):
                 unidades_contenido = 0
@@ -222,6 +283,7 @@ def estimar_embalaje_items(items):
                 regla = sugerir_regla_empaque(
                     unidades_contenido,
                     kit=kit,
+                    tipo_producto=tipo_producto_kit,
                 )
                 detalle = _detalle_estimado_regla(regla)
                 descripcion = (
@@ -374,6 +436,7 @@ def enriquecer_empaques_pedido(pedido, paquetes, productos_sueltos):
         regla = sugerir_regla_empaque(
             paquete["unidades_contenido"],
             kit=paquete.get("kit"),
+            tipo_producto=_tipo_producto_paquete(paquete),
         )
         _aplicar_estimacion_paquete(paquete, regla)
         paquete["empaque_usado"] = usos.get(paquete["clave"])
