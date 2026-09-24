@@ -480,6 +480,30 @@ def catalogo_kit_detalle(request, slug):
         slug=slug,
     )
 
+    # Un kit fijo puede heredar una categoría pública cuando toda su
+    # composición pertenece al mismo tipo, sin alterar la receta persistida.
+    if (
+        kit.modalidad == "FIJO"
+        and not kit.tipo_producto_id
+    ):
+        componentes_categoria = list(
+            kit.componentes.all()
+        )
+        tipos_categoria = {
+            componente.producto.tipo_id
+            for componente in componentes_categoria
+            if (
+                componente.producto_id
+                and componente.producto.tipo_id
+            )
+        }
+        if len(tipos_categoria) == 1 and componentes_categoria:
+            kit.tipo_producto = (
+                componentes_categoria[0]
+                .producto
+                .tipo
+            )
+
     seleccionables = []
     adicionales = []
     componentes_fijos = []
