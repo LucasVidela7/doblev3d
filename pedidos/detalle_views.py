@@ -163,17 +163,25 @@ def _armar_preparacion(pedido):
 def detalle_pedido(request, pedido_id):
     pedido = get_object_or_404(
         Pedido.objects
-        .select_related("cliente", "presupuesto_origen")
+        .select_related(
+            "cliente",
+            "presupuesto_origen",
+            "presupuesto_origen__solicitud_web_origen",
+        )
         .prefetch_related(
             "detalles__producto",
             "detalles__kit__componentes__producto",
             "detalles__productos_kit__producto",
+            "presupuesto_origen__solicitud_web_origen__items",
             "pagos",
         ),
         id=pedido_id,
     )
 
-    detalles = list(pedido.detalles.all())
+    detalles = enriquecer_detalles_pedido(
+        pedido,
+        list(pedido.detalles.all()),
+    )
     asignar_miniaturas_items(detalles)
 
     pagos = list(pedido.pagos.all())
