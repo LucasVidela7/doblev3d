@@ -4,6 +4,8 @@ from .models import (
     Pedido,
     DetallePedido,
     DetalleKitProducto,
+    PedidoEmpaque,
+    ReglaEmpaque,
 )
 
 
@@ -127,3 +129,44 @@ class DetallePedidoAdmin(admin.ModelAdmin):
     @admin.display(description="SUBTOTAL")
     def mostrar_subtotal(self, obj):
         return f"${obj.subtotal:,.0f}"
+
+
+@admin.register(ReglaEmpaque)
+class ReglaEmpaqueAdmin(admin.ModelAdmin):
+    list_display = (
+        "nombre",
+        "insumo",
+        "alcance",
+        "desde_unidades",
+        "hasta_unidades",
+        "cantidad_insumo",
+        "prioridad",
+        "activo",
+    )
+    list_filter = ("alcance", "activo")
+    search_fields = (
+        "nombre",
+        "insumo__nombre",
+        "kit__nombre",
+        "producto__nombre",
+    )
+    autocomplete_fields = ("insumo", "kit", "producto")
+
+
+@admin.register(PedidoEmpaque)
+class PedidoEmpaqueAdmin(admin.ModelAdmin):
+    list_display = (
+        "pedido",
+        "clave_paquete",
+        "insumo",
+        "cantidad",
+        "costo_total_snapshot",
+        "actualizado_en",
+    )
+    search_fields = (
+        "pedido__cliente__nombre",
+        "clave_paquete",
+        "descripcion",
+        "insumo__nombre",
+    )
+    autocomplete_fields = ("pedido", "insumo")
