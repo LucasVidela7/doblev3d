@@ -667,6 +667,16 @@ class Insumo(models.Model):
     precio_actualizado_en = models.DateTimeField(
         default=timezone.now,
     )
+    costo_promedio_unitario = models.DecimalField(
+        max_digits=14,
+        decimal_places=4,
+        null=True,
+        blank=True,
+        help_text=(
+            "Costo promedio ponderado del stock actual. "
+            "Se actualiza automáticamente al registrar compras."
+        ),
+    )
     disponible_como_complementario = models.BooleanField(
         default=False,
         verbose_name="Disponible como complementario de empaque",
@@ -692,6 +702,11 @@ class Insumo(models.Model):
 
     @property
     def costo_unitario(self):
+        if self.costo_promedio_unitario is not None:
+            return max(
+                Decimal(str(self.costo_promedio_unitario)),
+                Decimal("0"),
+            )
         cantidad = Decimal(str(self.cantidad_compra or 0))
         if cantidad <= 0:
             return Decimal("0")
@@ -714,6 +729,95 @@ class Insumo(models.Model):
     def costo_unitario_aplicado(self):
         porcentaje = self.incremento_efectivo / Decimal("100")
         return self.costo_unitario * (Decimal("1") + porcentaje)
+
+
+
+class CompraInsumo(models.Model):
+    fecha_compra = models.DateField()
+    proveedor = models.CharField(
+        max_length=160,
+        blank=True,
+        default="",
+    )
+    gasto = models.OneToOneField(
+        "pedidos.Gasto",
+        on_delete=models.PROTECT,
+        related_name="compra_insumos",
+    )
+    observaciones = models.TextField(
+        blank=True,
+        default="",
+    )
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-fecha_compra", "-id"]
+
+    @property
+    def monto_total(self):
+        return Decimal(str(self.gasto.monto_total or 0))
+
+    @property
+    def codigo(self):
+        return f"CMP{self.id:04d}" if self.id else "CMP-NUEVA"
+
+    def __str__(self):
+        return f"{self.codigo} · {self.proveedor or 'Compra de insumos'}"
+
+
+class CompraInsumoItem(models.Model):
+    compra = models.ForeignKey(
+        CompraInsumo,
+        on_delete=models.CASCADE,
+        related_name="items",
+    )
+    insumo = models.ForeignKey(
+        Insumo,
+        on_delete=models.PROTECT,
+        related_name="compras_items",
+    )
+    cantidad = models.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+    )
+    monto_total = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+    )
+    costo_unitario_compra = models.DecimalField(
+        max_digits=14,
+        decimal_places=4,
+    )
+    stock_anterior = models.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        default=0,
+    )
+    costo_promedio_anterior = models.DecimalField(
+        max_digits=14,
+        decimal_places=4,
+        default=0,
+    )
+    costo_promedio_nuevo = models.DecimalField(
+        max_digits=14,
+        decimal_places=4,
+        default=0,
+    )
+
+    class Meta:
+        ordering = ["id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["compra", "insumo"],
+                name="compra_insumo_item_unico",
+            )
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.compra.codigo} · {self.insumo.nombre} "
+            f"× {self.cantidad}"
+        )
 
 
 class TipoProducto(models.Model):
