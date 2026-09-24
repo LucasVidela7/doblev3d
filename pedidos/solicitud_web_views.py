@@ -397,6 +397,18 @@ def convertir_solicitud_web(request, solicitud_id):
             continue
 
         kit_snapshot = dict(item.kit_snapshot or {})
+        kit_snapshot["precio_lista_unitario"] = str(
+            item.precio_lista_unitario
+        )
+        kit_snapshot["adicional_unitario"] = str(
+            item.adicional_unitario or 0
+        )
+        kit_snapshot["adicional_opciones_unitario"] = str(
+            item.adicional_opciones_unitario
+        )
+        kit_snapshot["adicional_color_unitario"] = str(
+            item.adicional_color_unitario or 0
+        )
         if item.modo_color:
             kit_snapshot["seleccion_color"] = {
                 "modo": item.modo_color,
