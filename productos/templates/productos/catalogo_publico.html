@@ -791,29 +791,31 @@
     <main>
         <section class="shell hero">
             <div class="hero-card">
-                {% if vista_catalogo == "productos" %}
+                {% if categoria_actual %}
+                    <p class="eyebrow">{% if vista_catalogo == "kits" %}Kits{% else %}Productos{% endif %}</p>
+                    <h1>{{ categoria_actual.nombre }}</h1>
+                    <p>
+                        {% if categoria_actual.descripcion_catalogo %}
+                            {{ categoria_actual.descripcion_catalogo }}
+                        {% elif vista_catalogo == "kits" %}
+                            Explorá kits de {{ categoria_actual.nombre }} disponibles en Doble V 3D.
+                        {% else %}
+                            Explorá productos de {{ categoria_actual.nombre }} disponibles en Doble V 3D.
+                        {% endif %}
+                    </p>
+                {% elif vista_catalogo == "productos" %}
                     <p class="eyebrow">Productos</p>
                     <h1>Elegí tu próxima pieza.</h1>
                     <p>
                         Explorá productos individuales, buscá por nombre o categoría
                         y agregalos directamente al carrito.
                     </p>
-                {% elif vista_catalogo == "kits" %}
+                {% else %}
                     <p class="eyebrow">Kits</p>
                     <h1>Más opciones, en un solo kit.</h1>
                     <p>
                         Descubrí kits listos o configurables. Entrá al detalle,
                         elegí tus piezas y armá la combinación que quieras.
-                    </p>
-                {% else %}
-                    <p class="eyebrow">Categoría</p>
-                    <h1>{{ categoria_actual.nombre }}</h1>
-                    <p>
-                        {% if categoria_actual.descripcion_catalogo %}
-                            {{ categoria_actual.descripcion_catalogo }}
-                        {% else %}
-                            Explorá productos y kits de {{ categoria_actual.nombre }} disponibles en Doble V 3D.
-                        {% endif %}
                     </p>
                 {% endif %}
             </div>
@@ -844,24 +846,22 @@
 
         {% if categorias %}
             <nav class="shell categories" aria-label="Categorías">
-                {% if vista_catalogo == "productos" %}
-                    <a class="filter{% if not categoria_actual %} is-active{% endif %}" data-category="" href="{% url 'catalogo_productos' %}">Todas</a>
-                {% elif vista_catalogo == "kits" %}
+                {% if vista_catalogo == "kits" %}
                     <a class="filter{% if not categoria_actual %} is-active{% endif %}" data-category="" href="{% url 'catalogo_kits' %}">Todas</a>
                 {% else %}
-                    <a class="filter" href="{% url 'catalogo' %}">Inicio</a>
+                    <a class="filter{% if not categoria_actual %} is-active{% endif %}" data-category="" href="{% url 'catalogo_productos' %}">Todas</a>
                 {% endif %}
                 {% for categoria in categorias %}
                     <a
                         class="filter{% if categoria_actual and categoria.id == categoria_actual.id %} is-active{% endif %}"
                         data-category="{{ categoria.nombre|lower }}"
-                        href="{% url 'catalogo_categoria' categoria.slug %}"
+                        href="{% if vista_catalogo == 'kits' %}{% url 'catalogo_categoria_kits' categoria.slug %}{% else %}{% url 'catalogo_categoria_productos' categoria.slug %}{% endif %}"
                     >{{ categoria.nombre }}</a>
                 {% endfor %}
             </nav>
         {% endif %}
 
-        {% if vista_catalogo == "productos" or vista_catalogo == "categoria" %}
+        {% if vista_catalogo == "productos" %}
         <section class="shell section" data-section="producto">
             <div class="section-head">
                 <h2>Productos</h2>
@@ -949,7 +949,7 @@
 
         {% endif %}
 
-        {% if vista_catalogo == "kits" or vista_catalogo == "categoria" %}
+        {% if vista_catalogo == "kits" %}
         <section class="shell section" data-section="kit">
             <div class="section-head">
                 <h2>Kits</h2>
