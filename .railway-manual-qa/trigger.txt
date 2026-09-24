@@ -130,3 +130,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-24 - Precio kits con empaque real por reglas y fallback
 2026-09-24 - Fix previews WhatsApp publicas producto y kit
 2026-09-24 - SEO tecnico sitemap robots canonical schema Product Offer Breadcrumb
+2026-09-24 - SEO slugs categorias y contenido editable
