@@ -97,3 +97,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-24 - Ajuste final adicionales y vista por paquete antes de main
 2026-09-24 - Selector visual de colores y alta por codigo HEX
 2026-09-24 - Nombre editable para colores personalizados
+2026-09-24 - Sync temporal prod -> QA
