@@ -1,5 +1,7 @@
 from decimal import Decimal
 
+from productos.models import provision_empaque_unitaria_actual
+
 from calculadora.precios import (
     MARGEN_MINIMO,
     calcular_escenarios_producto,
@@ -65,6 +67,7 @@ def calcular_escenarios_kit_fijo(componentes):
             producto,
             cantidad,
             forzar_filamento_economico=True,
+            incluir_provision_empaque=False,
         )
         costo_unitario = _decimal(calculo["costo_productivo"])
         costo_componente = costo_unitario * Decimal(cantidad)
@@ -110,10 +113,14 @@ def calcular_escenarios_kit_fijo(componentes):
             }
         )
 
+    provision_empaque = provision_empaque_unitaria_actual()
+    costo_total += provision_empaque
+
     if cantidad_total <= 0:
         return {
             "cantidad_total": 0,
-            "costo_total": Decimal("0"),
+            "costo_total": provision_empaque,
+            "provision_empaque": provision_empaque,
             "margen_tope_ponderado": MARGEN_MINIMO,
             "margen_piso": MARGEN_MINIMO,
             "precio_filamento_kg": Decimal("0"),
@@ -173,6 +180,7 @@ def calcular_escenarios_kit_fijo(componentes):
     return {
         "cantidad_total": cantidad_total,
         "costo_total": costo_total,
+        "provision_empaque": provision_empaque,
         "margen_tope_ponderado": margen_tope_ponderado,
         "margen_recomendado": margen_sugerido(
             cantidad_total,
