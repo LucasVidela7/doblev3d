@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 from django.http import Http404
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
 from django.urls import reverse
 from django.views.defaults import page_not_found
@@ -17,8 +17,13 @@ from .image_environment import (
     seleccionar_imagenes_lectura,
 )
 from .image_models import ProductoImagen
-from .models import ConfiguracionCatalogo, Producto
-from .seo import seo_catalogo, seo_kit, seo_producto
+from .models import ConfiguracionCatalogo, Producto, TipoProducto
+from .seo import (
+    seo_catalogo,
+    seo_categoria,
+    seo_kit,
+    seo_producto,
+)
 
 
 def _url_absoluta(request, url):
@@ -63,7 +68,7 @@ def catalogo_404(request, exception):
     )
 
 
-def _catalogo_publico(request, vista_catalogo):
+def _catalogo_publico(request, vista_catalogo, categoria_actual=None):
     """Construye el contexto público compartido de la tienda."""
 
     ambiente = entorno_imagenes()
@@ -232,17 +237,34 @@ def _catalogo_publico(request, vista_catalogo):
         if kit.catalogo_imagen_url
     ]
 
-    categorias = sorted(
-        {
-            producto.tipo.nombre
+    if categoria_actual is not None:
+        productos_visibles = [
+            producto
             for producto in productos_visibles
-            if producto.tipo_id and producto.tipo
-        }
-        | {
-            kit.tipo_producto.nombre
+            if producto.tipo_id == categoria_actual.id
+        ]
+        kits = [
+            kit
             for kit in kits
-            if kit.tipo_producto_id and kit.tipo_producto
-        }
+            if kit.tipo_producto_id == categoria_actual.id
+        ]
+
+    categorias_ids = {
+        producto.tipo_id
+        for producto in productos
+        if producto.tipo_id
+    } | {
+        kit.tipo_producto_id
+        for kit in kits
+        if kit.tipo_producto_id
+    }
+    categorias = list(
+        TipoProducto.objects
+        .filter(
+            activo=True,
+            id__in=categorias_ids,
+        )
+        .order_by("nombre")
     )
 
     template = (
@@ -266,10 +288,19 @@ def _catalogo_publico(request, vista_catalogo):
             "mensaje_plazo_entrega": (
                 config_catalogo.mensaje_plazo_entrega
             ),
-            **seo_catalogo(
-                request,
-                vista_catalogo,
-                config_catalogo,
+            "categoria_actual": categoria_actual,
+            **(
+                seo_categoria(
+                    request,
+                    categoria_actual,
+                    config_catalogo,
+                )
+                if categoria_actual is not None
+                else seo_catalogo(
+                    request,
+                    vista_catalogo,
+                    config_catalogo,
+                )
             ),
         },
     )
@@ -291,8 +322,22 @@ def catalogo_kits(request):
     return _catalogo_publico(request, "kits")
 
 
-def catalogo_producto_detalle(request, producto_id):
-    """Detalle público de un producto activo del catálogo."""
+def catalogo_categoria(request, slug):
+    """Landing SEO pública de una categoría de productos."""
+    categoria = get_object_or_404(
+        TipoProducto,
+        slug=slug,
+        activo=True,
+    )
+    return _catalogo_publico(
+        request,
+        "categoria",
+        categoria_actual=categoria,
+    )
+
+
+def catalogo_producto_detalle(request, slug):
+    """Detalle público canónico de un producto por slug."""
 
     ambiente = entorno_imagenes()
     config_catalogo = (
@@ -312,7 +357,7 @@ def catalogo_producto_detalle(request, producto_id):
             "insumos_asignados__insumo",
             "componentes__componente__insumos_asignados__insumo",
         ),
-        id=producto_id,
+        slug=slug,
     )
     producto.catalogo_precio = producto.subtotal
 
@@ -360,8 +405,23 @@ def catalogo_producto_detalle(request, producto_id):
     )
 
 
-def catalogo_kit_detalle(request, kit_id):
-    """Detalle público de un kit activo, sin exponer la gestión interna."""
+def catalogo_producto_legacy(request, producto_id):
+    """Conserva enlaces históricos y los redirige a la URL amigable."""
+    producto = get_object_or_404(
+        Producto,
+        id=producto_id,
+        activo=True,
+        solo_produccion=False,
+    )
+    return redirect(
+        "catalogo_producto_detalle",
+        slug=producto.slug,
+        permanent=True,
+    )
+
+
+def catalogo_kit_detalle(request, slug):
+    """Detalle público canónico de un kit por slug."""
 
     ambiente = entorno_imagenes()
     config_catalogo = (
@@ -378,7 +438,7 @@ def catalogo_kit_detalle(request, kit_id):
             "componentes__producto__insumos_asignados__insumo",
             "componentes__producto__componentes__componente__insumos_asignados__insumo",
         ),
-        id=kit_id,
+        slug=slug,
     )
 
     seleccionables = []
@@ -534,4 +594,18 @@ def catalogo_kit_detalle(request, kit_id):
                 ),
             ),
         },
+    )
+
+
+def catalogo_kit_legacy(request, kit_id):
+    """Conserva enlaces históricos y los redirige a la URL amigable."""
+    kit = get_object_or_404(
+        Kit,
+        id=kit_id,
+        activo=True,
+    )
+    return redirect(
+        "catalogo_kit_detalle",
+        slug=kit.slug,
+        permanent=True,
     )
