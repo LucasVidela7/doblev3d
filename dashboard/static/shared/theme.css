@@ -1736,6 +1736,194 @@ body.dv-management-page :is(
 }
 
 
+
+/* Segunda pasada: selectores heredados que no siguen la nomenclatura común. */
+body.dv-management-page :is(
+    .cfg-nav-group,
+    .cfg-mobile-nav label,
+    .cfg-status,
+    .cfg-reset,
+    .cfg-wa-chip,
+    .cfg-legal-badge,
+    .metric-kind,
+    .metric-day-label,
+    .metric-chart-legend,
+    .que-imprimir-falta span,
+    .web-money span,
+    .web-status,
+    .estado span,
+    .secciones a,
+    .recomendacion-etiqueta,
+    .recomendacion-estado,
+    .nav a,
+    .filtro-clear,
+    .cliente-whatsapp span,
+    .venta-thumb.vacia,
+    .thumb.vacia,
+    .pedido-thumb.vacia,
+    .pedido-paquete-badge,
+    .pedido-paquete-head>div>span,
+    .pedido-paquete-unidad,
+    .pedido-paquete-thumb.vacia,
+    .pedido-paquete-estado,
+    .pedido-paquete-nota,
+    .pedido-sueltas-head span,
+    .pedido-status,
+    .tag,
+    .stock span,
+    .flow-nav a,
+    .flujo a,
+    .flujo b,
+    .product-thumb-empty,
+    .nbox span,
+    .production-kanban .prod-kpi span,
+    .marca-personalizado,
+    .detalle-impresora,
+    .estado-pago,
+    .cancelado-nota,
+    .numero-label,
+    .item-thumb.vacia,
+    .additional-breakdown-title,
+    .additional-chip,
+    .section-head span,
+    .complement-qty label,
+    .complement-empty,
+    .request-phone-main span,
+    .request-volume,
+    .customer-compare small,
+    .cfg-preview:before,
+    .cfg-wa-payment-preview small,
+    .cfg-message-status,
+    .metric-funnel-number small,
+    .metrics-meta span,
+    .metric-kpi span,
+    .metric-kpi small,
+    .existing span,
+    .pill,
+    .status
+){
+    font-size:10px!important;
+    line-height:1.35;
+}
+
+body.dv-management-page :is(
+    .atencion ul,
+    .empty,
+    .accion-meta,
+    .compra-detail summary,
+    .compra-meta,
+    .personalizacion,
+    .kit-mini,
+    .presupuesto-meta,
+    .evento-fecha,
+    .evento-detail,
+    .preferencia span,
+    .contacto-item span,
+    .merge-box p,
+    .cuenta-row,
+    .que-imprimir-meta,
+    .web-meta,
+    .web-link a,
+    .entrega-link,
+    .health span,
+    .panel-head span,
+    .extra,
+    .price span,
+    .opcion span,
+    .proteccion-opcion span,
+    .recomendacion-precio span,
+    .panel-subtitulo,
+    .prep-personal,
+    .item-tipo,
+    .item-dato,
+    .adicional-chip,
+    .kit-componente,
+    .pedido-vista-selector span,
+    .pedido-paquetes-resumen span:not(.pedido-paquetes-badge),
+    .pedido-suelta,
+    .pago-fecha,
+    .pago-observacion,
+    .pedido-productos>summary,
+    .pedido-productos-resumen,
+    .producto-detalle,
+    .progreso-head,
+    .saldo,
+    .falta-resumen,
+    .preparacion-aviso,
+    .section-help,
+    .origin,
+    .action-info,
+    .personal p,
+    .history summary,
+    .manual summary,
+    .ultimo-cliente,
+    .ultimo-medio,
+    .ultimo-fecha,
+    .how div,
+    .hint,
+    .more-item-sub,
+    .resultado span,
+    .alerta-line,
+    .card-meta,
+    .card-alertas,
+    .warning,
+    .select-all-result,
+    .preview-count,
+    .change,
+    .copy-status
+){
+    font-size:11px!important;
+    line-height:1.42;
+}
+
+body.dv-management-page :is(
+    .compra-nombre,
+    .compra-precio,
+    .evento-title,
+    .preferencia strong,
+    .contacto-item strong,
+    .pedido-paquete-producto div strong,
+    .pedido-sueltas-head strong,
+    .stock strong,
+    .personal strong,
+    .request-phone-main strong,
+    .how b
+){
+    font-size:12px!important;
+    line-height:1.38;
+}
+
+/* Kanban y vistas de preparación: evita la compactación extrema en desktop/mobile. */
+body.dv-management-page :is(
+    .kanban-board .pedido-status,
+    .kanban-board .tag,
+    .kanban-board .producto-detalle,
+    .kanban-board .stock span,
+    .kanban-board .progreso-head,
+    .pedido-paquete-producto div span,
+    .pedido-paquete-nota
+){
+    font-size:10px!important;
+}
+
+body.dv-management-page :is(
+    .kanban-board .seccion-ayuda,
+    .kanban-board .seccion-contador,
+    .kanban-board .preparacion-aviso,
+    .kanban-board .falta-resumen,
+    .kanban-board .pedido-productos>summary,
+    .kanban-board .pedido-productos-resumen,
+    .kanban-board .saldo,
+    .kanban-board .vacio
+){
+    font-size:11px!important;
+}
+
+body.dv-management-page .kanban-board .producto-nombre{
+    font-size:12px!important;
+}
+
+
 /* =========================================================
    GESTIÓN · AVISOS FLOTANTES
    Convierte los mensajes de Django en toasts globales.
