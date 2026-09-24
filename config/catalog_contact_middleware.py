@@ -428,9 +428,12 @@ class CatalogContactMiddleware:
                 "catalogo",
                 "catalogo_legacy",
                 "catalogo_productos",
+                "catalogo_categoria",
                 "catalogo_producto_detalle",
+                "catalogo_producto_legacy",
                 "catalogo_kits",
                 "catalogo_kit_detalle",
+                "catalogo_kit_legacy",
                 "catalogo_carrito",
                 "catalogo_carrito_gracias",
                 "catalogo_terminos",
@@ -439,6 +442,8 @@ class CatalogContactMiddleware:
                 "catalogo_arrepentimiento_gracias",
             }
             or path in {"/", "/catalogo/", "/productos/", "/kits/"}
+            or path.startswith("/productos/")
+            or path.startswith("/categorias/")
             or path.startswith("/kits/")
             or path.startswith("/carrito/")
             or path.startswith("/terminos/")
