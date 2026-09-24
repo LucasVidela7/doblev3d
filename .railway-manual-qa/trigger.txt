@@ -94,3 +94,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-24 - Mostrar adicionales en pedidos y solicitudes publicas y gestion
 2026-09-24 - Mover vista por paquete a detalle de pedido y mostrar adicionales en presupuesto
 2026-09-24 - Vista por paquete dentro de Preparacion del detalle de pedido
+2026-09-24 - Ajuste final adicionales y vista por paquete antes de main
