@@ -865,7 +865,7 @@ class CatalogoPublicoTests(TestCase):
         self.assertContains(
             response,
             'rel="canonical" href="http://testserver/productos/'
-            + str(self.producto.id)
+            + self.producto.slug
             + '/"',
         )
 
@@ -983,3 +983,90 @@ class CatalogoPublicoTests(TestCase):
 
         self.assertEqual(producto.status_code, 200)
         self.assertEqual(kit.status_code, 200)
+
+
+    def test_url_numerica_de_producto_redirige_301_al_slug(self):
+        response = self.client.get(
+            reverse(
+                "catalogo_producto_legacy",
+                args=[self.producto.id],
+            )
+        )
+
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(
+            response["Location"],
+            reverse(
+                "catalogo_producto_detalle",
+                args=[self.producto.slug],
+            ),
+        )
+
+    def test_url_numerica_de_kit_redirige_301_al_slug(self):
+        response = self.client.get(
+            reverse(
+                "catalogo_kit_legacy",
+                args=[self.kit.id],
+            )
+        )
+
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(
+            response["Location"],
+            reverse(
+                "catalogo_kit_detalle",
+                args=[self.kit.slug],
+            ),
+        )
+
+    def test_categoria_publica_tiene_url_y_contenido_propio(self):
+        self.tipo.descripcion_catalogo = (
+            "Objetos sensoriales impresos en 3D para explorar "
+            "texturas, formas y movimiento."
+        )
+        self.tipo.seo_titulo = (
+            "Juguetes sensoriales impresos en 3D | Doble V 3D"
+        )
+        self.tipo.save(
+            update_fields=[
+                "descripcion_catalogo",
+                "seo_titulo",
+            ]
+        )
+
+        response = self.client.get(
+            reverse(
+                "catalogo_categoria",
+                args=[self.tipo.slug],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Juguetes sensoriales impresos en 3D | Doble V 3D",
+        )
+        self.assertContains(
+            response,
+            "Objetos sensoriales impresos en 3D",
+        )
+        self.assertContains(response, self.producto.nombre)
+        self.assertContains(response, self.kit.nombre)
+        self.assertContains(
+            response,
+            reverse(
+                "catalogo_producto_detalle",
+                args=[self.producto.slug],
+            ),
+        )
+
+    def test_slug_de_producto_permanece_estable_al_cambiar_nombre(self):
+        slug_original = self.producto.slug
+        self.producto.nombre = "Piña sensorial renombrada"
+        self.producto.save(update_fields=["nombre"])
+
+        self.producto.refresh_from_db()
+        self.assertEqual(
+            self.producto.slug,
+            slug_original,
+        )
