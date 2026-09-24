@@ -30,7 +30,7 @@ from productos.models import (
     ConfiguracionCatalogo,
     Producto,
     SolicitudArrepentimiento,
-    color_hex_catalogo,
+    nombre_color_catalogo,
     normalizar_color_catalogo,
 )
 from productos.miniaturas import asignar_miniaturas_productos
@@ -1044,8 +1044,9 @@ def configuracion(request):
                 vistos = set()
                 for linea in valor.splitlines():
                     color = normalizar_color_catalogo(linea)
-                    clave = color.casefold()
-                    if color and clave not in vistos:
+                    nombre = nombre_color_catalogo(color)
+                    clave = nombre.casefold()
+                    if color and nombre and clave not in vistos:
                         vistos.add(clave)
                         colores.append(color)
                 valor = "\n".join(colores)[:limite]
@@ -1155,30 +1156,24 @@ def configuracion(request):
 
     webpush_habilitado = _webpush_habilitado()
 
-    colores_actuales = config.colores_disponibles_lista
-    claves_actuales = {
-        color.casefold()
+    colores_actuales = config.colores_disponibles_detalle
+    claves_predefinidas_activas = {
+        color["nombre"].casefold()
         for color in colores_actuales
+        if color.get("predefinido")
     }
     colores_predefinidos = [
         {
             "nombre": nombre,
             "hex": hexa,
-            "seleccionado": nombre.casefold() in claves_actuales,
+            "seleccionado": nombre.casefold() in claves_predefinidas_activas,
         }
         for nombre, hexa in COLORES_CATALOGO_PREDEFINIDOS
     ]
-    nombres_predefinidos = {
-        nombre.casefold()
-        for nombre, _hexa in COLORES_CATALOGO_PREDEFINIDOS
-    }
     colores_personalizados = [
-        {
-            "valor": color,
-            "hex": color_hex_catalogo(color),
-        }
+        color
         for color in colores_actuales
-        if color.casefold() not in nombres_predefinidos
+        if not color.get("predefinido")
     ]
 
     return render(
