@@ -658,6 +658,14 @@ def detalle_presupuesto(request, presupuesto_id):
         list(presupuesto.detalles.all()),
     )
     asignar_miniaturas_items(detalles)
+    adicionales_total = sum(
+        (
+            detalle.adicionales["adicional_total_linea"]
+            for detalle in detalles
+            if detalle.adicionales
+        ),
+        Decimal("0"),
+    )
 
     return render(
         request,
@@ -665,6 +673,7 @@ def detalle_presupuesto(request, presupuesto_id):
         {
             "presupuesto": presupuesto,
             "detalles": detalles,
+            "adicionales_total": adicionales_total,
         },
     )
 
