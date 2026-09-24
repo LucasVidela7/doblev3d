@@ -33,6 +33,8 @@ class LoginRequiredMiddleware:
         "catalogo_arrepentimiento",
         "catalogo_arrepentimiento_gracias",
         "healthcheck",
+        "robots_txt",
+        "sitemap_xml",
         "evento",
     }
 
