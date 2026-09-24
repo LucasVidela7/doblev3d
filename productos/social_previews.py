@@ -53,6 +53,36 @@ def _descargar_imagen(url):
     return image.convert("RGB")
 
 
+def _imagen_social_jpeg(url):
+    image = _descargar_imagen(url)
+    if image is None:
+        return None
+
+    lienzo = Image.new(
+        "RGB",
+        (SOCIAL_IMAGE_SIZE, SOCIAL_IMAGE_SIZE),
+        (245, 247, 251),
+    )
+    foto = ImageOps.contain(
+        image,
+        (SOCIAL_IMAGE_SIZE, SOCIAL_IMAGE_SIZE),
+        method=Image.Resampling.LANCZOS,
+    )
+    x = (SOCIAL_IMAGE_SIZE - foto.width) // 2
+    y = (SOCIAL_IMAGE_SIZE - foto.height) // 2
+    lienzo.paste(foto, (x, y))
+
+    salida = BytesIO()
+    lienzo.save(
+        salida,
+        format="JPEG",
+        quality=88,
+        optimize=True,
+        progressive=True,
+    )
+    return salida.getvalue()
+
+
 def _foto_celda(image):
     return ImageOps.fit(
         image,
@@ -155,6 +185,54 @@ def _urls_sociales_kit(kit):
         )
         if visual.get("imagen_url")
     ][:4]
+
+
+@require_GET
+def producto_social_preview(request, producto_id):
+    producto = (
+        Producto.objects
+        .filter(
+            id=producto_id,
+            activo=True,
+            solo_produccion=False,
+        )
+        .first()
+    )
+    if not producto:
+        raise Http404("Producto no disponible")
+
+    url = producto.catalogo_imagen_url
+    if not url:
+        raise Http404("El producto no tiene imagen disponible")
+
+    firma = sha256(
+        url.encode("utf-8")
+    ).hexdigest()
+    cache_key = (
+        f"dv-social-producto-v1:{producto.id}:{firma}"
+    )
+    data = cache.get(cache_key)
+    if data is None:
+        data = _imagen_social_jpeg(url)
+        if data is None:
+            raise Http404("No se pudo preparar la imagen")
+        cache.set(
+            cache_key,
+            data,
+            SOCIAL_CACHE_SECONDS,
+        )
+
+    response = HttpResponse(
+        data,
+        content_type="image/jpeg",
+    )
+    response["Cache-Control"] = (
+        f"public, max-age={SOCIAL_CACHE_SECONDS}"
+    )
+    response["Content-Disposition"] = (
+        f'inline; filename="producto-{producto.id}-social.jpg"'
+    )
+    return response
 
 
 @require_GET
