@@ -135,3 +135,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-24 - Fix categorias productos kits separadas
 2026-09-24 - Fix buscador y scroll categorias
 2026-09-24 - Fix offset buscador header fijo categorias
+2026-09-24 - Hover boton Como pedirlo
