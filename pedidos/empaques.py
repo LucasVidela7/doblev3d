@@ -2,6 +2,7 @@ from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
 from django.db import transaction
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -787,13 +788,26 @@ def reglas(request):
             if not complemento_id or complemento_id in ids_vistos:
                 continue
             ids_vistos.add(complemento_id)
-            complemento = Insumo.objects.filter(
-                id=complemento_id,
-                tipo_uso="EMPAQUE",
-                activo=True,
-            ).first()
+            complementos_actuales_ids = set(
+                regla.complementos.values_list("insumo_id", flat=True)
+            ) if regla.pk else set()
+            complemento = (
+                Insumo.objects
+                .filter(
+                    id=complemento_id,
+                    tipo_uso="EMPAQUE",
+                    activo=True,
+                )
+                .filter(
+                    Q(disponible_como_complementario=True)
+                    | Q(id__in=complementos_actuales_ids)
+                )
+                .first()
+            )
             if not complemento:
-                errores.append("Uno de los insumos complementarios no es válido.")
+                errores.append(
+                    "Ese insumo no está habilitado como complementario."
+                )
                 continue
             if insumo and complemento.id == insumo.id:
                 errores.append(
@@ -870,7 +884,19 @@ def reglas(request):
             else []
         )
     }
-    for item in insumos_form:
+    insumos_complementarios = list(
+        Insumo.objects
+        .filter(
+            tipo_uso="EMPAQUE",
+            activo=True,
+        )
+        .filter(
+            Q(disponible_como_complementario=True)
+            | Q(id__in=list(complementos_edicion))
+        )
+        .order_by("nombre")
+    )
+    for item in insumos_complementarios:
         item.es_complemento_regla = item.id in complementos_edicion
         item.cantidad_complemento_regla = complementos_edicion.get(
             item.id,
@@ -884,6 +910,7 @@ def reglas(request):
             "reglas": reglas_qs,
             "regla_editar": regla_editar,
             "insumos_empaque": insumos_form,
+            "insumos_complementarios": insumos_complementarios,
             "productos": Producto.objects.filter(
                 activo=True,
                 solo_produccion=False,
