@@ -39,12 +39,15 @@
         <div class="more-popover">
           <a class="more-item" href="{% url 'productos:imagenes_masivas' %}"><span class="more-item-icon">▦</span><span><span class="more-item-title">CARGA MASIVA</span><span class="more-item-sub">Fotos de varios productos</span></span></a>
           <a class="more-item" href="{% url 'productos:modificacion_masiva' %}"><span class="more-item-icon">✎</span><span><span class="more-item-title">MODIFICACIÓN MASIVA</span><span class="more-item-sub">Editar varios productos a la vez</span></span></a>
+          <a class="more-item" href="{% url 'productos:insumos' %}"><span class="more-item-icon">◫</span><span><span class="more-item-title">INSUMOS</span><span class="more-item-sub">Costos, stock y proveedores</span></span></a>
           <a class="more-item" href="{% url 'calculadora:precios' %}"><span class="more-item-icon">🧮</span><span><span class="more-item-title">CALCULADORA</span><span class="more-item-sub">Revisar precios y escenarios</span></span></a>
           <a class="more-item" href="{{ piezas_toggle_url }}"><span class="more-item-icon">⚙</span><span><span class="more-item-title">{% if mostrar_piezas %}OCULTAR PIEZAS{% else %}VER PIEZAS{% endif %}</span><span class="more-item-sub">Piezas internas de fabricación</span></span></a>
         </div>
       </details>
     </div>
   </div>
+
+  {% include "productos/_productos_subnav.html" %}
 
   <div class="metricas">
     <a href="{{ filtro_urls.todos }}" class="metrica {% if not estado_seleccionado %}activa{% endif %}"><span class="metrica-label">PRODUCTOS</span><span class="metrica-value">{{ metricas.total }}</span><span class="metrica-note">{{ metricas.activos }} activos</span></a>
