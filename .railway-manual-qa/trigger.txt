@@ -98,3 +98,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-24 - Selector visual de colores y alta por codigo HEX
 2026-09-24 - Nombre editable para colores personalizados
 2026-09-24 - Sync temporal prod -> QA
+2026-09-24 - Ejecutar clonacion final production -> QA via HTTPS protegido
