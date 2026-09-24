@@ -187,6 +187,9 @@ def calcular_costo_productivo_producto(
     """
     cantidad = max(int(cantidad or 1), 1)
     cero = Decimal("0")
+    costo_insumos = Decimal(
+        str(getattr(producto, "costo_insumos_total", 0) or 0)
+    )
 
     if not producto.requiere_impresion:
         return {
@@ -203,7 +206,8 @@ def calcular_costo_productivo_producto(
             "provision_fallos": cero,
             "costo": cero,
             "seguro": cero,
-            "costo_productivo": cero,
+            "costo_insumos": costo_insumos,
+            "costo_productivo": costo_insumos,
         }
 
     config = producto.obtener_configuracion()
@@ -222,7 +226,8 @@ def calcular_costo_productivo_producto(
             "provision_fallos": cero,
             "costo": cero,
             "seguro": cero,
-            "costo_productivo": cero,
+            "costo_insumos": costo_insumos,
+            "costo_productivo": costo_insumos,
         }
 
     precio_estandar = max(
@@ -311,7 +316,8 @@ def calcular_costo_productivo_producto(
         "provision_fallos": provision_fallos,
         "costo": costo,
         "seguro": seguro,
-        "costo_productivo": costo + seguro,
+        "costo_insumos": costo_insumos,
+        "costo_productivo": costo + seguro + costo_insumos,
     }
 
 
