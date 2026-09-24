@@ -1,0 +1,56 @@
+<div class="tarjeta">
+<div class="titulo">3 · INSUMOS DIRECTOS</div>
+<div class="ayuda">Asigná materiales que se consumen por cada unidad vendida, por ejemplo argollas, imanes o tornillos. El costo usa siempre el precio vigente del insumo y su porcentaje de provisión.</div>
+<div class="insumos-acciones">
+  <button type="button" class="boton secundario" onclick="agregarInsumo()">+ AGREGAR INSUMO</button>
+  <a class="boton" href="{% url 'productos:insumo_nuevo' %}" target="_blank" rel="noopener">+ CREAR INSUMO</a>
+</div>
+<div id="insumos-producto">
+{% for relacion in insumos_actuales %}
+  <div class="insumo-row">
+    <div class="insumo-grid">
+      <div class="campo">
+        <label>INSUMO</label>
+        <select name="insumo_id" onchange="actualizarInsumoFila(this.closest('.insumo-row'))">
+          <option value="">Seleccionar insumo...</option>
+          {% for insumo in insumos_disponibles %}
+          <option value="{{ insumo.id }}" data-cost="{{ insumo.costo_unitario_aplicado|unlocalize }}" data-unit="{{ insumo.get_unidad_medida_display }}" {% if insumo.id == relacion.insumo_id %}selected{% endif %}>{{ insumo.codigo }} · {{ insumo.nombre }} · ${{ insumo.costo_unitario_aplicado|floatformat:'2g' }}/{{ insumo.get_unidad_medida_display|lower }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="campo">
+        <label>CANTIDAD POR PRODUCTO</label>
+        <input type="number" name="insumo_cantidad" min="0.001" step="0.001" value="{{ relacion.cantidad|unlocalize }}" oninput="actualizarInsumoFila(this.closest('.insumo-row'))">
+      </div>
+      <div class="insumo-costo"><small>COSTO EN ESTA UNIDAD</small><strong data-insumo-costo>$ 0,00</strong></div>
+      <button type="button" class="insumo-quitar" aria-label="Quitar insumo" onclick="this.closest('.insumo-row').remove();actualizarTotalInsumos()">×</button>
+    </div>
+  </div>
+{% empty %}
+  {% if not insumos_disponibles %}<div class="insumos-vacio" id="insumos-vacio">Todavía no hay insumos tipo Producto disponibles. Creá uno para poder asignarlo.</div>{% endif %}
+{% endfor %}
+</div>
+<div class="insumos-total"><span>COSTO DE INSUMOS POR UNIDAD</span><strong id="insumosTotal">$ 0,00</strong></div>
+</div>
+
+<template id="tpl-insumo">
+<div class="insumo-row">
+  <div class="insumo-grid">
+    <div class="campo">
+      <label>INSUMO</label>
+      <select name="insumo_id" onchange="actualizarInsumoFila(this.closest('.insumo-row'))">
+        <option value="">Seleccionar insumo...</option>
+        {% for insumo in insumos_disponibles %}
+        <option value="{{ insumo.id }}" data-cost="{{ insumo.costo_unitario_aplicado|unlocalize }}" data-unit="{{ insumo.get_unidad_medida_display }}">{{ insumo.codigo }} · {{ insumo.nombre }} · ${{ insumo.costo_unitario_aplicado|floatformat:'2g' }}/{{ insumo.get_unidad_medida_display|lower }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="campo">
+      <label>CANTIDAD POR PRODUCTO</label>
+      <input type="number" name="insumo_cantidad" min="0.001" step="0.001" value="1" oninput="actualizarInsumoFila(this.closest('.insumo-row'))">
+    </div>
+    <div class="insumo-costo"><small>COSTO EN ESTA UNIDAD</small><strong data-insumo-costo>$ 0,00</strong></div>
+    <button type="button" class="insumo-quitar" aria-label="Quitar insumo" onclick="this.closest('.insumo-row').remove();actualizarTotalInsumos()">×</button>
+  </div>
+</div>
+</template>
