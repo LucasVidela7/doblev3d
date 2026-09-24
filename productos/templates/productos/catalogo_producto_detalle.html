@@ -12,12 +12,18 @@
 :root{--blue:#134a9a;--blue-dark:#0d376f;--blue-soft:#eef4ff;--red:#f0393b;--text:#17233a;--muted:#667085;--line:#dfe5ef;--bg:#f5f7fb;--card:#fff}
 *{box-sizing:border-box}
 body{margin:0;padding-bottom:156px;background:radial-gradient(circle at top right,rgba(240,57,59,.08),transparent 28rem),radial-gradient(circle at 5% 18%,rgba(19,74,154,.08),transparent 26rem),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-.shell{width:min(1120px,calc(100% - 28px));margin:auto}.back{display:inline-flex;margin:20px 0 12px;color:var(--blue-dark);text-decoration:none;font-size:.78rem;font-weight:900}
+.shell{width:min(1120px,calc(100% - 28px));margin:auto}
+.breadcrumbs{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin:20px 0 12px;color:var(--muted);font-size:.76rem;font-weight:800}
+.breadcrumbs a{color:var(--blue-dark);text-decoration:none}
+.breadcrumbs a:hover{text-decoration:underline;text-underline-offset:3px}
+.breadcrumbs .sep{color:#9aa4b2}
+.breadcrumbs [aria-current="page"]{min-width:0;max-width:52ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .product{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(320px,.95fr);gap:18px;align-items:start}.gallery,.info{border:1px solid var(--line);border-radius:24px;background:#fff;box-shadow:0 10px 30px rgba(19,74,154,.06)}
 .gallery{overflow:hidden}.main-photo{aspect-ratio:1/1;display:grid;place-items:center;background:linear-gradient(135deg,#eef4ff,#fff1f2)}.main-photo img{width:100%;height:100%;object-fit:cover}.placeholder{font-size:5rem;font-weight:950;color:rgba(19,74,154,.35)}
 .thumbs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px}.thumb{overflow:hidden;border:1px solid var(--line);border-radius:12px;background:#fff;aspect-ratio:1.35/1}.thumb img{width:100%;height:100%;object-fit:cover}
 .info{padding:24px}.eyebrow{margin:0;color:var(--red);font-size:.72rem;font-weight:950;letter-spacing:.1em;text-transform:uppercase}.info h1{margin:8px 0 0;color:var(--blue-dark);font-size:clamp(2rem,5vw,3.2rem);line-height:1;letter-spacing:-.045em}.intro{margin:13px 0 0;color:var(--muted);font-size:.92rem;line-height:1.55}
 .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}.tag{padding:6px 8px;border-radius:999px;background:var(--blue-soft);color:var(--blue-dark);font-size:.7rem;font-weight:850}.tag.custom{background:#fff1f2;color:#a92c34}
+.composition{margin-top:14px;padding:12px 13px;border:1px solid #dfe5ef;border-radius:13px;background:#f8fafc;color:#526174;font-size:.8rem;line-height:1.45}.composition strong{color:var(--blue-dark)}
 .pricebox{margin-top:18px;padding:16px;border:1px solid #d4e1f5;border-radius:16px;background:#f8fbff}.pricebox small{display:block;color:var(--muted);font-size:.7rem;font-weight:800}.pricebox strong{display:block;margin-top:3px;color:var(--blue-dark);font-size:1.8rem}.pricebox span{display:block;margin-top:5px;color:var(--muted);font-size:.7rem;line-height:1.4}
 .delivery{display:flex;gap:9px;margin-top:12px;padding:12px 13px;border:1px solid #cdddf4;border-radius:13px;background:var(--blue-soft);color:#345f91;font-size:.76rem;line-height:1.4}.delivery strong{color:var(--blue-dark)}
 .buy{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}.buy-help{margin:0 0 9px;color:var(--muted);font-size:.73rem;line-height:1.4}.dv-cart-card-control{justify-content:flex-start!important}.dv-cart-add-btn{min-height:48px!important;min-width:180px!important;font-size:.82rem!important}
@@ -56,7 +62,13 @@ body{margin:0;padding-bottom:156px;background:radial-gradient(circle at top righ
 <body>
 {% include "productos/_catalogo_mantenimiento_admin.html" %}
 <main class="shell">
-<a class="back" href="{% url 'catalogo_productos' %}">← VOLVER A PRODUCTOS</a>
+<nav class="breadcrumbs" aria-label="Migas de pan">
+  <a href="{% url 'catalogo' %}">Inicio</a>
+  <span class="sep" aria-hidden="true">›</span>
+  <a href="{% url 'catalogo_productos' %}">Productos</a>
+  <span class="sep" aria-hidden="true">›</span>
+  <span aria-current="page">{{ producto.nombre }}</span>
+</nav>
 <div class="product">
 <section class="gallery" aria-label="Fotos de {{ producto.nombre }}">
   <div class="main-photo">
@@ -73,10 +85,17 @@ body{margin:0;padding-bottom:156px;background:radial-gradient(circle at top righ
   <p class="eyebrow">{{ producto.tipo.nombre }}</p>
   <h1>{{ producto.nombre }}</h1>
   <div class="tags">
-    <span class="tag">Producto individual</span>
+    <span class="tag">{% if producto.es_compuesto %}Producto compuesto{% else %}Producto individual{% endif %}</span>
     {% if producto.personalizable %}<span class="tag custom">Personalizable</span>{% endif %}
     {% if producto.permite_elegir_color %}<span class="tag custom">Color a elección</span>{% endif %}
   </div>
+
+  {% if producto.es_compuesto and producto.descripcion_componentes_catalogo %}
+  <div class="composition">
+    <strong>Composición</strong><br>
+    {{ producto.descripcion_componentes_catalogo }}
+  </div>
+  {% endif %}
 
   <div class="pricebox">
     <small>PRECIO UNITARIO DE REFERENCIA</small>
@@ -120,6 +139,7 @@ body{margin:0;padding-bottom:156px;background:radial-gradient(circle at top righ
           aria-checked="false"
           aria-label="{{ color.nombre }}"
           title="{{ color.nombre }}"
+          data-tooltip="{{ color.nombre }}"
         ><span class="dv-color-swatch__check" aria-hidden="true">✓</span></button>
         {% endfor %}
       </div>
