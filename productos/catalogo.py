@@ -280,6 +280,17 @@ def _catalogo_publico(request, vista_catalogo, categoria_actual=None):
         if kit.catalogo_imagen_url
     ]
 
+    categorias_productos_ids = {
+        producto.tipo_id
+        for producto in productos_visibles
+        if producto.tipo_id
+    }
+    categorias_kits_ids = {
+        kit.tipo_producto_id
+        for kit in kits
+        if kit.tipo_producto_id
+    }
+
     if categoria_actual is not None:
         productos_visibles = [
             producto
@@ -292,15 +303,16 @@ def _catalogo_publico(request, vista_catalogo, categoria_actual=None):
             if kit.tipo_producto_id == categoria_actual.id
         ]
 
-    categorias_ids = {
-        producto.tipo_id
-        for producto in productos
-        if producto.tipo_id
-    } | {
-        kit.tipo_producto_id
-        for kit in kits
-        if kit.tipo_producto_id
-    }
+    if vista_catalogo == "kits":
+        categorias_ids = categorias_kits_ids
+    elif vista_catalogo == "productos":
+        categorias_ids = categorias_productos_ids
+    else:
+        categorias_ids = (
+            categorias_productos_ids
+            | categorias_kits_ids
+        )
+
     categorias = list(
         TipoProducto.objects
         .filter(
