@@ -5,7 +5,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="{{ producto.nombre }} · Doble V 3D">
+<meta name="description" content="{{ social_description }}">
+<link rel="canonical" href="{{ social_url }}">
+<meta property="og:locale" content="es_AR">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Doble V 3D">
+<meta property="og:title" content="{{ producto.nombre }} | Doble V 3D">
+<meta property="og:description" content="{{ social_description }}">
+<meta property="og:url" content="{{ social_url }}">
+<meta property="og:image" content="{{ social_image_url }}">
+<meta property="og:image:alt" content="{{ producto.nombre }}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ producto.nombre }} | Doble V 3D">
+<meta name="twitter:description" content="{{ social_description }}">
+<meta name="twitter:image" content="{{ social_image_url }}">
 <title>{{ producto.nombre }} | Doble V 3D</title>
 <link rel="icon" href="{% static 'brand/favicon.ico' %}">
 <style>
