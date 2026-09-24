@@ -229,6 +229,16 @@ class ConfiguracionCatalogo(models.Model):
             "que no tengan un porcentaje particular."
         ),
     )
+    provision_empaque_unitaria = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0"),
+        verbose_name="Provisión comercial de empaque por unidad",
+        help_text=(
+            "Costo interno estimado de empaque considerado al calcular "
+            "precios comerciales. Nunca se muestra como adicional al cliente."
+        ),
+    )
 
     @property
     def colores_disponibles_lista(self):
@@ -490,6 +500,7 @@ class ConfiguracionCatalogo(models.Model):
         super().save(*args, **kwargs)
         cache.delete("dv-redondeo-precio-producto-v1")
         cache.delete("dv-incremento-insumos-v1")
+        cache.delete("dv-provision-empaque-unitaria-v1")
 
 
 
@@ -526,6 +537,25 @@ def incremento_insumos_actual():
             valor = Decimal(str(valor if valor is not None else "10"))
         except Exception:
             valor = Decimal("10")
+        valor = max(valor, Decimal("0"))
+        cache.set(cache_key, valor, 60)
+    return Decimal(str(valor))
+
+
+def provision_empaque_unitaria_actual():
+    cache_key = "dv-provision-empaque-unitaria-v1"
+    valor = cache.get(cache_key)
+    if valor is None:
+        valor = (
+            ConfiguracionCatalogo.objects
+            .filter(pk=1)
+            .values_list("provision_empaque_unitaria", flat=True)
+            .first()
+        )
+        try:
+            valor = Decimal(str(valor if valor is not None else "0"))
+        except Exception:
+            valor = Decimal("0")
         valor = max(valor, Decimal("0"))
         cache.set(cache_key, valor, 60)
     return Decimal(str(valor))
@@ -928,6 +958,19 @@ class Producto(models.Model):
         )
 
     @property
+    def provision_empaque_comercial(self):
+        if self.solo_produccion:
+            return Decimal("0")
+        return provision_empaque_unitaria_actual()
+
+    @property
+    def costo_comercial_total(self):
+        return (
+            self.costo_productivo_total
+            + self.provision_empaque_comercial
+        )
+
+    @property
     def costo(self):
         if not self.requiere_impresion:
             return Decimal("0")
@@ -994,7 +1037,7 @@ class Producto(models.Model):
         # por lo que un producto configurado al 60% podía terminar con un
         # margen real inferior. Seguro, amortización y provisión por fallos
         # deben formar parte de la base sobre la que se protege el margen.
-        costo_productivo = self.costo_productivo_total
+        costo_productivo = self.costo_comercial_total
         precio_sin_redondear = (
             costo_productivo
             / (Decimal("1") - margen)
@@ -1011,7 +1054,7 @@ class Producto(models.Model):
 
     @property
     def ganancia(self):
-        return self.subtotal - self.costo_productivo_total
+        return self.subtotal - self.costo_comercial_total
 
     @property
     def codigo(self):
