@@ -131,6 +131,9 @@ def seo_catalogo(request, vista_catalogo, config=None):
         "seo_title": title,
         "seo_description": description,
         "seo_canonical_url": canonical,
+        "seo_social_image_url": request.build_absolute_uri(
+            static("brand/logo.png")
+        ),
         "seo_json_ld": _json_ld(graph),
     }
 
