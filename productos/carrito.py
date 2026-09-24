@@ -97,10 +97,16 @@ def _validar_color_item(bruto, habilitado, config, nombre):
             f"Elegí un color para {nombre}."
         )
 
-    colores = {
-        color.casefold(): color
-        for color in config.colores_disponibles_lista
-    }
+    colores = {}
+    for detalle in config.colores_disponibles_detalle:
+        color = detalle["valor"]
+        colores[color.casefold()] = color
+        if detalle.get("personalizado") and detalle.get("hex"):
+            colores.setdefault(
+                detalle["hex"].casefold(),
+                color,
+            )
+
     color = colores.get(color_solicitado.casefold())
     if not color:
         raise ValueError(
