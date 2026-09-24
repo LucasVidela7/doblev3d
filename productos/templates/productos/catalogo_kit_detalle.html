@@ -575,7 +575,7 @@
                 <a class="breadcrumb-link" href="{% url 'catalogo_kits' %}">Kits</a>
                 {% if kit.tipo_producto %}
                 <span class="sep" aria-hidden="true">›</span>
-                <a class="breadcrumb-link" href="{% url 'catalogo_categoria' kit.tipo_producto.slug %}">{{ kit.tipo_producto.nombre }}</a>
+                <a class="breadcrumb-link" href="{% url 'catalogo_categoria_kits' kit.tipo_producto.slug %}">{{ kit.tipo_producto.nombre }}</a>
                 {% endif %}
                 <span class="sep" aria-hidden="true">›</span>
                 <span aria-current="page">{{ kit.nombre }}</span>
