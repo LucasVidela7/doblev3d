@@ -156,7 +156,7 @@
             </div>
             <div class="preview-grid">
                 {% for producto in productos_inicio|slice:":4" %}
-                <a class="preview catalog-item" data-kind="producto" data-product-id="{{ producto.id }}" data-category="{{ producto.tipo.nombre|lower }}" href="{% url 'catalogo_producto_detalle' producto.id %}">
+                <a class="preview catalog-item" data-kind="producto" data-product-id="{{ producto.id }}" data-category="{{ producto.tipo.nombre|lower }}" href="{% url 'catalogo_producto_detalle' producto.slug %}">
                     <div class="preview-media media">
                         {% if producto.catalogo_imagen %}
                             <img src="{{ producto.catalogo_imagen.url }}" alt="{{ producto.nombre }}" loading="lazy">
@@ -193,7 +193,7 @@
             </div>
             <div class="preview-grid">
                 {% for kit in kits_inicio|slice:":4" %}
-                <a class="preview catalog-item" data-kind="kit" data-kit-id="{{ kit.id }}" data-category="{% if kit.tipo_producto %}{{ kit.tipo_producto.nombre|lower }}{% endif %}" href="{% url 'catalogo_kit_detalle' kit.id %}">
+                <a class="preview catalog-item" data-kind="kit" data-kit-id="{{ kit.id }}" data-category="{% if kit.tipo_producto %}{{ kit.tipo_producto.nombre|lower }}{% endif %}" href="{% url 'catalogo_kit_detalle' kit.slug %}">
                     <div class="preview-media media">
                         {% if kit.productos_visuales_collage %}
                             <div class="kit-collage">
