@@ -1,6 +1,8 @@
 from django.contrib import admin
 
 from .models import (
+    CompraInsumo,
+    CompraInsumoItem,
     ConfiguracionCatalogo,
     Insumo,
     Producto,
@@ -52,11 +54,51 @@ class InsumoAdmin(admin.ModelAdmin):
         "unidad_medida",
         "precio_compra",
         "cantidad_compra",
+        "costo_promedio_unitario",
         "stock",
+        "disponible_como_complementario",
         "activo",
     )
     search_fields = ("nombre", "proveedor")
-    list_filter = ("tipo_uso", "unidad_medida", "activo")
+    list_filter = (
+        "tipo_uso",
+        "unidad_medida",
+        "disponible_como_complementario",
+        "activo",
+    )
+
+
+class CompraInsumoItemInline(admin.TabularInline):
+    model = CompraInsumoItem
+    extra = 0
+    autocomplete_fields = ("insumo",)
+    readonly_fields = (
+        "cantidad",
+        "monto_total",
+        "costo_unitario_compra",
+        "stock_anterior",
+        "costo_promedio_anterior",
+        "costo_promedio_nuevo",
+    )
+
+
+@admin.register(CompraInsumo)
+class CompraInsumoAdmin(admin.ModelAdmin):
+    list_display = (
+        "codigo",
+        "fecha_compra",
+        "proveedor",
+        "gasto",
+        "monto_total",
+    )
+    search_fields = (
+        "proveedor",
+        "items__insumo__nombre",
+        "gasto__descripcion",
+    )
+    list_filter = ("fecha_compra",)
+    autocomplete_fields = ("gasto",)
+    inlines = (CompraInsumoItemInline,)
 
 
 @admin.register(TipoProducto)
