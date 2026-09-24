@@ -549,20 +549,12 @@ def sitemap_xml(request):
             )
         )
 
-    for categoria in (
-        TipoProducto.objects
-        .filter(activo=True)
-        .exclude(slug="")
-        .order_by("nombre")
-    ):
-        urls.append(
-            request.build_absolute_uri(
-                reverse(
-                    "catalogo_categoria",
-                    args=[categoria.slug],
-                )
-            )
+    categoria_ids_publicas = set(
+        productos.values_list(
+            "tipo_id",
+            flat=True,
         )
+    )
 
     kits = (
         Kit.objects
@@ -591,11 +583,50 @@ def sitemap_xml(request):
             productos_categoria=productos_categoria,
         )["valido"]:
             continue
+
+        categoria_id = kit.tipo_producto_id
+        if (
+            not categoria_id
+            and kit.modalidad == "FIJO"
+        ):
+            tipos_componentes = {
+                componente.producto.tipo_id
+                for componente in kit.componentes.all()
+                if (
+                    componente.producto_id
+                    and componente.producto.tipo_id
+                )
+            }
+            if len(tipos_componentes) == 1:
+                categoria_id = next(
+                    iter(tipos_componentes)
+                )
+        if categoria_id:
+            categoria_ids_publicas.add(categoria_id)
+
         urls.append(
             request.build_absolute_uri(
                 reverse(
                     "catalogo_kit_detalle",
                     args=[kit.slug],
+                )
+            )
+        )
+
+    for categoria in (
+        TipoProducto.objects
+        .filter(
+            activo=True,
+            id__in=categoria_ids_publicas,
+        )
+        .exclude(slug="")
+        .order_by("nombre")
+    ):
+        urls.append(
+            request.build_absolute_uri(
+                reverse(
+                    "catalogo_categoria",
+                    args=[categoria.slug],
                 )
             )
         )
