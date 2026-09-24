@@ -709,6 +709,35 @@ class SolicitudWebItem(models.Model):
     def subtotal(self):
         return self.precio_unitario * Decimal(self.cantidad)
 
+    @property
+    def adicional_opciones_unitario(self):
+        return max(
+            Decimal(str(self.adicional_unitario or 0))
+            - Decimal(str(self.adicional_color_unitario or 0)),
+            Decimal("0"),
+        )
+
+    @property
+    def adicional_total_linea(self):
+        return (
+            Decimal(str(self.adicional_unitario or 0))
+            * Decimal(int(self.cantidad or 0))
+        )
+
+    @property
+    def adicional_opciones_total(self):
+        return (
+            self.adicional_opciones_unitario
+            * Decimal(int(self.cantidad or 0))
+        )
+
+    @property
+    def adicional_color_total(self):
+        return (
+            Decimal(str(self.adicional_color_unitario or 0))
+            * Decimal(int(self.cantidad or 0))
+        )
+
     def __str__(self):
         return (
             f"{self.solicitud.codigo} - "
