@@ -202,7 +202,7 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
             <div class="ayuda" id="total_piezas">Total piezas: 0</div>
         </div>
 
-        <div class="card recomendacion" id="recomendacion_precio">
+        <div class="card recomendacion" id="recomendacion_precio" data-kit-id="{% if kit and kit.id %}{{ kit.id }}{% endif %}">
             <div class="dv-kit-precio-editor" data-dv-kit-persistente>
                 <div class="seccion-titulo">3 · PRECIO Y RENTABILIDAD</div>
                 <label>PRECIO ACTUAL</label>
