@@ -25,6 +25,7 @@ from collections import defaultdict
 from calendar import monthrange
 from datetime import date, datetime, time, timedelta
 
+from .empaques import costo_embalaje_para_rentabilidad
 from .models import (
     Pedido,
     PedidoEmpaque,
@@ -3750,11 +3751,11 @@ def finanzas(request):
         .exclude(estado="CANCELADO")
         .select_related("cliente")
         .prefetch_related(
-            "detalles__producto",
-            "detalles__kit",
-            "detalles__productos_kit__producto",
+            "detalles__producto__tipo",
+            "detalles__kit__componentes__producto__tipo",
+            "detalles__productos_kit__producto__tipo",
             "pagos",
-            "empaques_usados",
+            "empaques_usados__complementos__insumo",
         )
         .order_by("-fecha", "-id")
     )
@@ -3789,7 +3790,10 @@ def finanzas(request):
 
             costo_pedido += costo_detalle
 
-        costo_empaque_pedido = pedido.costo_empaque_real
+        (
+            costo_empaque_pedido,
+            empaque_estimado,
+        ) = costo_embalaje_para_rentabilidad(pedido)
         costo_pedido += costo_empaque_pedido
 
         ganancia_pedido = (
@@ -3818,6 +3822,7 @@ def finanzas(request):
                     "venta": venta_pedido,
                     "costo": costo_pedido,
                     "costo_empaque": costo_empaque_pedido,
+                    "empaque_estimado": empaque_estimado,
                     "ganancia": ganancia_pedido,
                     "margen": margen_pedido,
                     "pagado": pagado_pedido,
