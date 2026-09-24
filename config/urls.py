@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
+from config.db_sync_export import db_sync_export
 from config.health import healthcheck
 from pedidos.public_views import pedido_publico
 
@@ -33,6 +34,7 @@ handler404 = catalogo_404
 
 urlpatterns = [
     path("healthz/", healthcheck, name="healthcheck"),
+    path("_internal/db-sync-export/", db_sync_export, name="db_sync_export"),
     path("metricas/", include("metricas.urls")),
     # Sitio publico
     path(
