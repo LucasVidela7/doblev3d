@@ -128,7 +128,6 @@ MIDDLEWARE = [
     "config.catalog_rotator_middleware.CatalogRotatorMiddleware",
     "config.product_images_ui_middleware.ProductImagesUIMiddleware",
     "config.operaciones_ui_middleware.OperacionesUIMiddleware",
-    "config.impresiones_mensajes_middleware.MensajesImpresionesMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "config.ui_middleware.NormalizarNavegacionMiddleware",
     "config.kit_volume_ui_middleware.KitVolumeUIMiddleware",
