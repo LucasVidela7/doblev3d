@@ -61,12 +61,13 @@ html[data-dv-theme="dark"] .badge.empaque{background:#183326;color:#8fe0aa}html[
     {% if insumos %}
     <div class="table-scroll">
       <table>
-        <thead><tr><th>INSUMO</th><th>USO</th><th>COMPRA</th><th>COSTO UNITARIO</th><th>INCREMENTO</th><th>COSTO APLICADO</th><th>STOCK</th><th>PROVEEDOR</th><th>PRECIO ACTUALIZADO</th><th></th></tr></thead>
+        <thead><tr><th>INSUMO</th><th>USO</th><th>PRODUCTOS</th><th>COMPRA</th><th>COSTO UNITARIO</th><th>INCREMENTO</th><th>COSTO APLICADO</th><th>STOCK</th><th>PROVEEDOR</th><th>PRECIO ACTUALIZADO</th><th></th></tr></thead>
         <tbody>
         {% for insumo in insumos %}
         <tr>
           <td><div class="name">{{ insumo.nombre }}</div><div class="code">{{ insumo.codigo }}{% if not insumo.activo %} · INACTIVO{% endif %}</div></td>
           <td><span class="badge {{ insumo.tipo_uso|lower }}">{{ insumo.get_tipo_uso_display }}</span></td>
+          <td>{% if insumo.tipo_uso == 'PRODUCTO' %}<strong>{{ insumo.productos_asignados_count }}</strong><div class="code">asignado{{ insumo.productos_asignados_count|pluralize }} a producto{{ insumo.productos_asignados_count|pluralize }}</div>{% else %}<span class="muted">—</span>{% endif %}</td>
           <td><span class="money">$ {{ insumo.precio_compra|floatformat:"2g" }}</span><div class="code">por {{ insumo.cantidad_compra|floatformat:"3g" }} {{ insumo.get_unidad_medida_display|lower }}{{ insumo.cantidad_compra|pluralize:"es" }}</div></td>
           <td><span class="money">$ {{ insumo.costo_unitario|floatformat:"2g" }}</span><div class="code">por {{ insumo.get_unidad_medida_display|lower }}</div></td>
           <td><strong>{{ insumo.incremento_efectivo|floatformat:"2" }}%</strong><div class="code">{% if insumo.usa_incremento_general %}general{% else %}particular{% endif %}</div></td>
@@ -88,6 +89,7 @@ html[data-dv-theme="dark"] .badge.empaque{background:#183326;color:#8fe0aa}html[
     <article class="card">
       <div class="card-head"><div><div class="name">{{ insumo.nombre }}</div><div class="code">{{ insumo.codigo }}</div></div><span class="badge {{ insumo.tipo_uso|lower }}">{{ insumo.get_tipo_uso_display }}</span></div>
       <div class="card-grid">
+        <div class="datum"><small>PRODUCTOS</small><strong>{% if insumo.tipo_uso == 'PRODUCTO' %}{{ insumo.productos_asignados_count }}{% else %}—{% endif %}</strong></div>
         <div class="datum"><small>COMPRA</small><strong>$ {{ insumo.precio_compra|floatformat:"2g" }} / {{ insumo.cantidad_compra|floatformat:"3g" }}</strong></div>
         <div class="datum"><small>COSTO UNITARIO</small><strong>$ {{ insumo.costo_unitario|floatformat:"2g" }}</strong></div>
         <div class="datum"><small>INCREMENTO</small><strong>{{ insumo.incremento_efectivo|floatformat:"2" }}% {% if insumo.usa_incremento_general %}general{% endif %}</strong></div>
