@@ -1,4 +1,4 @@
-{% load static %}
+{% load static l10n %}
 <!doctype html>
 <html lang="es">
 <head>
@@ -195,6 +195,7 @@ html[data-dv-theme="dark"] .cfg-nav a.is-active .cfg-nav-copy small{color:#d9e2e
 <nav class="cfg-nav" aria-label="Secciones de configuración">
 <div class="cfg-nav-group">Comercial</div>
 <a href="#tienda" data-config-tab="tienda"><span class="cfg-nav-icon">🛍</span><span class="cfg-nav-copy"><strong>Tienda</strong><small>Catálogo, precios, colores y canales</small></span></a>
+<a href="#costos" data-config-tab="costos"><span class="cfg-nav-icon">◫</span><span class="cfg-nav-copy"><strong>Costos</strong><small>Insumos y provisiones</small></span></a>
 <a href="#whatsapp" data-config-tab="whatsapp"><span class="cfg-nav-icon">💬</span><span class="cfg-nav-copy"><strong>WhatsApp</strong><small>Mensajes, cobros y plantillas</small></span></a>
 <div class="cfg-nav-group">Operación</div>
 <a href="#avisos" data-config-tab="avisos"><span class="cfg-nav-icon">🔔</span><span class="cfg-nav-copy"><strong>Notificaciones</strong><small>Avisos web y dispositivos</small></span></a>
@@ -209,6 +210,7 @@ html[data-dv-theme="dark"] .cfg-nav a.is-active .cfg-nav-copy small{color:#d9e2e
 <label for="cfgSectionSelect">SECCIÓN DE CONFIGURACIÓN</label>
 <select id="cfgSectionSelect">
 <option value="tienda">🛍 Tienda</option>
+<option value="costos">◫ Costos</option>
 <option value="whatsapp">💬 WhatsApp</option>
 <option value="avisos">🔔 Notificaciones</option>
 <option value="metricas">↗ Métricas</option>
@@ -352,6 +354,29 @@ html[data-dv-theme="dark"] .cfg-nav a.is-active .cfg-nav-copy small{color:#d9e2e
 <div class="cfg-switch-row"><div><div class="cfg-box-title">Mostrar WhatsApp público</div><div class="cfg-box-copy">Número del negocio visible desde el catálogo.</div></div><label class="cfg-switch"><input type="checkbox" name="mostrar_whatsapp" {% if config.mostrar_whatsapp %}checked{% endif %}><span class="cfg-switch-track"></span></label></div>
 <label class="cfg-label" for="whatsapp_numero"><span>NÚMERO CON CÓDIGO DE PAÍS</span></label>
 <input class="cfg-input" id="whatsapp_numero" name="whatsapp_numero" maxlength="30" inputmode="tel" value="{{ config.whatsapp_numero }}" placeholder="54911...">
+</div>
+</div>
+</section>
+
+<section class="cfg-section" id="costos">
+<div class="cfg-section-head"><div><h2>Costos e insumos</h2><p>Parámetros generales para costos indirectos y provisiones.</p></div><div class="cfg-icon">◫</div></div>
+<div class="cfg-grid">
+<div class="cfg-box full">
+<div class="cfg-box-title">Incremento general de insumos</div>
+<div class="cfg-box-copy">Se aplica sobre el costo unitario de cualquier insumo que no tenga un porcentaje particular. Sirve como provisión por variaciones de precio, desperdicio o reposición.</div>
+<label class="cfg-label" for="incremento_insumos_por_defecto"><span>PORCENTAJE GENERAL</span><span>% sobre costo unitario</span></label>
+<input class="cfg-input" id="incremento_insumos_por_defecto" name="incremento_insumos_por_defecto" type="number" min="0" step="0.01" value="{{ config.incremento_insumos_por_defecto|unlocalize }}">
+<div class="cfg-note"><strong>Ejemplo:</strong> un insumo con costo unitario de $80 y 15% de incremento se computará a $92. Cada insumo puede sobrescribir este porcentaje desde su ficha.</div>
+<div class="cfg-footer"><a class="cfg-btn" href="{% url 'productos:insumos' %}">VER INSUMOS</a></div>
+</div>
+
+<div class="cfg-box full">
+<div class="cfg-box-title">Provisión comercial de empaque</div>
+<div class="cfg-box-copy">Monto interno estimado por unidad comercial. Se incorpora al cálculo/recomendación de precios, pero nunca aparece como adicional, cargo ni concepto separado para el cliente.</div>
+<label class="cfg-label" for="provision_empaque_unitaria"><span>PROVISIÓN POR UNIDAD</span><span>$ internos</span></label>
+<input class="cfg-input" id="provision_empaque_unitaria" name="provision_empaque_unitaria" type="number" min="0" step="0.01" value="{{ config.provision_empaque_unitaria|unlocalize }}">
+<div class="cfg-note"><strong>Importante:</strong> esto es una provisión comercial. El costo real del empaque se registra después, en Preparación, según la bolsa/caja efectivamente utilizada.</div>
+<div class="cfg-footer"><a class="cfg-btn" href="{% url 'pedidos:reglas_empaque' %}">CONFIGURAR REGLAS DE EMPAQUE</a></div>
 </div>
 </div>
 </section>
@@ -1020,8 +1045,8 @@ campo.dispatchEvent(new Event("input",{bubbles:true}));
 });
 });
 
-const configSections=["tienda","whatsapp","avisos","metricas","legal","apariencia"];
-const sectionLabels={tienda:"Tienda",whatsapp:"WhatsApp",avisos:"Notificaciones",metricas:"Métricas",legal:"Legal",apariencia:"Apariencia"};
+const configSections=["tienda","costos","whatsapp","avisos","metricas","legal","apariencia"];
+const sectionLabels={tienda:"Tienda",costos:"Costos",whatsapp:"WhatsApp",avisos:"Notificaciones",metricas:"Métricas",legal:"Legal",apariencia:"Apariencia"};
 const sectionSelect=document.getElementById("cfgSectionSelect");
 const sectionInput=document.getElementById("configSeccion");
 const sectionLabel=document.getElementById("cfgCurrentSectionLabel");

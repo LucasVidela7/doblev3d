@@ -10,7 +10,12 @@ from costos.models import ConfiguracionCostos
 from kits.models import Kit, KitComponente
 
 from .image_models import ProductoImagen
-from .models import ConfiguracionCatalogo, Producto, TipoProducto
+from .models import (
+    ConfiguracionCatalogo,
+    Producto,
+    ProductoComponente,
+    TipoProducto,
+)
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
@@ -287,6 +292,18 @@ class CatalogoPublicoTests(TestCase):
             'href="' + detalle_url + '"',
         )
 
+    def test_detalle_kit_muestra_breadcrumbs(self):
+        response = self.client.get(
+            reverse("catalogo_kit_detalle", args=[self.kit.id])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="breadcrumbs"')
+        self.assertContains(response, f'href="{reverse("catalogo")}"')
+        self.assertContains(response, f'href="{reverse("catalogo_kits")}"')
+        self.assertContains(response, 'aria-current="page"')
+        self.assertContains(response, self.kit.nombre)
+
     def test_detalle_kit_no_muestra_salto_de_linea_literal(self):
         response = self.client.get(
             reverse("catalogo_kit_detalle", args=[self.kit.id])
@@ -508,6 +525,54 @@ class CatalogoPublicoTests(TestCase):
         self.assertContains(response, "data-dv-cart-root")
         self.assertContains(response, "data-dv-how-buy-open")
 
+    def test_producto_compuesto_muestra_resumen_de_piezas_en_listado_y_detalle(self):
+        pieza = Producto.objects.create(
+            nombre="Base interna",
+            categoria="PRODUCTO",
+            tipo=self.tipo,
+            activo=True,
+            solo_produccion=True,
+            requiere_impresion=False,
+        )
+        compuesto = Producto.objects.create(
+            nombre="Producto armado",
+            categoria="PRODUCTO",
+            tipo=self.tipo,
+            tipo_fabricacion="COMPUESTO",
+            activo=True,
+            solo_produccion=False,
+            requiere_impresion=False,
+        )
+        ProductoComponente.objects.create(
+            producto=compuesto,
+            componente=pieza,
+            cantidad=2,
+        )
+
+        listado = self.client.get(reverse("catalogo_productos"))
+        detalle = self.client.get(
+            reverse("catalogo_producto_detalle", args=[compuesto.id])
+        )
+
+        self.assertEqual(listado.status_code, 200)
+        self.assertEqual(detalle.status_code, 200)
+        self.assertContains(listado, "Incluye: 2× Base interna")
+        self.assertContains(detalle, "Incluye: 2× Base interna")
+        self.assertContains(detalle, "Producto compuesto")
+        self.assertContains(detalle, "Composición")
+
+    def test_detalle_producto_muestra_breadcrumbs(self):
+        response = self.client.get(
+            reverse("catalogo_producto_detalle", args=[self.producto.id])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="breadcrumbs"')
+        self.assertContains(response, f'href="{reverse("catalogo")}"')
+        self.assertContains(response, f'href="{reverse("catalogo_productos")}"')
+        self.assertContains(response, 'aria-current="page"')
+        self.assertContains(response, self.producto.nombre)
+
     def test_producto_con_color_muestra_surtido_y_eleccion(self):
         config, _ = ConfiguracionCatalogo.objects.get_or_create(pk=1)
         config.colores_disponibles = "Rojo\nAzul\n#12AB34"
@@ -531,6 +596,7 @@ class CatalogoPublicoTests(TestCase):
         self.assertContains(response, 'data-dv-color-swatch')
         self.assertContains(response, 'data-color-value="Rojo"')
         self.assertContains(response, 'data-color-hex="#EF1111"')
+        self.assertContains(response, 'data-tooltip="Rojo"')
         self.assertContains(response, 'data-color-value="Azul"')
         self.assertContains(response, 'data-color-hex="#0B66C3"')
         self.assertContains(response, 'data-color-value="#12AB34"')
@@ -601,6 +667,7 @@ class CatalogoPublicoTests(TestCase):
         self.assertContains(response, "Producción especial")
         self.assertContains(response, 'data-dv-color-swatch')
         self.assertContains(response, 'data-color-value="Rojo"')
+        self.assertContains(response, 'data-tooltip="Rojo"')
         self.assertContains(response, 'data-color-value="Azul"')
         self.assertNotContains(response, '<select id="dv-kit-color-')
 

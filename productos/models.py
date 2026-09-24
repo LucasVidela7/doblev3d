@@ -4,6 +4,7 @@ import unicodedata
 
 from django.core.cache import cache
 from django.db import models
+from django.utils import timezone
 
 from costos.models import ConfiguracionCostos
 
@@ -216,6 +217,26 @@ class ConfiguracionCatalogo(models.Model):
         help_text=(
             "Los precios de lista de productos se redondean siempre hacia arriba "
             "al próximo múltiplo configurado. Ejemplo: 100."
+        ),
+    )
+    incremento_insumos_por_defecto = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        default=Decimal("10.00"),
+        verbose_name="Incremento general de insumos",
+        help_text=(
+            "Porcentaje de provisión aplicado al costo unitario de los insumos "
+            "que no tengan un porcentaje particular."
+        ),
+    )
+    provision_empaque_unitaria = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0"),
+        verbose_name="Provisión comercial de empaque por unidad",
+        help_text=(
+            "Costo interno estimado de empaque considerado al calcular "
+            "precios comerciales. Nunca se muestra como adicional al cliente."
         ),
     )
 
@@ -478,6 +499,8 @@ class ConfiguracionCatalogo(models.Model):
         self.whatsapp_numero = re.sub(r"\D+", "", self.whatsapp_numero or "")
         super().save(*args, **kwargs)
         cache.delete("dv-redondeo-precio-producto-v1")
+        cache.delete("dv-incremento-insumos-v1")
+        cache.delete("dv-provision-empaque-unitaria-v1")
 
 
 
@@ -498,6 +521,44 @@ def redondeo_precio_producto_actual():
         valor = max(valor, 100)
         cache.set(cache_key, valor, 60)
     return Decimal(valor)
+
+
+def incremento_insumos_actual():
+    cache_key = "dv-incremento-insumos-v1"
+    valor = cache.get(cache_key)
+    if valor is None:
+        valor = (
+            ConfiguracionCatalogo.objects
+            .filter(pk=1)
+            .values_list("incremento_insumos_por_defecto", flat=True)
+            .first()
+        )
+        try:
+            valor = Decimal(str(valor if valor is not None else "10"))
+        except Exception:
+            valor = Decimal("10")
+        valor = max(valor, Decimal("0"))
+        cache.set(cache_key, valor, 60)
+    return Decimal(str(valor))
+
+
+def provision_empaque_unitaria_actual():
+    cache_key = "dv-provision-empaque-unitaria-v1"
+    valor = cache.get(cache_key)
+    if valor is None:
+        valor = (
+            ConfiguracionCatalogo.objects
+            .filter(pk=1)
+            .values_list("provision_empaque_unitaria", flat=True)
+            .first()
+        )
+        try:
+            valor = Decimal(str(valor if valor is not None else "0"))
+        except Exception:
+            valor = Decimal("0")
+        valor = max(valor, Decimal("0"))
+        cache.set(cache_key, valor, 60)
+    return Decimal(str(valor))
 
 
 class SolicitudArrepentimiento(models.Model):
@@ -540,6 +601,224 @@ class SolicitudArrepentimiento(models.Model):
 
     def __str__(self):
         return f"{self.codigo} · {self.contacto}"
+
+class Insumo(models.Model):
+    TIPOS_USO = [
+        ("PRODUCTO", "Producto"),
+        ("EMPAQUE", "Empaque"),
+        ("DESPACHO", "Despacho"),
+    ]
+    UNIDADES_MEDIDA = [
+        ("UNIDAD", "Unidad"),
+        ("METRO", "Metro"),
+        ("GRAMO", "Gramo"),
+        ("MILILITRO", "Mililitro"),
+    ]
+
+    nombre = models.CharField(max_length=160, unique=True)
+    tipo_uso = models.CharField(
+        max_length=20,
+        choices=TIPOS_USO,
+        default="PRODUCTO",
+    )
+    unidad_medida = models.CharField(
+        max_length=20,
+        choices=UNIDADES_MEDIDA,
+        default="UNIDAD",
+    )
+    precio_compra = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        help_text="Precio total pagado por la compra o presentación.",
+    )
+    cantidad_compra = models.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        default=1,
+        help_text="Cantidad de unidades base incluidas en el precio de compra.",
+    )
+    stock = models.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        default=0,
+        help_text="Stock disponible expresado en la unidad base.",
+    )
+    proveedor = models.CharField(
+        max_length=160,
+        blank=True,
+        default="",
+    )
+    url_referencia = models.URLField(
+        max_length=500,
+        blank=True,
+        default="",
+    )
+    incremento_personalizado = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text=(
+            "Si se deja vacío, utiliza el incremento general configurado "
+            "para todos los insumos."
+        ),
+    )
+    precio_actualizado_en = models.DateTimeField(
+        default=timezone.now,
+    )
+    costo_promedio_unitario = models.DecimalField(
+        max_digits=14,
+        decimal_places=4,
+        null=True,
+        blank=True,
+        help_text=(
+            "Costo promedio ponderado del stock actual. "
+            "Se actualiza automáticamente al registrar compras."
+        ),
+    )
+    disponible_como_complementario = models.BooleanField(
+        default=False,
+        verbose_name="Disponible como complementario de empaque",
+        help_text=(
+            "Sólo aplica a insumos de tipo Empaque. Si está activo, "
+            "puede seleccionarse como sticker, tarjeta, cinta u otro "
+            "consumible complementario en las reglas de empaque."
+        ),
+    )
+    activo = models.BooleanField(default=True)
+    creado_en = models.DateTimeField(auto_now_add=True)
+    actualizado_en = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-activo", "tipo_uso", "nombre"]
+
+    def __str__(self):
+        return f"{self.codigo} - {self.nombre}" if self.pk else self.nombre
+
+    @property
+    def codigo(self):
+        return f"I{self.id:04d}" if self.id else "I-NUEVO"
+
+    @property
+    def costo_unitario(self):
+        if self.costo_promedio_unitario is not None:
+            return max(
+                Decimal(str(self.costo_promedio_unitario)),
+                Decimal("0"),
+            )
+        cantidad = Decimal(str(self.cantidad_compra or 0))
+        if cantidad <= 0:
+            return Decimal("0")
+        return Decimal(str(self.precio_compra or 0)) / cantidad
+
+    @property
+    def incremento_efectivo(self):
+        if self.incremento_personalizado is not None:
+            return max(
+                Decimal(str(self.incremento_personalizado)),
+                Decimal("0"),
+            )
+        return incremento_insumos_actual()
+
+    @property
+    def usa_incremento_general(self):
+        return self.incremento_personalizado is None
+
+    @property
+    def costo_unitario_aplicado(self):
+        porcentaje = self.incremento_efectivo / Decimal("100")
+        return self.costo_unitario * (Decimal("1") + porcentaje)
+
+
+
+class CompraInsumo(models.Model):
+    fecha_compra = models.DateField()
+    proveedor = models.CharField(
+        max_length=160,
+        blank=True,
+        default="",
+    )
+    gasto = models.OneToOneField(
+        "pedidos.Gasto",
+        on_delete=models.PROTECT,
+        related_name="compra_insumos",
+    )
+    observaciones = models.TextField(
+        blank=True,
+        default="",
+    )
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-fecha_compra", "-id"]
+
+    @property
+    def monto_total(self):
+        return Decimal(str(self.gasto.monto_total or 0))
+
+    @property
+    def codigo(self):
+        return f"CMP{self.id:04d}" if self.id else "CMP-NUEVA"
+
+    def __str__(self):
+        return f"{self.codigo} · {self.proveedor or 'Compra de insumos'}"
+
+
+class CompraInsumoItem(models.Model):
+    compra = models.ForeignKey(
+        CompraInsumo,
+        on_delete=models.CASCADE,
+        related_name="items",
+    )
+    insumo = models.ForeignKey(
+        Insumo,
+        on_delete=models.PROTECT,
+        related_name="compras_items",
+    )
+    cantidad = models.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+    )
+    monto_total = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+    )
+    costo_unitario_compra = models.DecimalField(
+        max_digits=14,
+        decimal_places=4,
+    )
+    stock_anterior = models.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        default=0,
+    )
+    costo_promedio_anterior = models.DecimalField(
+        max_digits=14,
+        decimal_places=4,
+        default=0,
+    )
+    costo_promedio_nuevo = models.DecimalField(
+        max_digits=14,
+        decimal_places=4,
+        default=0,
+    )
+
+    class Meta:
+        ordering = ["id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["compra", "insumo"],
+                name="compra_insumo_item_unico",
+            )
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.compra.codigo} · {self.insumo.nombre} "
+            f"× {self.cantidad}"
+        )
+
 
 class TipoProducto(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
@@ -612,6 +891,24 @@ class Producto(models.Model):
     @property
     def es_compuesto(self):
         return self.tipo_fabricacion == "COMPUESTO"
+
+    @property
+    def descripcion_componentes_catalogo(self):
+        """Resumen corto y legible de las piezas que forman un producto compuesto."""
+        if not self.es_compuesto or not self.pk:
+            return ""
+
+        partes = []
+        for relacion in self._relaciones_componentes():
+            cantidad = max(int(relacion.cantidad or 0), 0)
+            if cantidad <= 0:
+                continue
+            nombre = (relacion.componente.nombre or "").strip()
+            if not nombre:
+                continue
+            partes.append(f"{cantidad}× {nombre}")
+
+        return "Incluye: " + " + ".join(partes) if partes else ""
 
     def _relaciones_componentes(self):
         if not self.pk or not self.es_compuesto:
@@ -728,6 +1025,64 @@ class Producto(models.Model):
             cache.set(cache_key, config, 15)
         return config
 
+    def _relaciones_insumos_directos(self):
+        if not self.pk:
+            return []
+
+        prefetched = getattr(self, "_prefetched_objects_cache", {})
+        if "insumos_asignados" in prefetched:
+            return prefetched["insumos_asignados"]
+
+        return self.insumos_asignados.select_related("insumo").all()
+
+    @property
+    def costo_insumos_directos(self):
+        total = Decimal("0")
+        for relacion in self._relaciones_insumos_directos():
+            total += Decimal(str(relacion.costo_total or 0))
+        return total
+
+    @property
+    def costo_insumos_componentes(self):
+        if not self.es_compuesto or not self.pk:
+            return Decimal("0")
+
+        total = Decimal("0")
+        for relacion in self._relaciones_componentes():
+            total += (
+                Decimal(str(relacion.componente.costo_insumos_total or 0))
+                * Decimal(int(relacion.cantidad or 0))
+            )
+        return total
+
+    @property
+    def costo_insumos_total(self):
+        return (
+            self.costo_insumos_directos
+            + self.costo_insumos_componentes
+        )
+
+    @property
+    def costo_productivo_total(self):
+        return (
+            Decimal(str(self.costo or 0))
+            + Decimal(str(self.seguro or 0))
+            + Decimal(str(self.costo_insumos_total or 0))
+        )
+
+    @property
+    def provision_empaque_comercial(self):
+        if self.solo_produccion:
+            return Decimal("0")
+        return provision_empaque_unitaria_actual()
+
+    @property
+    def costo_comercial_total(self):
+        return (
+            self.costo_productivo_total
+            + self.provision_empaque_comercial
+        )
+
     @property
     def costo(self):
         if not self.requiere_impresion:
@@ -780,7 +1135,10 @@ class Producto(models.Model):
 
     @property
     def subtotal(self):
-        if not self.requiere_impresion:
+        if (
+            not self.requiere_impresion
+            and self.costo_insumos_total <= 0
+        ):
             return Decimal("0")
 
         margen = self.margen_ganancia / Decimal("100")
@@ -792,7 +1150,7 @@ class Producto(models.Model):
         # por lo que un producto configurado al 60% podía terminar con un
         # margen real inferior. Seguro, amortización y provisión por fallos
         # deben formar parte de la base sobre la que se protege el margen.
-        costo_productivo = self.costo + self.seguro
+        costo_productivo = self.costo_comercial_total
         precio_sin_redondear = (
             costo_productivo
             / (Decimal("1") - margen)
@@ -809,7 +1167,7 @@ class Producto(models.Model):
 
     @property
     def ganancia(self):
-        return self.subtotal - self.costo - self.seguro
+        return self.subtotal - self.costo_comercial_total
 
     @property
     def codigo(self):
@@ -852,3 +1210,58 @@ class ProductoComponente(models.Model):
         resultado = super().delete(*args, **kwargs)
         producto.recalcular_desde_componentes()
         return resultado
+
+
+
+class ProductoInsumo(models.Model):
+    producto = models.ForeignKey(
+        Producto,
+        on_delete=models.CASCADE,
+        related_name="insumos_asignados",
+    )
+    insumo = models.ForeignKey(
+        Insumo,
+        on_delete=models.PROTECT,
+        related_name="productos_asignados",
+    )
+    cantidad = models.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        default=1,
+        help_text="Cantidad de unidad base consumida por cada unidad del producto.",
+    )
+
+    class Meta:
+        ordering = ["insumo__nombre"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["producto", "insumo"],
+                name="producto_insumo_unico",
+            )
+        ]
+
+    @property
+    def costo_unitario_aplicado(self):
+        return Decimal(str(self.insumo.costo_unitario_aplicado or 0))
+
+    @property
+    def costo_total(self):
+        return (
+            self.costo_unitario_aplicado
+            * Decimal(str(self.cantidad or 0))
+        )
+
+    def __str__(self):
+        return (
+            f"{self.producto.nombre} · {self.insumo.nombre} "
+            f"x{self.cantidad}"
+        )
+
+    def save(self, *args, **kwargs):
+        if self.insumo.tipo_uso != "PRODUCTO":
+            raise ValueError(
+                "Sólo los insumos de tipo Producto pueden asignarse directamente."
+            )
+        if Decimal(str(self.cantidad or 0)) <= 0:
+            raise ValueError("La cantidad del insumo debe ser mayor a cero.")
+        super().save(*args, **kwargs)

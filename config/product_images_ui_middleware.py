@@ -4,7 +4,12 @@ import re
 
 from django.urls import reverse
 
-from productos.image_environment import entorno_imagenes
+from productos.image_environment import (
+    ambientes_imagenes_lectura,
+    clave_imagen_lectura,
+    entorno_imagenes,
+    seleccionar_imagenes_lectura,
+)
 from productos.image_models import ProductoImagen
 from productos.imagekit_service import imagekit_configurado
 
@@ -584,13 +589,24 @@ class ProductImagesUIMiddleware:
         if not producto_id:
             return response
 
+        ambiente_actual = entorno_imagenes()
+        ambientes = (
+            (ambiente_actual,)
+            if view_name == "productos:editar"
+            else ambientes_imagenes_lectura()
+        )
         imagenes = list(
             ProductoImagen.objects
             .filter(
                 producto_id=producto_id,
-                ambiente=entorno_imagenes(),
+                ambiente__in=ambientes,
             )
-            .order_by("orden")[:2]
+            .order_by("orden", "id")
+        )
+        imagenes = (
+            seleccionar_imagenes_lectura(imagenes, limite=2)
+            if view_name == "productos:detalle"
+            else sorted(imagenes, key=clave_imagen_lectura)[:2]
         )
 
         try:

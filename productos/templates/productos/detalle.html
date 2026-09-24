@@ -55,6 +55,8 @@
     </div>
   </div>
 
+  {% include "productos/_productos_subnav.html" %}
+
   {% if messages %}{% for message in messages %}<div class="mensaje">{{ message }}</div>{% endfor %}{% endif %}
 
   <div class="salud {{ producto.salud_clase }}">
@@ -72,7 +74,7 @@
 
   <div class="res">
     <div class="metric"><div class="lab">PRECIO</div><div class="val">$ {{ producto.subtotal|floatformat:'0g' }}</div><div class="note">lista actual</div></div>
-    <div class="metric"><div class="lab">COSTO PRODUCTIVO</div><div class="val">$ {{ producto.costo_productivo|floatformat:'0g' }}</div><div class="note">costo + cobertura</div></div>
+    <div class="metric"><div class="lab">COSTO PRODUCTIVO</div><div class="val">$ {{ producto.costo_productivo|floatformat:'0g' }}</div><div class="note">impresión + cobertura + insumos</div></div>
     <div class="metric"><div class="lab">MARGEN REAL</div><div class="val">{{ producto.margen_real|floatformat:'1' }}%</div><div class="note">piso {{ margen_minimo }}%</div></div>
     <div class="metric"><div class="lab">STOCK</div><div class="val">{{ producto.stock }}</div><div class="note">{{ producto.stock_disponible }} disponible · {{ producto.stock_reservado }} reservado</div></div>
     <div class="metric"><div class="lab">EN PRODUCCIÓN</div><div class="val">{{ producto.imprimiendo }}</div><div class="note">{{ producto.planificadas }} planificada{{ producto.planificadas|pluralize }}</div></div>
@@ -128,11 +130,37 @@
       {% endif %}
 
       <details class="section" open>
+        <summary>INSUMOS DIRECTOS</summary>
+        <div class="section-body">
+          {% for relacion in insumos_directos %}
+          <div class="fila">
+            <span>
+              <strong>{{ relacion.insumo.nombre }}</strong>
+              <span class="mini">{{ relacion.cantidad|floatformat:'-3' }} {{ relacion.insumo.get_unidad_medida_display|lower }} · $ {{ relacion.costo_unitario_aplicado|floatformat:'2g' }} por {{ relacion.insumo.get_unidad_medida_display|lower }}</span>
+            </span>
+            <strong>$ {{ relacion.costo_total|floatformat:'2g' }}</strong>
+          </div>
+          {% empty %}
+          <div class="mini">Este producto no tiene insumos directos asignados.</div>
+          {% endfor %}
+          {% if producto.costo_insumos_componentes > 0 %}
+          <div class="fila"><span>Insumos heredados de sus piezas</span><strong>$ {{ producto.costo_insumos_componentes|floatformat:'2g' }}</strong></div>
+          {% endif %}
+          <div class="fila"><span><strong>Total de insumos por unidad</strong></span><strong>$ {{ producto.costo_insumos_total|floatformat:'2g' }}</strong></div>
+          <div class="acciones-produccion"><a class="btn" href="{% url 'productos:editar' producto.id %}">EDITAR INSUMOS</a><a class="btn" href="{% url 'productos:insumos' %}">GESTIONAR INSUMOS</a></div>
+        </div>
+      </details>
+
+      <details class="section" open>
         <summary>COSTOS Y RENTABILIDAD</summary>
         <div class="section-body">
           <div class="fila"><span>Costo base</span><strong>$ {{ producto.costo|floatformat:'0g' }}</strong></div>
           <div class="fila"><span>Cobertura / amortización</span><strong>$ {{ producto.seguro|floatformat:'0g' }}</strong></div>
+          <div class="fila"><span>Insumos directos</span><strong>$ {{ producto.costo_insumos_directos|floatformat:'2g' }}</strong></div>
+          {% if producto.costo_insumos_componentes > 0 %}<div class="fila"><span>Insumos de piezas</span><strong>$ {{ producto.costo_insumos_componentes|floatformat:'2g' }}</strong></div>{% endif %}
           <div class="fila"><span>Costo productivo total</span><strong>$ {{ producto.costo_productivo|floatformat:'0g' }}</strong></div>
+          <div class="fila"><span>Provisión comercial de empaque</span><strong>$ {{ producto.provision_empaque_comercial|floatformat:'2g' }}</strong></div>
+          <div class="fila"><span>Costo considerado para precio</span><strong>$ {{ producto.costo_comercial_total|floatformat:'2g' }}</strong></div>
           <div class="fila"><span>Precio calculado</span><strong>$ {{ producto.subtotal|floatformat:'0g' }}</strong></div>
           <div class="fila"><span>Ganancia estimada</span><strong>$ {{ producto.ganancia|floatformat:'0g' }}</strong></div>
           <div class="fila"><span>Margen configurado</span><strong>{{ producto.margen_ganancia|floatformat:'-2' }}%</strong></div>

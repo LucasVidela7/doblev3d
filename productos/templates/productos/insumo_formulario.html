@@ -1,0 +1,165 @@
+{% load static l10n %}
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>{% if insumo %}Editar {{ insumo.nombre }}{% else %}Nuevo insumo{% endif %} | Doble V 3D</title>
+<link rel="icon" href="{% static 'brand/favicon.ico' %}">
+<link rel="stylesheet" href="{% static 'brand/brand.css' %}">
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:0 0 105px;font-family:Arial,sans-serif;background:var(--dv-bg,#f5f7fb);color:var(--dv-text,#17233a)}
+.page{width:min(1080px,100%);margin:auto;padding:22px 18px}
+.head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:14px}h1{margin:0;font-size:32px}.sub{margin-top:5px;color:var(--dv-muted,#667085);font-size:13px;line-height:1.45}.btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 14px;border:1px solid var(--dv-border,#dfe5ef);border-radius:11px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);font-size:12px;font-weight:900;text-decoration:none;cursor:pointer}.btn.primary{background:var(--dv-brand-blue,#134a9a);border-color:var(--dv-brand-blue,#134a9a);color:#fff}
+.errors{margin-bottom:13px;padding:12px 14px;border:1px solid #e4a8a8;border-radius:13px;background:#fff0f0;color:#8a2828}.errors strong{display:block;margin-bottom:4px}.errors ul{margin:0;padding-left:18px;font-size:12px;line-height:1.5}
+.form-card{padding:18px;border:1px solid var(--dv-border,#dfe5ef);border-radius:18px;background:var(--dv-surface,#fff);box-shadow:var(--dv-shadow-soft,0 4px 14px rgba(19,74,154,.055))}
+.section-title{margin:0 0 5px;font-size:17px}.section-copy{margin:0 0 15px;color:var(--dv-muted,#667085);font-size:12px;line-height:1.45}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.field.full{grid-column:1/-1}.field label{display:flex;justify-content:space-between;gap:8px;margin-bottom:6px;color:var(--dv-muted,#667085);font-size:10px;font-weight:900}.field label span:last-child{font-weight:700}.field input,.field select{width:100%;min-height:46px;padding:10px 11px;border:1px solid var(--dv-border,#dfe5ef);border-radius:10px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);font-size:14px}.help{margin-top:5px;color:var(--dv-muted,#667085);font-size:10px;line-height:1.4}.switch-row{display:flex;justify-content:space-between;gap:12px;align-items:center;min-height:46px;padding:9px 11px;border:1px solid var(--dv-border,#dfe5ef);border-radius:10px;background:var(--dv-surface-soft,#f8faff)}.switch-row>span{font-size:12px;font-weight:900}.switch-row input{width:20px;height:20px}.switch-copy{min-width:0}.switch-copy strong{display:block;font-size:12px}.switch-copy small{display:block;margin-top:3px;color:var(--dv-muted,#667085);font-size:9px;line-height:1.35}.conditional-complement{display:none}.conditional-complement.is-visible{display:block}
+.preview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:18px;padding-top:16px;border-top:1px solid var(--dv-border,#dfe5ef)}.preview-box{padding:12px;border-radius:12px;background:var(--dv-surface-soft,#f8faff);border:1px solid var(--dv-border,#dfe5ef)}.preview-box small{display:block;color:var(--dv-muted,#667085);font-size:9px;font-weight:900}.preview-box strong{display:block;margin-top:5px;font-size:18px}.preview-box.applied{background:var(--dv-brand-blue-soft,#eef4ff);color:var(--dv-accent-blue-text,#0d376f)}
+.footer{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}.note{margin-top:14px;padding:11px 13px;border-radius:12px;background:var(--dv-brand-blue-soft,#eef4ff);color:var(--dv-accent-blue-text,#0d376f);font-size:11px;line-height:1.45}
+html[data-dv-theme="dark"] .errors{background:#351f27;border-color:#6e3340;color:#ffb4ba}
+@media(max-width:700px){.page{padding:15px 10px}.head{flex-direction:column}.grid{grid-template-columns:1fr}.field.full{grid-column:auto}.preview{grid-template-columns:1fr}.footer{position:sticky;bottom:72px;padding:9px;margin:15px -4px 0;border:1px solid var(--dv-border,#dfe5ef);border-radius:13px;background:color-mix(in srgb,var(--dv-surface,#fff) 94%,transparent);backdrop-filter:blur(8px)}.footer>*{flex:1}}
+</style>
+</head>
+<body>
+<main class="page">
+  <div class="head">
+    <div>
+      {% include "shared/brand_bar.html" %}
+      <h1>{% if insumo %}Editar insumo{% else %}Nuevo insumo{% endif %}</h1>
+      <div class="sub">{% if insumo %}{{ insumo.codigo }} · {{ insumo.nombre }}{% else %}Cargá el costo y la presentación de compra para obtener el costo unitario real.{% endif %}</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">{% if insumo %}<a class="btn" href="{% url 'productos:compras_insumos' %}?insumo={{ insumo.id }}">REGISTRAR COMPRA</a>{% endif %}<a class="btn" href="{% url 'productos:insumos' %}">VOLVER A INSUMOS</a></div>
+  </div>
+
+  {% include "productos/_productos_subnav.html" %}
+
+  {% if errores %}
+  <div class="errors"><strong>Revisá estos datos:</strong><ul>{% for error in errores %}<li>{{ error }}</li>{% endfor %}</ul></div>
+  {% endif %}
+
+  <form class="form-card" method="post" id="insumoForm">
+    {% csrf_token %}
+    <h2 class="section-title">Datos del insumo</h2>
+    <p class="section-copy">{% if insumo %}Esta ficha define el insumo. Para una reposición normal usá <strong>Registrar compra</strong>: aumenta stock, conserva el historial y recalcula el costo promedio. Editar precio/cantidad acá se considera un ajuste manual del costo base.{% else %}Cargá el costo inicial y la presentación de compra. Las reposiciones posteriores se registran desde Compras de insumos.{% endif %}</p>
+
+    <div class="grid">
+      <div class="field full">
+        <label for="nombre"><span>NOMBRE</span><span>ej. Argolla llavero</span></label>
+        <input id="nombre" name="nombre" maxlength="160" required value="{{ valores.nombre|default:'' }}" placeholder="Argolla llavero">
+      </div>
+
+      <div class="field">
+        <label for="tipo_uso"><span>TIPO DE USO</span><span>dónde se consumirá</span></label>
+        <select id="tipo_uso" name="tipo_uso">
+          {% for tipo in tipos_uso %}<option value="{{ tipo.valor }}" {% if valores.tipo_uso|default:'PRODUCTO' == tipo.valor %}selected{% endif %}>{{ tipo.nombre }}</option>{% endfor %}
+        </select>
+        <div class="help">Producto: forma parte de una unidad vendida. Empaque: depende del paquete. Despacho: depende del envío.</div>
+      </div>
+
+      <div class="field full conditional-complement" id="complementarioField">
+        <div class="switch-row">
+          <span class="switch-copy">
+            <strong>Disponible como complementario</strong>
+            <small>Activá esto para stickers, tarjetas, cintas u otros consumibles que acompañan al empaque principal.</small>
+          </span>
+          <input type="checkbox" name="disponible_como_complementario" {% if valores.disponible_como_complementario %}checked{% endif %} aria-label="Disponible como complementario">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="unidad_medida"><span>UNIDAD BASE</span><span>para costo y stock</span></label>
+        <select id="unidad_medida" name="unidad_medida">
+          {% for unidad in unidades_medida %}<option value="{{ unidad.valor }}" {% if valores.unidad_medida|default:'UNIDAD' == unidad.valor %}selected{% endif %}>{{ unidad.nombre }}</option>{% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="precio_compra"><span>PRECIO DE COMPRA</span><span>$ total</span></label>
+        <input id="precio_compra" name="precio_compra" type="number" min="0" step="0.01" required value="{% if valores.precio_compra != '' %}{{ valores.precio_compra|unlocalize }}{% endif %}" placeholder="8000">
+        <div class="help">Monto total pagado por la presentación.</div>
+      </div>
+
+      <div class="field">
+        <label for="cantidad_compra"><span>CANTIDAD COMPRADA</span><span>unidades base</span></label>
+        <input id="cantidad_compra" name="cantidad_compra" type="number" min="0.001" step="0.001" required value="{% if valores.cantidad_compra != '' and valores.cantidad_compra is not None %}{{ valores.cantidad_compra|unlocalize }}{% else %}1{% endif %}" placeholder="100">
+        <div class="help">Ejemplo: si $8.000 trae 100 argollas, cargá 100.</div>
+      </div>
+
+      <div class="field">
+        <label for="stock"><span>STOCK ACTUAL</span><span>0 si todavía no cargaste stock</span></label>
+        <input id="stock" name="stock" type="number" min="0" step="0.001" value="{% if valores.stock != '' and valores.stock is not None %}{{ valores.stock|unlocalize }}{% else %}0{% endif %}">
+      </div>
+
+      <div class="field">
+        <label for="incremento_personalizado"><span>INCREMENTO PARTICULAR</span><span>% opcional</span></label>
+        <input id="incremento_personalizado" name="incremento_personalizado" type="number" min="0" step="0.01" value="{% if valores.incremento_personalizado != '' and valores.incremento_personalizado is not None %}{{ valores.incremento_personalizado|unlocalize }}{% endif %}" placeholder="{{ incremento_general|floatformat:'2' }}">
+        <div class="help">Dejalo vacío para usar automáticamente el general de {{ incremento_general|floatformat:"2" }}% configurado en BO.</div>
+      </div>
+
+      <div class="field">
+        <label for="proveedor"><span>PROVEEDOR</span><span>opcional</span></label>
+        <input id="proveedor" name="proveedor" maxlength="160" value="{{ valores.proveedor|default:'' }}" placeholder="Mercado Libre / proveedor local">
+      </div>
+
+      <div class="field">
+        <label for="url_referencia"><span>URL DE REFERENCIA</span><span>opcional</span></label>
+        <input id="url_referencia" name="url_referencia" type="url" maxlength="500" value="{{ valores.url_referencia|default:'' }}" placeholder="https://...">
+        <div class="help">Por ahora se guarda como referencia. La detección automática de precios llega en la etapa de actualización.</div>
+      </div>
+
+      <div class="field full">
+        <div class="switch-row"><span>Insumo activo</span><input type="checkbox" name="activo" {% if valores.activo is not False %}checked{% endif %}></div>
+      </div>
+    </div>
+
+    <div class="preview" aria-label="Vista previa de costo">
+      <div class="preview-box"><small>COSTO DE PRESENTACIÓN</small><strong id="unitCost">$ 0,00</strong></div>
+      <div class="preview-box"><small>INCREMENTO APLICADO</small><strong id="appliedPercent">{{ incremento_general|floatformat:"2" }}%</strong></div>
+      <div class="preview-box applied"><small>COSTO UNITARIO CON PROVISIÓN</small><strong id="appliedCost">$ 0,00</strong></div>
+    </div>
+
+    <div class="note">Ejemplo: compra $8.000 / 100 unidades = $80 por unidad. Con 15% de provisión, el costo aplicado queda en $92.</div>
+
+    <div class="footer">
+      <a class="btn" href="{% url 'productos:insumos' %}">CANCELAR</a>
+      <button class="btn primary" type="submit">{% if insumo %}GUARDAR CAMBIOS{% else %}CREAR INSUMO{% endif %}</button>
+    </div>
+  </form>
+</main>
+
+<script>
+(function(){
+  const type=document.getElementById("tipo_uso");
+  const complementField=document.getElementById("complementarioField");
+  const price=document.getElementById("precio_compra");
+  const qty=document.getElementById("cantidad_compra");
+  const own=document.getElementById("incremento_personalizado");
+  const unitNode=document.getElementById("unitCost");
+  const pctNode=document.getElementById("appliedPercent");
+  const appliedNode=document.getElementById("appliedCost");
+  const general=Number("{{ incremento_general|default:'10' }}".replace(",", "."))||0;
+  const money=(value)=>new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS",minimumFractionDigits:2,maximumFractionDigits:2}).format(value||0);
+  function update(){
+    const total=Number(price?.value||0);
+    const amount=Number(qty?.value||0);
+    const pct=own?.value===""?general:Number(own?.value||0);
+    const unit=amount>0?total/amount:0;
+    const applied=unit*(1+(Math.max(pct,0)/100));
+    unitNode.textContent=money(unit);
+    pctNode.textContent=(Math.max(pct,0)).toLocaleString("es-AR",{maximumFractionDigits:2})+"%"+(own?.value===""?" · general":" · particular");
+    appliedNode.textContent=money(applied);
+  }
+  function syncComplementario(){
+    complementField?.classList.toggle("is-visible",type?.value==="EMPAQUE");
+  }
+  type?.addEventListener("change",syncComplementario);
+  [price,qty,own].forEach(el=>el?.addEventListener("input",update));
+  syncComplementario();
+  update();
+})();
+</script>
+{% include "shared/messages_toasts.html" %}
+{% include "shared/navigation.html" %}
+</body>
+</html>

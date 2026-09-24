@@ -7,9 +7,18 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from calculadora.precios import MARGEN_MINIMO
 
-from .image_environment import entorno_imagenes
+from .image_environment import (
+    ambientes_imagenes_lectura,
+    clave_imagen_lectura,
+)
 from .image_models import ProductoImagen
-from .models import Producto, ProductoComponente, TipoProducto
+from .models import (
+    Insumo,
+    Producto,
+    ProductoComponente,
+    ProductoInsumo,
+    TipoProducto,
+)
 
 
 def _entero(valor, default=0):
@@ -37,7 +46,7 @@ def _imagen_prefetch():
         "imagenes",
         queryset=(
             ProductoImagen.objects
-            .filter(ambiente=entorno_imagenes())
+            .filter(ambiente__in=ambientes_imagenes_lectura())
             .order_by("orden", "id")
         ),
         to_attr="imagenes_entorno",
@@ -149,7 +158,10 @@ def _enriquecer_productos(productos):
     }
 
     for producto in productos:
-        imagenes = getattr(producto, "imagenes_entorno", [])
+        imagenes = sorted(
+            getattr(producto, "imagenes_entorno", []),
+            key=clave_imagen_lectura,
+        )
         imagen = imagenes[0] if imagenes else None
         producto.imagen_principal_url = (
             (imagen.thumbnail_url or imagen.url)
@@ -196,7 +208,7 @@ def _enriquecer_productos(productos):
         costo = Decimal(str(producto.costo or 0))
         seguro = Decimal(str(producto.seguro or 0))
         precio = Decimal(str(producto.subtotal or 0))
-        producto.costo_productivo = costo + seguro
+        producto.costo_productivo = producto.costo_productivo_total
         producto.margen_real = Decimal("0")
         if precio > 0:
             producto.margen_real = (
@@ -265,6 +277,8 @@ def lista(request):
         .select_related("tipo")
         .prefetch_related(
             "componentes__componente",
+            "insumos_asignados__insumo",
+            "componentes__componente__insumos_asignados__insumo",
             _imagen_prefetch(),
         )
         .all()
@@ -388,6 +402,8 @@ def detalle(request, producto_id):
         .select_related("tipo")
         .prefetch_related(
             "componentes__componente",
+            "componentes__componente__insumos_asignados__insumo",
+            "insumos_asignados__insumo",
             "usado_como_componente__producto",
             _imagen_prefetch(),
         ),
@@ -448,6 +464,9 @@ def detalle(request, producto_id):
             "movimientos_stock": movimientos_stock,
             "kits_relacionados": kits_relacionados,
             "productos_padre": productos_padre,
+            "insumos_directos": list(
+                producto.insumos_asignados.select_related("insumo").all()
+            ),
             "cantidad_sugerida": cantidad_sugerida,
             "margen_minimo": MARGEN_MINIMO,
         },
@@ -539,6 +558,90 @@ def armar_producto(request, producto_id):
         )
 
     return redirect("productos:detalle", producto_id=producto_id)
+
+
+def _insumos_disponibles(producto=None):
+    qs = Insumo.objects.filter(tipo_uso="PRODUCTO")
+    if producto and producto.pk:
+        asignados = producto.insumos_asignados.values_list(
+            "insumo_id",
+            flat=True,
+        )
+        qs = qs.filter(Q(activo=True) | Q(id__in=asignados))
+    else:
+        qs = qs.filter(activo=True)
+    return qs.order_by("nombre")
+
+
+def _leer_insumos_post(request, producto=None):
+    ids = request.POST.getlist("insumo_id")
+    cantidades = request.POST.getlist("insumo_cantidad")
+    total_filas = max(len(ids), len(cantidades), 0)
+
+    asignaciones = []
+    errores = []
+    vistos = set()
+    asignados_previos = set()
+    if producto and producto.pk:
+        asignados_previos = set(
+            producto.insumos_asignados.values_list("insumo_id", flat=True)
+        )
+
+    for indice in range(total_filas):
+        insumo_id = (ids[indice] if indice < len(ids) else "").strip()
+        cantidad = _decimal(
+            cantidades[indice] if indice < len(cantidades) else "",
+            None,
+        )
+
+        if not insumo_id and (
+            cantidad is None or cantidad == Decimal("0")
+        ):
+            continue
+
+        if not insumo_id:
+            errores.append(
+                f"Seleccioná un insumo en la fila {indice + 1}."
+            )
+            continue
+
+        if cantidad is None or cantidad <= 0:
+            errores.append(
+                f"La cantidad del insumo {indice + 1} debe ser mayor a cero."
+            )
+            continue
+
+        insumo = Insumo.objects.filter(
+            id=insumo_id,
+            tipo_uso="PRODUCTO",
+        ).first()
+        if not insumo:
+            errores.append(
+                f"El insumo de la fila {indice + 1} no es válido para productos."
+            )
+            continue
+
+        if not insumo.activo and insumo.id not in asignados_previos:
+            errores.append(
+                f"El insumo '{insumo.nombre}' está inactivo."
+            )
+            continue
+
+        if insumo.id in vistos:
+            errores.append(
+                f"El insumo '{insumo.nombre}' está repetido."
+            )
+            continue
+
+        vistos.add(insumo.id)
+        asignaciones.append(
+            {
+                "insumo": insumo,
+                "cantidad": cantidad,
+            }
+        )
+
+    return asignaciones, errores
 
 
 def _piezas_disponibles(producto=None):
@@ -725,6 +828,12 @@ def _guardar_producto_desde_post(request, producto=None):
     if margen_ganancia < 0 or margen_ganancia >= 100:
         errores.append("El margen debe ser mayor o igual a 0 y menor a 100%.")
 
+    insumos_directos, errores_insumos = _leer_insumos_post(
+        request,
+        producto=producto,
+    )
+    errores.extend(errores_insumos)
+
     componentes = []
     if tipo_fabricacion == "COMPUESTO":
         requiere_impresion = True
@@ -803,16 +912,51 @@ def _guardar_producto_desde_post(request, producto=None):
     else:
         ProductoComponente.objects.filter(producto=producto).delete()
 
+    ProductoInsumo.objects.filter(producto=producto).delete()
+    for item in insumos_directos:
+        ProductoInsumo.objects.create(
+            producto=producto,
+            insumo=item["insumo"],
+            cantidad=item["cantidad"],
+        )
+
     return producto, []
 
 
 def _contexto_formulario(request, producto, modo):
     componentes_actuales = []
+    insumos_actuales = []
     if producto and producto.pk:
         componentes_actuales = list(
             producto.componentes.select_related("componente").all()
         )
+        insumos_actuales = list(
+            producto.insumos_asignados.select_related("insumo").all()
+        )
         _enriquecer_productos([producto])
+
+    if request.method == "POST":
+        post_ids = request.POST.getlist("insumo_id")
+        post_cantidades = request.POST.getlist("insumo_cantidad")
+        insumos_actuales = []
+        for indice in range(max(len(post_ids), len(post_cantidades), 0)):
+            insumo_id = post_ids[indice] if indice < len(post_ids) else ""
+            cantidad = (
+                post_cantidades[indice]
+                if indice < len(post_cantidades)
+                else ""
+            )
+            insumo = Insumo.objects.filter(
+                id=insumo_id,
+                tipo_uso="PRODUCTO",
+            ).first()
+            insumos_actuales.append(
+                {
+                    "insumo": insumo,
+                    "insumo_id": insumo_id,
+                    "cantidad": cantidad,
+                }
+            )
 
     return {
         "producto": producto,
@@ -821,6 +965,8 @@ def _contexto_formulario(request, producto, modo):
         "tipos_fabricacion": Producto.TIPOS_FABRICACION,
         "piezas": _piezas_disponibles(producto),
         "componentes_actuales": componentes_actuales,
+        "insumos_disponibles": _insumos_disponibles(producto),
+        "insumos_actuales": insumos_actuales,
         "modo": modo,
         "margen_minimo": MARGEN_MINIMO,
     }

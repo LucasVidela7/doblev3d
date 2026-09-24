@@ -4,6 +4,10 @@ from .models import (
     Pedido,
     DetallePedido,
     DetalleKitProducto,
+    PedidoEmpaque,
+    PedidoEmpaqueComplemento,
+    ReglaEmpaque,
+    ReglaEmpaqueComplemento,
 )
 
 
@@ -127,3 +131,65 @@ class DetallePedidoAdmin(admin.ModelAdmin):
     @admin.display(description="SUBTOTAL")
     def mostrar_subtotal(self, obj):
         return f"${obj.subtotal:,.0f}"
+
+
+class ReglaEmpaqueComplementoInline(admin.TabularInline):
+    model = ReglaEmpaqueComplemento
+    extra = 0
+    autocomplete_fields = ("insumo",)
+
+
+@admin.register(ReglaEmpaque)
+class ReglaEmpaqueAdmin(admin.ModelAdmin):
+    list_display = (
+        "nombre",
+        "insumo",
+        "alcance",
+        "desde_unidades",
+        "hasta_unidades",
+        "cantidad_insumo",
+        "prioridad",
+        "activo",
+    )
+    list_filter = ("alcance", "activo")
+    search_fields = (
+        "nombre",
+        "insumo__nombre",
+        "kit__nombre",
+        "producto__nombre",
+        "tipo_producto__nombre",
+        "complementos__insumo__nombre",
+    )
+    autocomplete_fields = (
+        "insumo",
+        "kit",
+        "producto",
+        "tipo_producto",
+    )
+    inlines = (ReglaEmpaqueComplementoInline,)
+
+
+class PedidoEmpaqueComplementoInline(admin.TabularInline):
+    model = PedidoEmpaqueComplemento
+    extra = 0
+    autocomplete_fields = ("insumo",)
+
+
+@admin.register(PedidoEmpaque)
+class PedidoEmpaqueAdmin(admin.ModelAdmin):
+    list_display = (
+        "pedido",
+        "clave_paquete",
+        "insumo",
+        "cantidad",
+        "costo_total_snapshot",
+        "actualizado_en",
+    )
+    search_fields = (
+        "pedido__cliente__nombre",
+        "clave_paquete",
+        "descripcion",
+        "insumo__nombre",
+    )
+    autocomplete_fields = ("pedido", "insumo")
+    inlines = (PedidoEmpaqueComplementoInline,)

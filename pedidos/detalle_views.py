@@ -12,6 +12,7 @@ from clientes.whatsapp import numero_whatsapp, url_contacto
 from . import acciones_impresion
 from .miniaturas import asignar_miniaturas_items
 from .adicionales import enriquecer_detalles_pedido
+from .empaques import enriquecer_empaques_pedido, estimar_embalaje_items
 from .models import EstadoImpresionPedido, Pago, Pedido
 
 
@@ -218,6 +219,13 @@ def _armar_paquetes_detalle(pedido, preparacion):
         paquetes_linea = [
             {
                 "numero": 0,
+                "clave": f"kit-{detalle.id}-{unidad + 1}",
+                "descripcion": (
+                    f"{nombre_kit} · kit {unidad + 1}/{cantidad_kits}"
+                    if cantidad_kits > 1
+                    else nombre_kit
+                ),
+                "kit": detalle.kit,
                 "nombre_kit": nombre_kit,
                 "unidad_linea": unidad + 1,
                 "cantidad_linea": cantidad_kits,
@@ -313,11 +321,13 @@ def detalle_pedido(request, pedido_id):
             "presupuesto_origen__solicitud_web_origen",
         )
         .prefetch_related(
-            "detalles__producto",
-            "detalles__kit__componentes__producto",
-            "detalles__productos_kit__producto",
+            "detalles__producto__tipo",
+            "detalles__kit__componentes__producto__tipo",
+            "detalles__productos_kit__producto__tipo",
             "presupuesto_origen__solicitud_web_origen__items",
             "pagos",
+            "empaques_usados__insumo",
+            "empaques_usados__complementos__insumo",
         ),
         id=pedido_id,
     )
@@ -327,12 +337,18 @@ def detalle_pedido(request, pedido_id):
         list(pedido.detalles.all()),
     )
     asignar_miniaturas_items(detalles)
+    embalaje_estimado = estimar_embalaje_items(detalles)
 
     pagos = list(pedido.pagos.all())
     preparacion = _armar_preparacion(pedido)
     paquetes, productos_sueltos = _armar_paquetes_detalle(
         pedido,
         preparacion,
+    )
+    paquetes, paquete_sueltos = enriquecer_empaques_pedido(
+        pedido,
+        paquetes,
+        productos_sueltos,
     )
     productos_preparacion = [
         item["producto"]
@@ -427,6 +443,9 @@ def detalle_pedido(request, pedido_id):
             "paquetes": paquetes,
             "total_paquetes": len(paquetes),
             "productos_sueltos": productos_sueltos,
+            "paquete_sueltos": paquete_sueltos,
+            "costo_empaque_real": pedido.costo_empaque_real,
+            "embalaje_estimado": embalaje_estimado,
             "preparacion_total": preparacion_total,
             "preparacion_listos": preparacion_listos,
             "preparacion_porcentaje": preparacion_porcentaje,

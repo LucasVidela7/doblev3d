@@ -3,7 +3,11 @@ from decimal import Decimal, ROUND_CEILING
 from django.db import models
 
 from calculadora.precios import MARGEN_MINIMO
-from productos.models import Producto, TipoProducto
+from productos.models import (
+    Producto,
+    TipoProducto,
+    provision_empaque_unitaria_actual,
+)
 
 
 MARGEN_MINIMO_KIT = MARGEN_MINIMO
@@ -105,10 +109,11 @@ class Kit(models.Model):
 
     @staticmethod
     def _costo_operativo_producto(producto):
-        """Costo actual + cobertura productiva del producto."""
-        costo = Decimal(str(producto.costo or 0))
-        seguro = Decimal(str(producto.seguro or 0))
-        return max(costo + seguro, Decimal("0"))
+        """Costo productivo real sin sumar la provisión comercial de empaque."""
+        return max(
+            Decimal(str(producto.costo_productivo_total or 0)),
+            Decimal("0"),
+        )
 
     def _componentes_para_analisis(self):
         if not self.pk:
@@ -229,6 +234,7 @@ class Kit(models.Model):
                     * cantidad
                 )
 
+            costo += provision_empaque_unitaria_actual()
             resultado["costo_estimado"] = costo
             resultado["costo_peor_caso"] = costo
 
@@ -274,8 +280,13 @@ class Kit(models.Model):
             ) * cantidad
             costo_peor = max(costos) * cantidad
 
-            resultado["costo_estimado"] = costo_promedio
-            resultado["costo_peor_caso"] = costo_peor
+            provision_empaque = provision_empaque_unitaria_actual()
+            resultado["costo_estimado"] = (
+                costo_promedio + provision_empaque
+            )
+            resultado["costo_peor_caso"] = (
+                costo_peor + provision_empaque
+            )
 
         resultado["margen_estimado"] = (
             self._margen_sobre_precio(

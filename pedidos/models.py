@@ -5,7 +5,7 @@ from django.conf import settings
 from django.db import models
 
 from clientes.models import Cliente
-from productos.models import Producto
+from productos.models import Insumo, Producto, TipoProducto
 from kits.models import Kit
 
 
@@ -72,6 +72,20 @@ class Pedido(models.Model):
     def saldo_pendiente(self):
         saldo = self.total - self.total_pagado
         return max(saldo, Decimal("0"))
+
+    @property
+    def costo_empaque_real(self):
+        total = Decimal("0")
+        for item in self.empaques_usados.all():
+            total += Decimal(str(item.costo_total_snapshot or 0))
+            total += sum(
+                (
+                    Decimal(str(comp.costo_total_snapshot or 0))
+                    for comp in item.complementos.all()
+                ),
+                Decimal("0"),
+            )
+        return total
 
     @property
     def estado_pago(self):
@@ -761,6 +775,178 @@ class SolicitudWebKitProducto(models.Model):
         return (
             f"{self.item.solicitud.codigo} - "
             f"{self.producto.nombre} x{self.cantidad}"
+        )
+
+
+class ReglaEmpaque(models.Model):
+    ALCANCES = [
+        ("GENERAL", "General"),
+        ("CATEGORIA", "Categoría de producto"),
+        ("KIT", "Kit específico"),
+        ("PRODUCTO", "Producto específico"),
+    ]
+
+    nombre = models.CharField(max_length=160)
+    insumo = models.ForeignKey(
+        Insumo,
+        on_delete=models.PROTECT,
+        related_name="reglas_empaque",
+    )
+    alcance = models.CharField(
+        max_length=20,
+        choices=ALCANCES,
+        default="GENERAL",
+    )
+    kit = models.ForeignKey(
+        Kit,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="reglas_empaque",
+    )
+    producto = models.ForeignKey(
+        Producto,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="reglas_empaque",
+    )
+    tipo_producto = models.ForeignKey(
+        TipoProducto,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="reglas_empaque",
+        verbose_name="Categoría de producto",
+    )
+    desde_unidades = models.PositiveIntegerField(default=1)
+    hasta_unidades = models.PositiveIntegerField(null=True, blank=True)
+    cantidad_insumo = models.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        default=1,
+    )
+    prioridad = models.PositiveIntegerField(default=100)
+    activo = models.BooleanField(default=True)
+    creado_en = models.DateTimeField(auto_now_add=True)
+    actualizado_en = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["prioridad", "desde_unidades", "id"]
+
+    def __str__(self):
+        return self.nombre
+
+
+class ReglaEmpaqueComplemento(models.Model):
+    regla = models.ForeignKey(
+        ReglaEmpaque,
+        on_delete=models.CASCADE,
+        related_name="complementos",
+    )
+    insumo = models.ForeignKey(
+        Insumo,
+        on_delete=models.PROTECT,
+        related_name="reglas_empaque_complementarias",
+    )
+    cantidad = models.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        default=1,
+    )
+
+    class Meta:
+        ordering = ["id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["regla", "insumo"],
+                name="regla_empaque_complemento_unico",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.regla.nombre} · {self.insumo.nombre}"
+
+
+class PedidoEmpaque(models.Model):
+    pedido = models.ForeignKey(
+        Pedido,
+        on_delete=models.CASCADE,
+        related_name="empaques_usados",
+    )
+    clave_paquete = models.CharField(max_length=100)
+    descripcion = models.CharField(max_length=200)
+    unidades_contenido = models.PositiveIntegerField(default=0)
+    insumo = models.ForeignKey(
+        Insumo,
+        on_delete=models.PROTECT,
+        related_name="usos_empaque",
+    )
+    cantidad = models.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        default=1,
+    )
+    costo_unitario_snapshot = models.DecimalField(
+        max_digits=12,
+        decimal_places=4,
+        default=0,
+    )
+    costo_total_snapshot = models.DecimalField(
+        max_digits=12,
+        decimal_places=4,
+        default=0,
+    )
+    creado_en = models.DateTimeField(auto_now_add=True)
+    actualizado_en = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["pedido_id", "clave_paquete"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["pedido", "clave_paquete"],
+                name="pedido_empaque_paquete_unico",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.pedido.codigo} · {self.descripcion}"
+
+
+class PedidoEmpaqueComplemento(models.Model):
+    pedido_empaque = models.ForeignKey(
+        PedidoEmpaque,
+        on_delete=models.CASCADE,
+        related_name="complementos",
+    )
+    insumo = models.ForeignKey(
+        Insumo,
+        on_delete=models.PROTECT,
+        related_name="usos_empaque_complementarios",
+    )
+    cantidad = models.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        default=1,
+    )
+    costo_unitario_snapshot = models.DecimalField(
+        max_digits=12,
+        decimal_places=4,
+        default=0,
+    )
+    costo_total_snapshot = models.DecimalField(
+        max_digits=12,
+        decimal_places=4,
+        default=0,
+    )
+
+    class Meta:
+        ordering = ["id"]
+
+    def __str__(self):
+        return (
+            f"{self.pedido_empaque.pedido.codigo} · "
+            f"{self.insumo.nombre}"
         )
 
 

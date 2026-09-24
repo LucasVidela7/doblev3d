@@ -1,0 +1,387 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Reglas de empaque | Doble V 3D</title>
+<link rel="icon" href="{% static 'brand/favicon.ico' %}">
+<link rel="stylesheet" href="{% static 'brand/brand.css' %}">
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:0 0 105px;font-family:Arial,sans-serif;background:var(--dv-bg,#f5f7fb);color:var(--dv-text,#17233a)}
+.page{width:min(1320px,100%);margin:auto;padding:22px 18px}
+.head{margin-bottom:14px}h1{margin:0;font-size:34px}.sub{margin-top:5px;color:var(--dv-muted,#667085);font-size:13px;line-height:1.45}
+.layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(390px,.85fr);gap:15px;align-items:start}
+.card{border:1px solid var(--dv-border,#dfe5ef);border-radius:18px;background:var(--dv-surface,#fff);box-shadow:var(--dv-shadow-soft,0 4px 14px rgba(19,74,154,.055));overflow:hidden}
+.card-head{padding:14px 16px;border-bottom:1px solid color-mix(in srgb,#f0a63a 24%,var(--dv-border,#dfe5ef));background:color-mix(in srgb,#f0a63a 8%,var(--dv-surface,#fff))}
+.card-head strong{display:block;font-size:14px}.card-head span{display:block;margin-top:4px;color:var(--dv-muted,#667085);font-size:11px;line-height:1.4}
+.notice{margin:0 0 14px;padding:12px 14px;border:1px solid color-mix(in srgb,#f0a63a 30%,var(--dv-border,#dfe5ef));border-left:4px solid #f0a63a;border-radius:13px;background:color-mix(in srgb,#f0a63a 10%,var(--dv-surface,#fff));color:var(--dv-text,#17233a);font-size:11px;line-height:1.45}
+
+.rules{display:grid}.rule{padding:14px 15px;border-top:1px solid var(--dv-border,#dfe5ef);box-shadow:inset 3px 0 0 color-mix(in srgb,#f0a63a 68%,transparent)}.rule:first-child{border-top:0}
+.rule-top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:start}.rule-main{min-width:0}.rule-name{font-weight:950;font-size:13px;line-height:1.35}.rule-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{min-height:27px;display:inline-flex;align-items:center;padding:0 8px;border-radius:8px;background:var(--dv-surface-soft,#f8faff);color:var(--dv-muted,#667085);font-size:10px;font-weight:850}
+.chip.main{background:color-mix(in srgb,#f0a63a 18%,var(--dv-surface,#fff));color:color-mix(in srgb,#b76a08 88%,var(--dv-text,#17233a))}.chip.extra{background:color-mix(in srgb,var(--dv-brand-sky,#69b6eb) 12%,var(--dv-surface,#fff));color:var(--dv-brand-blue,#134a9a)}.chip.off{background:var(--dv-danger-soft,#fff0f0);color:var(--dv-danger-text,#8a2828)}
+.actions{display:grid;grid-template-columns:62px 106px 90px;gap:6px;align-items:start}.actions form{margin:0}.actions .btn,.actions form .btn{width:100%;white-space:nowrap}.btn{min-height:38px;display:inline-flex;align-items:center;justify-content:center;padding:0 10px;border:1px solid var(--dv-border,#dfe5ef);border-radius:10px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);font-size:10px;font-weight:900;text-decoration:none;cursor:pointer}
+.btn.primary{background:var(--dv-brand-blue,#134a9a);border-color:var(--dv-brand-blue,#134a9a);color:#fff}.btn.danger{color:var(--dv-danger-text,#9b3030)}
+.empty{padding:28px 16px;text-align:center;color:var(--dv-muted,#667085);font-size:12px}
+
+.form-shell{padding:13px}.form-section{padding:13px;border:1px solid var(--dv-border,#dfe5ef);border-radius:14px;background:var(--dv-surface,#fff)}.form-section+.form-section{margin-top:10px}
+.section-head{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px}.section-num{width:26px;height:26px;flex:0 0 26px;display:grid;place-items:center;border-radius:8px;background:var(--dv-brand-blue-soft,#eef4ff);color:var(--dv-accent-blue-text,#0d376f);font-size:10px;font-weight:950}
+.section-head strong{display:block;font-size:12px}.form-section:nth-of-type(2) .section-num{background:color-mix(in srgb,#f0a63a 20%,var(--dv-surface,#fff));color:color-mix(in srgb,#b76a08 88%,var(--dv-text,#17233a))}.form-section:nth-of-type(3) .section-num{background:color-mix(in srgb,#59b7d9 18%,var(--dv-surface,#fff));color:color-mix(in srgb,#247b9a 88%,var(--dv-text,#17233a))}.section-head span{display:block;margin-top:3px;color:var(--dv-muted,#667085);font-size:9px;line-height:1.35}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.field.full{grid-column:1/-1}.field label{display:block;margin-bottom:5px;color:var(--dv-muted,#667085);font-size:9px;font-weight:900;letter-spacing:.02em}
+.field input,.field select{width:100%;min-height:42px;padding:8px 10px;border:1px solid var(--dv-border,#dfe5ef);border-radius:10px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);font-size:12px}
+.field input:focus,.field select:focus{outline:2px solid color-mix(in srgb,var(--dv-brand-sky,#69b6eb) 35%,transparent);border-color:var(--dv-brand-blue,#134a9a)}
+.help{margin-top:5px;color:var(--dv-muted,#667085);font-size:8px;line-height:1.4}.scope-target{display:none}.scope-target.is-visible{display:block}
+
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 11px;border:1px solid var(--dv-border,#dfe5ef);border-radius:11px;background:var(--dv-surface-soft,#f8faff)}
+.toggle-copy strong{display:block;font-size:11px}.toggle-copy span{display:block;margin-top:3px;color:var(--dv-muted,#667085);font-size:8px;line-height:1.35}
+.toggle{position:relative;width:42px;height:24px;flex:0 0 42px}.toggle input{position:absolute;opacity:0;pointer-events:none}.toggle-ui{position:absolute;inset:0;border-radius:999px;background:var(--dv-border,#dfe5ef);transition:.18s}.toggle-ui:after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:.18s}.toggle input:checked+.toggle-ui{background:var(--dv-brand-blue,#134a9a)}.toggle input:checked+.toggle-ui:after{transform:translateX(18px)}
+
+.complement-body{margin-top:10px}.complement-add{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px}.complement-add select{min-width:0}.complement-add .btn{min-height:42px}
+.complement-list{display:grid;gap:7px;margin-top:8px}.complement-row{display:grid;grid-template-columns:minmax(0,1fr) 82px 34px;gap:8px;align-items:center;padding:9px;border:1px solid var(--dv-border,#dfe5ef);border-radius:11px;background:var(--dv-surface-soft,#f8faff)}
+.complement-name{font-size:10px;font-weight:950;overflow-wrap:anywhere}.complement-meta{margin-top:3px;color:var(--dv-muted,#667085);font-size:7.5px}.complement-qty label{display:block;margin-bottom:3px;color:var(--dv-muted,#667085);font-size:7px;font-weight:900}.complement-qty input{width:100%;min-height:34px;padding:6px 7px;border:1px solid var(--dv-border,#dfe5ef);border-radius:8px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);font-size:11px}
+.remove-complement{width:34px;height:34px;border:1px solid var(--dv-border,#dfe5ef);border-radius:9px;background:var(--dv-surface,#fff);color:var(--dv-danger-text,#963a3a);font-size:17px;cursor:pointer}
+.complement-empty{padding:12px;border:1px dashed var(--dv-border,#dfe5ef);border-radius:11px;color:var(--dv-muted,#667085);font-size:9px;text-align:center;line-height:1.45}.complement-empty a{color:var(--dv-accent-blue-text,#0d376f);font-weight:900;text-decoration:none}
+
+.form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;padding:0 2px 2px}
+html[data-dv-theme="dark"] .toggle-ui:after{background:#f7f8fb}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.form-card{order:-1}}
+@media(max-width:560px){
+  .page{padding:15px 10px}.grid{grid-template-columns:1fr}.field.full{grid-column:auto}.rule-top{grid-template-columns:1fr}.actions{grid-template-columns:repeat(3,minmax(0,1fr));width:100%}
+  .form-shell{padding:10px}.form-section{padding:11px}.complement-add{grid-template-columns:1fr}.complement-add .btn{width:100%}
+  .complement-row{grid-template-columns:minmax(0,1fr) 76px 34px}.form-actions{position:sticky;bottom:72px;z-index:5;padding:8px;margin:10px -2px 0;border:1px solid var(--dv-border,#dfe5ef);border-radius:12px;background:color-mix(in srgb,var(--dv-surface,#fff) 94%,transparent);backdrop-filter:blur(8px)}.form-actions>*{flex:1}
+}
+</style>
+</head>
+<body>
+<main class="page">
+  <div class="head">
+    {% include "shared/brand_bar.html" %}
+    <h1>Reglas de empaque</h1>
+    <div class="sub">Define qué embalaje usar según cantidad, categoría, producto o kit.</div>
+  </div>
+
+  {% include "productos/_productos_subnav.html" %}
+
+  <div class="notice">
+    Las reglas son <strong>internas</strong>. El cliente no ve el empaque ni su costo.
+    Los complementarios se eligen únicamente entre los insumos que marcaste como <strong>“Disponible como complementario”</strong>.
+  </div>
+
+  <div class="layout">
+    <section class="card">
+      <div class="card-head">
+        <strong>Reglas configuradas</strong>
+        <span>Prioridad de coincidencia: kit/producto → categoría → general.</span>
+      </div>
+      <div class="rules">
+      {% for regla in reglas %}
+        <article class="rule">
+          <div class="rule-top">
+            <div class="rule-main">
+              <div class="rule-name">{{ regla.nombre }}</div>
+              <div class="rule-meta">
+                <span class="chip main">{{ regla.cantidad_insumo|floatformat:"-3" }} × {{ regla.insumo.nombre }}</span>
+                {% for complemento in regla.complementos.all %}<span class="chip extra">+ {{ complemento.cantidad|floatformat:"-3" }} × {{ complemento.insumo.nombre }}</span>{% endfor %}
+                <span class="chip">{{ regla.desde_unidades }}–{% if regla.hasta_unidades %}{{ regla.hasta_unidades }}{% else %}∞{% endif %} unidades</span>
+                <span class="chip">{{ regla.get_alcance_display }}</span>
+                {% if regla.kit %}<span class="chip">{{ regla.kit.nombre }}</span>{% endif %}
+                {% if regla.producto %}<span class="chip">{{ regla.producto.nombre }}</span>{% endif %}
+                {% if regla.tipo_producto %}<span class="chip">{{ regla.tipo_producto.nombre }}</span>{% endif %}
+                {% if not regla.activo %}<span class="chip off">INACTIVA</span>{% endif %}
+              </div>
+            </div>
+            <div class="actions">
+              <a class="btn" href="?editar={{ regla.id }}">EDITAR</a>
+              <form method="post" action="{% url 'pedidos:regla_empaque_activo' regla.id %}">{% csrf_token %}<button class="btn" type="submit">{% if regla.activo %}DESACTIVAR{% else %}ACTIVAR{% endif %}</button></form>
+              <form method="post" action="{% url 'pedidos:regla_empaque_eliminar' regla.id %}" onsubmit="return confirm('¿Eliminar esta regla de empaque?')">{% csrf_token %}<button class="btn danger" type="submit">ELIMINAR</button></form>
+            </div>
+          </div>
+        </article>
+      {% empty %}
+        <div class="empty">Todavía no hay reglas de empaque.</div>
+      {% endfor %}
+      </div>
+    </section>
+
+    <section class="card form-card">
+      <div class="card-head">
+        <strong>{% if regla_editar %}Editar regla{% else %}Nueva regla{% endif %}</strong>
+        <span>Configurá primero el alcance, luego el empaque y finalmente los complementarios.</span>
+      </div>
+
+      <form class="form-shell" method="post" id="reglaEmpaqueForm">
+        {% csrf_token %}
+        {% if regla_editar %}<input type="hidden" name="regla_id" value="{{ regla_editar.id }}">{% endif %}
+
+        <section class="form-section">
+          <div class="section-head">
+            <span class="section-num">1</span>
+            <div><strong>Datos de la regla</strong><span>Nombre, alcance y prioridad de aplicación.</span></div>
+          </div>
+          <div class="grid">
+            <div class="field full">
+              <label>NOMBRE</label>
+              <input name="nombre" required value="{{ regla_editar.nombre|default:'' }}" placeholder="Sensoriales · bolsa chica · 1 a 2">
+            </div>
+            <div class="field">
+              <label>ALCANCE</label>
+              <select name="alcance" id="alcanceEmpaque">
+                {% for valor,nombre in alcances %}
+                <option value="{{ valor }}" {% if regla_editar and regla_editar.alcance == valor %}selected{% elif not regla_editar and valor == 'GENERAL' %}selected{% endif %}>{{ nombre }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="field">
+              <label>PRIORIDAD</label>
+              <input type="number" min="0" name="prioridad" value="{{ regla_editar.prioridad|default:100 }}">
+              <div class="help">Menor número = mayor prioridad.</div>
+            </div>
+            <div class="field full scope-target" id="targetKit">
+              <label>KIT ESPECÍFICO</label>
+              <select name="kit_id"><option value="">Seleccionar kit...</option>{% for kit in kits %}<option value="{{ kit.id }}" {% if regla_editar and regla_editar.kit_id == kit.id %}selected{% endif %}>{{ kit.nombre }}</option>{% endfor %}</select>
+            </div>
+            <div class="field full scope-target" id="targetProducto">
+              <label>PRODUCTO ESPECÍFICO</label>
+              <select name="producto_id"><option value="">Seleccionar producto...</option>{% for producto in productos %}<option value="{{ producto.id }}" {% if regla_editar and regla_editar.producto_id == producto.id %}selected{% endif %}>{{ producto.nombre }} · {{ producto.tipo.nombre }}</option>{% endfor %}</select>
+            </div>
+            <div class="field full scope-target" id="targetCategoria">
+              <label>CATEGORÍA DE PRODUCTO</label>
+              <select name="tipo_producto_id"><option value="">Seleccionar categoría...</option>{% for tipo in tipos_producto %}<option value="{{ tipo.id }}" {% if regla_editar and regla_editar.tipo_producto_id == tipo.id %}selected{% endif %}>{{ tipo.nombre }}</option>{% endfor %}</select>
+            </div>
+            <div class="field full">
+              <div class="toggle-row">
+                <span class="toggle-copy"><strong>Regla activa</strong><span>Si la desactivás, deja de sugerirse sin eliminar la configuración.</span></span>
+                <label class="toggle"><input type="checkbox" name="activo" {% if not regla_editar or regla_editar.activo %}checked{% endif %}><span class="toggle-ui"></span></label>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-head">
+            <span class="section-num">2</span>
+            <div><strong>Empaque principal</strong><span>Bolsa, caja o sobre que contiene el pedido.</span></div>
+          </div>
+          <div class="grid">
+            <div class="field full">
+              <label>INSUMO DE EMPAQUE</label>
+              <select name="insumo_id" id="insumoPrincipal" required>
+                <option value="">Seleccionar...</option>
+                {% for insumo in insumos_empaque %}
+                <option value="{{ insumo.id }}" {% if regla_editar and regla_editar.insumo_id == insumo.id %}selected{% endif %}>{{ insumo.nombre }} · stock {{ insumo.stock|floatformat:"-3" }} · $ {{ insumo.costo_unitario_aplicado|floatformat:"2g" }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="field">
+              <label>DESDE UNIDADES</label>
+              <input type="number" min="1" name="desde_unidades" value="{{ regla_editar.desde_unidades|default:1 }}">
+            </div>
+            <div class="field">
+              <label>HASTA UNIDADES</label>
+              <input type="number" min="1" name="hasta_unidades" value="{{ regla_editar.hasta_unidades|default:'' }}" placeholder="Sin límite">
+            </div>
+            <div class="field full">
+              <label>CANTIDAD DE EMPAQUE</label>
+              <input type="number" min="0.001" step="0.001" name="cantidad_insumo" value="{{ regla_editar.cantidad_insumo|default:1 }}">
+              <div class="help">Normalmente 1. Podés usar decimales si el insumo se mide en metros u otra unidad.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-head">
+            <span class="section-num">3</span>
+            <div><strong>Complementarios</strong><span>Stickers, tarjetas, cintas u otros consumibles del paquete.</span></div>
+          </div>
+
+          <div class="toggle-row">
+            <span class="toggle-copy"><strong>Agregar insumos complementarios</strong><span>Sólo se descuentan si esta opción está activa.</span></span>
+            <label class="toggle"><input type="checkbox" id="usarComplementarios" {% if usar_complementarios_inicial %}checked{% endif %}><span class="toggle-ui"></span></label>
+          </div>
+
+          <div class="complement-body" id="complementBody">
+            {% if insumos_complementarios %}
+            <div class="complement-add">
+              <select id="complementSelect" aria-label="Seleccionar complementario">
+                <option value="">Seleccionar complementario...</option>
+                {% for insumo in insumos_complementarios %}
+                <option value="{{ insumo.id }}" data-name="{{ insumo.nombre|escape }}" data-stock="{{ insumo.stock|floatformat:'-3' }}" data-cost="{{ insumo.costo_unitario_aplicado|floatformat:'2g' }}">{{ insumo.nombre }} · stock {{ insumo.stock|floatformat:"-3" }}</option>
+                {% endfor %}
+              </select>
+              <button class="btn" type="button" id="addComplement">+ AGREGAR</button>
+            </div>
+            {% else %}
+            <div class="complement-empty">No hay insumos habilitados como complementarios. <a href="{% url 'productos:insumos' %}">Ir a Insumos</a> y marcá stickers, tarjetas o cintas como “Disponible como complementario”.</div>
+            {% endif %}
+
+            <div class="complement-list" id="selectedComplements">
+              {% for insumo in insumos_complementarios %}
+                {% if insumo.es_complemento_regla %}
+                <div class="complement-row" data-complement-id="{{ insumo.id }}">
+                  <input type="hidden" name="complemento_id" value="{{ insumo.id }}">
+                  <div>
+                    <div class="complement-name">{{ insumo.nombre }}</div>
+                    <div class="complement-meta">Stock {{ insumo.stock|floatformat:"-3" }} · costo $ {{ insumo.costo_unitario_aplicado|floatformat:"2g" }}</div>
+                  </div>
+                  <div class="complement-qty">
+                    <label>CANT.</label>
+                    <input type="number" min="0.001" step="0.001" name="complemento_cantidad_{{ insumo.id }}" value="{{ insumo.cantidad_complemento_regla }}">
+                  </div>
+                  <button class="remove-complement" type="button" aria-label="Quitar {{ insumo.nombre }}">×</button>
+                </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+            <div class="complement-empty" id="noComplements">Todavía no agregaste complementarios.</div>
+          </div>
+        </section>
+
+        <div class="form-actions">
+          {% if regla_editar %}<a class="btn" href="{% url 'pedidos:reglas_empaque' %}">CANCELAR</a>{% endif %}
+          <button class="btn primary" type="submit">GUARDAR REGLA</button>
+        </div>
+      </form>
+    </section>
+  </div>
+</main>
+
+<script>
+(function(){
+  const alcance=document.getElementById("alcanceEmpaque");
+  const kit=document.getElementById("targetKit");
+  const producto=document.getElementById("targetProducto");
+  const categoria=document.getElementById("targetCategoria");
+  const principal=document.getElementById("insumoPrincipal");
+  const useToggle=document.getElementById("usarComplementarios");
+  const body=document.getElementById("complementBody");
+  const select=document.getElementById("complementSelect");
+  const addBtn=document.getElementById("addComplement");
+  const list=document.getElementById("selectedComplements");
+  const empty=document.getElementById("noComplements");
+
+  function syncScope(){
+    const value=alcance?.value||"GENERAL";
+    kit?.classList.toggle("is-visible",value==="KIT");
+    producto?.classList.toggle("is-visible",value==="PRODUCTO");
+    categoria?.classList.toggle("is-visible",value==="CATEGORIA");
+  }
+
+  function selectedIds(){
+    return new Set(
+      [...(list?.querySelectorAll("[data-complement-id]")||[])]
+        .map(row=>String(row.dataset.complementId))
+    );
+  }
+
+  function syncOptions(){
+    if(!select)return;
+    const selected=selectedIds();
+    const principalId=String(principal?.value||"");
+    [...select.options].forEach(option=>{
+      if(!option.value)return;
+      option.disabled=selected.has(String(option.value))||String(option.value)===principalId;
+    });
+    if(select.selectedOptions[0]?.disabled)select.value="";
+  }
+
+  function syncEmpty(){
+    if(!empty||!list)return;
+    empty.hidden=list.querySelectorAll("[data-complement-id]").length>0;
+  }
+
+  function syncComplementState(){
+    if(!body||!useToggle)return;
+    const active=useToggle.checked;
+    body.hidden=!active;
+    list?.querySelectorAll("input").forEach(input=>input.disabled=!active);
+  }
+
+  function removeRow(row){
+    row?.remove();
+    syncOptions();
+    syncEmpty();
+  }
+
+  function bindRemoveButtons(){
+    list?.querySelectorAll(".remove-complement").forEach(button=>{
+      if(button.dataset.bound)return;
+      button.dataset.bound="1";
+      button.addEventListener("click",()=>removeRow(button.closest("[data-complement-id]")));
+    });
+  }
+
+  function addSelectedComplement(){
+    if(!select||!list||!select.value)return;
+    const option=select.selectedOptions[0];
+    if(!option||option.disabled)return;
+    const id=String(option.value);
+    if(selectedIds().has(id))return;
+
+    const row=document.createElement("div");
+    row.className="complement-row";
+    row.dataset.complementId=id;
+
+    const hidden=document.createElement("input");
+    hidden.type="hidden";
+    hidden.name="complemento_id";
+    hidden.value=id;
+
+    const info=document.createElement("div");
+    const name=document.createElement("div");
+    name.className="complement-name";
+    name.textContent=option.dataset.name||option.textContent;
+    const meta=document.createElement("div");
+    meta.className="complement-meta";
+    meta.textContent="Stock "+(option.dataset.stock||"0")+" · costo $ "+(option.dataset.cost||"0");
+    info.append(name,meta);
+
+    const qtyWrap=document.createElement("div");
+    qtyWrap.className="complement-qty";
+    const qtyLabel=document.createElement("label");
+    qtyLabel.textContent="CANT.";
+    const qty=document.createElement("input");
+    qty.type="number";
+    qty.min="0.001";
+    qty.step="0.001";
+    qty.value="1";
+    qty.name="complemento_cantidad_"+id;
+    qtyWrap.append(qtyLabel,qty);
+
+    const remove=document.createElement("button");
+    remove.type="button";
+    remove.className="remove-complement";
+    remove.setAttribute("aria-label","Quitar "+(option.dataset.name||"complementario"));
+    remove.textContent="×";
+    remove.addEventListener("click",()=>removeRow(row));
+
+    row.append(hidden,info,qtyWrap,remove);
+    list.append(row);
+    select.value="";
+    syncOptions();
+    syncEmpty();
+    syncComplementState();
+  }
+
+  alcance?.addEventListener("change",syncScope);
+  principal?.addEventListener("change",syncOptions);
+  useToggle?.addEventListener("change",syncComplementState);
+  addBtn?.addEventListener("click",addSelectedComplement);
+  select?.addEventListener("change",()=>{
+    if(select.value&&window.matchMedia("(max-width:560px)").matches){
+      addSelectedComplement();
+    }
+  });
+
+  bindRemoveButtons();
+  syncScope();
+  syncOptions();
+  syncEmpty();
+  syncComplementState();
+})();
+</script>
+{% include "shared/messages_toasts.html" %}
+{% include "shared/navigation.html" %}
+</body>
+</html>

@@ -8,7 +8,12 @@ from kits.engine import KitEngine
 from kits.imagenes import adjuntar_imagenes_reutilizadas
 from kits.models import Kit
 
-from .image_environment import entorno_imagenes
+from .image_environment import (
+    ambientes_imagenes_lectura,
+    clave_imagen_lectura,
+    entorno_imagenes,
+    seleccionar_imagenes_lectura,
+)
 from .image_models import ProductoImagen
 from .models import ConfiguracionCatalogo, Producto
 
@@ -54,21 +59,29 @@ def _catalogo_publico(request, vista_catalogo):
             solo_produccion=False,
         )
         .select_related("tipo")
-        .prefetch_related("componentes__componente")
+        .prefetch_related(
+            "componentes__componente",
+            "insumos_asignados__insumo",
+            "componentes__componente__insumos_asignados__insumo",
+        )
         .order_by("tipo__nombre", "nombre")
     )
 
-    imagenes_por_producto = defaultdict(list)
+    candidatas_por_producto = defaultdict(list)
     for imagen in (
         ProductoImagen.objects
         .filter(
             producto_id__in=[producto.id for producto in productos],
-            ambiente=ambiente,
+            ambiente__in=ambientes_imagenes_lectura(),
         )
         .order_by("producto_id", "orden", "id")
     ):
-        if len(imagenes_por_producto[imagen.producto_id]) < 2:
-            imagenes_por_producto[imagen.producto_id].append(imagen)
+        candidatas_por_producto[imagen.producto_id].append(imagen)
+
+    imagenes_por_producto = {
+        producto_id: seleccionar_imagenes_lectura(imagenes, limite=2)
+        for producto_id, imagenes in candidatas_por_producto.items()
+    }
 
     for producto in productos:
         producto.catalogo_imagenes_preview = (
@@ -108,7 +121,11 @@ def _catalogo_publico(request, vista_catalogo):
         Kit.objects
         .filter(activo=True)
         .select_related("tipo_producto")
-        .prefetch_related("componentes__producto__tipo")
+        .prefetch_related(
+            "componentes__producto__tipo",
+            "componentes__producto__insumos_asignados__insumo",
+            "componentes__producto__componentes__componente__insumos_asignados__insumo",
+        )
         .order_by("nombre")
     )
 
@@ -265,7 +282,11 @@ def catalogo_producto_detalle(request, producto_id):
             solo_produccion=False,
         )
         .select_related("tipo")
-        .prefetch_related("componentes__componente"),
+        .prefetch_related(
+            "componentes__componente",
+            "insumos_asignados__insumo",
+            "componentes__componente__insumos_asignados__insumo",
+        ),
         id=producto_id,
     )
     producto.catalogo_precio = producto.subtotal
@@ -274,10 +295,11 @@ def catalogo_producto_detalle(request, producto_id):
         ProductoImagen.objects
         .filter(
             producto=producto,
-            ambiente=ambiente,
+            ambiente__in=ambientes_imagenes_lectura(),
         )
-        .order_by("orden", "id")[:2]
+        .order_by("orden", "id")
     )
+    imagenes = seleccionar_imagenes_lectura(imagenes, limite=2)
     if (
         not config_catalogo.mostrar_productos_sin_foto
         and not imagenes
@@ -321,7 +343,11 @@ def catalogo_kit_detalle(request, kit_id):
         Kit.objects
         .filter(activo=True)
         .select_related("tipo_producto")
-        .prefetch_related("componentes__producto__tipo"),
+        .prefetch_related(
+            "componentes__producto__tipo",
+            "componentes__producto__insumos_asignados__insumo",
+            "componentes__producto__componentes__componente__insumos_asignados__insumo",
+        ),
         id=kit_id,
     )
 
@@ -339,6 +365,10 @@ def catalogo_kit_detalle(request, kit_id):
                 solo_produccion=False,
             )
             .select_related("tipo")
+            .prefetch_related(
+                "insumos_asignados__insumo",
+                "componentes__componente__insumos_asignados__insumo",
+            )
             .order_by("nombre", "id")
         )
 

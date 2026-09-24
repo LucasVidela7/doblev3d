@@ -15,6 +15,7 @@ from productos.models import Producto
 from productos.miniaturas import asignar_miniaturas_productos
 
 from .adicionales import enriquecer_detalles_presupuesto
+from .empaques import estimar_embalaje_items
 from .miniaturas import (
     asignar_miniatura_resumen,
     asignar_miniaturas_items,
@@ -584,9 +585,9 @@ def lista_presupuestos(request):
         Presupuesto.objects
         .select_related("cliente", "pedido_generado")
         .prefetch_related(
-            "detalles__producto",
-            "detalles__kit__componentes__producto",
-            "detalles__productos_kit__producto",
+            "detalles__producto__tipo",
+            "detalles__kit__componentes__producto__tipo",
+            "detalles__productos_kit__producto__tipo",
         )
         .order_by("-id")
     )
@@ -645,9 +646,9 @@ def detalle_presupuesto(request, presupuesto_id):
             "solicitud_web_origen",
         )
         .prefetch_related(
-            "detalles__producto",
-            "detalles__kit",
-            "detalles__productos_kit__producto",
+            "detalles__producto__tipo",
+            "detalles__kit__componentes__producto__tipo",
+            "detalles__productos_kit__producto__tipo",
             "solicitud_web_origen__items",
         ),
         id=presupuesto_id,
@@ -658,6 +659,7 @@ def detalle_presupuesto(request, presupuesto_id):
         list(presupuesto.detalles.all()),
     )
     asignar_miniaturas_items(detalles)
+    embalaje_estimado = estimar_embalaje_items(detalles)
     adicionales_total = sum(
         (
             detalle.adicionales["adicional_total_linea"]
@@ -674,6 +676,7 @@ def detalle_presupuesto(request, presupuesto_id):
             "presupuesto": presupuesto,
             "detalles": detalles,
             "adicionales_total": adicionales_total,
+            "embalaje_estimado": embalaje_estimado,
         },
     )
 
@@ -806,9 +809,9 @@ def aprobar_presupuesto(request, presupuesto_id):
         .select_for_update()
         .select_related("cliente")
         .prefetch_related(
-            "detalles__producto",
+            "detalles__producto__tipo",
             "detalles__kit",
-            "detalles__productos_kit__producto",
+            "detalles__productos_kit__producto__tipo",
         ),
         id=presupuesto_id,
     )
@@ -1000,9 +1003,9 @@ def repetir_pedido_como_presupuesto(request, pedido_id):
         Pedido.objects
         .select_related("cliente")
         .prefetch_related(
-            "detalles__producto",
+            "detalles__producto__tipo",
             "detalles__kit",
-            "detalles__productos_kit__producto",
+            "detalles__productos_kit__producto__tipo",
         ),
         id=pedido_id,
     )

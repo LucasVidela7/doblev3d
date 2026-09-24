@@ -1,6 +1,9 @@
 from collections import defaultdict
 
-from productos.image_environment import entorno_imagenes
+from productos.image_environment import (
+    ambientes_imagenes_lectura,
+    clave_imagen_lectura,
+)
 from productos.image_models import ProductoImagen
 
 
@@ -35,18 +38,24 @@ def adjuntar_imagenes_reutilizadas(kits, productos_por_tipo=None):
                 for producto in productos_libres
             )
 
-    imagenes_principales = {
-        imagen.producto_id: imagen
-        for imagen in (
-            ProductoImagen.objects
-            .filter(
-                producto_id__in=ids_productos,
-                ambiente=entorno_imagenes(),
-                orden=1,
-            )
-            .order_by("producto_id", "id")
+    imagenes_principales = {}
+    candidatas = list(
+        ProductoImagen.objects
+        .filter(
+            producto_id__in=ids_productos,
+            ambiente__in=ambientes_imagenes_lectura(),
+            orden=1,
         )
-    }
+        .order_by("producto_id", "id")
+    )
+    candidatas.sort(
+        key=lambda imagen: (
+            imagen.producto_id,
+            *clave_imagen_lectura(imagen),
+        )
+    )
+    for imagen in candidatas:
+        imagenes_principales.setdefault(imagen.producto_id, imagen)
 
     for kit in kits:
         visuales = []

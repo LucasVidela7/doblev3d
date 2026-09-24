@@ -576,6 +576,36 @@ html.dv-cart-open .dv-cart-body{
     box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);
 }
 .dv-color-swatch:hover{transform:translateY(-1px);border-color:#aeb8c6}
+.dv-color-swatch[data-tooltip]::after{
+    content:attr(data-tooltip);
+    position:absolute;
+    left:50%;
+    bottom:calc(100% + 9px);
+    z-index:40;
+    width:max-content;
+    max-width:190px;
+    padding:7px 9px;
+    border-radius:7px;
+    background:#27272a;
+    color:#fff;
+    font-size:.72rem;
+    font-weight:750;
+    line-height:1.2;
+    white-space:normal;
+    text-align:center;
+    box-shadow:0 6px 18px rgba(0,0,0,.22);
+    opacity:0;
+    visibility:hidden;
+    transform:translate(-50%,4px);
+    transition:opacity .12s ease,transform .12s ease,visibility .12s ease;
+    pointer-events:none;
+}
+.dv-color-swatch[data-tooltip]:hover::after,
+.dv-color-swatch[data-tooltip]:focus-visible::after{
+    opacity:1;
+    visibility:visible;
+    transform:translate(-50%,0);
+}
 .dv-color-swatch.is-selected{
     border:2px solid #17233a;
     padding:3px;

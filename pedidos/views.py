@@ -13,7 +13,7 @@ from django.urls import reverse
 from clientes.models import Cliente
 from clientes.telefonos import buscar_cliente_por_telefono
 from kits.models import Kit
-from productos.models import Producto
+from productos.models import CompraInsumo, Insumo, Producto
 from produccion.models import Produccion
 from calculadora.precios import (
     fila_precio,
@@ -25,8 +25,15 @@ from collections import defaultdict
 from calendar import monthrange
 from datetime import date, datetime, time, timedelta
 
+from .empaques import (
+    _restaurar_uso_empaque,
+    costo_embalaje_para_rentabilidad,
+)
+from .finanzas_services import crear_cuotas_gasto
 from .models import (
     Pedido,
+    PedidoEmpaque,
+    PedidoEmpaqueComplemento,
     DetallePedido,
     DetalleKitProducto,
     EstadoImpresionPedido,
@@ -59,6 +66,12 @@ def _costo_actual_producto(producto):
     Usa el cálculo ya existente en Producto y evita duplicar
     la fórmula de costos dentro de Pedidos.
     """
+    costo_total = _decimal_seguro(
+        getattr(producto, "costo_productivo_total", None)
+    )
+    if costo_total is not None:
+        return max(costo_total, Decimal("0"))
+
     costo = _decimal_seguro(
         getattr(producto, "costo", None)
     )
@@ -2881,106 +2894,6 @@ def editar_pedido(request, pedido_id):
 # GASTOS / CUOTAS
 # ==========================================================
 
-def _fecha_mas_meses(fecha, meses):
-    """
-    Suma meses sin depender de librerías externas.
-    Si el día no existe en el mes destino, usa el último día.
-    """
-    indice = (
-        fecha.year * 12
-        + fecha.month - 1
-        + meses
-    )
-
-    anio = indice // 12
-    mes = indice % 12 + 1
-    ultimo_dia = monthrange(
-        anio,
-        mes,
-    )[1]
-
-    return date(
-        anio,
-        mes,
-        min(fecha.day, ultimo_dia),
-    )
-
-
-def _crear_cuotas_gasto(gasto):
-    gasto.cuotas.all().delete()
-
-    cantidad = max(
-        int(gasto.cantidad_cuotas or 1),
-        1,
-    )
-
-    total = Decimal(
-        str(gasto.monto_total)
-    ).quantize(
-        Decimal("0.01")
-    )
-
-    monto_base = (
-        total / Decimal(cantidad)
-    ).quantize(
-        Decimal("0.01"),
-        rounding=ROUND_HALF_UP,
-    )
-
-    if gasto.medio_pago == "TARJETA_CREDITO":
-        fecha_base = (
-            gasto.fecha_primera_cuota
-            or gasto.fecha_compra
-        )
-
-        acumulado = Decimal("0")
-
-        for numero in range(1, cantidad + 1):
-            if numero < cantidad:
-                monto = monto_base
-                acumulado += monto
-            else:
-                monto = (
-                    total - acumulado
-                ).quantize(
-                    Decimal("0.01")
-                )
-
-            CuotaGasto.objects.create(
-                gasto=gasto,
-                numero=numero,
-                fecha_vencimiento=_fecha_mas_meses(
-                    fecha_base,
-                    numero - 1,
-                ),
-                monto=monto,
-                pagada=False,
-                fecha_pago=None,
-                pagada_en=None,
-            )
-
-    else:
-        if gasto.fecha_compra == timezone.localdate():
-            pagada_en = timezone.now()
-        else:
-            pagada_en = timezone.make_aware(
-                datetime.combine(
-                    gasto.fecha_compra,
-                    time.min,
-                )
-            )
-
-        CuotaGasto.objects.create(
-            gasto=gasto,
-            numero=1,
-            fecha_vencimiento=gasto.fecha_compra,
-            monto=total,
-            pagada=True,
-            fecha_pago=gasto.fecha_compra,
-            pagada_en=pagada_en,
-        )
-
-
 @transaction.atomic
 def registrar_gasto(request):
     if request.method != "POST":
@@ -3162,7 +3075,7 @@ def registrar_gasto(request):
         observaciones=observaciones,
     )
 
-    _crear_cuotas_gasto(
+    crear_cuotas_gasto(
         gasto
     )
 
@@ -3253,6 +3166,24 @@ def eliminar_gasto(
         Gasto,
         id=gasto_id,
     )
+
+    if CompraInsumo.objects.filter(gasto=gasto).exists():
+        messages.error(
+            request,
+            (
+                "Este gasto pertenece a una compra de insumos y no puede "
+                "eliminarse desde Finanzas porque dejaría el stock "
+                "desincronizado."
+            ),
+        )
+        periodo = request.POST.get(
+            "periodo",
+            timezone.localdate().strftime("%Y-%m"),
+        )
+        return redirect(
+            f"{redirect('pedidos:finanzas').url}"
+            f"?periodo={periodo}&vista=gastos"
+        )
 
     descripcion = gasto.descripcion
     gasto.delete()
@@ -3497,7 +3428,27 @@ def _rentabilidad_acumulada():
         Decimal("0"),
     )
 
-    costos = costos_snapshot + costos_estimados
+    costo_empaques = (
+        PedidoEmpaque.objects
+        .exclude(pedido__estado="CANCELADO")
+        .aggregate(total=Sum("costo_total_snapshot"))
+        .get("total")
+        or Decimal("0")
+    )
+    costo_empaques_complementarios = (
+        PedidoEmpaqueComplemento.objects
+        .exclude(pedido_empaque__pedido__estado="CANCELADO")
+        .aggregate(total=Sum("costo_total_snapshot"))
+        .get("total")
+        or Decimal("0")
+    )
+
+    costos = (
+        costos_snapshot
+        + costos_estimados
+        + costo_empaques
+        + costo_empaques_complementarios
+    )
 
     return {
         "ventas": ventas,
@@ -3673,6 +3624,23 @@ def _resolver_rango_finanzas(request, hoy):
 # ==========================================================
 # FINANZAS / RENTABILIDAD
 # ==========================================================
+def _restaurar_empaques_pedido(pedido):
+    usos = list(
+        PedidoEmpaque.objects
+        .select_for_update()
+        .filter(pedido=pedido)
+        .prefetch_related("complementos")
+        .order_by("insumo_id", "id")
+    )
+    for uso in usos:
+        _restaurar_uso_empaque(uso)
+    if usos:
+        PedidoEmpaque.objects.filter(
+            id__in=[uso.id for uso in usos]
+        ).delete()
+    return len(usos)
+
+
 # FINANZAS / RENTABILIDAD
 # ==========================================================
 
@@ -3714,10 +3682,11 @@ def finanzas(request):
         .exclude(estado="CANCELADO")
         .select_related("cliente")
         .prefetch_related(
-            "detalles__producto",
-            "detalles__kit",
-            "detalles__productos_kit__producto",
+            "detalles__producto__tipo",
+            "detalles__kit__componentes__producto__tipo",
+            "detalles__productos_kit__producto__tipo",
             "pagos",
+            "empaques_usados__complementos__insumo",
         )
         .order_by("-fecha", "-id")
     )
@@ -3752,6 +3721,12 @@ def finanzas(request):
 
             costo_pedido += costo_detalle
 
+        (
+            costo_empaque_pedido,
+            empaque_estimado,
+        ) = costo_embalaje_para_rentabilidad(pedido)
+        costo_pedido += costo_empaque_pedido
+
         ganancia_pedido = (
             venta_pedido - costo_pedido
         )
@@ -3777,6 +3752,8 @@ def finanzas(request):
                     "pedido": pedido,
                     "venta": venta_pedido,
                     "costo": costo_pedido,
+                    "costo_empaque": costo_empaque_pedido,
+                    "empaque_estimado": empaque_estimado,
                     "ganancia": ganancia_pedido,
                     "margen": margen_pedido,
                     "pagado": pagado_pedido,
@@ -3898,6 +3875,7 @@ def finanzas(request):
             fecha_compra__gte=inicio,
             fecha_compra__lte=fin,
         )
+        .select_related("compra_insumos")
         .prefetch_related("cuotas")
         .order_by(
             "-fecha_compra",
@@ -3905,9 +3883,18 @@ def finanzas(request):
         )
     )
 
+    compras_stock_periodo = (
+        gastos_base
+        .filter(compra_insumos__isnull=False)
+        .aggregate(total=Sum("monto_total"))
+        .get("total")
+        or Decimal("0")
+    )
+
     gastos_operativos = (
         gastos_base
         .filter(tipo="OPERATIVO")
+        .filter(compra_insumos__isnull=True)
         .aggregate(total=Sum("monto_total"))
         .get("total")
         or Decimal("0")
@@ -4263,7 +4250,10 @@ def finanzas(request):
 
         gastos_operativos_acumulados = (
             Gasto.objects
-            .filter(tipo="OPERATIVO")
+            .filter(
+                tipo="OPERATIVO",
+                compra_insumos__isnull=True,
+            )
             .aggregate(total=Sum("monto_total"))
             .get("total")
             or Decimal("0")
@@ -4381,6 +4371,8 @@ def finanzas(request):
 
             "gastos_operativos":
                 gastos_operativos,
+            "compras_stock_periodo":
+                compras_stock_periodo,
             "inversiones_periodo":
                 inversiones_periodo,
             "resultado_operativo":
@@ -4581,6 +4573,8 @@ def cancelar_pedido(request, pedido_id):
             ]
         )
 
+    _restaurar_empaques_pedido(pedido)
+
     pedido.estado = "CANCELADO"
 
     pedido.save(
@@ -4655,6 +4649,8 @@ def eliminar_pedido(request, pedido_id):
         producto.save(
             update_fields=["stock"]
         )
+
+    _restaurar_empaques_pedido(pedido)
 
     # ------------------------------------------------------
     # BORRAR PEDIDO

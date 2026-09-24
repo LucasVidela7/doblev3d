@@ -1,0 +1,33 @@
+{% if embalaje_estimado and embalaje_estimado.paquetes %}
+<style>
+.dv-pack-est{margin-bottom:13px;padding:14px 15px;border:1px solid color-mix(in srgb,var(--dv-brand-sky,#69b6eb) 28%,var(--dv-border,#dfe5ef));border-radius:15px;background:color-mix(in srgb,var(--dv-brand-sky,#69b6eb) 8%,var(--dv-surface,#fff));color:var(--dv-text,#17233a)}
+.dv-pack-est-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.dv-pack-est-head small{display:block;color:var(--dv-brand-blue,#134a9a);font-size:8px;font-weight:950;letter-spacing:.04em}.dv-pack-est-head strong{display:block;margin-top:3px;font-size:12px}.dv-pack-est-total{text-align:right;white-space:nowrap}.dv-pack-est-total span{display:block;color:var(--dv-muted,#667085);font-size:8px;font-weight:850}.dv-pack-est-total b{display:block;margin-top:3px;font-size:16px}
+.dv-pack-est-list{display:grid;gap:7px;margin-top:11px}.dv-pack-est-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:9px 10px;border:1px solid var(--dv-border,#dfe5ef);border-radius:11px;background:var(--dv-surface,#fff)}.dv-pack-est-name{font-size:10px;font-weight:900}.dv-pack-est-meta{margin-top:4px;color:var(--dv-muted,#667085);font-size:8px;line-height:1.45}.dv-pack-est-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.dv-pack-est-chip{padding:5px 7px;border-radius:999px;background:var(--dv-surface-soft,#f5f7fa);color:var(--dv-brand-blue,#134a9a);font-size:7px;font-weight:900}.dv-pack-est-cost{font-size:10px;font-weight:900;white-space:nowrap}.dv-pack-est-note{margin-top:8px;color:var(--dv-muted,#667085);font-size:8px;line-height:1.4}
+@media(max-width:640px){.dv-pack-est-head,.dv-pack-est-row{flex-direction:column}.dv-pack-est-total{text-align:left}.dv-pack-est-cost{white-space:normal}}
+</style>
+<section class="dv-pack-est">
+  <div class="dv-pack-est-head">
+    <div><small>EMBALAJE ESTIMADO · INTERNO</small><strong>Estimación según las reglas configuradas</strong></div>
+    <div class="dv-pack-est-total"><span>COSTO ESTIMADO</span><b>$ {{ embalaje_estimado.total|floatformat:"0g" }}</b></div>
+  </div>
+  <div class="dv-pack-est-list">
+    {% for paquete in embalaje_estimado.paquetes %}
+    <div class="dv-pack-est-row">
+      <div>
+        <div class="dv-pack-est-name">{{ paquete.descripcion }}</div>
+        <div class="dv-pack-est-meta">{{ paquete.unidades_contenido }} unidad{{ paquete.unidades_contenido|pluralize:"es" }}{% if paquete.regla %} · {{ paquete.regla.nombre }}{% else %} · sin regla aplicable{% endif %}</div>
+        {% if paquete.insumos %}
+        <div class="dv-pack-est-chips">
+          {% for item in paquete.insumos %}
+          <span class="dv-pack-est-chip">{% if not item.principal %}+ {% endif %}{{ item.cantidad|floatformat:"-3" }} × {{ item.insumo.nombre }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      <div class="dv-pack-est-cost">$ {{ paquete.costo_estimado|floatformat:"0g" }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="dv-pack-est-note">Es una referencia interna. No agrega un concepto visible al cliente. En el pedido, el costo real reemplaza esta estimación cuando registrás el embalaje usado.</div>
+</section>
+{% endif %}
