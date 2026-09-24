@@ -2,14 +2,19 @@ from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from kits.models import Kit
-from productos.models import Insumo, Producto
+from productos.models import Insumo, Producto, TipoProducto
 
-from .models import Pedido, PedidoEmpaque, ReglaEmpaque
+from .models import (
+    Pedido,
+    PedidoEmpaque,
+    PedidoEmpaqueComplemento,
+    ReglaEmpaque,
+    ReglaEmpaqueComplemento,
+)
 
 
 def _decimal(valor, default=None):
@@ -41,7 +46,13 @@ def _regla_aplica_rango(regla, unidades):
     return True
 
 
-def sugerir_regla_empaque(unidades, *, kit=None, producto=None):
+def sugerir_regla_empaque(
+    unidades,
+    *,
+    kit=None,
+    producto=None,
+    tipo_producto=None,
+):
     reglas = list(
         ReglaEmpaque.objects
         .filter(
@@ -49,8 +60,17 @@ def sugerir_regla_empaque(unidades, *, kit=None, producto=None):
             insumo__activo=True,
             insumo__tipo_uso="EMPAQUE",
         )
-        .select_related("insumo", "kit", "producto")
+        .select_related(
+            "insumo",
+            "kit",
+            "producto",
+            "tipo_producto",
+        )
+        .prefetch_related("complementos__insumo")
     )
+
+    if tipo_producto is None and producto is not None:
+        tipo_producto = getattr(producto, "tipo", None)
 
     candidatos = []
     for regla in reglas:
@@ -60,13 +80,20 @@ def sugerir_regla_empaque(unidades, *, kit=None, producto=None):
         if regla.alcance == "KIT":
             if not kit or regla.kit_id != kit.id:
                 continue
-            rango = 0
+            especificidad = 0
         elif regla.alcance == "PRODUCTO":
             if not producto or regla.producto_id != producto.id:
                 continue
-            rango = 0
+            especificidad = 0
+        elif regla.alcance == "CATEGORIA":
+            if (
+                not tipo_producto
+                or regla.tipo_producto_id != tipo_producto.id
+            ):
+                continue
+            especificidad = 1
         elif regla.alcance == "GENERAL":
-            rango = 1
+            especificidad = 2
         else:
             continue
 
@@ -77,7 +104,7 @@ def sugerir_regla_empaque(unidades, *, kit=None, producto=None):
         )
         candidatos.append(
             (
-                rango,
+                especificidad,
                 int(regla.prioridad or 100),
                 amplitud,
                 regla.id,
@@ -92,6 +119,223 @@ def sugerir_regla_empaque(unidades, *, kit=None, producto=None):
     return candidatos[0][4]
 
 
+def _insumos_estimados_regla(regla):
+    if not regla:
+        return []
+
+    resultado = [
+        {
+            "insumo": regla.insumo,
+            "cantidad": Decimal(str(regla.cantidad_insumo or 1)),
+            "principal": True,
+        }
+    ]
+    for complemento in regla.complementos.all():
+        if not complemento.insumo.activo:
+            continue
+        resultado.append(
+            {
+                "insumo": complemento.insumo,
+                "cantidad": Decimal(str(complemento.cantidad or 1)),
+                "principal": False,
+            }
+        )
+
+    for item in resultado:
+        costo_unitario = Decimal(
+            str(item["insumo"].costo_unitario_aplicado or 0)
+        )
+        item["costo_unitario"] = costo_unitario
+        item["costo_total"] = costo_unitario * item["cantidad"]
+
+    return resultado
+
+
+def _detalle_estimado_regla(regla):
+    insumos = _insumos_estimados_regla(regla)
+    return {
+        "regla": regla,
+        "insumos": insumos,
+        "costo_estimado": sum(
+            (item["costo_total"] for item in insumos),
+            Decimal("0"),
+        ),
+    }
+
+
+def _componentes_item_kit(item):
+    relacionados = getattr(item, "productos_kit", None)
+    if relacionados is not None:
+        componentes = list(relacionados.all())
+        if componentes:
+            return componentes, True
+
+    kit = getattr(item, "kit", None)
+    if kit and getattr(kit, "modalidad", "") == "FIJO":
+        return list(kit.componentes.select_related("producto").all()), False
+
+    return [], False
+
+
+def _producto_de_componente(componente):
+    return getattr(componente, "producto", None)
+
+
+def _cantidad_de_componente(componente):
+    return max(int(getattr(componente, "cantidad", 0) or 0), 0)
+
+
+def estimar_embalaje_items(items):
+    paquetes = []
+    sueltos = []
+
+    for item in items:
+        tipo_item = getattr(item, "tipo_item", "")
+        cantidad_linea = max(int(getattr(item, "cantidad", 0) or 0), 0)
+        if cantidad_linea <= 0:
+            continue
+
+        if tipo_item == "KIT" and getattr(item, "kit", None):
+            kit = item.kit
+            componentes, cantidades_totales = _componentes_item_kit(item)
+
+            for unidad in range(cantidad_linea):
+                unidades_contenido = 0
+                for componente in componentes:
+                    total = _cantidad_de_componente(componente)
+                    if cantidades_totales:
+                        base, resto = divmod(total, cantidad_linea)
+                        cantidad_paquete = base + (
+                            1 if unidad < resto else 0
+                        )
+                    else:
+                        cantidad_paquete = total
+                    unidades_contenido += cantidad_paquete
+
+                if unidades_contenido <= 0:
+                    unidades_contenido = max(
+                        int(getattr(kit, "cantidad_productos", 0) or 0),
+                        1,
+                    )
+
+                regla = sugerir_regla_empaque(
+                    unidades_contenido,
+                    kit=kit,
+                )
+                detalle = _detalle_estimado_regla(regla)
+                descripcion = (
+                    f"{kit.nombre} · kit {unidad + 1}/{cantidad_linea}"
+                    if cantidad_linea > 1
+                    else kit.nombre
+                )
+                paquetes.append(
+                    {
+                        "clave": (
+                            f"kit-{getattr(item, 'id', 'x')}-{unidad + 1}"
+                        ),
+                        "descripcion": descripcion,
+                        "unidades_contenido": unidades_contenido,
+                        **detalle,
+                    }
+                )
+            continue
+
+        producto = getattr(item, "producto", None)
+        if producto:
+            sueltos.append(
+                {
+                    "producto": producto,
+                    "cantidad": cantidad_linea,
+                }
+            )
+
+    if sueltos:
+        unidades = sum(item["cantidad"] for item in sueltos)
+        ids_producto = {item["producto"].id for item in sueltos}
+        ids_tipo = {
+            item["producto"].tipo_id
+            for item in sueltos
+            if getattr(item["producto"], "tipo_id", None)
+        }
+
+        producto_unico = (
+            sueltos[0]["producto"]
+            if len(ids_producto) == 1
+            else None
+        )
+        tipo_producto = (
+            sueltos[0]["producto"].tipo
+            if len(ids_tipo) == 1
+            else None
+        )
+
+        regla = sugerir_regla_empaque(
+            unidades,
+            producto=producto_unico,
+            tipo_producto=tipo_producto,
+        )
+        detalle = _detalle_estimado_regla(regla)
+        paquetes.append(
+            {
+                "clave": "sueltos",
+                "descripcion": "Productos fuera de kits",
+                "unidades_contenido": unidades,
+                **detalle,
+            }
+        )
+
+    return {
+        "paquetes": paquetes,
+        "total": sum(
+            (paquete["costo_estimado"] for paquete in paquetes),
+            Decimal("0"),
+        ),
+        "tiene_reglas": any(paquete["regla"] for paquete in paquetes),
+    }
+
+
+def _costo_uso_completo(uso):
+    return (
+        Decimal(str(uso.costo_total_snapshot or 0))
+        + sum(
+            (
+                Decimal(str(item.costo_total_snapshot or 0))
+                for item in uso.complementos.all()
+            ),
+            Decimal("0"),
+        )
+    )
+
+
+def costo_embalaje_para_rentabilidad(pedido):
+    estimacion = estimar_embalaje_items(list(pedido.detalles.all()))
+    estimados = {
+        paquete["clave"]: paquete["costo_estimado"]
+        for paquete in estimacion["paquetes"]
+    }
+    usos = {
+        uso.clave_paquete: uso
+        for uso in pedido.empaques_usados.all()
+    }
+
+    total = Decimal("0")
+    usa_estimacion = False
+
+    for clave, costo_estimado in estimados.items():
+        uso = usos.pop(clave, None)
+        if uso:
+            total += _costo_uso_completo(uso)
+        else:
+            total += costo_estimado
+            if costo_estimado > 0:
+                usa_estimacion = True
+
+    for uso in usos.values():
+        total += _costo_uso_completo(uso)
+
+    return total, usa_estimacion
+
+
 def _unidades_paquete(paquete):
     return sum(
         int(item.get("cantidad") or 0)
@@ -99,10 +343,28 @@ def _unidades_paquete(paquete):
     )
 
 
+def _aplicar_estimacion_paquete(paquete, regla):
+    detalle = _detalle_estimado_regla(regla)
+    paquete["regla_empaque"] = regla
+    paquete["empaque_sugerido"] = regla.insumo if regla else None
+    paquete["cantidad_empaque_sugerida"] = (
+        regla.cantidad_insumo if regla else Decimal("1")
+    )
+    paquete["complementos_sugeridos"] = [
+        item
+        for item in detalle["insumos"]
+        if not item["principal"]
+    ]
+    paquete["costo_empaque_estimado"] = detalle["costo_estimado"]
+
+
 def enriquecer_empaques_pedido(pedido, paquetes, productos_sueltos):
     usos = {
         uso.clave_paquete: uso
-        for uso in pedido.empaques_usados.select_related("insumo").all()
+        for uso in pedido.empaques_usados
+        .select_related("insumo")
+        .prefetch_related("complementos__insumo")
+        .all()
     }
     opciones = insumos_empaque_disponibles()
 
@@ -112,11 +374,7 @@ def enriquecer_empaques_pedido(pedido, paquetes, productos_sueltos):
             paquete["unidades_contenido"],
             kit=paquete.get("kit"),
         )
-        paquete["regla_empaque"] = regla
-        paquete["empaque_sugerido"] = regla.insumo if regla else None
-        paquete["cantidad_empaque_sugerida"] = (
-            regla.cantidad_insumo if regla else Decimal("1")
-        )
+        _aplicar_estimacion_paquete(paquete, regla)
         paquete["empaque_usado"] = usos.get(paquete["clave"])
         paquete["opciones_empaque"] = opciones
 
@@ -126,39 +384,34 @@ def enriquecer_empaques_pedido(pedido, paquetes, productos_sueltos):
             int(item.get("cantidad") or 0)
             for item in productos_sueltos
         )
-        ids = {
-            item["producto"].id
+        productos = [
+            item["producto"]
             for item in productos_sueltos
             if item.get("producto")
+        ]
+        ids = {producto.id for producto in productos}
+        ids_tipo = {
+            producto.tipo_id
+            for producto in productos
+            if getattr(producto, "tipo_id", None)
         }
-        producto_unico = None
-        if len(ids) == 1:
-            producto_unico = next(
-                (
-                    item["producto"]
-                    for item in productos_sueltos
-                    if item.get("producto")
-                ),
-                None,
-            )
+        producto_unico = productos[0] if len(ids) == 1 else None
+        tipo_producto = productos[0].tipo if len(ids_tipo) == 1 else None
 
         regla = sugerir_regla_empaque(
             unidades,
             producto=producto_unico,
+            tipo_producto=tipo_producto,
         )
         paquete_sueltos = {
             "clave": "sueltos",
             "descripcion": "Productos fuera de kits",
             "unidades_contenido": unidades,
             "productos": productos_sueltos,
-            "regla_empaque": regla,
-            "empaque_sugerido": regla.insumo if regla else None,
-            "cantidad_empaque_sugerida": (
-                regla.cantidad_insumo if regla else Decimal("1")
-            ),
             "empaque_usado": usos.get("sueltos"),
             "opciones_empaque": opciones,
         }
+        _aplicar_estimacion_paquete(paquete_sueltos, regla)
 
     return paquetes, paquete_sueltos
 
@@ -180,6 +433,23 @@ def _paquetes_validos(pedido):
     if paquete_sueltos:
         resultado["sueltos"] = paquete_sueltos
     return resultado
+
+
+def _creditos_uso(uso):
+    creditos = {}
+    if not uso:
+        return creditos
+
+    creditos[uso.insumo_id] = (
+        creditos.get(uso.insumo_id, Decimal("0"))
+        + Decimal(str(uso.cantidad or 0))
+    )
+    for complemento in uso.complementos.all():
+        creditos[complemento.insumo_id] = (
+            creditos.get(complemento.insumo_id, Decimal("0"))
+            + Decimal(str(complemento.cantidad or 0))
+        )
+    return creditos
 
 
 @transaction.atomic
@@ -216,17 +486,44 @@ def usar_empaque(request, pedido_id):
         tipo_uso="EMPAQUE",
     )
 
+    regla = paquete.get("regla_empaque")
+    requeridos = {insumo.id: cantidad}
+    complementos_requeridos = []
+    if regla:
+        for complemento in regla.complementos.select_related("insumo").all():
+            if not complemento.insumo.activo:
+                continue
+            cantidad_comp = Decimal(str(complemento.cantidad or 0))
+            if cantidad_comp <= 0:
+                continue
+            if complemento.insumo_id == insumo.id:
+                messages.error(
+                    request,
+                    (
+                        f"{complemento.insumo.nombre} está configurado como "
+                        "empaque principal y complementario en la misma regla."
+                    ),
+                )
+                return redirect("pedidos:detalle", pedido_id=pedido.id)
+            requeridos[complemento.insumo_id] = (
+                requeridos.get(complemento.insumo_id, Decimal("0"))
+                + cantidad_comp
+            )
+            complementos_requeridos.append(
+                (complemento.insumo_id, cantidad_comp)
+            )
+
     existente = (
         PedidoEmpaque.objects
         .select_for_update()
         .select_related("insumo")
+        .prefetch_related("complementos__insumo")
         .filter(pedido=pedido, clave_paquete=clave)
         .first()
     )
+    creditos = _creditos_uso(existente)
 
-    ids_bloqueo = {insumo.id}
-    if existente:
-        ids_bloqueo.add(existente.insumo_id)
+    ids_bloqueo = set(requeridos) | set(creditos)
     bloqueados = {
         item.id: item
         for item in Insumo.objects
@@ -234,41 +531,35 @@ def usar_empaque(request, pedido_id):
         .filter(id__in=ids_bloqueo)
     }
 
-    nuevo = bloqueados[insumo.id]
-    disponible = Decimal(str(nuevo.stock or 0))
-    if existente and existente.insumo_id == nuevo.id:
-        disponible += Decimal(str(existente.cantidad or 0))
-
-    if disponible < cantidad:
-        messages.error(
-            request,
-            (
-                f"Stock insuficiente de {nuevo.nombre}: "
-                f"necesitás {cantidad} y hay {disponible}."
-            ),
+    for requerido_id, requerido in requeridos.items():
+        item = bloqueados[requerido_id]
+        disponible = (
+            Decimal(str(item.stock or 0))
+            + creditos.get(requerido_id, Decimal("0"))
         )
-        return redirect("pedidos:detalle", pedido_id=pedido.id)
+        if disponible < requerido:
+            messages.error(
+                request,
+                (
+                    f"Stock insuficiente de {item.nombre}: "
+                    f"necesitás {requerido} y hay {disponible}."
+                ),
+            )
+            return redirect("pedidos:detalle", pedido_id=pedido.id)
 
-    if existente:
-        anterior = bloqueados[existente.insumo_id]
-        anterior.stock = (
-            Decimal(str(anterior.stock or 0))
-            + Decimal(str(existente.cantidad or 0))
-        )
-        anterior.save(update_fields=["stock"])
+    for item_id, credito in creditos.items():
+        item = bloqueados[item_id]
+        item.stock = Decimal(str(item.stock or 0)) + credito
 
-    nuevo = Insumo.objects.select_for_update().get(id=insumo.id)
-    if Decimal(str(nuevo.stock or 0)) < cantidad:
-        messages.error(
-            request,
-            "El stock cambió mientras preparabas el pedido. Volvé a intentar.",
-        )
-        return redirect("pedidos:detalle", pedido_id=pedido.id)
+    for item_id, requerido in requeridos.items():
+        item = bloqueados[item_id]
+        item.stock = Decimal(str(item.stock or 0)) - requerido
 
-    nuevo.stock = Decimal(str(nuevo.stock or 0)) - cantidad
-    nuevo.save(update_fields=["stock"])
+    for item in bloqueados.values():
+        item.save(update_fields=["stock"])
 
-    costo_unitario = Decimal(str(nuevo.costo_unitario_aplicado or 0))
+    principal = bloqueados[insumo.id]
+    costo_unitario = Decimal(str(principal.costo_unitario_aplicado or 0))
     costo_total = costo_unitario * cantidad
     descripcion = (
         paquete.get("descripcion")
@@ -276,7 +567,7 @@ def usar_empaque(request, pedido_id):
         or f"Paquete {paquete.get('numero', '')}"
     )
 
-    PedidoEmpaque.objects.update_or_create(
+    uso, _ = PedidoEmpaque.objects.update_or_create(
         pedido=pedido,
         clave_paquete=clave,
         defaults={
@@ -284,21 +575,64 @@ def usar_empaque(request, pedido_id):
             "unidades_contenido": int(
                 paquete.get("unidades_contenido") or 0
             ),
-            "insumo": nuevo,
+            "insumo": principal,
             "cantidad": cantidad,
             "costo_unitario_snapshot": costo_unitario,
             "costo_total_snapshot": costo_total,
         },
     )
 
+    uso.complementos.all().delete()
+    complementos_creados = []
+    for complemento_id, cantidad_comp in complementos_requeridos:
+        item = bloqueados[complemento_id]
+        costo_comp = Decimal(str(item.costo_unitario_aplicado or 0))
+        PedidoEmpaqueComplemento.objects.create(
+            pedido_empaque=uso,
+            insumo=item,
+            cantidad=cantidad_comp,
+            costo_unitario_snapshot=costo_comp,
+            costo_total_snapshot=costo_comp * cantidad_comp,
+        )
+        complementos_creados.append(
+            f"{cantidad_comp} × {item.nombre}"
+        )
+
+    detalle_complementos = (
+        " + " + " + ".join(complementos_creados)
+        if complementos_creados
+        else ""
+    )
     messages.success(
         request,
         (
-            f"Empaque registrado: {cantidad} × {nuevo.nombre}. "
-            "El stock fue descontado."
+            f"Empaque registrado: {cantidad} × {principal.nombre}"
+            f"{detalle_complementos}. El stock fue descontado."
         ),
     )
     return redirect("pedidos:detalle", pedido_id=pedido.id)
+
+
+def _restaurar_uso_empaque(uso):
+    consumos = {
+        uso.insumo_id: Decimal(str(uso.cantidad or 0))
+    }
+    for complemento in uso.complementos.all():
+        consumos[complemento.insumo_id] = (
+            consumos.get(complemento.insumo_id, Decimal("0"))
+            + Decimal(str(complemento.cantidad or 0))
+        )
+
+    bloqueados = {
+        item.id: item
+        for item in Insumo.objects
+        .select_for_update()
+        .filter(id__in=consumos)
+    }
+    for item_id, cantidad in consumos.items():
+        item = bloqueados[item_id]
+        item.stock = Decimal(str(item.stock or 0)) + cantidad
+        item.save(update_fields=["stock"])
 
 
 @transaction.atomic
@@ -319,6 +653,8 @@ def liberar_empaque(request, pedido_id):
     uso = (
         PedidoEmpaque.objects
         .select_for_update()
+        .select_related("insumo")
+        .prefetch_related("complementos__insumo")
         .filter(pedido=pedido, clave_paquete=clave)
         .first()
     )
@@ -326,27 +662,29 @@ def liberar_empaque(request, pedido_id):
         messages.info(request, "Ese paquete no tenía empaque registrado.")
         return redirect("pedidos:detalle", pedido_id=pedido.id)
 
-    insumo = Insumo.objects.select_for_update().get(id=uso.insumo_id)
-    insumo.stock = (
-        Decimal(str(insumo.stock or 0))
-        + Decimal(str(uso.cantidad or 0))
-    )
-    insumo.save(update_fields=["stock"])
-    nombre = insumo.nombre
+    nombre = uso.insumo.nombre
+    _restaurar_uso_empaque(uso)
     uso.delete()
 
     messages.success(
         request,
-        f"Se liberó el empaque {nombre} y volvió al stock.",
+        f"Se liberó el empaque {nombre} y todos sus insumos volvieron al stock.",
     )
     return redirect("pedidos:detalle", pedido_id=pedido.id)
 
 
+@transaction.atomic
 def reglas(request):
     editar_id = request.GET.get("editar")
     regla_editar = (
         ReglaEmpaque.objects
-        .select_related("insumo", "kit", "producto")
+        .select_related(
+            "insumo",
+            "kit",
+            "producto",
+            "tipo_producto",
+        )
+        .prefetch_related("complementos__insumo")
         .filter(id=editar_id)
         .first()
         if editar_id
@@ -371,6 +709,9 @@ def reglas(request):
         prioridad = request.POST.get("prioridad") or "100"
         producto_id = (request.POST.get("producto_id") or "").strip()
         kit_id = (request.POST.get("kit_id") or "").strip()
+        tipo_producto_id = (
+            request.POST.get("tipo_producto_id") or ""
+        ).strip()
 
         try:
             desde = max(int(desde), 1)
@@ -398,12 +739,14 @@ def reglas(request):
         insumo = Insumo.objects.filter(
             id=insumo_id,
             tipo_uso="EMPAQUE",
+            activo=True,
         ).first()
         if not insumo:
             errores.append("Seleccioná un insumo de tipo Empaque.")
 
         producto = None
         kit = None
+        tipo_producto = None
         if alcance == "PRODUCTO":
             producto = Producto.objects.filter(id=producto_id).first()
             if not producto:
@@ -412,6 +755,13 @@ def reglas(request):
             kit = Kit.objects.filter(id=kit_id).first()
             if not kit:
                 errores.append("Seleccioná el kit específico.")
+        elif alcance == "CATEGORIA":
+            tipo_producto = TipoProducto.objects.filter(
+                id=tipo_producto_id,
+                activo=True,
+            ).first()
+            if not tipo_producto:
+                errores.append("Seleccioná la categoría de producto.")
         elif alcance != "GENERAL":
             alcance = "GENERAL"
 
@@ -419,6 +769,39 @@ def reglas(request):
             errores.append("Ingresá un nombre para la regla.")
         if cantidad is None or cantidad <= 0:
             errores.append("La cantidad de empaque debe ser mayor a cero.")
+
+        complementos = []
+        ids_vistos = set()
+        for complemento_id in request.POST.getlist("complemento_id"):
+            complemento_id = str(complemento_id or "").strip()
+            if not complemento_id or complemento_id in ids_vistos:
+                continue
+            ids_vistos.add(complemento_id)
+            complemento = Insumo.objects.filter(
+                id=complemento_id,
+                tipo_uso="EMPAQUE",
+                activo=True,
+            ).first()
+            if not complemento:
+                errores.append("Uno de los insumos complementarios no es válido.")
+                continue
+            if insumo and complemento.id == insumo.id:
+                errores.append(
+                    "El empaque principal no puede repetirse como complementario."
+                )
+                continue
+            cantidad_comp = _decimal(
+                request.POST.get(
+                    f"complemento_cantidad_{complemento.id}"
+                ),
+                Decimal("1"),
+            )
+            if cantidad_comp is None or cantidad_comp <= 0:
+                errores.append(
+                    f"La cantidad de {complemento.nombre} debe ser mayor a cero."
+                )
+                continue
+            complementos.append((complemento, cantidad_comp))
 
         if errores:
             for error in errores:
@@ -429,18 +812,38 @@ def reglas(request):
             regla.alcance = alcance
             regla.producto = producto
             regla.kit = kit
+            regla.tipo_producto = tipo_producto
             regla.desde_unidades = desde
             regla.hasta_unidades = hasta
             regla.cantidad_insumo = cantidad
             regla.prioridad = prioridad
             regla.activo = request.POST.get("activo") == "on"
             regla.save()
+
+            regla.complementos.all().delete()
+            ReglaEmpaqueComplemento.objects.bulk_create(
+                [
+                    ReglaEmpaqueComplemento(
+                        regla=regla,
+                        insumo=item,
+                        cantidad=cantidad_item,
+                    )
+                    for item, cantidad_item in complementos
+                ]
+            )
+
             messages.success(request, "Regla de empaque guardada.")
             return redirect("pedidos:reglas_empaque")
 
     reglas_qs = (
         ReglaEmpaque.objects
-        .select_related("insumo", "kit", "producto")
+        .select_related(
+            "insumo",
+            "kit",
+            "producto",
+            "tipo_producto",
+        )
+        .prefetch_related("complementos__insumo")
         .order_by("prioridad", "desde_unidades", "id")
     )
     return render(
@@ -456,8 +859,11 @@ def reglas(request):
             "productos": Producto.objects.filter(
                 activo=True,
                 solo_produccion=False,
-            ).order_by("nombre"),
+            ).select_related("tipo").order_by("nombre"),
             "kits": Kit.objects.filter(activo=True).order_by("nombre"),
+            "tipos_producto": TipoProducto.objects.filter(
+                activo=True,
+            ).order_by("nombre"),
             "alcances": ReglaEmpaque.ALCANCES,
         },
     )
