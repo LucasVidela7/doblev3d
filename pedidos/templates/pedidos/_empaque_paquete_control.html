@@ -6,10 +6,16 @@
         </span>
         {% if paquete.empaque_usado %}
             <strong>{{ paquete.empaque_usado.cantidad|floatformat:"-3" }} × {{ paquete.empaque_usado.insumo.nombre }}</strong>
-            <span>Costo interno real: $ {{ paquete.empaque_usado.costo_total_snapshot|floatformat:"2g" }} · stock ya descontado</span>
+            {% for complemento in paquete.empaque_usado.complementos.all %}
+                <span>+ {{ complemento.cantidad|floatformat:"-3" }} × {{ complemento.insumo.nombre }}</span>
+            {% endfor %}
+            <span>Costo interno real total: $ {{ paquete.costo_empaque_real|floatformat:"2g" }} · stock ya descontado</span>
         {% elif paquete.empaque_sugerido %}
             <strong>{{ paquete.cantidad_empaque_sugerida|floatformat:"-3" }} × {{ paquete.empaque_sugerido.nombre }}</strong>
-            <span>{{ paquete.unidades_contenido }} unidad{{ paquete.unidades_contenido|pluralize:"es" }} en este paquete{% if paquete.regla_empaque %} · {{ paquete.regla_empaque.nombre }}{% endif %}</span>
+            {% for complemento in paquete.complementos_sugeridos %}
+                <span>+ {{ complemento.cantidad|floatformat:"-3" }} × {{ complemento.insumo.nombre }}</span>
+            {% endfor %}
+            <span>{{ paquete.unidades_contenido }} unidad{{ paquete.unidades_contenido|pluralize:"es" }} en este paquete{% if paquete.regla_empaque %} · {{ paquete.regla_empaque.nombre }}{% endif %} · estimado $ {{ paquete.costo_empaque_estimado|floatformat:"2g" }}</span>
         {% else %}
             <strong>Sin sugerencia automática</strong>
             <span>{{ paquete.unidades_contenido }} unidad{{ paquete.unidades_contenido|pluralize:"es" }} · podés elegir un empaque manualmente</span>
