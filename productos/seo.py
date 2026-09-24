@@ -228,6 +228,17 @@ def seo_producto(
             {
                 "@type": "ListItem",
                 "position": 3,
+                "name": tipo,
+                "item": request.build_absolute_uri(
+                    reverse(
+                        "catalogo_categoria",
+                        args=[producto.tipo.slug],
+                    )
+                ),
+            },
+            {
+                "@type": "ListItem",
+                "position": 4,
                 "name": producto.nombre,
                 "item": canonical,
             },
@@ -326,33 +337,50 @@ def seo_kit(
     if image_available:
         product["image"] = [social_image]
 
-    breadcrumbs = {
-        "@type": "BreadcrumbList",
-        "@id": canonical + "#breadcrumb",
-        "itemListElement": [
-            {
-                "@type": "ListItem",
-                "position": 1,
-                "name": "Inicio",
-                "item": request.build_absolute_uri(
-                    reverse("catalogo")
-                ),
-            },
-            {
-                "@type": "ListItem",
-                "position": 2,
-                "name": "Kits",
-                "item": request.build_absolute_uri(
-                    reverse("catalogo_kits")
-                ),
-            },
+    items_breadcrumb = [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Inicio",
+            "item": request.build_absolute_uri(
+                reverse("catalogo")
+            ),
+        },
+        {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Kits",
+            "item": request.build_absolute_uri(
+                reverse("catalogo_kits")
+            ),
+        },
+    ]
+    if kit.tipo_producto_id and kit.tipo_producto:
+        items_breadcrumb.append(
             {
                 "@type": "ListItem",
                 "position": 3,
-                "name": kit.nombre,
-                "item": canonical,
-            },
-        ],
+                "name": kit.tipo_producto.nombre,
+                "item": request.build_absolute_uri(
+                    reverse(
+                        "catalogo_categoria",
+                        args=[kit.tipo_producto.slug],
+                    )
+                ),
+            }
+        )
+    items_breadcrumb.append(
+        {
+            "@type": "ListItem",
+            "position": len(items_breadcrumb) + 1,
+            "name": kit.nombre,
+            "item": canonical,
+        }
+    )
+    breadcrumbs = {
+        "@type": "BreadcrumbList",
+        "@id": canonical + "#breadcrumb",
+        "itemListElement": items_breadcrumb,
     }
 
     return {
