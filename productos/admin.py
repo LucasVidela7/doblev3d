@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from .models import (
     ConfiguracionCatalogo,
+    Insumo,
     Producto,
     ProductoComponente,
     TipoProducto,
@@ -39,6 +40,22 @@ class ConfiguracionCatalogoAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(Insumo)
+class InsumoAdmin(admin.ModelAdmin):
+    list_display = (
+        "codigo",
+        "nombre",
+        "tipo_uso",
+        "unidad_medida",
+        "precio_compra",
+        "cantidad_compra",
+        "stock",
+        "activo",
+    )
+    search_fields = ("nombre", "proveedor")
+    list_filter = ("tipo_uso", "unidad_medida", "activo")
 
 
 @admin.register(TipoProducto)
