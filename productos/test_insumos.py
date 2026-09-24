@@ -138,3 +138,48 @@ class InsumosGestionTests(TestCase):
         insumo.refresh_from_db()
         self.assertEqual(insumo.costo_unitario, Decimal("120"))
         self.assertEqual(insumo.costo_unitario_aplicado, Decimal("138.0000"))
+
+
+    def test_empaque_puede_marcarse_como_complementario(self):
+        response = self.client.post(
+            reverse("productos:insumo_nuevo"),
+            {
+                "nombre": "Sticker Doble V",
+                "tipo_uso": "EMPAQUE",
+                "unidad_medida": "UNIDAD",
+                "precio_compra": "2000",
+                "cantidad_compra": "100",
+                "stock": "100",
+                "proveedor": "",
+                "url_referencia": "",
+                "incremento_personalizado": "",
+                "disponible_como_complementario": "on",
+                "activo": "on",
+            },
+        )
+
+        self.assertRedirects(response, reverse("productos:insumos"))
+        insumo = Insumo.objects.get(nombre="Sticker Doble V")
+        self.assertTrue(insumo.disponible_como_complementario)
+
+    def test_tipo_no_empaque_no_puede_quedar_como_complementario(self):
+        response = self.client.post(
+            reverse("productos:insumo_nuevo"),
+            {
+                "nombre": "Argolla no complementaria",
+                "tipo_uso": "PRODUCTO",
+                "unidad_medida": "UNIDAD",
+                "precio_compra": "1000",
+                "cantidad_compra": "10",
+                "stock": "10",
+                "proveedor": "",
+                "url_referencia": "",
+                "incremento_personalizado": "",
+                "disponible_como_complementario": "on",
+                "activo": "on",
+            },
+        )
+
+        self.assertRedirects(response, reverse("productos:insumos"))
+        insumo = Insumo.objects.get(nombre="Argolla no complementaria")
+        self.assertFalse(insumo.disponible_como_complementario)
