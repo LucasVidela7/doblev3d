@@ -103,7 +103,8 @@
           <div class="field"><label>PRIORIDAD</label><input type="number" min="0" name="prioridad" value="{{ regla_editar.prioridad|default:100 }}"><div class="help">Menor número = mayor prioridad.</div></div>
           <div class="field full"><label>ALCANCE</label><select name="alcance" id="alcanceEmpaque">{% for valor,nombre in alcances %}<option value="{{ valor }}" {% if regla_editar and regla_editar.alcance == valor %}selected{% elif not regla_editar and valor == 'GENERAL' %}selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></div>
           <div class="field full scope-target" id="targetKit"><label>KIT ESPECÍFICO</label><select name="kit_id"><option value="">Seleccionar kit...</option>{% for kit in kits %}<option value="{{ kit.id }}" {% if regla_editar and regla_editar.kit_id == kit.id %}selected{% endif %}>{{ kit.nombre }}</option>{% endfor %}</select></div>
-          <div class="field full scope-target" id="targetProducto"><label>PRODUCTO ESPECÍFICO</label><select name="producto_id"><option value="">Seleccionar producto...</option>{% for producto in productos %}<option value="{{ producto.id }}" {% if regla_editar and regla_editar.producto_id == producto.id %}selected{% endif %}>{{ producto.nombre }}</option>{% endfor %}</select></div>
+          <div class="field full scope-target" id="targetProducto"><label>PRODUCTO ESPECÍFICO</label><select name="producto_id"><option value="">Seleccionar producto...</option>{% for producto in productos %}<option value="{{ producto.id }}" {% if regla_editar and regla_editar.producto_id == producto.id %}selected{% endif %}>{{ producto.nombre }} · {{ producto.tipo.nombre }}</option>{% endfor %}</select></div>
+          <div class="field full scope-target" id="targetCategoria"><label>CATEGORÍA DE PRODUCTO</label><select name="tipo_producto_id"><option value="">Seleccionar categoría...</option>{% for tipo in tipos_producto %}<option value="{{ tipo.id }}" {% if regla_editar and regla_editar.tipo_producto_id == tipo.id %}selected{% endif %}>{{ tipo.nombre }}</option>{% endfor %}</select><div class="help">Aplica cuando los productos sueltos del paquete pertenecen a esta categoría.</div></div>
           <div class="field full"><label class="switch">Regla activa <input type="checkbox" name="activo" {% if not regla_editar or regla_editar.activo %}checked{% endif %}></label></div>
         </div>
         <div class="form-actions">
@@ -119,10 +120,12 @@
  var alcance=document.getElementById("alcanceEmpaque");
  var kit=document.getElementById("targetKit");
  var producto=document.getElementById("targetProducto");
+ var categoria=document.getElementById("targetCategoria");
  function sync(){
    var v=alcance?alcance.value:"GENERAL";
    if(kit)kit.classList.toggle("is-visible",v==="KIT");
    if(producto)producto.classList.toggle("is-visible",v==="PRODUCTO");
+   if(categoria)categoria.classList.toggle("is-visible",v==="CATEGORIA");
  }
  if(alcance)alcance.addEventListener("change",sync);sync();
 })();
