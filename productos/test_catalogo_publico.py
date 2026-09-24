@@ -1019,7 +1019,7 @@ class CatalogoPublicoTests(TestCase):
             ),
         )
 
-    def test_categoria_publica_tiene_url_y_contenido_propio(self):
+    def test_categoria_de_productos_mantiene_contexto_productos(self):
         self.tipo.descripcion_catalogo = (
             "Objetos sensoriales impresos en 3D para explorar "
             "texturas, formas y movimiento."
@@ -1036,7 +1036,7 @@ class CatalogoPublicoTests(TestCase):
 
         response = self.client.get(
             reverse(
-                "catalogo_categoria",
+                "catalogo_categoria_productos",
                 args=[self.tipo.slug],
             )
         )
@@ -1051,12 +1051,43 @@ class CatalogoPublicoTests(TestCase):
             "Objetos sensoriales impresos en 3D",
         )
         self.assertContains(response, self.producto.nombre)
-        self.assertContains(response, self.kit.nombre)
+        self.assertNotContains(response, self.kit.nombre)
+        self.assertNotContains(
+            response,
+            '>Inicio</a>',
+        )
         self.assertContains(
             response,
             reverse(
                 "catalogo_producto_detalle",
                 args=[self.producto.slug],
+            ),
+        )
+
+    def test_categoria_de_kits_mantiene_contexto_kits(self):
+        response = self.client.get(
+            reverse(
+                "catalogo_categoria_kits",
+                args=[self.tipo.slug],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.kit.nombre)
+        self.assertNotContains(response, self.producto.nombre)
+        self.assertContains(
+            response,
+            reverse("catalogo_kits"),
+        )
+        self.assertNotContains(
+            response,
+            '>Inicio</a>',
+        )
+        self.assertContains(
+            response,
+            reverse(
+                "catalogo_kit_detalle",
+                args=[self.kit.slug],
             ),
         )
 
@@ -1086,7 +1117,7 @@ class CatalogoPublicoTests(TestCase):
             response["Location"],
             (
                 reverse(
-                    "catalogo_categoria",
+                    "catalogo_categoria_productos",
                     args=[self.tipo.slug],
                 )
                 + "?q=Pi%C3%B1a"
