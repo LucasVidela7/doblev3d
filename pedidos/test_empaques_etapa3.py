@@ -7,6 +7,7 @@ from django.urls import reverse
 
 from clientes.models import Cliente
 from kits.models import Kit
+from kits.precio_fijo_combinado import calcular_escenarios_kit_fijo
 from productos.models import (
     ConfiguracionCatalogo,
     Insumo,
@@ -142,6 +143,32 @@ class EmpaquesEtapa3Tests(TestCase):
         self.assertNotContains(response, "Provisión comercial de empaque")
         self.assertNotContains(response, "Costo de empaque")
         self.assertNotContains(response, "Doypack")
+
+    def test_kit_fijo_aplica_provision_una_sola_vez(self):
+        otro = Producto.objects.create(
+            nombre="Segundo producto kit",
+            categoria="PRODUCTO",
+            tipo=self.tipo,
+            margen_ganancia=Decimal("50"),
+            requiere_impresion=False,
+            activo=True,
+            solo_produccion=False,
+        )
+        ProductoInsumo.objects.create(
+            producto=otro,
+            insumo=self.argolla,
+            cantidad=Decimal("1"),
+        )
+
+        calculo = calcular_escenarios_kit_fijo(
+            [
+                {"producto": self.producto, "cantidad": 1},
+                {"producto": otro, "cantidad": 1},
+            ]
+        )
+
+        self.assertEqual(calculo["provision_empaque"], Decimal("50"))
+        self.assertEqual(calculo["costo_total"], Decimal("250"))
 
     def test_regla_general_sugiere_empaque_por_cantidad(self):
         ReglaEmpaque.objects.create(
