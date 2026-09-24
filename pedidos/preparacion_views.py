@@ -23,16 +23,6 @@ def _asignar_miniaturas_filas(filas):
             if producto:
                 productos.append(producto)
 
-        for paquete in fila.get("paquetes", []):
-            for item in paquete.get("productos", []):
-                producto = item.get("producto")
-                if producto:
-                    productos.append(producto)
-
-        for item in fila.get("productos_sueltos", []):
-            producto = item.get("producto")
-            if producto:
-                productos.append(producto)
 
     asignar_miniaturas_productos(productos)
 
@@ -44,118 +34,6 @@ def _orden_entrega(fila):
         pedido.fecha_entrega or date.max,
         pedido.id,
     )
-
-
-def _armar_paquetes(pedido, preparacion):
-    """Reconstruye una guía visual por kit/paquete sin alterar el stock.
-
-    La preparación operativa sigue siendo agregada por producto. Esta vista
-    únicamente reparte la composición histórica de cada línea KIT entre sus
-    unidades para mostrar qué debe ir dentro de cada paquete.
-    """
-    estado_por_producto = {
-        item["producto"].id: item
-        for item in preparacion
-        if item.get("producto")
-    }
-
-    paquetes = []
-    sueltos = []
-
-    for detalle in pedido.detalles.all():
-        if detalle.estado == "CANCELADO":
-            continue
-
-        if detalle.tipo_item != "KIT" or not detalle.kit:
-            if detalle.producto:
-                estado = estado_por_producto.get(detalle.producto_id, {})
-                sueltos.append(
-                    {
-                        "producto": detalle.producto,
-                        "nombre": (
-                            f"{detalle.producto.nombre} personalizado"
-                            if detalle.tipo_item == "PERSONALIZADO"
-                            else detalle.producto.nombre
-                        ),
-                        "cantidad": int(detalle.cantidad or 0),
-                        "estado_operativo": estado.get(
-                            "estado_operativo",
-                            "MANUAL" if detalle.tipo_item == "PERSONALIZADO" else "",
-                        ),
-                        "estado_texto": estado.get("estado_texto", ""),
-                    }
-                )
-            continue
-
-        cantidad_kits = max(int(detalle.cantidad or 0), 1)
-        nombre_kit = (
-            (detalle.kit_snapshot or {}).get("nombre")
-            or detalle.kit.nombre
-        )
-
-        paquetes_linea = []
-        for unidad in range(cantidad_kits):
-            paquetes_linea.append(
-                {
-                    "numero": 0,
-                    "nombre_kit": nombre_kit,
-                    "unidad_linea": unidad + 1,
-                    "cantidad_linea": cantidad_kits,
-                    "productos": [],
-                    "distribucion_aproximada": False,
-                }
-            )
-
-        componentes = list(detalle.productos_kit.all())
-
-        # Fallback para pedidos históricos fijos sin snapshot de composición.
-        if not componentes and detalle.kit.modalidad == "FIJO":
-            componentes = list(detalle.kit.componentes.all())
-            for componente in componentes:
-                componente.cantidad = (
-                    int(componente.cantidad or 0) * cantidad_kits
-                )
-
-        for componente in componentes:
-            total = int(componente.cantidad or 0)
-            if total <= 0:
-                continue
-
-            base, resto = divmod(total, cantidad_kits)
-            if resto:
-                for paquete in paquetes_linea:
-                    paquete["distribucion_aproximada"] = True
-
-            for indice, paquete in enumerate(paquetes_linea):
-                cantidad_paquete = base + (1 if indice < resto else 0)
-                if cantidad_paquete <= 0:
-                    continue
-
-                producto = componente.producto
-                estado = estado_por_producto.get(producto.id, {})
-                paquete["productos"].append(
-                    {
-                        "producto": producto,
-                        "nombre": producto.nombre,
-                        "cantidad": cantidad_paquete,
-                        "estado_operativo": estado.get(
-                            "estado_operativo",
-                            "",
-                        ),
-                        "estado_texto": estado.get(
-                            "estado_texto",
-                            "",
-                        ),
-                    }
-                )
-
-        paquetes.extend(paquetes_linea)
-
-    for numero, paquete in enumerate(paquetes, start=1):
-        paquete["numero"] = numero
-        paquete["total_paquetes"] = len(paquetes)
-
-    return paquetes, sueltos
 
 
 def _armar_fila(pedido):
@@ -227,11 +105,6 @@ def _armar_fila(pedido):
 
     total = len(preparacion)
     porcentaje = int(round((listos * 100) / total)) if total else 0
-    paquetes, productos_sueltos = _armar_paquetes(
-        pedido,
-        preparacion,
-    )
-
     if pedido.estado == "LISTO":
         grupo = "listos"
         estado_operativo = "LISTO"
@@ -277,9 +150,6 @@ def _armar_fila(pedido):
         "faltantes_stock": faltantes_stock,
         "total_a_imprimir": total_a_imprimir,
         "total_piezas": total_piezas,
-        "paquetes": paquetes,
-        "total_paquetes": len(paquetes),
-        "productos_sueltos": productos_sueltos,
         "total_pedido": pedido.total,
         "total_pagado": pedido.total_pagado,
         "saldo_pendiente": pedido.saldo_pendiente,
