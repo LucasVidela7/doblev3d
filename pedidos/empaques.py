@@ -846,16 +846,34 @@ def reglas(request):
         .prefetch_related("complementos__insumo")
         .order_by("prioridad", "desde_unidades", "id")
     )
+    insumos_form = list(
+        Insumo.objects.filter(
+            tipo_uso="EMPAQUE",
+            activo=True,
+        ).order_by("nombre")
+    )
+    complementos_edicion = {
+        item.insumo_id: item.cantidad
+        for item in (
+            regla_editar.complementos.all()
+            if regla_editar
+            else []
+        )
+    }
+    for item in insumos_form:
+        item.es_complemento_regla = item.id in complementos_edicion
+        item.cantidad_complemento_regla = complementos_edicion.get(
+            item.id,
+            Decimal("1"),
+        )
+
     return render(
         request,
         "pedidos/reglas_empaque.html",
         {
             "reglas": reglas_qs,
             "regla_editar": regla_editar,
-            "insumos_empaque": Insumo.objects.filter(
-                tipo_uso="EMPAQUE",
-                activo=True,
-            ).order_by("nombre"),
+            "insumos_empaque": insumos_form,
             "productos": Producto.objects.filter(
                 activo=True,
                 solo_produccion=False,
