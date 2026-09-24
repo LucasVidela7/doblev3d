@@ -11,7 +11,7 @@ from kits.engine import KitEngine
 from kits.models import Kit
 
 from .image_environment import ambientes_imagenes_lectura
-from .models import ConfiguracionCatalogo, Producto
+from .models import ConfiguracionCatalogo, Producto, TipoProducto
 
 
 def _absoluta(request, url):
@@ -150,17 +150,22 @@ def seo_producto(
         else "impresión 3D"
     )
     title = (
-        f"{producto.nombre} | {tipo} | Doble V 3D"
+        (producto.seo_titulo or "").strip()
+        or f"{producto.nombre} | {tipo} | Doble V 3D"
     )
     description = (
-        f"{producto.nombre}, producto impreso en 3D de la categoría "
-        f"{tipo}. Consultá precio, fotos y opciones disponibles y "
-        "pedí presupuesto online en Doble V 3D."
+        (producto.seo_descripcion or "").strip()
+        or (producto.descripcion_catalogo or "").strip()
+        or (
+            f"{producto.nombre}, producto impreso en 3D de la categoría "
+            f"{tipo}. Consultá precio, fotos y opciones disponibles y "
+            "pedí presupuesto online en Doble V 3D."
+        )
     )
     canonical = request.build_absolute_uri(
         reverse(
             "catalogo_producto_detalle",
-            args=[producto.id],
+            args=[producto.slug],
         )
     )
     social_image = request.build_absolute_uri(
@@ -268,17 +273,24 @@ def seo_kit(
         int(kit.cantidad_productos or 0),
         1,
     )
-    title = f"{kit.nombre} | Kit impreso en 3D | Doble V 3D"
+    title = (
+        (kit.seo_titulo or "").strip()
+        or f"{kit.nombre} | Kit impreso en 3D | Doble V 3D"
+    )
     description = (
-        f"{kit.nombre}, kit de {cantidad} "
-        f"{'producto' if cantidad == 1 else 'productos'} de {tipo}. "
-        "Consultá composición, precio y opciones disponibles y "
-        "pedí presupuesto online en Doble V 3D."
+        (kit.seo_descripcion or "").strip()
+        or (kit.descripcion_catalogo or "").strip()
+        or (
+            f"{kit.nombre}, kit de {cantidad} "
+            f"{'producto' if cantidad == 1 else 'productos'} de {tipo}. "
+            "Consultá composición, precio y opciones disponibles y "
+            "pedí presupuesto online en Doble V 3D."
+        )
     )
     canonical = request.build_absolute_uri(
         reverse(
             "catalogo_kit_detalle",
-            args=[kit.id],
+            args=[kit.slug],
         )
     )
     social_image = request.build_absolute_uri(
@@ -369,6 +381,69 @@ def seo_kit(
     }
 
 
+def seo_categoria(request, categoria, config=None):
+    config = config or (
+        ConfiguracionCatalogo.objects.first()
+        or ConfiguracionCatalogo()
+    )
+    title = (
+        (categoria.seo_titulo or "").strip()
+        or f"{categoria.nombre} impresos en 3D | Doble V 3D"
+    )
+    description = (
+        (categoria.seo_descripcion or "").strip()
+        or (categoria.descripcion_catalogo or "").strip()
+        or (
+            f"Explorá productos y kits de {categoria.nombre} impresos "
+            "en 3D por Doble V 3D. Consultá precios, fotos y opciones "
+            "disponibles y pedí presupuesto online."
+        )
+    )
+    canonical = request.build_absolute_uri(
+        reverse(
+            "catalogo_categoria",
+            args=[categoria.slug],
+        )
+    )
+    breadcrumbs = {
+        "@type": "BreadcrumbList",
+        "@id": canonical + "#breadcrumb",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Inicio",
+                "item": request.build_absolute_uri(
+                    reverse("catalogo")
+                ),
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": categoria.nombre,
+                "item": canonical,
+            },
+        ],
+    }
+    return {
+        "seo_title": title,
+        "seo_description": description,
+        "seo_canonical_url": canonical,
+        "seo_social_image_url": request.build_absolute_uri(
+            static("brand/logo.png")
+        ),
+        "seo_json_ld": _json_ld(
+            {
+                "@context": "https://schema.org",
+                "@graph": [
+                    _organizacion(request, config),
+                    breadcrumbs,
+                ],
+            }
+        ),
+    }
+
+
 def robots_txt(request):
     if getattr(settings, "APP_ENV", "") != "production":
         body = "User-agent: *\nDisallow: /\n"
@@ -441,7 +516,22 @@ def sitemap_xml(request):
             request.build_absolute_uri(
                 reverse(
                     "catalogo_producto_detalle",
-                    args=[producto.id],
+                    args=[producto.slug],
+                )
+            )
+        )
+
+    for categoria in (
+        TipoProducto.objects
+        .filter(activo=True)
+        .exclude(slug="")
+        .order_by("nombre")
+    ):
+        urls.append(
+            request.build_absolute_uri(
+                reverse(
+                    "catalogo_categoria",
+                    args=[categoria.slug],
                 )
             )
         )
@@ -477,7 +567,7 @@ def sitemap_xml(request):
             request.build_absolute_uri(
                 reverse(
                     "catalogo_kit_detalle",
-                    args=[kit.id],
+                    args=[kit.slug],
                 )
             )
         )
