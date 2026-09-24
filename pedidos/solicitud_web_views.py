@@ -28,9 +28,9 @@ def lista_solicitudes_web(request):
         SolicitudWeb.objects
         .select_related("presupuesto_generado")
         .prefetch_related(
-            "items__producto",
-            "items__kit__componentes__producto",
-            "items__productos_kit__producto",
+            "items__producto__tipo",
+            "items__kit__componentes__producto__tipo",
+            "items__productos_kit__producto__tipo",
         )
         .order_by("-id")
     )
@@ -130,9 +130,9 @@ def detalle_solicitud_web(request, solicitud_id):
         SolicitudWeb.objects
         .select_related("presupuesto_generado")
         .prefetch_related(
-            "items__producto",
-            "items__kit__componentes__producto",
-            "items__productos_kit__producto",
+            "items__producto__tipo",
+            "items__kit__componentes__producto__tipo",
+            "items__productos_kit__producto__tipo",
         ),
         id=solicitud_id,
     )
@@ -297,9 +297,9 @@ def convertir_solicitud_web(request, solicitud_id):
         SolicitudWeb.objects
         .select_for_update()
         .prefetch_related(
-            "items__producto",
+            "items__producto__tipo",
             "items__kit",
-            "items__productos_kit__producto",
+            "items__productos_kit__producto__tipo",
         ),
         id=solicitud_id,
     )
