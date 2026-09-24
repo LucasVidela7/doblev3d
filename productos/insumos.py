@@ -166,12 +166,16 @@ def _leer_post(request, insumo=None):
         and (
             getattr(insumo, "reglas_empaque", None)
             and insumo.reglas_empaque.exists()
+            or getattr(insumo, "reglas_empaque_complementarias", None)
+            and insumo.reglas_empaque_complementarias.exists()
             or getattr(insumo, "usos_empaque", None)
             and insumo.usos_empaque.exists()
+            or getattr(insumo, "usos_empaque_complementarios", None)
+            and insumo.usos_empaque_complementarios.exists()
         )
     ):
         errores.append(
-            "Este insumo está usado por reglas o pedidos de empaque. "
+            "Este insumo está usado como empaque principal o complementario en reglas/pedidos. "
             "Quitá esas relaciones antes de cambiar su tipo."
         )
 
