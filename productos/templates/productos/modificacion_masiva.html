@@ -77,7 +77,7 @@ html[data-dv-theme="dark"] .field input::placeholder{color:#7f8da5}
     </div>
   </div>
 
-  {% if messages %}{% for message in messages %}<div class="panel">{{ message }}</div>{% endfor %}{% endif %}
+  {% include "shared/messages_toasts.html" %}
 
   <form class="panel filters" method="get">
     <div class="field search"><label>BUSCAR</label><input name="q" value="{{ filtros.q }}" placeholder="Nombre o código..."></div>
