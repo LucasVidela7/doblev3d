@@ -103,13 +103,26 @@
         }
 
         .breadcrumbs a {
-            color: var(--brand-blue-strong);
-            text-decoration: none;
+            display: inline !important;
+            min-width: 0 !important;
+            min-height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            color: var(--brand-blue-strong) !important;
+            text-decoration: none !important;
+            line-height: inherit !important;
         }
 
-        .breadcrumbs a:hover {
-            text-decoration: underline;
+        .breadcrumbs a:hover,
+        .breadcrumbs a:focus-visible {
+            color: var(--brand-blue) !important;
+            text-decoration: underline !important;
             text-underline-offset: 3px;
+            outline: none;
         }
 
         .breadcrumbs .sep {
@@ -537,9 +550,9 @@
     <main>
         <div class="shell">
             <nav class="breadcrumbs" aria-label="Migas de pan">
-                <a href="{% url 'catalogo' %}">Inicio</a>
+                <a class="breadcrumb-link" href="{% url 'catalogo' %}">Inicio</a>
                 <span class="sep" aria-hidden="true">›</span>
-                <a href="{% url 'catalogo_kits' %}">Kits</a>
+                <a class="breadcrumb-link" href="{% url 'catalogo_kits' %}">Kits</a>
                 <span class="sep" aria-hidden="true">›</span>
                 <span aria-current="page">{{ kit.nombre }}</span>
             </nav>
