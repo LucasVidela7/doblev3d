@@ -123,3 +123,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-24 - Color semantico en Insumos, Compras y Empaques
 2026-09-24 - Kits heredan categoria para reglas de empaque
 2026-09-24 - Optimizar listado de insumos por bloques
+2026-09-24 - Normalizar Gestion: producto, finanzas y solicitudes + planificador modal
