@@ -22,6 +22,7 @@ from .empaques import (
     sugerir_regla_empaque,
 )
 from .models import (
+    DetalleKitProducto,
     DetallePedido,
     Pedido,
     PedidoEmpaque,
@@ -632,3 +633,144 @@ class EmpaquesEtapa3Tests(TestCase):
         self.assertFalse(
             ReglaEmpaque.objects.filter(nombre="Regla inválida").exists()
         )
+
+
+    def test_kit_libre_hereda_regla_de_categoria_en_estimacion(self):
+        kit = Kit.objects.create(
+            nombre="Kit sensorial x2 QA",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=2,
+            precio=Decimal("5000"),
+            activo=True,
+        )
+        pedido = Pedido.objects.create(
+            cliente=self.cliente,
+            estado="PENDIENTE",
+        )
+        detalle = DetallePedido.objects.create(
+            pedido=pedido,
+            tipo_item="KIT",
+            kit=kit,
+            cantidad=1,
+            precio_unitario=Decimal("5000"),
+            costo_unitario=Decimal("100"),
+            estado="PENDIENTE",
+        )
+        DetalleKitProducto.objects.create(
+            detalle=detalle,
+            producto=self.producto,
+            cantidad=2,
+        )
+        regla = ReglaEmpaque.objects.create(
+            nombre="Sensoriales 1 a 3",
+            insumo=self.doypack_chica,
+            alcance="CATEGORIA",
+            tipo_producto=self.tipo,
+            desde_unidades=1,
+            hasta_unidades=3,
+        )
+
+        estimacion = estimar_embalaje_items(
+            list(pedido.detalles.all())
+        )
+
+        self.assertEqual(len(estimacion["paquetes"]), 1)
+        self.assertEqual(
+            estimacion["paquetes"][0]["unidades_contenido"],
+            2,
+        )
+        self.assertEqual(
+            estimacion["paquetes"][0]["regla"],
+            regla,
+        )
+        self.assertEqual(
+            estimacion["paquetes"][0]["insumos"][0]["insumo"],
+            self.doypack_chica,
+        )
+
+    def test_detalle_kit_libre_usa_regla_de_categoria_en_preparacion(self):
+        kit = Kit.objects.create(
+            nombre="Kit sensorial x6 QA",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=6,
+            precio=Decimal("9000"),
+            activo=True,
+        )
+        pedido = Pedido.objects.create(
+            cliente=self.cliente,
+            estado="PENDIENTE",
+        )
+        detalle = DetallePedido.objects.create(
+            pedido=pedido,
+            tipo_item="KIT",
+            kit=kit,
+            cantidad=1,
+            precio_unitario=Decimal("9000"),
+            costo_unitario=Decimal("100"),
+            estado="PENDIENTE",
+        )
+        DetalleKitProducto.objects.create(
+            detalle=detalle,
+            producto=self.producto,
+            cantidad=6,
+        )
+        ReglaEmpaque.objects.create(
+            nombre="Sensoriales 4 a 6",
+            insumo=self.doypack_grande,
+            alcance="CATEGORIA",
+            tipo_producto=self.tipo,
+            desde_unidades=4,
+            hasta_unidades=6,
+        )
+
+        response = self.client.get(
+            reverse("pedidos:detalle", args=[pedido.id])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        paquetes = response.context["paquetes"]
+        self.assertEqual(len(paquetes), 1)
+        self.assertEqual(paquetes[0]["unidades_contenido"], 6)
+        self.assertEqual(
+            paquetes[0]["empaque_sugerido"],
+            self.doypack_grande,
+        )
+
+    def test_regla_especifica_kit_sigue_priorizando_sobre_categoria(self):
+        kit = Kit.objects.create(
+            nombre="Kit sensorial prioridad QA",
+            modalidad="LIBRE_CATEGORIA",
+            tipo_producto=self.tipo,
+            cantidad_productos=2,
+            precio=Decimal("5000"),
+            activo=True,
+        )
+        categoria = ReglaEmpaque.objects.create(
+            nombre="Categoría sensorial",
+            insumo=self.doypack_chica,
+            alcance="CATEGORIA",
+            tipo_producto=self.tipo,
+            desde_unidades=1,
+            hasta_unidades=3,
+            prioridad=1,
+        )
+        especifica = ReglaEmpaque.objects.create(
+            nombre="Kit específico sensorial",
+            insumo=self.doypack_grande,
+            alcance="KIT",
+            kit=kit,
+            desde_unidades=1,
+            hasta_unidades=3,
+            prioridad=100,
+        )
+
+        sugerida = sugerir_regla_empaque(
+            2,
+            kit=kit,
+            tipo_producto=self.tipo,
+        )
+
+        self.assertNotEqual(sugerida, categoria)
+        self.assertEqual(sugerida, especifica)
