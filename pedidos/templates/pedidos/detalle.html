@@ -129,7 +129,17 @@
                 </div>
                 {% if preparacion_total %}<div class="progreso"><div class="progreso-valor" style="width:{{ preparacion_porcentaje }}%"></div></div>{% endif %}
                 {% if preparacion %}
-                <div class="preparacion">
+                <div class="pedido-vista-selector preparacion-vista-selector">
+                    <div>
+                        <strong>Vista de preparación</strong>
+                        <span>Agrupada muestra los productos totales a preparar. Por paquete separa cada kit físico.</span>
+                    </div>
+                    <div class="pedido-vista-toggle" role="group" aria-label="Cambiar vista de preparación">
+                        <button type="button" class="is-active" data-pedido-vista="agrupada">AGRUPADA</button>
+                        <button type="button" data-pedido-vista="paquetes">POR PAQUETE</button>
+                    </div>
+                </div>
+                <div class="preparacion" data-pedido-vista-panel="agrupada">
                     {% for item in preparacion %}
                     <div class="prep-item {% if item.listo %}listo{% endif %}">
                         {% if item.producto and item.producto.imagen_produccion_url %}
@@ -147,26 +157,16 @@
                     </div>
                     {% endfor %}
                 </div>
+                {% include "pedidos/_pedido_paquetes_detalle.html" %}
                 {% else %}<div class="sin-datos">Este pedido no requiere preparación física. Consultá el detalle comercial debajo.</div>{% endif %}
             </section>
             {% endif %}
 
             <details class="panel comercial" {% if not pedido_activo %}open{% endif %}>
-                <summary><div class="panel-cabecera"><div><div class="panel-titulo">{% if pedido_activo %}Detalle comercial{% else %}Productos del pedido{% endif %}</div><div class="panel-subtitulo">Qué compró, cantidades, adicionales y armado por paquete</div></div><div class="prep-resumen"><span class="estado pago-{{ pedido.estado_pago }}">{{ pedido.estado_pago_display|upper }}</span><span class="comercial-flecha"></span></div></div></summary>
-
-                <div class="pedido-vista-selector">
-                    <div>
-                        <strong>Vista del pedido</strong>
-                        <span>Agrupada muestra las líneas comerciales. Por paquete separa cada kit físico.</span>
-                    </div>
-                    <div class="pedido-vista-toggle" role="group" aria-label="Cambiar vista del pedido">
-                        <button type="button" class="is-active" data-pedido-vista="agrupada">AGRUPADA</button>
-                        <button type="button" data-pedido-vista="paquetes">POR PAQUETE</button>
-                    </div>
-                </div>
+                <summary><div class="panel-cabecera"><div><div class="panel-titulo">{% if pedido_activo %}Detalle comercial{% else %}Productos del pedido{% endif %}</div><div class="panel-subtitulo">Qué compró, cantidades, adicionales y precios</div></div><div class="prep-resumen"><span class="estado pago-{{ pedido.estado_pago }}">{{ pedido.estado_pago_display|upper }}</span><span class="comercial-flecha"></span></div></div></summary>
 
                 {% if detalles %}
-                <div class="items" data-pedido-vista-panel="agrupada">
+                <div class="items">
                     {% for detalle in detalles %}
                     <article class="item {% if detalle.estado == 'CANCELADO' %}cancelado{% endif %}">
                         <div class="item-arriba">
@@ -210,7 +210,6 @@
                     </article>
                     {% endfor %}
                 </div>
-                {% include "pedidos/_pedido_paquetes_detalle.html" %}
                 {% else %}
                 <div class="sin-datos">Este pedido no tiene productos cargados.</div>
                 {% endif %}
