@@ -311,8 +311,16 @@ def _header_html(view_name=""):
     kits_url = html.escape(reverse("catalogo_kits"), quote=True)
 
     inicio_class = " is-active" if view_name in {"catalogo", "catalogo_legacy"} else ""
-    productos_class = " is-active" if view_name in {"catalogo_productos", "catalogo_producto_detalle"} else ""
-    kits_class = " is-active" if view_name in {"catalogo_kits", "catalogo_kit_detalle"} else ""
+    productos_class = " is-active" if view_name in {
+        "catalogo_productos",
+        "catalogo_categoria_productos",
+        "catalogo_producto_detalle",
+    } else ""
+    kits_class = " is-active" if view_name in {
+        "catalogo_kits",
+        "catalogo_categoria_kits",
+        "catalogo_kit_detalle",
+    } else ""
 
     return (
         f'<header id="{HEADER_ID}" class="dv-catalog-header">'
@@ -351,6 +359,8 @@ def _legal_footer_html(view_name=""):
         "catalogo_legacy",
         "catalogo_productos",
         "catalogo_categoria",
+        "catalogo_categoria_productos",
+        "catalogo_categoria_kits",
         "catalogo_producto_detalle",
         "catalogo_producto_legacy",
         "catalogo_kits",
@@ -429,6 +439,8 @@ class CatalogContactMiddleware:
                 "catalogo_legacy",
                 "catalogo_productos",
                 "catalogo_categoria",
+                "catalogo_categoria_productos",
+                "catalogo_categoria_kits",
                 "catalogo_producto_detalle",
                 "catalogo_producto_legacy",
                 "catalogo_kits",
