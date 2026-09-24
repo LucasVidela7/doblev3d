@@ -5,6 +5,7 @@ import unicodedata
 from django.core.cache import cache
 from django.db import models
 from django.utils import timezone
+from django.utils.text import slugify
 
 from costos.models import ConfiguracionCostos
 
@@ -822,7 +823,57 @@ class CompraInsumoItem(models.Model):
 
 class TipoProducto(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(
+        max_length=140,
+        unique=True,
+        blank=True,
+    )
+    descripcion_catalogo = models.TextField(
+        blank=True,
+        default="",
+        help_text=(
+            "Texto visible en la página pública de esta categoría."
+        ),
+    )
+    seo_titulo = models.CharField(
+        max_length=160,
+        blank=True,
+        default="",
+        help_text=(
+            "Título SEO opcional. Si se deja vacío, se genera automáticamente."
+        ),
+    )
+    seo_descripcion = models.CharField(
+        max_length=320,
+        blank=True,
+        default="",
+        help_text=(
+            "Descripción SEO opcional para buscadores."
+        ),
+    )
     activo = models.BooleanField(default=True)
+
+    def _slug_disponible(self):
+        base = slugify(self.nombre)[:120] or "categoria"
+        if base.isdigit():
+            base = f"categoria-{base}"
+        slug = base
+        indice = 2
+        while (
+            TipoProducto.objects
+            .exclude(pk=self.pk)
+            .filter(slug=slug)
+            .exists()
+        ):
+            sufijo = f"-{indice}"
+            slug = f"{base[:140-len(sufijo)]}{sufijo}"
+            indice += 1
+        return slug
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self._slug_disponible()
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         return self.nombre
@@ -842,6 +893,34 @@ class Producto(models.Model):
     ]
 
     nombre = models.CharField(max_length=150)
+    slug = models.SlugField(
+        max_length=180,
+        unique=True,
+        blank=True,
+    )
+    descripcion_catalogo = models.TextField(
+        blank=True,
+        default="",
+        help_text=(
+            "Descripción visible en el detalle público del producto."
+        ),
+    )
+    seo_titulo = models.CharField(
+        max_length=180,
+        blank=True,
+        default="",
+        help_text=(
+            "Título SEO opcional. Si se deja vacío, se genera automáticamente."
+        ),
+    )
+    seo_descripcion = models.CharField(
+        max_length=320,
+        blank=True,
+        default="",
+        help_text=(
+            "Descripción SEO opcional para buscadores y enlaces compartidos."
+        ),
+    )
     categoria = models.CharField(max_length=50, choices=CATEGORIAS)
     tipo = models.ForeignKey(
         TipoProducto,
@@ -1001,7 +1080,26 @@ class Producto(models.Model):
         for padre in padres:
             padre.recalcular_desde_componentes()
 
+    def _slug_disponible(self):
+        base = slugify(self.nombre)[:160] or "producto"
+        if base.isdigit():
+            base = f"producto-{base}"
+        slug = base
+        indice = 2
+        while (
+            Producto.objects
+            .exclude(pk=self.pk)
+            .filter(slug=slug)
+            .exists()
+        ):
+            sufijo = f"-{indice}"
+            slug = f"{base[:180-len(sufijo)]}{sufijo}"
+            indice += 1
+        return slug
+
     def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self._slug_disponible()
         super().save(*args, **kwargs)
         # Si cambia una pieza simple, todos los productos que la usan
         # vuelven a calcular automáticamente tiempo y peso.
