@@ -4,6 +4,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
 from django.urls import reverse
+from django.utils.text import slugify
 from django.views.defaults import page_not_found
 
 from kits.engine import KitEngine
@@ -76,6 +77,44 @@ def _catalogo_publico(request, vista_catalogo, categoria_actual=None):
         ConfiguracionCatalogo.objects.first()
         or ConfiguracionCatalogo()
     )
+
+    # Compatibilidad con filtros compartidos antes de las URLs SEO.
+    # /productos/?categoria=sensoriales pasa a /categorias/sensoriales/
+    # conservando una búsqueda textual si existiera.
+    categoria_query = (
+        request.GET.get("categoria") or ""
+    ).strip()
+    if (
+        categoria_actual is None
+        and vista_catalogo in {"productos", "kits"}
+        and categoria_query
+    ):
+        categoria_query_slug = slugify(
+            categoria_query
+        )
+        categoria_destino = (
+            TipoProducto.objects
+            .filter(
+                activo=True,
+                slug=categoria_query_slug,
+            )
+            .first()
+        )
+        if categoria_destino is not None:
+            parametros = request.GET.copy()
+            parametros.pop("categoria", None)
+            parametros.pop("tipo", None)
+            destino = reverse(
+                "catalogo_categoria",
+                args=[categoria_destino.slug],
+            )
+            query = parametros.urlencode()
+            if query:
+                destino += f"?{query}"
+            return redirect(
+                destino,
+                permanent=True,
+            )
 
     productos = list(
         Producto.objects
