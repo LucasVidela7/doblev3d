@@ -64,6 +64,38 @@ class ProductoImagenAmbienteTests(TestCase):
         self.assertNotContains(response, "thumb-production-oculta.jpg")
         self.assertContains(response, "1/2 fotos cargadas")
 
+    @patch.dict(
+        os.environ,
+        {"IMAGEKIT_PRODUCTION_FALLBACK": "true"},
+        clear=False,
+    )
+    def test_catalogo_qa_usa_foto_production_como_fallback(self):
+        self._imagen("production", "fallback")
+
+        response = self.client.get(
+            reverse("catalogo_producto_detalle", args=[self.producto.id])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "production-fallback.jpg")
+
+    @patch.dict(
+        os.environ,
+        {"IMAGEKIT_PRODUCTION_FALLBACK": "true"},
+        clear=False,
+    )
+    def test_catalogo_qa_prioriza_fotos_propias_sobre_production(self):
+        self._imagen("qa", "propia")
+        self._imagen("production", "fallback")
+
+        response = self.client.get(
+            reverse("catalogo_producto_detalle", args=[self.producto.id])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "qa-propia.jpg")
+        self.assertNotContains(response, "production-fallback.jpg")
+
     @patch("productos.imagenes_views.eliminar_imagen_imagekit")
     def test_qa_no_puede_eliminar_foto_de_production(self, eliminar_mock):
         production = self._imagen("production", "protegida")
