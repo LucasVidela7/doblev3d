@@ -613,6 +613,24 @@ class Producto(models.Model):
     def es_compuesto(self):
         return self.tipo_fabricacion == "COMPUESTO"
 
+    @property
+    def descripcion_componentes_catalogo(self):
+        """Resumen corto y legible de las piezas que forman un producto compuesto."""
+        if not self.es_compuesto or not self.pk:
+            return ""
+
+        partes = []
+        for relacion in self._relaciones_componentes():
+            cantidad = max(int(relacion.cantidad or 0), 0)
+            if cantidad <= 0:
+                continue
+            nombre = (relacion.componente.nombre or "").strip()
+            if not nombre:
+                continue
+            partes.append(f"{cantidad}× {nombre}")
+
+        return "Incluye: " + " + ".join(partes) if partes else ""
+
     def _relaciones_componentes(self):
         if not self.pk or not self.es_compuesto:
             return []
