@@ -216,7 +216,13 @@ class SEOTestCase(TestCase):
             body,
         )
         self.assertIn(
-            "http://testserver/categorias/"
+            "http://testserver/productos/categorias/"
+            + self.tipo.slug
+            + "/",
+            body,
+        )
+        self.assertIn(
+            "http://testserver/kits/categorias/"
             + self.tipo.slug
             + "/",
             body,
