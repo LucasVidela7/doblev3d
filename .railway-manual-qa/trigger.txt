@@ -133,3 +133,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-24 - SEO slugs categorias y contenido editable
 2026-09-24 - Retry SEO slugs migrations
 2026-09-24 - Fix categorias productos kits separadas
+2026-09-24 - Fix buscador y scroll categorias
