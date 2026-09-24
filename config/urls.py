@@ -10,8 +10,11 @@ from productos.catalogo import (
     catalogo,
     catalogo_kits,
     catalogo_productos,
+    catalogo_categoria,
     catalogo_producto_detalle,
+    catalogo_producto_legacy,
     catalogo_kit_detalle,
+    catalogo_kit_legacy,
 )
 from productos.catalogo_contacto import catalogo_contacto
 from productos.social_previews import (
@@ -60,7 +63,17 @@ urlpatterns = [
         name="catalogo_kits",
     ),
     path(
+        "categorias/<slug:slug>/",
+        catalogo_categoria,
+        name="catalogo_categoria",
+    ),
+    path(
         "productos/<int:producto_id>/",
+        catalogo_producto_legacy,
+        name="catalogo_producto_legacy",
+    ),
+    path(
+        "productos/<slug:slug>/",
         catalogo_producto_detalle,
         name="catalogo_producto_detalle",
     ),
@@ -75,6 +88,11 @@ urlpatterns = [
     # Detalle público de kits del catálogo.
     path(
         "kits/<int:kit_id>/",
+        catalogo_kit_legacy,
+        name="catalogo_kit_legacy",
+    ),
+    path(
+        "kits/<slug:slug>/",
         catalogo_kit_detalle,
         name="catalogo_kit_detalle",
     ),
