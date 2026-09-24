@@ -1,4 +1,7 @@
-from .image_environment import entorno_imagenes
+from .image_environment import (
+    ambientes_imagenes_lectura,
+    clave_imagen_lectura,
+)
 from .image_models import ProductoImagen
 
 
@@ -14,28 +17,35 @@ def asignar_miniaturas_productos(productos):
     if not productos_por_id:
         return {}
 
-    imagenes = (
+    imagenes = list(
         ProductoImagen.objects
         .filter(
             producto_id__in=productos_por_id.keys(),
-            ambiente=entorno_imagenes(),
+            ambiente__in=ambientes_imagenes_lectura(),
             orden=1,
         )
-        .values(
+        .only(
+            "id",
             "producto_id",
+            "ambiente",
+            "orden",
             "thumbnail_url",
             "url",
         )
     )
-
-    urls = {
-        item["producto_id"]: (
-            item["thumbnail_url"]
-            or item["url"]
-            or ""
+    imagenes.sort(
+        key=lambda imagen: (
+            imagen.producto_id,
+            *clave_imagen_lectura(imagen),
         )
-        for item in imagenes
-    }
+    )
+
+    urls = {}
+    for imagen in imagenes:
+        urls.setdefault(
+            imagen.producto_id,
+            imagen.thumbnail_url or imagen.url or "",
+        )
 
     for producto_id, instancias in productos_por_id.items():
         url = urls.get(producto_id, "")
