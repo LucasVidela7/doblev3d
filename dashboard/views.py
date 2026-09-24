@@ -1082,6 +1082,20 @@ def configuracion(request):
         config.redondeo_precio_producto = redondeo
         actualizados.append("redondeo_precio_producto")
 
+        try:
+            incremento_insumos = Decimal(
+                (request.POST.get("incremento_insumos_por_defecto") or "10")
+                .strip()
+                .replace(",", ".")
+            )
+        except Exception:
+            incremento_insumos = Decimal("10")
+        config.incremento_insumos_por_defecto = max(
+            incremento_insumos,
+            Decimal("0"),
+        )
+        actualizados.append("incremento_insumos_por_defecto")
+
         config.save(
             update_fields=actualizados,
         )
@@ -1108,6 +1122,7 @@ def configuracion(request):
 
         secciones_validas = {
             "tienda",
+            "costos",
             "whatsapp",
             "avisos",
             "metricas",
