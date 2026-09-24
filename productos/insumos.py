@@ -213,6 +213,13 @@ def nuevo(request):
     if request.method == "POST":
         datos, valores, errores = _leer_post(request)
         if not errores:
+            cantidad_base = Decimal(str(datos["cantidad_compra"] or 0))
+            datos["costo_promedio_unitario"] = (
+                Decimal(str(datos["precio_compra"] or 0))
+                / cantidad_base
+                if cantidad_base > 0
+                else Decimal("0")
+            )
             insumo = Insumo.objects.create(**datos)
             messages.success(
                 request,
@@ -245,6 +252,15 @@ def editar(request, insumo_id):
             for campo, valor in datos.items():
                 setattr(insumo, campo, valor)
             if cambio_precio:
+                cantidad_base = Decimal(
+                    str(datos["cantidad_compra"] or 0)
+                )
+                insumo.costo_promedio_unitario = (
+                    Decimal(str(datos["precio_compra"] or 0))
+                    / cantidad_base
+                    if cantidad_base > 0
+                    else Decimal("0")
+                )
                 insumo.precio_actualizado_en = timezone.now()
             insumo.save()
             messages.success(
