@@ -523,6 +523,13 @@ def catalogo_kit_detalle(request, kit_id):
             ),
             "adicional_color_kit": adicional_color_kit,
             **_social_defaults(request),
+            "social_image_is_collage": bool(
+                getattr(
+                    kit,
+                    "productos_visuales_collage",
+                    [],
+                )
+            ),
             "social_image_url": (
                 request.build_absolute_uri(
                     reverse(
