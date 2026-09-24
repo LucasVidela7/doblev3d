@@ -119,3 +119,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-24 - Normalizar numéricos en formulario de insumos
 2026-09-24 - Compras de insumos: stock, costo promedio y Finanzas
 2026-09-24 - Formato entero para unidades de insumos
+2026-09-24 - Ajuste visual reglas de empaque y proveedor linkeado
