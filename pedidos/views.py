@@ -3754,6 +3754,7 @@ def finanzas(request):
             "detalles__kit",
             "detalles__productos_kit__producto",
             "pagos",
+            "empaques_usados",
         )
         .order_by("-fecha", "-id")
     )
