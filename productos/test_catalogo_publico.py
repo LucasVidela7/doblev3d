@@ -1070,3 +1070,25 @@ class CatalogoPublicoTests(TestCase):
             self.producto.slug,
             slug_original,
         )
+
+
+    def test_filtro_historico_de_categoria_redirige_a_landing_seo(self):
+        response = self.client.get(
+            reverse("catalogo_productos"),
+            {
+                "categoria": self.tipo.slug,
+                "q": "Piña",
+            },
+        )
+
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(
+            response["Location"],
+            (
+                reverse(
+                    "catalogo_categoria",
+                    args=[self.tipo.slug],
+                )
+                + "?q=Pi%C3%B1a"
+            ),
+        )
