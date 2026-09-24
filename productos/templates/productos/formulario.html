@@ -18,6 +18,7 @@
 
 <div class="contenedor">
 <div class="encabezado"><div class="encabezado-marca">{% include 'shared/brand_bar.html' %}<h1>{% if modo == 'nuevo' %}Nuevo producto{% else %}Editar producto{% endif %}</h1><div class="subtitulo">{% if producto %}{{ producto.codigo }} · {{ producto.nombre }}{% else %}Crear un producto nuevo en el catálogo{% endif %}</div></div><div class="acciones"><button type="button" class="boton" onclick="volverPagina()">← VOLVER</button><a href="{% url 'dashboard:inicio' %}" class="boton">INICIO</a></div></div>
+{% include "productos/_productos_subnav.html" %}
 {% if messages %}{% for message in messages %}<div class="mensaje {{ message.tags }}">{{ message }}</div>{% endfor %}{% endif %}
 <div class="pasos"><div class="paso"><small>1 · IDENTIDAD</small><strong>Nombre, tipo y categoría</strong></div><div class="paso"><small>2 · FABRICACIÓN</small><strong>Tiempo, peso o piezas</strong></div><div class="paso"><small>3 · RENTABILIDAD</small><strong>Margen y precio calculado</strong></div><div class="paso"><small>4 · OPERACIÓN</small><strong>Stock y publicación</strong></div></div>
 {% if producto %}<div class="preview"><div><small>PRECIO ACTUAL</small><strong>$ {{ producto.subtotal|floatformat:'0g' }}</strong></div><div><small>COSTO PRODUCTIVO</small><strong>$ {{ producto.costo_productivo|floatformat:'0g' }}</strong></div><div><small>MARGEN REAL</small><strong>{{ producto.margen_real|floatformat:'1' }}%</strong></div><div><small>STOCK DISPONIBLE</small><strong>{{ producto.stock_disponible }}</strong></div></div>{% endif %}
