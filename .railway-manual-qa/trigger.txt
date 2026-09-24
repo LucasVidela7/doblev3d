@@ -91,3 +91,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-23 - Refinar colores, dark mode, anchos y tipografia de Kits
 2026-09-23 - Tipografia y colores Solicitudes web y Presupuestos
 2026-09-23 - Vista por paquete en Preparacion y contraste Finanzas dark
+2026-09-24 - Mostrar adicionales en pedidos y solicitudes publicas y gestion
