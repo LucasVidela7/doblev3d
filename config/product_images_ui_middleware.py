@@ -4,7 +4,11 @@ import re
 
 from django.urls import reverse
 
-from productos.image_environment import entorno_imagenes
+from productos.image_environment import (
+    ambientes_imagenes_lectura,
+    clave_imagen_lectura,
+    entorno_imagenes,
+)
 from productos.image_models import ProductoImagen
 from productos.imagekit_service import imagekit_configurado
 
@@ -584,14 +588,22 @@ class ProductImagesUIMiddleware:
         if not producto_id:
             return response
 
+        ambiente_actual = entorno_imagenes()
+        ambientes = (
+            (ambiente_actual,)
+            if view_name == "productos:editar"
+            else ambientes_imagenes_lectura()
+        )
         imagenes = list(
             ProductoImagen.objects
             .filter(
                 producto_id=producto_id,
-                ambiente=entorno_imagenes(),
+                ambiente__in=ambientes,
             )
-            .order_by("orden")[:2]
+            .order_by("orden", "id")
         )
+        imagenes.sort(key=clave_imagen_lectura)
+        imagenes = imagenes[:2]
 
         try:
             contenido = response.content.decode(response.charset or "utf-8")
