@@ -103,10 +103,7 @@ class SEOTestCase(TestCase):
 
     def test_producto_publica_product_offer_y_breadcrumb_schema(self):
         response = self.client.get(
-            reverse(
-                "catalogo_producto_detalle",
-                args=[self.producto.id],
-            )
+            reverse("catalogo_producto_detalle", args=[self.producto.slug])
         )
 
         self.assertEqual(response.status_code, 200)
@@ -127,10 +124,7 @@ class SEOTestCase(TestCase):
 
     def test_kit_publica_product_offer_y_breadcrumb_schema(self):
         response = self.client.get(
-            reverse(
-                "catalogo_kit_detalle",
-                args=[self.kit.id],
-            )
+            reverse("catalogo_kit_detalle", args=[self.kit.slug])
         )
 
         self.assertEqual(response.status_code, 200)
@@ -166,10 +160,7 @@ class SEOTestCase(TestCase):
     @override_settings(APP_ENV="qa")
     def test_qa_bloquea_indexacion_globalmente(self):
         response = self.client.get(
-            reverse(
-                "catalogo_producto_detalle",
-                args=[self.producto.id],
-            )
+            reverse("catalogo_producto_detalle", args=[self.producto.slug])
         )
 
         self.assertEqual(response.status_code, 200)
