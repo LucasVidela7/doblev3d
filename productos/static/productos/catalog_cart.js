@@ -124,7 +124,12 @@
             .replace(/[\u0300-\u036f]/g, '');
 
     const colorCssValue = (name) => {
-        const key = normalizeColorName(name);
+        const raw = String(name || '').trim();
+        if (/^#[0-9a-fA-F]{6}$/.test(raw)) {
+            return raw.toUpperCase();
+        }
+
+        const key = normalizeColorName(raw);
         const palette = {
             rojo: '#ef1111',
             bordo: '#7f1d1d',
@@ -154,6 +159,19 @@
             || 'linear-gradient(135deg,#f7f7f7 0 45%,#d8dde5 45% 55%,#f7f7f7 55% 100%)';
     };
 
+    const isLightColor = (value) => {
+        const raw = String(value || '').trim();
+        if (/^#[0-9a-fA-F]{6}$/.test(raw)) {
+            const r = parseInt(raw.slice(1, 3), 16);
+            const g = parseInt(raw.slice(3, 5), 16);
+            const b = parseInt(raw.slice(5, 7), 16);
+            return ((r * 299 + g * 587 + b * 114) / 1000) > 180;
+        }
+
+        return ['blanco', 'amarillo', 'celeste', 'beige', 'plateado']
+            .includes(normalizeColorName(raw));
+    };
+
     const syncColorSwatches = (colorConfig) => {
         if (!colorConfig) return;
         const hiddenInput = colorConfig.querySelector('[data-dv-color-select]');
@@ -165,13 +183,16 @@
                 const value = String(swatch.dataset.colorValue || '').trim();
                 const active = value === selectedValue;
                 swatch.classList.toggle('is-selected', active);
+                const swatchHex = String(
+                    swatch.dataset.colorHex || '',
+                ).trim();
+                const visualColor = swatchHex || colorCssValue(value);
                 swatch.classList.toggle(
                     'is-light',
-                    ['blanco', 'amarillo', 'celeste', 'beige', 'plateado']
-                        .includes(normalizeColorName(value)),
+                    isLightColor(visualColor),
                 );
                 swatch.setAttribute('aria-checked', active ? 'true' : 'false');
-                swatch.style.setProperty('--swatch-color', colorCssValue(value));
+                swatch.style.setProperty('--swatch-color', visualColor);
             });
 
         if (current) {
