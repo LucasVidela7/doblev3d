@@ -51,7 +51,7 @@ a,button,input,textarea,select{touch-action:manipulation}.c{width:min(1220px,100
     </div>
   </header>
 
-  {% if messages %}<div class="mensajes">{% for message in messages %}<div class="mensaje {{ message.tags }}">{{ message }}</div>{% endfor %}</div>{% endif %}
+  {% include "shared/messages_toasts.html" %}
 
   <section class="metricas">
     <div class="metrica"><small>PEDIDOS ACTIVOS</small><strong>{{ pedidos_activos_count }}</strong><span>{{ cantidad_pedidos }} históricos</span></div>

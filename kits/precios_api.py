@@ -7,6 +7,8 @@ from calculadora.precios import calcular_escenarios_kit_libre
 from productos.models import Producto, TipoProducto
 
 from .economia import analizar_opciones_libres
+from .empaque_costos import costo_empaque_kit
+from .models import Kit
 from .precio_fijo_combinado import calcular_escenarios_kit_fijo
 
 
@@ -27,6 +29,55 @@ def _filamento_json(calculo):
         "precio_kg": _decimal_texto(
             calculo.get("precio_filamento_kg", 0)
         ),
+    }
+
+
+def _kit_del_request(request):
+    raw = str(
+        request.POST.get("kit_id") or ""
+    ).strip()
+    if not raw:
+        return None
+    try:
+        kit_id = int(raw)
+    except (TypeError, ValueError):
+        return None
+    return Kit.objects.filter(id=kit_id).first()
+
+
+def _empaque_json(detalle):
+    return {
+        "costo": _decimal_texto(
+            detalle.get("costo", 0)
+        ),
+        "fuente": detalle.get(
+            "fuente",
+            "SIN_CONFIGURACION",
+        ),
+        "regla": detalle.get(
+            "regla_nombre",
+            "",
+        ),
+        "principal": detalle.get(
+            "empaque_nombre",
+            "",
+        ),
+        "complementarios": [
+            {
+                "nombre": item["nombre"],
+                "cantidad": _decimal_texto(
+                    item["cantidad"],
+                    "0.001",
+                ),
+                "costo": _decimal_texto(
+                    item["costo_total"]
+                ),
+            }
+            for item in detalle.get(
+                "complementarios",
+                [],
+            )
+        ],
     }
 
 
@@ -104,7 +155,20 @@ def recomendar_precio_fijo(request):
         for producto_id, cantidad in agrupados.items()
     ]
 
-    calculo = calcular_escenarios_kit_fijo(componentes)
+    kit = _kit_del_request(request)
+    empaque = costo_empaque_kit(
+        kit=kit,
+        unidades=sum(agrupados.values()),
+        productos=[
+            item["producto"]
+            for item in componentes
+        ],
+    )
+
+    calculo = calcular_escenarios_kit_fijo(
+        componentes,
+        costo_empaque=empaque["costo"],
+    )
 
     if calculo["costo_total"] <= 0:
         return JsonResponse(
@@ -162,6 +226,7 @@ def recomendar_precio_fijo(request):
                 "0.1",
             ),
             "filamento": _filamento_json(calculo),
+            "empaque": _empaque_json(empaque),
             "escenarios": escenarios,
         }
     )
@@ -238,9 +303,18 @@ def recomendar_precio_libre(request):
             status=422,
         )
 
+    kit = _kit_del_request(request)
+    empaque = costo_empaque_kit(
+        kit=kit,
+        unidades=cantidad,
+        tipo_producto=tipo,
+        productos=productos,
+    )
+
     calculo_categoria = calcular_escenarios_kit_libre(
         productos,
         cantidad,
+        costo_empaque=empaque["costo"],
     )
 
     try:
@@ -253,6 +327,7 @@ def recomendar_precio_libre(request):
         cantidad,
         precio_actual,
         proteger_rentabilidad=proteger_rentabilidad,
+        costo_empaque=empaque["costo"],
     )
 
     productos_incluidos = [
@@ -266,6 +341,7 @@ def recomendar_precio_libre(request):
         calculo = calcular_escenarios_kit_libre(
             productos_incluidos,
             cantidad,
+            costo_empaque=empaque["costo"],
         )
 
     if calculo_categoria["costo_peor_caso"] <= 0:
@@ -340,6 +416,7 @@ def recomendar_precio_libre(request):
                 "0.1",
             ),
             "filamento": _filamento_json(calculo),
+            "empaque": _empaque_json(empaque),
             "escenarios": escenarios,
             "opciones_rentabilidad": {
                 "disponible": bool(opciones["disponible"]),

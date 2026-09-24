@@ -619,7 +619,11 @@ def _margen_real(costo, precio):
     return (precio - costo) / precio * Decimal("100")
 
 
-def calcular_escenarios_kit_libre(productos, cantidad):
+def calcular_escenarios_kit_libre(
+    productos,
+    cantidad,
+    costo_empaque=None,
+):
     """Sugiere precios para un kit libre por categoría.
 
     Como todavía no sabemos qué productos elegirá el cliente, se calculan dos
@@ -661,7 +665,15 @@ def calcular_escenarios_kit_libre(productos, cantidad):
     costo_promedio = sum(costos_totales, Decimal("0")) / divisor
     costo_peor = max(costos_totales)
 
-    provision_empaque_kit = provision_empaque_unitaria_actual()
+    provision_empaque_kit = (
+        Decimal(str(costo_empaque))
+        if costo_empaque is not None
+        else provision_empaque_unitaria_actual()
+    )
+    provision_empaque_kit = max(
+        provision_empaque_kit,
+        Decimal("0"),
+    )
     costo_promedio += provision_empaque_kit
     costo_peor += provision_empaque_kit
 

@@ -126,7 +126,7 @@
         </div>
     </div>
 
-    {% if messages %}<div class="mensajes">{% for message in messages %}<div class="mensaje {{ message.tags }}">{{ message }}</div>{% endfor %}</div>{% endif %}
+    {% include "shared/messages_toasts.html" %}
 
     <div class="metricas">
         <div class="metrica"><div class="metrica-label">COBRADO HOY</div><div class="metrica-valor">${{ cobrado_hoy|floatformat:0 }}</div><div class="metrica-nota">Pagos efectivamente registrados hoy</div></div>

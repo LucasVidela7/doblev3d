@@ -20,6 +20,8 @@ class LoginRequiredMiddleware:
         "catalogo_producto_detalle",
         "catalogo_kits",
         "catalogo_kit_detalle",
+        "catalogo_producto_social_preview",
+        "catalogo_kit_social_preview",
         "catalogo_carrito",
         "catalogo_carrito_precios",
         "catalogo_carrito_gracias",
@@ -31,6 +33,8 @@ class LoginRequiredMiddleware:
         "catalogo_arrepentimiento",
         "catalogo_arrepentimiento_gracias",
         "healthcheck",
+        "robots_txt",
+        "sitemap_xml",
         "evento",
     }
 

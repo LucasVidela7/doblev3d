@@ -14,6 +14,11 @@ from productos.catalogo import (
     catalogo_kit_detalle,
 )
 from productos.catalogo_contacto import catalogo_contacto
+from productos.social_previews import (
+    kit_social_preview,
+    producto_social_preview,
+)
+from productos.seo import robots_txt, sitemap_xml
 from productos.legal import (
     arrepentimiento,
     arrepentimiento_gracias,
@@ -32,6 +37,8 @@ handler404 = catalogo_404
 
 
 urlpatterns = [
+    path("robots.txt", robots_txt, name="robots_txt"),
+    path("sitemap.xml", sitemap_xml, name="sitemap_xml"),
     path("healthz/", healthcheck, name="healthcheck"),
     path("metricas/", include("metricas.urls")),
     # Sitio publico
@@ -70,6 +77,16 @@ urlpatterns = [
         "kits/<int:kit_id>/",
         catalogo_kit_detalle,
         name="catalogo_kit_detalle",
+    ),
+    path(
+        "social/productos/<int:producto_id>/preview.jpg",
+        producto_social_preview,
+        name="catalogo_producto_social_preview",
+    ),
+    path(
+        "social/kits/<int:kit_id>/preview.jpg",
+        kit_social_preview,
+        name="catalogo_kit_social_preview",
     ),
 
     # Información legal y derechos del consumidor.

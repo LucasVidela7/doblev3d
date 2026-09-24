@@ -43,7 +43,23 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-seri
 {% for nombre,escenario in kit.recomendacion_gestion.escenarios.items %}
 <div class="price {% if nombre == 'recomendado' %}recommended{% endif %}"><small>{{ nombre|upper }}</small><strong>$ {{ escenario.precio|floatformat:"0g" }}</strong><span>Margen {{ escenario.margen|floatformat:"1" }}%</span></div>
 {% empty %}<div class="note">No hay cálculo disponible.</div>{% endfor %}
-</div><div class="note">El precio actual se considera saludable desde el escenario Recomendado. Conservador queda como referencia de mayor protección.</div></div></section>
+</div>
+{% with recomendacion=kit.recomendacion_gestion %}
+<div class="note">
+  <b>Empaque incluido en el cálculo:</b>
+  $ {{ recomendacion.costo_empaque|floatformat:"2g" }}
+  {% if recomendacion.empaque_fuente == "REGLA" %}
+    · {{ recomendacion.empaque_principal }}
+    {% if recomendacion.empaque_complementarios %}+ {{ recomendacion.empaque_complementarios|join:" + " }}{% endif %}
+    · regla “{{ recomendacion.empaque_regla }}”
+  {% elif recomendacion.empaque_fuente == "PROVISION" %}
+    · provisión global de respaldo, porque no hay una regla aplicable
+  {% else %}
+    · sin regla ni provisión configurada
+  {% endif %}
+</div>
+{% endwith %}
+<div class="note">El precio actual se considera saludable desde el escenario Recomendado. Conservador queda como referencia de mayor protección.</div></div></section>
 </div>
 {% include "shared/navigation.html" %}
 </body></html>

@@ -417,3 +417,70 @@ class PlanificacionProduccionTests(TestCase):
             "VER ÚLTIMAS 1 FINALIZADAS",
         )
 
+
+
+    @patch("produccion.views.timezone.now")
+    def test_planificar_desde_detalle_producto_crea_trabajo_y_vuelve_al_producto(
+        self,
+        ahora_mock,
+    ):
+        ahora = datetime(
+            2026,
+            9,
+            24,
+            16,
+            0,
+            tzinfo=ARGENTINA_TZ,
+        )
+        ahora_mock.return_value = ahora
+
+        respuesta = self.client.post(
+            reverse(
+                "produccion:planificar_desde_producto",
+                args=[self.producto.id],
+            ),
+            {
+                "cantidad": "3",
+            },
+        )
+
+        self.assertRedirects(
+            respuesta,
+            reverse(
+                "productos:detalle",
+                args=[self.producto.id],
+            ),
+        )
+        produccion = Produccion.objects.get()
+        self.assertEqual(produccion.producto, self.producto)
+        self.assertEqual(produccion.cantidad, 3)
+        self.assertEqual(produccion.destino, "STOCK")
+        self.assertEqual(produccion.estado, "PENDIENTE")
+        self.assertIsNone(produccion.impresora)
+        self.assertEqual(produccion.inicio_impresion, ahora)
+        self.assertEqual(
+            produccion.tiempo_impresion_minutos,
+            450,
+        )
+
+    def test_detalle_producto_incluye_planificador_modal(self):
+        respuesta = self.client.get(
+            reverse(
+                "productos:detalle",
+                args=[self.producto.id],
+            )
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(
+            respuesta,
+            "PLANIFICAR IMPRESIÓN",
+        )
+        self.assertContains(
+            respuesta,
+            "AGREGAR A LA COLA",
+        )
+        self.assertContains(
+            respuesta,
+            "EDITAR PRODUCTO",
+        )

@@ -167,11 +167,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         </div>
     </header>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="message {{ message.tags }}">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
+    {% include "shared/messages_toasts.html" %}
 
     <nav class="flow-nav" aria-label="Flujo de producción">
         <a href="#ahora">🖨 IMPRESORAS</a>

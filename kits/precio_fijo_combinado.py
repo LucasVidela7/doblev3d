@@ -31,7 +31,10 @@ def _margen_real(costo, precio):
     return (precio - costo) / precio * Decimal("100")
 
 
-def calcular_escenarios_kit_fijo(componentes):
+def calcular_escenarios_kit_fijo(
+    componentes,
+    costo_empaque=None,
+):
     """Calcula un kit fijo como una única compra por volumen.
 
     Cada componente conserva su costo productivo real y se valoriza con el
@@ -114,7 +117,15 @@ def calcular_escenarios_kit_fijo(componentes):
         )
 
     costo_componentes = costo_total
-    provision_empaque = provision_empaque_unitaria_actual()
+    provision_empaque = (
+        _decimal(costo_empaque)
+        if costo_empaque is not None
+        else provision_empaque_unitaria_actual()
+    )
+    provision_empaque = max(
+        provision_empaque,
+        Decimal("0"),
+    )
     costo_total += provision_empaque
 
     if cantidad_total <= 0:

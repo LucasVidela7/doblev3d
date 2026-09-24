@@ -57,12 +57,65 @@ def _validar_turnstile(request):
         return False
 
 
-def _contexto_legal(**extra):
+def _contexto_legal(request=None, **extra):
     contexto = {
         "config": _config(),
         "hoy": timezone.localdate(),
         "turnstile_site_key": getattr(settings, "TURNSTILE_SITE_KEY", ""),
     }
+
+    if request is not None:
+        nombre = getattr(
+            getattr(request, "resolver_match", None),
+            "url_name",
+            "",
+        )
+        metadata = {
+            "catalogo_terminos": {
+                "description": (
+                    "Términos de compra de Doble V 3D: funcionamiento "
+                    "del catálogo, presupuestos, pedidos, entrega y "
+                    "derechos del consumidor."
+                ),
+                "route": "catalogo_terminos",
+                "robots": "index,follow",
+            },
+            "catalogo_privacidad": {
+                "description": (
+                    "Política de privacidad de Doble V 3D: qué datos "
+                    "se utilizan al navegar, consultar o enviar una "
+                    "solicitud y cómo se protegen."
+                ),
+                "route": "catalogo_privacidad",
+                "robots": "index,follow",
+            },
+            "catalogo_arrepentimiento": {
+                "description": (
+                    "Formulario de Doble V 3D para solicitar el "
+                    "arrepentimiento de una compra a distancia."
+                ),
+                "route": "catalogo_arrepentimiento",
+                "robots": "noindex,follow",
+            },
+            "catalogo_arrepentimiento_gracias": {
+                "description": (
+                    "Confirmación de recepción de una solicitud de "
+                    "arrepentimiento en Doble V 3D."
+                ),
+                "route": "catalogo_arrepentimiento_gracias",
+                "robots": "noindex,nofollow",
+            },
+        }.get(nombre)
+
+        if metadata:
+            contexto["seo_description"] = metadata["description"]
+            contexto["seo_canonical_url"] = (
+                request.build_absolute_uri(
+                    reverse(metadata["route"])
+                )
+            )
+            contexto["seo_robots"] = metadata["robots"]
+
     contexto.update(extra)
     return contexto
 
@@ -72,7 +125,7 @@ def terminos_compra(request):
     return render(
         request,
         "productos/legal_terminos.html",
-        _contexto_legal(),
+        _contexto_legal(request),
     )
 
 
@@ -81,7 +134,7 @@ def privacidad(request):
     return render(
         request,
         "productos/legal_privacidad.html",
-        _contexto_legal(),
+        _contexto_legal(request),
     )
 
 
@@ -134,7 +187,7 @@ def arrepentimiento(request):
                 return render(
                     request,
                     "productos/legal_arrepentimiento.html",
-                    _contexto_legal(error=error),
+                    _contexto_legal(request, error=error),
                 )
 
             solicitud = SolicitudArrepentimiento.objects.create(
@@ -170,6 +223,7 @@ def arrepentimiento(request):
         request,
         "productos/legal_arrepentimiento.html",
         _contexto_legal(
+            request,
             error=error,
         ),
     )
@@ -192,6 +246,7 @@ def arrepentimiento_gracias(request):
         request,
         "productos/legal_arrepentimiento_gracias.html",
         _contexto_legal(
+            request,
             solicitud=solicitud,
         ),
     )

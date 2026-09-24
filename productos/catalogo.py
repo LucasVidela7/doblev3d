@@ -2,6 +2,8 @@ from collections import defaultdict
 
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
+from django.templatetags.static import static
+from django.urls import reverse
 from django.views.defaults import page_not_found
 
 from kits.engine import KitEngine
@@ -16,6 +18,24 @@ from .image_environment import (
 )
 from .image_models import ProductoImagen
 from .models import ConfiguracionCatalogo, Producto
+from .seo import seo_catalogo, seo_kit, seo_producto
+
+
+def _url_absoluta(request, url):
+    if not url:
+        return ""
+    if url.startswith(("http://", "https://")):
+        return url
+    return request.build_absolute_uri(url)
+
+
+def _social_defaults(request):
+    return {
+        "social_url": request.build_absolute_uri(request.path),
+        "social_fallback_image": request.build_absolute_uri(
+            static("brand/logo.png")
+        ),
+    }
 
 
 def catalogo_404(request, exception):
@@ -246,6 +266,11 @@ def _catalogo_publico(request, vista_catalogo):
             "mensaje_plazo_entrega": (
                 config_catalogo.mensaje_plazo_entrega
             ),
+            **seo_catalogo(
+                request,
+                vista_catalogo,
+                config_catalogo,
+            ),
         },
     )
 
@@ -325,6 +350,11 @@ def catalogo_producto_detalle(request, producto_id):
             ),
             "colores_disponibles": (
                 config_catalogo.colores_disponibles_detalle
+            ),
+            **seo_producto(
+                request,
+                producto,
+                image_url=producto.catalogo_imagen_url,
             ),
         },
     )
@@ -492,5 +522,16 @@ def catalogo_kit_detalle(request, kit_id):
                 config_catalogo.colores_disponibles_detalle
             ),
             "adicional_color_kit": adicional_color_kit,
+            **seo_kit(
+                request,
+                kit,
+                image_available=bool(
+                    getattr(
+                        kit,
+                        "productos_visuales_collage",
+                        [],
+                    )
+                ),
+            ),
         },
     )

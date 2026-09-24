@@ -16,7 +16,7 @@
 <body>
 <div class="c">
 <div class="h"><div class="encabezado-marca">{% include "shared/brand_bar.html" %}<div class="cod">{{ producto.codigo }}</div><h1>Fotos del producto</h1><div class="sub">{{ producto.nombre }} · {{ cantidad_imagenes }}/2 fotos cargadas</div></div><div class="a"><a class="btn" href="{% url 'productos:detalle' producto.id %}">← PRODUCTO</a><a class="btn" href="{% url 'productos:editar' producto.id %}">EDITAR DATOS</a><a class="btn" href="{% url 'dashboard:inicio' %}">INICIO</a></div></div>
-{% if messages %}{% for message in messages %}<div class="mensaje {{ message.tags }}">{{ message }}</div>{% endfor %}{% endif %}
+{% include "shared/messages_toasts.html" %}
 {% if imagekit_configurado %}<div class="estado ok">IMAGEKIT CONECTADO · Las fotos se almacenan fuera de Railway. En la base de Doble V 3D sólo quedan la URL y los identificadores necesarios para administrarlas.</div>{% else %}<div class="estado warn">IMAGEKIT TODAVÍA NO ESTÁ CONFIGURADO EN ESTE ENTORNO · agregá <strong>IMAGEKIT_PRIVATE_KEY</strong> en las variables de Railway QA para habilitar las cargas.</div>{% endif %}
 <div class="card"><div class="titulo">FOTOS DEL PRODUCTO</div><div class="galeria">
 {% for imagen in imagenes %}
