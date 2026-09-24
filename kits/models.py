@@ -6,7 +6,6 @@ from calculadora.precios import MARGEN_MINIMO
 from productos.models import (
     Producto,
     TipoProducto,
-    provision_empaque_unitaria_actual,
 )
 
 
@@ -199,6 +198,9 @@ class Kit(models.Model):
             "margen_estimado": None,
             "margen_peor_caso": None,
             "precio_sugerido_minimo": Decimal("0"),
+            "costo_empaque": Decimal("0"),
+            "empaque_fuente": "SIN_CONFIGURACION",
+            "empaque_regla": "",
             "margen_minimo": MARGEN_MINIMO_KIT,
             "alerta": False,
             "motivo": "",
@@ -234,7 +236,25 @@ class Kit(models.Model):
                     * cantidad
                 )
 
-            costo += provision_empaque_unitaria_actual()
+            from .empaque_costos import costo_empaque_kit
+
+            empaque = costo_empaque_kit(
+                kit=self,
+                unidades=sum(
+                    int(componente.cantidad or 0)
+                    for componente in componentes
+                ),
+                productos=[
+                    componente.producto
+                    for componente in componentes
+                ],
+            )
+            costo += Decimal(str(empaque["costo"] or 0))
+            resultado["costo_empaque"] = Decimal(
+                str(empaque["costo"] or 0)
+            )
+            resultado["empaque_fuente"] = empaque["fuente"]
+            resultado["empaque_regla"] = empaque["regla_nombre"]
             resultado["costo_estimado"] = costo
             resultado["costo_peor_caso"] = costo
 
@@ -280,12 +300,25 @@ class Kit(models.Model):
             ) * cantidad
             costo_peor = max(costos) * cantidad
 
-            provision_empaque = provision_empaque_unitaria_actual()
+            from .empaque_costos import costo_empaque_kit
+
+            empaque = costo_empaque_kit(
+                kit=self,
+                unidades=self.cantidad_productos,
+                tipo_producto=self.tipo_producto,
+                productos=productos,
+            )
+            costo_empaque = Decimal(
+                str(empaque["costo"] or 0)
+            )
+            resultado["costo_empaque"] = costo_empaque
+            resultado["empaque_fuente"] = empaque["fuente"]
+            resultado["empaque_regla"] = empaque["regla_nombre"]
             resultado["costo_estimado"] = (
-                costo_promedio + provision_empaque
+                costo_promedio + costo_empaque
             )
             resultado["costo_peor_caso"] = (
-                costo_peor + provision_empaque
+                costo_peor + costo_empaque
             )
 
         resultado["margen_estimado"] = (
