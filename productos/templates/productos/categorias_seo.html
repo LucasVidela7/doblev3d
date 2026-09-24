@@ -1,0 +1,88 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Categorías SEO | Gestión</title>
+<link rel="stylesheet" href="{% static 'shared/theme.css' %}">
+<style>
+:root{--line:var(--dv-border,#dfe5ef);--surface:var(--dv-surface,#fff);--soft:var(--dv-surface-soft,#f7f9fc);--text:var(--dv-text,#17233a);--muted:var(--dv-muted,#667085);--blue:var(--dv-brand-blue,#134a9a)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--dv-bg,#f5f7fb);color:var(--text);font-family:Inter,system-ui,sans-serif}
+.wrap{width:min(1180px,calc(100% - 28px));margin:0 auto;padding:22px 0 90px}
+.head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:14px}
+.head h1{margin:6px 0 0;font-size:32px}.head p{margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.45}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.card{padding:16px;border:1px solid var(--line);border-radius:18px;background:var(--surface);box-shadow:var(--dv-shadow-soft,0 6px 20px rgba(18,31,52,.05))}
+.card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}
+.card-head h2{margin:0;font-size:17px;color:var(--blue)}.slug{display:inline-flex;margin-top:5px;padding:4px 7px;border-radius:999px;background:var(--soft);color:var(--muted);font-size:10px;font-weight:850}
+.status{padding:5px 8px;border-radius:999px;background:#eaf7ee;color:#28633c;font-size:10px;font-weight:900}.status.off{background:#f3f4f6;color:#6b7280}
+.form{display:grid;gap:10px}.field{display:grid;gap:5px}.field label{font-size:10px;font-weight:900;letter-spacing:.03em}.field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:11px;background:var(--surface);color:var(--text);font:inherit;font-size:12px;outline:none}.field input{min-height:42px;padding:0 10px}.field textarea{min-height:92px;padding:10px;resize:vertical;line-height:1.45}.field textarea.short{min-height:72px}.field small{color:var(--muted);font-size:10px;line-height:1.4}.actions{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:3px}.public-link{color:var(--blue);text-decoration:none;font-size:11px;font-weight:850}.save{min-height:40px;padding:0 13px;border:0;border-radius:10px;background:var(--blue);color:#fff;font:inherit;font-size:11px;font-weight:950;cursor:pointer}
+.empty{padding:28px;border:1px dashed var(--line);border-radius:16px;text-align:center;color:var(--muted)}
+@media(max-width:780px){.grid{grid-template-columns:1fr}.head{display:block}.wrap{width:min(100% - 18px,1180px)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div>
+      {% include 'shared/brand_bar.html' %}
+      <h1>Categorías SEO</h1>
+      <p>Configurá el texto público y la metadata de cada categoría. La URL amigable se genera automáticamente y permanece estable.</p>
+    </div>
+  </div>
+
+  {% include "productos/_productos_subnav.html" %}
+  {% include "shared/messages_toasts.html" %}
+
+  {% if tipos %}
+  <div class="grid">
+    {% for tipo in tipos %}
+    <article class="card" id="categoria-{{ tipo.id }}">
+      <div class="card-head">
+        <div>
+          <h2>{{ tipo.nombre }}</h2>
+          <span class="slug">/{{ tipo.slug }}/ · URLs separadas para Productos y Kits</span>
+        </div>
+        <span class="status{% if not tipo.activo %} off{% endif %}">{% if tipo.activo %}ACTIVA{% else %}INACTIVA{% endif %}</span>
+      </div>
+      <form method="post" class="form">
+        {% csrf_token %}
+        <input type="hidden" name="tipo_id" value="{{ tipo.id }}">
+        <div class="field">
+          <label>DESCRIPCIÓN PÚBLICA</label>
+          <textarea name="descripcion_catalogo" maxlength="3000" placeholder="Ej. Productos sensoriales impresos en 3D para explorar texturas, formas y movimiento.">{{ tipo.descripcion_catalogo }}</textarea>
+          <small>Se muestra como introducción en la landing de la categoría.</small>
+        </div>
+        <div class="field">
+          <label>TÍTULO SEO <span style="font-weight:600">(opcional)</span></label>
+          <input name="seo_titulo" maxlength="160" value="{{ tipo.seo_titulo }}" placeholder="{{ tipo.nombre }} impresos en 3D | Doble V 3D">
+        </div>
+        <div class="field">
+          <label>DESCRIPCIÓN SEO <span style="font-weight:600">(opcional)</span></label>
+          <textarea class="short" name="seo_descripcion" maxlength="320" placeholder="Resumen para Google y enlaces compartidos.">{{ tipo.seo_descripcion }}</textarea>
+        </div>
+        <div class="actions">
+          {% if tipo.activo %}
+          <span>
+            <a class="public-link" href="{% url 'catalogo_categoria_productos' tipo.slug %}" target="_blank" rel="noopener">VER PRODUCTOS ↗</a>
+            <span aria-hidden="true"> · </span>
+            <a class="public-link" href="{% url 'catalogo_categoria_kits' tipo.slug %}" target="_blank" rel="noopener">VER KITS ↗</a>
+          </span>
+          {% else %}
+          <span></span>
+          {% endif %}
+          <button class="save" type="submit">GUARDAR SEO</button>
+        </div>
+      </form>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty">Todavía no hay categorías creadas.</div>
+  {% endif %}
+</div>
+{% include "shared/navigation.html" %}
+</body>
+</html>

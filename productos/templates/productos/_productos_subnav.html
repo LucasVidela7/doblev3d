@@ -53,7 +53,7 @@
 <nav class="dv-products-subnav" aria-label="Secciones de productos">
     <a
         href="{% url 'productos:lista' %}"
-        class="{% if request.resolver_match.namespace == 'productos' and request.resolver_match.url_name != 'insumos' and request.resolver_match.url_name != 'insumo_nuevo' and request.resolver_match.url_name != 'insumo_editar' and request.resolver_match.url_name != 'compras_insumos' and request.resolver_match.url_name != 'compra_insumo_registrar' %}is-active{% endif %}"
+        class="{% if request.resolver_match.namespace == 'productos' and request.resolver_match.url_name != 'insumos' and request.resolver_match.url_name != 'insumo_nuevo' and request.resolver_match.url_name != 'insumo_editar' and request.resolver_match.url_name != 'compras_insumos' and request.resolver_match.url_name != 'compra_insumo_registrar' and request.resolver_match.url_name != 'categorias_seo' %}is-active{% endif %}"
     >PRODUCTOS</a>
     <a
         href="{% url 'productos:insumos' %}"
@@ -63,6 +63,10 @@
         href="{% url 'productos:compras_insumos' %}"
         class="nav-compras {% if request.resolver_match.url_name == 'compras_insumos' or request.resolver_match.url_name == 'compra_insumo_registrar' %}is-active{% endif %}"
     >COMPRAS</a>
+    <a
+        href="{% url 'productos:categorias_seo' %}"
+        class="{% if request.resolver_match.url_name == 'categorias_seo' %}is-active{% endif %}"
+    >CATEGORÍAS SEO</a>
     <a
         href="{% url 'pedidos:reglas_empaque' %}"
         class="nav-empaques {% if request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name == 'reglas_empaque' %}is-active{% endif %}"

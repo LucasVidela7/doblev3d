@@ -11,7 +11,7 @@ from kits.engine import KitEngine
 from kits.models import Kit
 
 from .image_environment import ambientes_imagenes_lectura
-from .models import ConfiguracionCatalogo, Producto
+from .models import ConfiguracionCatalogo, Producto, TipoProducto
 
 
 def _absoluta(request, url):
@@ -150,17 +150,22 @@ def seo_producto(
         else "impresión 3D"
     )
     title = (
-        f"{producto.nombre} | {tipo} | Doble V 3D"
+        (producto.seo_titulo or "").strip()
+        or f"{producto.nombre} | {tipo} | Doble V 3D"
     )
     description = (
-        f"{producto.nombre}, producto impreso en 3D de la categoría "
-        f"{tipo}. Consultá precio, fotos y opciones disponibles y "
-        "pedí presupuesto online en Doble V 3D."
+        (producto.seo_descripcion or "").strip()
+        or (producto.descripcion_catalogo or "").strip()
+        or (
+            f"{producto.nombre}, producto impreso en 3D de la categoría "
+            f"{tipo}. Consultá precio, fotos y opciones disponibles y "
+            "pedí presupuesto online en Doble V 3D."
+        )
     )
     canonical = request.build_absolute_uri(
         reverse(
             "catalogo_producto_detalle",
-            args=[producto.id],
+            args=[producto.slug],
         )
     )
     social_image = request.build_absolute_uri(
@@ -223,6 +228,17 @@ def seo_producto(
             {
                 "@type": "ListItem",
                 "position": 3,
+                "name": tipo,
+                "item": request.build_absolute_uri(
+                    reverse(
+                        "catalogo_categoria_productos",
+                        args=[producto.tipo.slug],
+                    )
+                ),
+            },
+            {
+                "@type": "ListItem",
+                "position": 4,
                 "name": producto.nombre,
                 "item": canonical,
             },
@@ -268,17 +284,24 @@ def seo_kit(
         int(kit.cantidad_productos or 0),
         1,
     )
-    title = f"{kit.nombre} | Kit impreso en 3D | Doble V 3D"
+    title = (
+        (kit.seo_titulo or "").strip()
+        or f"{kit.nombre} | Kit impreso en 3D | Doble V 3D"
+    )
     description = (
-        f"{kit.nombre}, kit de {cantidad} "
-        f"{'producto' if cantidad == 1 else 'productos'} de {tipo}. "
-        "Consultá composición, precio y opciones disponibles y "
-        "pedí presupuesto online en Doble V 3D."
+        (kit.seo_descripcion or "").strip()
+        or (kit.descripcion_catalogo or "").strip()
+        or (
+            f"{kit.nombre}, kit de {cantidad} "
+            f"{'producto' if cantidad == 1 else 'productos'} de {tipo}. "
+            "Consultá composición, precio y opciones disponibles y "
+            "pedí presupuesto online en Doble V 3D."
+        )
     )
     canonical = request.build_absolute_uri(
         reverse(
             "catalogo_kit_detalle",
-            args=[kit.id],
+            args=[kit.slug],
         )
     )
     social_image = request.build_absolute_uri(
@@ -314,33 +337,50 @@ def seo_kit(
     if image_available:
         product["image"] = [social_image]
 
-    breadcrumbs = {
-        "@type": "BreadcrumbList",
-        "@id": canonical + "#breadcrumb",
-        "itemListElement": [
-            {
-                "@type": "ListItem",
-                "position": 1,
-                "name": "Inicio",
-                "item": request.build_absolute_uri(
-                    reverse("catalogo")
-                ),
-            },
-            {
-                "@type": "ListItem",
-                "position": 2,
-                "name": "Kits",
-                "item": request.build_absolute_uri(
-                    reverse("catalogo_kits")
-                ),
-            },
+    items_breadcrumb = [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Inicio",
+            "item": request.build_absolute_uri(
+                reverse("catalogo")
+            ),
+        },
+        {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Kits",
+            "item": request.build_absolute_uri(
+                reverse("catalogo_kits")
+            ),
+        },
+    ]
+    if kit.tipo_producto_id and kit.tipo_producto:
+        items_breadcrumb.append(
             {
                 "@type": "ListItem",
                 "position": 3,
-                "name": kit.nombre,
-                "item": canonical,
-            },
-        ],
+                "name": kit.tipo_producto.nombre,
+                "item": request.build_absolute_uri(
+                    reverse(
+                        "catalogo_categoria_kits",
+                        args=[kit.tipo_producto.slug],
+                    )
+                ),
+            }
+        )
+    items_breadcrumb.append(
+        {
+            "@type": "ListItem",
+            "position": len(items_breadcrumb) + 1,
+            "name": kit.nombre,
+            "item": canonical,
+        }
+    )
+    breadcrumbs = {
+        "@type": "BreadcrumbList",
+        "@id": canonical + "#breadcrumb",
+        "itemListElement": items_breadcrumb,
     }
 
     return {
@@ -366,6 +406,92 @@ def seo_kit(
             )
         ),
         "social_image_is_collage": bool(image_available),
+    }
+
+
+def seo_categoria(request, categoria, vista_catalogo, config=None):
+    config = config or (
+        ConfiguracionCatalogo.objects.first()
+        or ConfiguracionCatalogo()
+    )
+    es_kits = vista_catalogo == "kits"
+    seccion = "Kits" if es_kits else "Productos"
+    ruta_seccion = (
+        "catalogo_kits"
+        if es_kits
+        else "catalogo_productos"
+    )
+    ruta_categoria = (
+        "catalogo_categoria_kits"
+        if es_kits
+        else "catalogo_categoria_productos"
+    )
+    title = (
+        (categoria.seo_titulo or "").strip()
+        or (
+            f"{seccion} de {categoria.nombre} impresos en 3D "
+            "| Doble V 3D"
+        )
+    )
+    description = (
+        (categoria.seo_descripcion or "").strip()
+        or (categoria.descripcion_catalogo or "").strip()
+        or (
+            f"Explorá {seccion.lower()} de {categoria.nombre} impresos "
+            "en 3D por Doble V 3D. Consultá precios, fotos y opciones "
+            "disponibles y pedí presupuesto online."
+        )
+    )
+    canonical = request.build_absolute_uri(
+        reverse(
+            ruta_categoria,
+            args=[categoria.slug],
+        )
+    )
+    breadcrumbs = {
+        "@type": "BreadcrumbList",
+        "@id": canonical + "#breadcrumb",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Inicio",
+                "item": request.build_absolute_uri(
+                    reverse("catalogo")
+                ),
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": seccion,
+                "item": request.build_absolute_uri(
+                    reverse(ruta_seccion)
+                ),
+            },
+            {
+                "@type": "ListItem",
+                "position": 3,
+                "name": categoria.nombre,
+                "item": canonical,
+            },
+        ],
+    }
+    return {
+        "seo_title": title,
+        "seo_description": description,
+        "seo_canonical_url": canonical,
+        "seo_social_image_url": request.build_absolute_uri(
+            static("brand/logo.png")
+        ),
+        "seo_json_ld": _json_ld(
+            {
+                "@context": "https://schema.org",
+                "@graph": [
+                    _organizacion(request, config),
+                    breadcrumbs,
+                ],
+            }
+        ),
     }
 
 
@@ -441,10 +567,17 @@ def sitemap_xml(request):
             request.build_absolute_uri(
                 reverse(
                     "catalogo_producto_detalle",
-                    args=[producto.id],
+                    args=[producto.slug],
                 )
             )
         )
+
+    categoria_ids_publicas = set(
+        productos.values_list(
+            "tipo_id",
+            flat=True,
+        )
+    )
 
     kits = (
         Kit.objects
@@ -473,14 +606,87 @@ def sitemap_xml(request):
             productos_categoria=productos_categoria,
         )["valido"]:
             continue
+
+        categoria_id = kit.tipo_producto_id
+        if (
+            not categoria_id
+            and kit.modalidad == "FIJO"
+        ):
+            tipos_componentes = {
+                componente.producto.tipo_id
+                for componente in kit.componentes.all()
+                if (
+                    componente.producto_id
+                    and componente.producto.tipo_id
+                )
+            }
+            if len(tipos_componentes) == 1:
+                categoria_id = next(
+                    iter(tipos_componentes)
+                )
+        if categoria_id:
+            categoria_ids_publicas.add(categoria_id)
+
         urls.append(
             request.build_absolute_uri(
                 reverse(
                     "catalogo_kit_detalle",
-                    args=[kit.id],
+                    args=[kit.slug],
                 )
             )
         )
+
+    categorias_publicas = list(
+        TipoProducto.objects
+        .filter(
+            activo=True,
+            id__in=categoria_ids_publicas,
+        )
+        .exclude(slug="")
+        .order_by("nombre")
+    )
+    tipos_con_productos = set(
+        productos.values_list("tipo_id", flat=True)
+    )
+    tipos_con_kits = set()
+    for kit in kits:
+        categoria_id = kit.tipo_producto_id
+        if (
+            not categoria_id
+            and kit.modalidad == "FIJO"
+        ):
+            tipos_componentes = {
+                componente.producto.tipo_id
+                for componente in kit.componentes.all()
+                if (
+                    componente.producto_id
+                    and componente.producto.tipo_id
+                )
+            }
+            if len(tipos_componentes) == 1:
+                categoria_id = next(iter(tipos_componentes))
+        if categoria_id:
+            tipos_con_kits.add(categoria_id)
+
+    for categoria in categorias_publicas:
+        if categoria.id in tipos_con_productos:
+            urls.append(
+                request.build_absolute_uri(
+                    reverse(
+                        "catalogo_categoria_productos",
+                        args=[categoria.slug],
+                    )
+                )
+            )
+        if categoria.id in tipos_con_kits:
+            urls.append(
+                request.build_absolute_uri(
+                    reverse(
+                        "catalogo_categoria_kits",
+                        args=[categoria.slug],
+                    )
+                )
+            )
 
     escaped = [
         (

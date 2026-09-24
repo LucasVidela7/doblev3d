@@ -6,7 +6,7 @@ from . import imagenes_masivas
 from . import insumos
 from . import compras_insumos
 from . import modificacion_masiva
-from .tipos import crear_tipo_producto
+from .tipos import categorias_seo, crear_tipo_producto
 
 
 app_name = "productos"
@@ -62,6 +62,11 @@ urlpatterns = [
         "modificacion-masiva/",
         modificacion_masiva.modificacion_masiva,
         name="modificacion_masiva",
+    ),
+    path(
+        "categorias-seo/",
+        categorias_seo,
+        name="categorias_seo",
     ),
     path(
         "api/tipos/crear/",

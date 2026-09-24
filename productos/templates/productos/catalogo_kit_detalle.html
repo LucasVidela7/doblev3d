@@ -573,6 +573,10 @@
                 <a class="breadcrumb-link" href="{% url 'catalogo' %}">Inicio</a>
                 <span class="sep" aria-hidden="true">›</span>
                 <a class="breadcrumb-link" href="{% url 'catalogo_kits' %}">Kits</a>
+                {% if kit.tipo_producto %}
+                <span class="sep" aria-hidden="true">›</span>
+                <a class="breadcrumb-link" href="{% url 'catalogo_categoria_kits' kit.tipo_producto.slug %}">{{ kit.tipo_producto.nombre }}</a>
+                {% endif %}
                 <span class="sep" aria-hidden="true">›</span>
                 <span aria-current="page">{{ kit.nombre }}</span>
             </nav>
@@ -583,7 +587,9 @@
                 <p class="eyebrow">Kit</p>
                 <h1>{{ kit.nombre }}</h1>
                 <p class="hero-detail">
-                    {% if kit.modalidad == "LIBRE_CATEGORIA" %}
+                    {% if kit.descripcion_catalogo %}
+                        {{ kit.descripcion_catalogo }}
+                    {% elif kit.modalidad == "LIBRE_CATEGORIA" %}
                         Elegí {{ kit.cantidad_productos }} producto{{ kit.cantidad_productos|pluralize }}
                         {% if kit.tipo_producto %}de {{ kit.tipo_producto.nombre }}{% endif %}.
                         Podés combinar opciones incluidas y opciones con adicional.

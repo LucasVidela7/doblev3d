@@ -174,6 +174,12 @@
             line-height: 1.65;
         }
 
+        .catalog-explore {
+            scroll-margin-top: calc(
+                var(--dv-catalog-header-height, 0px) + 14px
+            );
+        }
+
         .toolbar {
             position: sticky;
             top: 0;
@@ -233,7 +239,11 @@
         .filter {
             flex: 0 0 auto;
             min-height: 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             padding: 0 14px;
+            text-decoration: none;
             border: 1px solid var(--line);
             border-radius: 999px;
             background: var(--paper);
@@ -787,7 +797,19 @@
     <main>
         <section class="shell hero">
             <div class="hero-card">
-                {% if vista_catalogo == "productos" %}
+                {% if categoria_actual %}
+                    <p class="eyebrow">{% if vista_catalogo == "kits" %}Kits{% else %}Productos{% endif %}</p>
+                    <h1>{{ categoria_actual.nombre }}</h1>
+                    <p>
+                        {% if categoria_actual.descripcion_catalogo %}
+                            {{ categoria_actual.descripcion_catalogo }}
+                        {% elif vista_catalogo == "kits" %}
+                            Explorá kits de {{ categoria_actual.nombre }} disponibles en Doble V 3D.
+                        {% else %}
+                            Explorá productos de {{ categoria_actual.nombre }} disponibles en Doble V 3D.
+                        {% endif %}
+                    </p>
+                {% elif vista_catalogo == "productos" %}
                     <p class="eyebrow">Productos</p>
                     <h1>Elegí tu próxima pieza.</h1>
                     <p>
@@ -819,23 +841,38 @@
             <span>✓ Confirmación por WhatsApp</span>
         </div>
 
-        <div class="toolbar">
-            <div class="shell toolbar-inner">
-                <label class="search">
-                    <span style="position:absolute;clip:rect(0 0 0 0);clip-path:inset(50%);">Buscar</span>
-                    <input id="catalog-search" type="search" placeholder="Buscar por nombre o categoría…" autocomplete="off">
-                </label>
+        <div id="catalogo-explorar" class="catalog-explore">
+            <div class="toolbar">
+                <div class="shell toolbar-inner">
+                    <label class="search">
+                        <span style="position:absolute;clip:rect(0 0 0 0);clip-path:inset(50%);">Buscar</span>
+                        <input
+                            id="catalog-search"
+                            type="search"
+                            placeholder="{% if categoria_actual %}Buscar dentro de {{ categoria_actual.nombre }}…{% else %}Buscar por nombre o categoría…{% endif %}"
+                            autocomplete="off"
+                        >
+                    </label>
+                </div>
             </div>
-        </div>
 
-        {% if categorias %}
-            <div class="shell categories" aria-label="Categorías">
-                <button class="filter is-active" type="button" data-category="">Todas las categorías</button>
-                {% for categoria in categorias %}
-                    <button class="filter" type="button" data-category="{{ categoria|lower }}">{{ categoria }}</button>
-                {% endfor %}
-            </div>
-        {% endif %}
+            {% if categorias %}
+                <nav class="shell categories" aria-label="Categorías">
+                    {% if vista_catalogo == "kits" %}
+                        <a class="filter{% if not categoria_actual %} is-active{% endif %}" data-category="" href="{% url 'catalogo_kits' %}#catalogo-explorar">Todas</a>
+                    {% else %}
+                        <a class="filter{% if not categoria_actual %} is-active{% endif %}" data-category="" href="{% url 'catalogo_productos' %}#catalogo-explorar">Todas</a>
+                    {% endif %}
+                    {% for categoria in categorias %}
+                        <a
+                            class="filter{% if categoria_actual and categoria.id == categoria_actual.id %} is-active{% endif %}"
+                            data-category="{{ categoria.nombre|lower }}"
+                            href="{% if vista_catalogo == 'kits' %}{% url 'catalogo_categoria_kits' categoria.slug %}{% else %}{% url 'catalogo_categoria_productos' categoria.slug %}{% endif %}#catalogo-explorar"
+                        >{{ categoria.nombre }}</a>
+                    {% endfor %}
+                </nav>
+            {% endif %}
+        </div>
 
         {% if vista_catalogo == "productos" %}
         <section class="shell section" data-section="producto">
@@ -853,9 +890,9 @@
                             data-kind="producto"
                             data-product-id="{{ producto.id }}"
                             data-category="{{ producto.tipo.nombre|lower }}"
-                            data-search="{{ producto.nombre|lower }} {{ producto.tipo.nombre|lower }} {{ producto.descripcion_componentes_catalogo|lower }}"
+                            data-search="{{ producto.nombre|lower }} {{ producto.tipo.nombre|lower }} {{ producto.descripcion_catalogo|default:''|lower }} {{ producto.descripcion_componentes_catalogo|lower }}"
                         >
-                            <a class="catalog-media-link" href="{% url 'catalogo_producto_detalle' producto.id %}" aria-label="Ver {{ producto.nombre }}">
+                            <a class="catalog-media-link" href="{% url 'catalogo_producto_detalle' producto.slug %}" aria-label="Ver {{ producto.nombre }}">
                                 <div class="media">
                                     <span class="badge">{{ producto.tipo.nombre }}</span>
                                     {% if producto.catalogo_imagen %}
@@ -867,7 +904,7 @@
                             </a>
                             <div class="content">
                                 <div class="meta">Producto</div>
-                                <h3 class="title"><a class="catalog-title-link" href="{% url 'catalogo_producto_detalle' producto.id %}">{{ producto.nombre }}</a></h3>
+                                <h3 class="title"><a class="catalog-title-link" href="{% url 'catalogo_producto_detalle' producto.slug %}">{{ producto.nombre }}</a></h3>
                                 <p class="detail">
                                     {% if producto.es_compuesto and producto.descripcion_componentes_catalogo %}
                                         {{ producto.descripcion_componentes_catalogo }}
@@ -889,7 +926,7 @@
                                     </div>
                                     {% if producto.catalogo_precio %}
                                         <div class="product-actions">
-                                            <a class="catalog-detail-link" href="{% url 'catalogo_producto_detalle' producto.id %}" aria-label="Ver detalle de {{ producto.nombre }}">VER</a>
+                                            <a class="catalog-detail-link" href="{% url 'catalogo_producto_detalle' producto.slug %}" aria-label="Ver detalle de {{ producto.nombre }}">VER</a>
                                         <div
                                             class="dv-cart-card-control"
                                             data-dv-product-control
@@ -941,11 +978,11 @@
                             data-kind="kit"
                             data-kit-id="{{ kit.id }}"
                             data-category="{% if kit.tipo_producto %}{{ kit.tipo_producto.nombre|lower }}{% endif %}"
-                            data-search="{{ kit.nombre|lower }} {% if kit.tipo_producto %}{{ kit.tipo_producto.nombre|lower }}{% endif %} {{ kit.catalogo_busqueda_productos|default:''|lower }}"
+                            data-search="{{ kit.nombre|lower }} {% if kit.tipo_producto %}{{ kit.tipo_producto.nombre|lower }}{% endif %} {{ kit.descripcion_catalogo|default:''|lower }} {{ kit.catalogo_busqueda_productos|default:''|lower }}"
                         >
                             <a
                                 class="catalog-media-link"
-                                href="{% url 'catalogo_kit_detalle' kit.id %}"
+                                href="{% url 'catalogo_kit_detalle' kit.slug %}"
                                 aria-label="Ver {{ kit.nombre }}"
                             >
                                 <div class="media">
@@ -1029,7 +1066,7 @@
                                     </div>
                                     <a
                                         class="catalog-detail-link"
-                                        href="{% url 'catalogo_kit_detalle' kit.id %}"
+                                        href="{% url 'catalogo_kit_detalle' kit.slug %}"
                                         aria-label="Ver detalle de {{ kit.nombre }}"
                                     >
                                         VER DETALLE
@@ -1059,13 +1096,12 @@
         (() => {
             const search = document.getElementById("catalog-search");
             const items = [...document.querySelectorAll(".catalog-item")];
-            const sections = [...document.querySelectorAll("[data-section]")];
+            const section = document.querySelector("[data-section]");
+            const count = section?.querySelector(".count");
             const noResults = document.getElementById("no-results");
-            const kindButtons = [...document.querySelectorAll("[data-kind].filter")];
-            const categoryButtons = [...document.querySelectorAll("[data-category].filter")];
-
-            let activeKind = {% if vista_catalogo == "productos" %}"producto"{% else %}"kit"{% endif %};
-            let activeCategory = "";
+            const categories = document.querySelector(".categories");
+            const activeCategory = categories?.querySelector(".filter.is-active");
+            const explore = document.getElementById("catalogo-explorar");
 
             const normalize = (value) =>
                 (value || "")
@@ -1074,17 +1110,13 @@
                     .replace(/[\u0300-\u036f]/g, "")
                     .trim();
 
-            const syncUrl = () => {
+            const syncQueryUrl = () => {
                 const url = new URL(window.location.href);
                 const rawQuery = search.value.trim();
 
+                // La categoría vive en la ruta. El buscador sólo persiste q.
                 url.searchParams.delete("tipo");
-
-                if (activeCategory) {
-                    url.searchParams.set("categoria", activeCategory);
-                } else {
-                    url.searchParams.delete("categoria");
-                }
+                url.searchParams.delete("categoria");
 
                 if (rawQuery) {
                     url.searchParams.set("q", rawQuery);
@@ -1095,87 +1127,117 @@
                 window.history.replaceState({}, "", url);
             };
 
-            const refreshButtons = () => {
-                kindButtons.forEach((button) => {
-                    button.classList.toggle(
-                        "is-active",
-                        button.dataset.kind === activeKind,
-                    );
-                });
-
-                categoryButtons.forEach((button) => {
-                    button.classList.toggle(
-                        "is-active",
-                        normalize(button.dataset.category) === normalize(activeCategory),
-                    );
-                });
+            const updateCount = (visible) => {
+                if (!count) return;
+                count.textContent =
+                    visible === 1
+                        ? "1 disponible"
+                        : `${visible} disponibles`;
             };
 
-            const apply = ({ updateUrl = true } = {}) => {
+            const applySearch = ({ updateUrl = true } = {}) => {
                 const query = normalize(search.value);
                 let visible = 0;
 
                 items.forEach((item) => {
-                    const kindOk = activeKind === "all" || item.dataset.kind === activeKind;
-                    const categoryOk = !activeCategory || normalize(item.dataset.category) === normalize(activeCategory);
-                    const searchOk = !query || normalize(item.dataset.search).includes(query);
-                    const show = kindOk && categoryOk && searchOk;
+                    const show =
+                        !query
+                        || normalize(item.dataset.search).includes(query);
+
                     item.classList.toggle("hidden-by-filter", !show);
                     if (show) visible += 1;
                 });
 
-                sections.forEach((section) => {
-                    const hasVisible = [...section.querySelectorAll(".catalog-item")]
-                        .some((item) => !item.classList.contains("hidden-by-filter"));
-                    const sectionKind = section.dataset.section;
-                    const sectionAllowed = activeKind === "all" || activeKind === sectionKind;
-                    section.classList.toggle("hidden-by-filter", !(hasVisible && sectionAllowed));
-                });
-
+                updateCount(visible);
                 noResults.style.display = visible ? "none" : "block";
-                refreshButtons();
+
+                if (section) {
+                    section.classList.remove("hidden-by-filter");
+                }
 
                 if (updateUrl) {
-                    syncUrl();
+                    syncQueryUrl();
                 }
             };
 
-            const restoreFromUrl = () => {
+            const restoreSearch = () => {
                 const params = new URLSearchParams(window.location.search);
-                const requestedKind = normalize(params.get("tipo"));
-                const requestedCategory = params.get("categoria") || "";
-                const requestedQuery = params.get("q") || "";
-                const validKinds = new Set(kindButtons.map((button) => button.dataset.kind));
-
-                activeKind = {% if vista_catalogo == "productos" %}"producto"{% else %}"kit"{% endif %};
-
-                const matchingCategory = categoryButtons.find(
-                    (button) => normalize(button.dataset.category) === normalize(requestedCategory),
-                );
-                activeCategory = matchingCategory
-                    ? (matchingCategory.dataset.category || "")
-                    : "";
-
-                search.value = requestedQuery;
-                apply({ updateUrl: false });
+                search.value = params.get("q") || "";
+                applySearch({ updateUrl: false });
             };
 
-            kindButtons.forEach((button) => {
-                button.addEventListener("click", () => {
-                    activeKind = button.dataset.kind;
-                    apply();
+            const centerActiveCategory = () => {
+                if (!categories || !activeCategory) return;
+                const targetLeft =
+                    activeCategory.offsetLeft
+                    - ((categories.clientWidth - activeCategory.offsetWidth) / 2);
+                categories.scrollTo({
+                    left: Math.max(0, targetLeft),
+                    behavior: "auto",
                 });
-            });
+            };
 
-            categoryButtons.forEach((button) => {
-                button.addEventListener("click", () => {
-                    activeCategory = button.dataset.category || "";
-                    apply();
+            const restoreExplorePosition = () => {
+                if (
+                    window.location.hash !== "#catalogo-explorar"
+                    || !explore
+                ) {
+                    return;
+                }
+
+                // El header del catálogo es fixed y en mobile ocupa dos filas.
+                // scrollIntoView() posicionaba el bloque por detrás del header,
+                // ocultando parte del buscador y, a veces, las categorías.
+                const placeBelowHeader = () => {
+                    const fixedHeader = document.querySelector(
+                        ".dv-catalog-header"
+                    );
+                    const headerBottom = fixedHeader
+                        ? fixedHeader.getBoundingClientRect().bottom
+                        : 0;
+                    const exploreTop =
+                        window.scrollY
+                        + explore.getBoundingClientRect().top;
+                    const visualGap = 14;
+
+                    window.scrollTo({
+                        top: Math.max(
+                            0,
+                            exploreTop
+                            - headerBottom
+                            - visualGap,
+                        ),
+                        behavior: "auto",
+                    });
+                };
+
+                // Dos frames aseguran que el header inyectado, fuentes y layout
+                // mobile ya tengan su altura final antes de posicionar.
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(placeBelowHeader);
                 });
-            });
+            };
 
-            search.addEventListener("input", () => apply());
-            restoreFromUrl();
+            search.addEventListener("input", () => applySearch());
+            window.addEventListener(
+                "resize",
+                () => {
+                    if (
+                        window.location.hash
+                        === "#catalogo-explorar"
+                    ) {
+                        restoreExplorePosition();
+                        requestAnimationFrame(
+                            centerActiveCategory
+                        );
+                    }
+                },
+                { passive: true },
+            );
+
+            restoreSearch();
+            requestAnimationFrame(centerActiveCategory);
+            restoreExplorePosition();
         })();
     </script>
     {% include "productos/_catalogo_carrito.html" %}

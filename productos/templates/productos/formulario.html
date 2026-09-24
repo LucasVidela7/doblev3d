@@ -33,6 +33,7 @@ html[data-dv-theme="dark"] .boton{background:var(--dv-surface,#171e2c);border-co
 html[data-dv-theme="dark"] .principal{background:var(--dv-brand-blue,#134a9a);border-color:var(--dv-brand-blue,#134a9a);color:#fff}
 html[data-dv-theme="dark"] .secundario{background:var(--dv-brand-blue-soft,#1b2d47);color:var(--dv-accent-blue-text,#9cc9ff)}
 @media(max-width:760px){.campo label{font-size:10px}.ayuda{font-size:10.5px}.check{font-size:10.5px}}
+.seo-textarea{width:100%;min-height:110px;padding:11px 12px;border:1px solid var(--dv-border,var(--borde));border-radius:12px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);font:inherit;font-size:12px;line-height:1.45;resize:vertical}.seo-textarea--short{min-height:82px}html[data-dv-theme="dark"] .seo-textarea{background:var(--dv-surface,#171e2c);color:var(--dv-text,#edf3ff)}
 </style>
 </head>
 <body>
@@ -51,6 +52,27 @@ html[data-dv-theme="dark"] .secundario{background:var(--dv-brand-blue-soft,#1b2d
 <div class="campo"><label>MARGEN DE GANANCIA (%)</label><input type="number" name="margen_ganancia" min="0" max="99.99" step="0.01" value="{% if request.POST.margen_ganancia %}{{ request.POST.margen_ganancia }}{% elif producto %}{{ producto.margen_ganancia|unlocalize }}{% else %}60{% endif %}" required></div>
 <div class="campo"><label>TIPO DE FABRICACIÓN</label><select name="tipo_fabricacion" id="tipo_fabricacion"><option value="SIMPLE" {% if not request.POST and producto and producto.tipo_fabricacion == 'SIMPLE' %}selected{% elif request.POST.tipo_fabricacion == 'SIMPLE' %}selected{% endif %}>Impresión simple</option><option value="COMPUESTO" {% if not request.POST and producto and producto.tipo_fabricacion == 'COMPUESTO' %}selected{% elif request.POST.tipo_fabricacion == 'COMPUESTO' %}selected{% endif %}>Producto compuesto</option></select></div>
 </div></div>
+<div class="tarjeta tarjeta-identidad">
+  <div class="titulo">CATÁLOGO Y SEO</div>
+  <div class="ayuda">Estos textos describen el producto para clientes y buscadores. Si dejás título o descripción SEO vacíos, el sistema genera una versión automática.</div>
+  <div class="grid">
+    <div class="campo" style="grid-column:1/-1">
+      <label>DESCRIPCIÓN PÚBLICA</label>
+      <textarea class="seo-textarea" name="descripcion_catalogo" maxlength="3000" placeholder="Ej. Pieza sensorial impresa en 3D, ideal para...">{% if request.method == 'POST' %}{{ request.POST.descripcion_catalogo }}{% elif producto %}{{ producto.descripcion_catalogo }}{% endif %}</textarea>
+    </div>
+    <div class="campo" style="grid-column:1/-1">
+      <label>TÍTULO SEO <span class="ayuda">(opcional)</span></label>
+      <input type="text" name="seo_titulo" maxlength="180" value="{% if request.method == 'POST' %}{{ request.POST.seo_titulo }}{% elif producto %}{{ producto.seo_titulo }}{% endif %}" placeholder="Si lo dejás vacío se genera automáticamente">
+    </div>
+    <div class="campo" style="grid-column:1/-1">
+      <label>DESCRIPCIÓN SEO <span class="ayuda">(opcional · hasta 320 caracteres)</span></label>
+      <textarea class="seo-textarea seo-textarea--short" name="seo_descripcion" maxlength="320" placeholder="Resumen para Google y enlaces compartidos">{% if request.method == 'POST' %}{{ request.POST.seo_descripcion }}{% elif producto %}{{ producto.seo_descripcion }}{% endif %}</textarea>
+    </div>
+    {% if producto and producto.slug %}
+    <div class="ayuda" style="grid-column:1/-1"><strong>URL pública:</strong> /productos/{{ producto.slug }}/ · El slug se mantiene estable aunque cambies el nombre.</div>
+    {% endif %}
+  </div>
+</div>
 <div class="tarjeta tarjeta-produccion" id="bloque-simple"><div class="titulo">2 · PRODUCCIÓN · PIEZA SIMPLE</div><div class="ayuda">Completá tiempo y peso reales de una unidad. Estos datos alimentan costos, planificación y recomendaciones de precio.</div><div class="grid3"><div class="campo"><label>HORAS</label><input type="number" name="horas" min="0" value="{% if request.POST.horas %}{{ request.POST.horas }}{% elif producto %}{{ producto.horas }}{% else %}0{% endif %}"></div><div class="campo"><label>MINUTOS</label><input type="number" name="minutos" min="0" value="{% if request.POST.minutos %}{{ request.POST.minutos }}{% elif producto %}{{ producto.minutos }}{% else %}0{% endif %}"></div><div class="campo"><label>PESO (g)</label><input type="number" name="peso_gramos" min="0" step="0.01" value="{% if request.POST.peso_gramos %}{{ request.POST.peso_gramos }}{% elif producto %}{{ producto.peso_gramos|unlocalize }}{% else %}0{% endif %}"></div></div></div>
 <div class="tarjeta tarjeta-produccion" id="bloque-compuesto">
 <div class="titulo">2 · COMPOSICIÓN DEL PRODUCTO</div>

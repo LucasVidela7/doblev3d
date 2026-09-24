@@ -253,7 +253,7 @@ class CatalogoPublicoTests(TestCase):
         self.assertIn(self.kit, response.context["kits"])
 
         detalle = self.client.get(
-            reverse("catalogo_producto_detalle", args=[sin_imagen.id])
+            reverse("catalogo_producto_detalle", args=[sin_imagen.slug])
         )
         self.assertEqual(detalle.status_code, 404)
 
@@ -283,7 +283,7 @@ class CatalogoPublicoTests(TestCase):
         response = self.client.get(reverse("catalogo_kits"))
 
         self.assertEqual(response.status_code, 200)
-        detalle_url = reverse("catalogo_kit_detalle", args=[self.kit.id])
+        detalle_url = reverse("catalogo_kit_detalle", args=[self.kit.slug])
         self.assertContains(response, detalle_url)
         self.assertContains(response, "VER DETALLE")
         self.assertContains(response, 'class="catalog-media-link"')
@@ -294,7 +294,7 @@ class CatalogoPublicoTests(TestCase):
 
     def test_detalle_kit_muestra_breadcrumbs(self):
         response = self.client.get(
-            reverse("catalogo_kit_detalle", args=[self.kit.id])
+            reverse("catalogo_kit_detalle", args=[self.kit.slug])
         )
 
         self.assertEqual(response.status_code, 200)
@@ -306,7 +306,7 @@ class CatalogoPublicoTests(TestCase):
 
     def test_detalle_kit_no_muestra_salto_de_linea_literal(self):
         response = self.client.get(
-            reverse("catalogo_kit_detalle", args=[self.kit.id])
+            reverse("catalogo_kit_detalle", args=[self.kit.slug])
         )
 
         self.assertEqual(response.status_code, 200)
@@ -373,7 +373,7 @@ class CatalogoPublicoTests(TestCase):
         )
 
         response = self.client.get(
-            reverse("catalogo_kit_detalle", args=[kit.id])
+            reverse("catalogo_kit_detalle", args=[kit.slug])
         )
 
         self.assertEqual(response.status_code, 200)
@@ -410,7 +410,7 @@ class CatalogoPublicoTests(TestCase):
         self.kit.save(update_fields=["activo"])
 
         response = self.client.get(
-            reverse("catalogo_kit_detalle", args=[self.kit.id])
+            reverse("catalogo_kit_detalle", args=[self.kit.slug])
         )
 
         self.assertEqual(response.status_code, 404)
@@ -425,7 +425,7 @@ class CatalogoPublicoTests(TestCase):
         self.assertNotContains(listado, self.kit.nombre)
 
         detalle = self.client.get(
-            reverse("catalogo_kit_detalle", args=[self.kit.id])
+            reverse("catalogo_kit_detalle", args=[self.kit.slug])
         )
         self.assertEqual(detalle.status_code, 404)
 
@@ -438,7 +438,7 @@ class CatalogoPublicoTests(TestCase):
 
     def test_detalle_publico_kit_fijo_muestra_composicion(self):
         response = self.client.get(
-            reverse("catalogo_kit_detalle", args=[self.kit.id])
+            reverse("catalogo_kit_detalle", args=[self.kit.slug])
         )
 
         self.assertEqual(response.status_code, 200)
@@ -463,7 +463,7 @@ class CatalogoPublicoTests(TestCase):
 
     def test_detalle_de_kit_reutiliza_modal_como_comprar(self):
         response = self.client.get(
-            reverse("catalogo_kit_detalle", args=[self.kit.id])
+            reverse("catalogo_kit_detalle", args=[self.kit.slug])
         )
 
         self.assertEqual(response.status_code, 200)
@@ -482,7 +482,7 @@ class CatalogoPublicoTests(TestCase):
         productos = self.client.get(reverse("catalogo_productos"))
         kits = self.client.get(reverse("catalogo_kits"))
         detalle = self.client.get(
-            reverse("catalogo_kit_detalle", args=[self.kit.id])
+            reverse("catalogo_kit_detalle", args=[self.kit.slug])
         )
 
         for respuesta in [portada, productos, kits, detalle]:
@@ -500,10 +500,7 @@ class CatalogoPublicoTests(TestCase):
 
     def test_producto_tiene_detalle_publico_y_ayuda_de_compra(self):
         response = self.client.get(
-            reverse(
-                "catalogo_producto_detalle",
-                args=[self.producto.id],
-            )
+            reverse("catalogo_producto_detalle", args=[self.producto.slug])
         )
 
         self.assertEqual(response.status_code, 200)
@@ -551,7 +548,7 @@ class CatalogoPublicoTests(TestCase):
 
         listado = self.client.get(reverse("catalogo_productos"))
         detalle = self.client.get(
-            reverse("catalogo_producto_detalle", args=[compuesto.id])
+            reverse("catalogo_producto_detalle", args=[compuesto.slug])
         )
 
         self.assertEqual(listado.status_code, 200)
@@ -563,7 +560,7 @@ class CatalogoPublicoTests(TestCase):
 
     def test_detalle_producto_muestra_breadcrumbs(self):
         response = self.client.get(
-            reverse("catalogo_producto_detalle", args=[self.producto.id])
+            reverse("catalogo_producto_detalle", args=[self.producto.slug])
         )
 
         self.assertEqual(response.status_code, 200)
@@ -581,10 +578,7 @@ class CatalogoPublicoTests(TestCase):
         self.producto.save(update_fields=["permite_elegir_color"])
 
         response = self.client.get(
-            reverse(
-                "catalogo_producto_detalle",
-                args=[self.producto.id],
-            )
+            reverse("catalogo_producto_detalle", args=[self.producto.slug])
         )
 
         self.assertEqual(response.status_code, 200)
@@ -615,10 +609,7 @@ class CatalogoPublicoTests(TestCase):
         self.producto.save(update_fields=["permite_elegir_color"])
 
         response = self.client.get(
-            reverse(
-                "catalogo_producto_detalle",
-                args=[self.producto.id],
-            )
+            reverse("catalogo_producto_detalle", args=[self.producto.slug])
         )
 
         self.assertEqual(response.status_code, 200)
@@ -658,7 +649,7 @@ class CatalogoPublicoTests(TestCase):
         )
 
         response = self.client.get(
-            reverse("catalogo_kit_detalle", args=[kit.id])
+            reverse("catalogo_kit_detalle", args=[kit.slug])
         )
 
         self.assertEqual(response.status_code, 200)
@@ -682,10 +673,7 @@ class CatalogoPublicoTests(TestCase):
         self.producto.save(update_fields=["activo"])
 
         response = self.client.get(
-            reverse(
-                "catalogo_producto_detalle",
-                args=[self.producto.id],
-            )
+            reverse("catalogo_producto_detalle", args=[self.producto.slug])
         )
 
         self.assertEqual(response.status_code, 404)
@@ -698,10 +686,7 @@ class CatalogoPublicoTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(
             response,
-            reverse(
-                "catalogo_producto_detalle",
-                args=[self.producto.id],
-            ),
+            reverse("catalogo_producto_detalle", args=[self.producto.slug]),
         )
         self.assertContains(response, "Precio unitario")
 
@@ -846,10 +831,7 @@ class CatalogoPublicoTests(TestCase):
 
     def test_detalle_producto_publica_open_graph_con_foto_principal(self):
         response = self.client.get(
-            reverse(
-                "catalogo_producto_detalle",
-                args=[self.producto.id],
-            )
+            reverse("catalogo_producto_detalle", args=[self.producto.slug])
         )
 
         self.assertEqual(response.status_code, 200)
@@ -883,16 +865,13 @@ class CatalogoPublicoTests(TestCase):
         self.assertContains(
             response,
             'rel="canonical" href="http://testserver/productos/'
-            + str(self.producto.id)
+            + self.producto.slug
             + '/"',
         )
 
     def test_detalle_kit_publica_open_graph_con_collage_2x2(self):
         response = self.client.get(
-            reverse(
-                "catalogo_kit_detalle",
-                args=[self.kit.id],
-            )
+            reverse("catalogo_kit_detalle", args=[self.kit.slug])
         )
 
         self.assertEqual(response.status_code, 200)
@@ -1004,3 +983,190 @@ class CatalogoPublicoTests(TestCase):
 
         self.assertEqual(producto.status_code, 200)
         self.assertEqual(kit.status_code, 200)
+
+
+    def test_url_numerica_de_producto_redirige_301_al_slug(self):
+        response = self.client.get(
+            reverse(
+                "catalogo_producto_legacy",
+                args=[self.producto.id],
+            )
+        )
+
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(
+            response["Location"],
+            reverse(
+                "catalogo_producto_detalle",
+                args=[self.producto.slug],
+            ),
+        )
+
+    def test_url_numerica_de_kit_redirige_301_al_slug(self):
+        response = self.client.get(
+            reverse(
+                "catalogo_kit_legacy",
+                args=[self.kit.id],
+            )
+        )
+
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(
+            response["Location"],
+            reverse(
+                "catalogo_kit_detalle",
+                args=[self.kit.slug],
+            ),
+        )
+
+    def test_categoria_de_productos_mantiene_contexto_productos(self):
+        self.tipo.descripcion_catalogo = (
+            "Objetos sensoriales impresos en 3D para explorar "
+            "texturas, formas y movimiento."
+        )
+        self.tipo.seo_titulo = (
+            "Juguetes sensoriales impresos en 3D | Doble V 3D"
+        )
+        self.tipo.save(
+            update_fields=[
+                "descripcion_catalogo",
+                "seo_titulo",
+            ]
+        )
+
+        response = self.client.get(
+            reverse(
+                "catalogo_categoria_productos",
+                args=[self.tipo.slug],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Juguetes sensoriales impresos en 3D | Doble V 3D",
+        )
+        self.assertContains(
+            response,
+            "Objetos sensoriales impresos en 3D",
+        )
+        self.assertContains(response, self.producto.nombre)
+        self.assertNotContains(response, self.kit.nombre)
+        self.assertNotContains(
+            response,
+            '>Inicio</a>',
+        )
+        self.assertContains(
+            response,
+            reverse(
+                "catalogo_producto_detalle",
+                args=[self.producto.slug],
+            ),
+        )
+
+    def test_categoria_de_kits_mantiene_contexto_kits(self):
+        response = self.client.get(
+            reverse(
+                "catalogo_categoria_kits",
+                args=[self.tipo.slug],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.kit.nombre)
+        self.assertNotContains(response, self.producto.nombre)
+        self.assertContains(
+            response,
+            reverse("catalogo_kits"),
+        )
+        self.assertNotContains(
+            response,
+            '>Inicio</a>',
+        )
+        self.assertContains(
+            response,
+            reverse(
+                "catalogo_kit_detalle",
+                args=[self.kit.slug],
+            ),
+        )
+
+    def test_slug_de_producto_permanece_estable_al_cambiar_nombre(self):
+        slug_original = self.producto.slug
+        self.producto.nombre = "Piña sensorial renombrada"
+        self.producto.save(update_fields=["nombre"])
+
+        self.producto.refresh_from_db()
+        self.assertEqual(
+            self.producto.slug,
+            slug_original,
+        )
+
+
+    def test_filtro_historico_de_categoria_redirige_a_landing_seo(self):
+        response = self.client.get(
+            reverse("catalogo_productos"),
+            {
+                "categoria": self.tipo.slug,
+                "q": "Piña",
+            },
+        )
+
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(
+            response["Location"],
+            (
+                reverse(
+                    "catalogo_categoria_productos",
+                    args=[self.tipo.slug],
+                )
+                + "?q=Pi%C3%B1a"
+            ),
+        )
+
+
+    def test_categoria_recarga_en_buscador_y_buscador_filtra_solo_texto(self):
+        response = self.client.get(
+            reverse(
+                "catalogo_categoria_productos",
+                args=[self.tipo.slug],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            '#catalogo-explorar',
+        )
+        self.assertContains(
+            response,
+            'id="catalogo-explorar"',
+        )
+        self.assertContains(
+            response,
+            'url.searchParams.delete("categoria")',
+        )
+        self.assertContains(
+            response,
+            'const updateCount = (visible)',
+        )
+        self.assertContains(
+            response,
+            'requestAnimationFrame(centerActiveCategory)',
+        )
+        self.assertContains(
+            response,
+            'document.querySelector(".dv-catalog-header")',
+        )
+        self.assertContains(
+            response,
+            'const visualGap = 14',
+        )
+        self.assertNotContains(
+            response,
+            'explore.scrollIntoView',
+        )
+        self.assertContains(
+            response,
+            "Buscar dentro de Sensoriales",
+        )

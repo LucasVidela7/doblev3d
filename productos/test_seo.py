@@ -103,10 +103,7 @@ class SEOTestCase(TestCase):
 
     def test_producto_publica_product_offer_y_breadcrumb_schema(self):
         response = self.client.get(
-            reverse(
-                "catalogo_producto_detalle",
-                args=[self.producto.id],
-            )
+            reverse("catalogo_producto_detalle", args=[self.producto.slug])
         )
 
         self.assertEqual(response.status_code, 200)
@@ -127,10 +124,7 @@ class SEOTestCase(TestCase):
 
     def test_kit_publica_product_offer_y_breadcrumb_schema(self):
         response = self.client.get(
-            reverse(
-                "catalogo_kit_detalle",
-                args=[self.kit.id],
-            )
+            reverse("catalogo_kit_detalle", args=[self.kit.slug])
         )
 
         self.assertEqual(response.status_code, 200)
@@ -166,10 +160,7 @@ class SEOTestCase(TestCase):
     @override_settings(APP_ENV="qa")
     def test_qa_bloquea_indexacion_globalmente(self):
         response = self.client.get(
-            reverse(
-                "catalogo_producto_detalle",
-                args=[self.producto.id],
-            )
+            reverse("catalogo_producto_detalle", args=[self.producto.slug])
         )
 
         self.assertEqual(response.status_code, 200)
@@ -208,21 +199,64 @@ class SEOTestCase(TestCase):
         body = response.content.decode("utf-8")
         self.assertIn(
             "http://testserver/productos/"
-            + str(self.producto.id)
+            + self.producto.slug
             + "/",
             body,
         )
         self.assertIn(
             "http://testserver/kits/"
-            + str(self.kit.id)
+            + self.kit.slug
             + "/",
             body,
         )
         self.assertNotIn(
             "http://testserver/productos/"
-            + str(self.interno.id)
+            + self.interno.slug
+            + "/",
+            body,
+        )
+        self.assertIn(
+            "http://testserver/productos/categorias/"
+            + self.tipo.slug
+            + "/",
+            body,
+        )
+        self.assertIn(
+            "http://testserver/kits/categorias/"
+            + self.tipo.slug
             + "/",
             body,
         )
         self.assertNotIn("/carrito/", body)
         self.assertNotIn("/solicitud/", body)
+
+
+    def test_contenido_seo_personalizado_reemplaza_fallback(self):
+        self.producto.seo_titulo = "Piña antiestrés 3D | Doble V 3D"
+        self.producto.seo_descripcion = (
+            "Piña sensorial impresa en 3D con textura y movimiento."
+        )
+        self.producto.save(
+            update_fields=[
+                "seo_titulo",
+                "seo_descripcion",
+            ]
+        )
+
+        response = self.client.get(
+            reverse(
+                "catalogo_producto_detalle",
+                args=[self.producto.slug],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "<title>Piña antiestrés 3D | Doble V 3D</title>",
+            html=True,
+        )
+        self.assertContains(
+            response,
+            'content="Piña sensorial impresa en 3D con textura y movimiento."',
+        )

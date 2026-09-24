@@ -46,6 +46,7 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
 .recomendacion.revisar .recomendacion-estado{background:var(--amarillo);color:var(--amarillo-t)}
 .nav{position:fixed;z-index:30;bottom:8px;left:50%;transform:translateX(-50%);width:min(720px,calc(100% - 16px));display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:#25282d;padding:7px;border-radius:19px}.nav a{min-height:57px;color:#ddd;text-decoration:none;font-size:9px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:13px}.nav b{font-size:18px}
 @media(max-width:700px){.acciones{width:100%}.btn{flex:1}.btn.principal{margin-left:0;min-width:0;flex:1.25}.secciones{grid-template-columns:1fr 1fr}.grid,.modalidades{grid-template-columns:1fr}.full{grid-column:auto}.componente{grid-template-columns:1fr 90px 42px}.recomendacion{grid-template-columns:1fr}.recomendacion-precio{text-align:left}.recomendacion-precio strong{font-size:22px}}
+.dv-kits-form textarea{width:100%;min-height:110px;padding:11px 12px;border:1px solid var(--dv-border,#dfe5ef);border-radius:12px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);font:inherit;font-size:12px;line-height:1.45;resize:vertical}.dv-kits-form textarea.seo-short{min-height:82px}
 </style>
 </head>
 <body class="dv-kits-page dv-kits-form">
@@ -90,6 +91,28 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
                     <option value="0" {% if kit and not kit.activo %}selected{% endif %}>INACTIVO</option>
                 </select>
             </div>
+        </div>
+
+        <div class="card grid" id="seo">
+            <div class="full"><div class="seccion-titulo">CATÁLOGO Y SEO</div></div>
+            <div class="full ayuda">
+                Describí el kit con lenguaje útil para el cliente. Título y descripción SEO son opcionales; si quedan vacíos se generan automáticamente.
+            </div>
+            <div class="full">
+                <label>DESCRIPCIÓN PÚBLICA</label>
+                <textarea name="descripcion_catalogo" maxlength="3000" placeholder="Ej. Kit sensorial de 4 piezas para elegir...">{% if request.method == 'POST' %}{{ request.POST.descripcion_catalogo }}{% elif kit %}{{ kit.descripcion_catalogo }}{% endif %}</textarea>
+            </div>
+            <div class="full">
+                <label>TÍTULO SEO <span class="ayuda">(opcional)</span></label>
+                <input name="seo_titulo" maxlength="180" value="{% if request.method == 'POST' %}{{ request.POST.seo_titulo }}{% elif kit %}{{ kit.seo_titulo }}{% endif %}" placeholder="Si lo dejás vacío se genera automáticamente">
+            </div>
+            <div class="full">
+                <label>DESCRIPCIÓN SEO <span class="ayuda">(opcional · hasta 320 caracteres)</span></label>
+                <textarea name="seo_descripcion" maxlength="320" class="seo-short" placeholder="Resumen para Google y enlaces compartidos">{% if request.method == 'POST' %}{{ request.POST.seo_descripcion }}{% elif kit %}{{ kit.seo_descripcion }}{% endif %}</textarea>
+            </div>
+            {% if kit and kit.slug %}
+            <div class="full ayuda"><strong>URL pública:</strong> /kits/{{ kit.slug }}/ · El slug se mantiene estable aunque cambies el nombre.</div>
+            {% endif %}
         </div>
 
         <div class="card" id="composicion">
@@ -257,7 +280,7 @@ input,select{width:100%;min-height:49px;border:1px solid #d7dade;border-radius:1
                 {% endif %}
             </div>
             {% if kit and kit.id %}
-                <a class="btn" style="margin-top:12px" href="{% url 'catalogo_kit_detalle' kit.id %}" target="_blank" rel="noopener">VER EN CATÁLOGO</a>
+                <a class="btn" style="margin-top:12px" href="{% url 'catalogo_kit_detalle' kit.slug %}" target="_blank" rel="noopener">VER EN CATÁLOGO</a>
             {% endif %}
         </div>
 
