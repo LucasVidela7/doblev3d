@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils import timezone
 
 from pedidos.finanzas_services import crear_cuotas_gasto
@@ -330,7 +331,8 @@ def registrar_compra(request):
     if origen == "finanzas":
         periodo = fecha_compra.strftime("%Y-%m")
         return redirect(
-            f"/gestion/pedidos/finanzas/?periodo={periodo}&vista=gastos"
+            f"{reverse('pedidos:finanzas')}"
+            f"?periodo={periodo}&vista=gastos"
         )
 
     return redirect("productos:compras_insumos")
