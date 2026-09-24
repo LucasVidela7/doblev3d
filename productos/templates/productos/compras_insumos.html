@@ -117,7 +117,7 @@ h1{margin:0;font-size:34px}.sub{margin-top:5px;color:var(--dv-muted,#667085);fon
           <thead><tr><th>COMPRA</th><th>FECHA</th><th>PROVEEDOR</th><th>INSUMOS</th><th>MEDIO</th><th class="money">TOTAL</th></tr></thead>
           <tbody>
           {% for compra in compras_pagina %}
-            <tr>
+            <tr id="compra-{{ compra.id }}">
               <td><div class="code">{{ compra.codigo }}</div><div class="muted">Gasto #{{ compra.gasto_id }}</div></td>
               <td>{{ compra.fecha_compra|date:"d/m/Y" }}</td>
               <td>{{ compra.proveedor|default:"—" }}</td>
