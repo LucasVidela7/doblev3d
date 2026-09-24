@@ -104,3 +104,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-24 - QA usa fotos de production como fallback de solo lectura
 2026-09-24 - Catálogo: composición de compuestos, tooltips de color y breadcrumbs
 2026-09-24 - Corregir Inicio como link textual en breadcrumbs
+2026-09-24 - Breadcrumbs oscurecen al hover sin subrayado
