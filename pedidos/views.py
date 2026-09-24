@@ -27,6 +27,7 @@ from datetime import date, datetime, time, timedelta
 
 from .models import (
     Pedido,
+    PedidoEmpaque,
     DetallePedido,
     DetalleKitProducto,
     EstadoImpresionPedido,
@@ -59,6 +60,12 @@ def _costo_actual_producto(producto):
     Usa el cálculo ya existente en Producto y evita duplicar
     la fórmula de costos dentro de Pedidos.
     """
+    costo_total = _decimal_seguro(
+        getattr(producto, "costo_productivo_total", None)
+    )
+    if costo_total is not None:
+        return max(costo_total, Decimal("0"))
+
     costo = _decimal_seguro(
         getattr(producto, "costo", None)
     )
@@ -3497,7 +3504,15 @@ def _rentabilidad_acumulada():
         Decimal("0"),
     )
 
-    costos = costos_snapshot + costos_estimados
+    costo_empaques = (
+        PedidoEmpaque.objects
+        .exclude(pedido__estado="CANCELADO")
+        .aggregate(total=Sum("costo_total_snapshot"))
+        .get("total")
+        or Decimal("0")
+    )
+
+    costos = costos_snapshot + costos_estimados + costo_empaques
 
     return {
         "ventas": ventas,
@@ -3752,6 +3767,9 @@ def finanzas(request):
 
             costo_pedido += costo_detalle
 
+        costo_empaque_pedido = pedido.costo_empaque_real
+        costo_pedido += costo_empaque_pedido
+
         ganancia_pedido = (
             venta_pedido - costo_pedido
         )
@@ -3777,6 +3795,7 @@ def finanzas(request):
                     "pedido": pedido,
                     "venta": venta_pedido,
                     "costo": costo_pedido,
+                    "costo_empaque": costo_empaque_pedido,
                     "ganancia": ganancia_pedido,
                     "margen": margen_pedido,
                     "pagado": pagado_pedido,
