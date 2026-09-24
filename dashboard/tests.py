@@ -517,6 +517,49 @@ class DashboardProduccionTests(TestCase):
             ["Rojo", "#12AB34", "Acqua"],
         )
 
+    def test_configuracion_color_personalizado_con_nombre_editable(self):
+        respuesta = self.client.post(
+            reverse("dashboard:configuracion"),
+            {
+                "config_seccion": "tienda",
+                "colores_disponibles": (
+                    "Rojo\nVerde manzana|#12ab34"
+                ),
+                "redondeo_precio_producto": "100",
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 302)
+        config = ConfiguracionCatalogo.objects.get(pk=1)
+        self.assertEqual(
+            config.colores_disponibles,
+            "Rojo\nVerde manzana|#12AB34",
+        )
+        self.assertEqual(
+            config.colores_disponibles_lista,
+            ["Rojo", "Verde manzana"],
+        )
+        self.assertEqual(
+            config.colores_disponibles_detalle[1]["hex"],
+            "#12AB34",
+        )
+
+        pagina = self.client.get(
+            reverse("dashboard:configuracion")
+        )
+        self.assertContains(
+            pagina,
+            'value="Verde manzana"',
+        )
+        self.assertContains(
+            pagina,
+            'data-cfg-custom-hex="#12AB34"',
+        )
+        self.assertContains(
+            pagina,
+            'id="cfgColorName"',
+        )
+
     def test_configuracion_redondeo_se_normaliza_a_multiplo_de_100(self):
         respuesta = self.client.post(
             reverse("dashboard:configuracion"),
