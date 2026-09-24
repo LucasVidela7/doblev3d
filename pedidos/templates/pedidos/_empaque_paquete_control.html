@@ -20,7 +20,7 @@
     <form method="post" action="{% url 'pedidos:usar_empaque' pedido.id %}" class="pedido-empaque-form">
         {% csrf_token %}
         <input type="hidden" name="clave_paquete" value="{{ paquete.clave }}">
-        <select name="insumo_id" aria-label="Empaque para {{ paquete.descripcion|default:paquete.nombre_kit }}" required>
+        <select name="insumo_id" aria-label="Empaque del paquete" required>
             <option value="">Elegir empaque...</option>
             {% for insumo in paquete.opciones_empaque %}
             <option
