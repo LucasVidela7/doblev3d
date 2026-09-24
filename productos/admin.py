@@ -97,7 +97,6 @@ class CompraInsumoAdmin(admin.ModelAdmin):
         "gasto__descripcion",
     )
     list_filter = ("fecha_compra",)
-    autocomplete_fields = ("gasto",)
     inlines = (CompraInsumoItemInline,)
 
 
