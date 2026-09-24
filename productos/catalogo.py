@@ -18,6 +18,7 @@ from .image_environment import (
 )
 from .image_models import ProductoImagen
 from .models import ConfiguracionCatalogo, Producto
+from .seo import seo_catalogo, seo_kit, seo_producto
 
 
 def _url_absoluta(request, url):
@@ -265,6 +266,11 @@ def _catalogo_publico(request, vista_catalogo):
             "mensaje_plazo_entrega": (
                 config_catalogo.mensaje_plazo_entrega
             ),
+            **seo_catalogo(
+                request,
+                vista_catalogo,
+                config_catalogo,
+            ),
         },
     )
 
@@ -345,24 +351,10 @@ def catalogo_producto_detalle(request, producto_id):
             "colores_disponibles": (
                 config_catalogo.colores_disponibles_detalle
             ),
-            **_social_defaults(request),
-            "social_image_is_generated": bool(
-                producto.catalogo_imagen_url
-            ),
-            "social_image_url": (
-                request.build_absolute_uri(
-                    reverse(
-                        "catalogo_producto_social_preview",
-                        args=[producto.id],
-                    )
-                )
-                if producto.catalogo_imagen_url
-                else request.build_absolute_uri(
-                    static("brand/logo.png")
-                )
-            ),
-            "social_description": (
-                f"{producto.nombre} · Producto de Doble V 3D."
+            **seo_producto(
+                request,
+                producto,
+                image_url=producto.catalogo_imagen_url,
             ),
         },
     )
@@ -530,32 +522,16 @@ def catalogo_kit_detalle(request, kit_id):
                 config_catalogo.colores_disponibles_detalle
             ),
             "adicional_color_kit": adicional_color_kit,
-            **_social_defaults(request),
-            "social_image_is_collage": bool(
-                getattr(
-                    kit,
-                    "productos_visuales_collage",
-                    [],
-                )
-            ),
-            "social_image_url": (
-                request.build_absolute_uri(
-                    reverse(
-                        "catalogo_kit_social_preview",
-                        args=[kit.id],
+            **seo_kit(
+                request,
+                kit,
+                image_available=bool(
+                    getattr(
+                        kit,
+                        "productos_visuales_collage",
+                        [],
                     )
-                )
-                if getattr(
-                    kit,
-                    "productos_visuales_collage",
-                    [],
-                )
-                else request.build_absolute_uri(
-                    static("brand/logo.png")
-                )
-            ),
-            "social_description": (
-                f"{kit.nombre} · Kit de Doble V 3D."
+                ),
             ),
         },
     )
