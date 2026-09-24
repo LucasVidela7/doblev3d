@@ -29,6 +29,7 @@ from .empaques import (
     _restaurar_uso_empaque,
     costo_embalaje_para_rentabilidad,
 )
+from .finanzas_services import crear_cuotas_gasto
 from .models import (
     Pedido,
     PedidoEmpaque,
@@ -2893,106 +2894,6 @@ def editar_pedido(request, pedido_id):
 # GASTOS / CUOTAS
 # ==========================================================
 
-def _fecha_mas_meses(fecha, meses):
-    """
-    Suma meses sin depender de librerías externas.
-    Si el día no existe en el mes destino, usa el último día.
-    """
-    indice = (
-        fecha.year * 12
-        + fecha.month - 1
-        + meses
-    )
-
-    anio = indice // 12
-    mes = indice % 12 + 1
-    ultimo_dia = monthrange(
-        anio,
-        mes,
-    )[1]
-
-    return date(
-        anio,
-        mes,
-        min(fecha.day, ultimo_dia),
-    )
-
-
-def _crear_cuotas_gasto(gasto):
-    gasto.cuotas.all().delete()
-
-    cantidad = max(
-        int(gasto.cantidad_cuotas or 1),
-        1,
-    )
-
-    total = Decimal(
-        str(gasto.monto_total)
-    ).quantize(
-        Decimal("0.01")
-    )
-
-    monto_base = (
-        total / Decimal(cantidad)
-    ).quantize(
-        Decimal("0.01"),
-        rounding=ROUND_HALF_UP,
-    )
-
-    if gasto.medio_pago == "TARJETA_CREDITO":
-        fecha_base = (
-            gasto.fecha_primera_cuota
-            or gasto.fecha_compra
-        )
-
-        acumulado = Decimal("0")
-
-        for numero in range(1, cantidad + 1):
-            if numero < cantidad:
-                monto = monto_base
-                acumulado += monto
-            else:
-                monto = (
-                    total - acumulado
-                ).quantize(
-                    Decimal("0.01")
-                )
-
-            CuotaGasto.objects.create(
-                gasto=gasto,
-                numero=numero,
-                fecha_vencimiento=_fecha_mas_meses(
-                    fecha_base,
-                    numero - 1,
-                ),
-                monto=monto,
-                pagada=False,
-                fecha_pago=None,
-                pagada_en=None,
-            )
-
-    else:
-        if gasto.fecha_compra == timezone.localdate():
-            pagada_en = timezone.now()
-        else:
-            pagada_en = timezone.make_aware(
-                datetime.combine(
-                    gasto.fecha_compra,
-                    time.min,
-                )
-            )
-
-        CuotaGasto.objects.create(
-            gasto=gasto,
-            numero=1,
-            fecha_vencimiento=gasto.fecha_compra,
-            monto=total,
-            pagada=True,
-            fecha_pago=gasto.fecha_compra,
-            pagada_en=pagada_en,
-        )
-
-
 @transaction.atomic
 def registrar_gasto(request):
     if request.method != "POST":
@@ -3174,7 +3075,7 @@ def registrar_gasto(request):
         observaciones=observaciones,
     )
 
-    _crear_cuotas_gasto(
+    crear_cuotas_gasto(
         gasto
     )
 
