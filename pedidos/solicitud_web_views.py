@@ -11,6 +11,7 @@ from productos.whatsapp import (
     whatsapp_url,
 )
 
+from .empaques import estimar_embalaje_items
 from .miniaturas import asignar_miniatura_resumen, asignar_miniaturas_items
 from .models import (
     DetallePresupuesto,
@@ -130,7 +131,7 @@ def detalle_solicitud_web(request, solicitud_id):
         .select_related("presupuesto_generado")
         .prefetch_related(
             "items__producto",
-            "items__kit",
+            "items__kit__componentes__producto",
             "items__productos_kit__producto",
         ),
         id=solicitud_id,
@@ -151,6 +152,7 @@ def detalle_solicitud_web(request, solicitud_id):
 
     items = list(solicitud.items.all())
     asignar_miniaturas_items(items)
+    embalaje_estimado = estimar_embalaje_items(items)
     cliente_existente, diferencias_cliente = (
         _cliente_existente_y_diferencias(solicitud)
     )
@@ -165,6 +167,7 @@ def detalle_solicitud_web(request, solicitud_id):
             "whatsapp_url_cliente": whatsapp_url_cliente,
             "cliente_existente": cliente_existente,
             "diferencias_cliente": diferencias_cliente,
+            "embalaje_estimado": embalaje_estimado,
         },
     )
 
