@@ -494,6 +494,29 @@ class DashboardProduccionTests(TestCase):
         solicitud.refresh_from_db()
         self.assertEqual(solicitud.estado, "RESUELTA")
 
+    def test_configuracion_colores_normaliza_presets_y_hex(self):
+        respuesta = self.client.post(
+            reverse("dashboard:configuracion"),
+            {
+                "config_seccion": "tienda",
+                "colores_disponibles": (
+                    "rojo\n#12ab34\nROJO\nAcqua\n12AB34"
+                ),
+                "redondeo_precio_producto": "100",
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 302)
+        config = ConfiguracionCatalogo.objects.get(pk=1)
+        self.assertEqual(
+            config.colores_disponibles,
+            "Rojo\n#12AB34\nAcqua",
+        )
+        self.assertEqual(
+            config.colores_disponibles_lista,
+            ["Rojo", "#12AB34", "Acqua"],
+        )
+
     def test_configuracion_redondeo_se_normaliza_a_multiplo_de_100(self):
         respuesta = self.client.post(
             reverse("dashboard:configuracion"),
@@ -607,6 +630,22 @@ class DashboardProduccionTests(TestCase):
         self.assertContains(
             respuesta,
             "Mostrar productos sin foto",
+        )
+        self.assertContains(
+            respuesta,
+            'id="cfgColorManager"',
+        )
+        self.assertContains(
+            respuesta,
+            'data-cfg-color-preset',
+        )
+        self.assertContains(
+            respuesta,
+            'id="cfgColorHex"',
+        )
+        self.assertContains(
+            respuesta,
+            'id="cfgColorAdd"',
         )
 
     def test_configuracion_guarda_tienda_y_mensajes_whatsapp(self):
