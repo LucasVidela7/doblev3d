@@ -25,10 +25,14 @@ from collections import defaultdict
 from calendar import monthrange
 from datetime import date, datetime, time, timedelta
 
-from .empaques import costo_embalaje_para_rentabilidad
+from .empaques import (
+    _restaurar_uso_empaque,
+    costo_embalaje_para_rentabilidad,
+)
 from .models import (
     Pedido,
     PedidoEmpaque,
+    PedidoEmpaqueComplemento,
     DetallePedido,
     DetalleKitProducto,
     EstadoImpresionPedido,
@@ -3512,8 +3516,20 @@ def _rentabilidad_acumulada():
         .get("total")
         or Decimal("0")
     )
+    costo_empaques_complementarios = (
+        PedidoEmpaqueComplemento.objects
+        .exclude(pedido_empaque__pedido__estado="CANCELADO")
+        .aggregate(total=Sum("costo_total_snapshot"))
+        .get("total")
+        or Decimal("0")
+    )
 
-    costos = costos_snapshot + costos_estimados + costo_empaques
+    costos = (
+        costos_snapshot
+        + costos_estimados
+        + costo_empaques
+        + costo_empaques_complementarios
+    )
 
     return {
         "ventas": ventas,
@@ -3694,15 +3710,11 @@ def _restaurar_empaques_pedido(pedido):
         PedidoEmpaque.objects
         .select_for_update()
         .filter(pedido=pedido)
+        .prefetch_related("complementos")
         .order_by("insumo_id", "id")
     )
     for uso in usos:
-        insumo = Insumo.objects.select_for_update().get(id=uso.insumo_id)
-        insumo.stock = (
-            Decimal(str(insumo.stock or 0))
-            + Decimal(str(uso.cantidad or 0))
-        )
-        insumo.save(update_fields=["stock"])
+        _restaurar_uso_empaque(uso)
     if usos:
         PedidoEmpaque.objects.filter(
             id__in=[uso.id for uso in usos]
