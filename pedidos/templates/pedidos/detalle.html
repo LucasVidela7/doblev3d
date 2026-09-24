@@ -125,7 +125,7 @@
             <section class="panel">
                 <div class="panel-cabecera">
                     <div><div class="panel-titulo">Preparación del pedido</div><div class="panel-subtitulo">Disponibilidad, faltantes y productos preparados</div></div>
-                    <div class="prep-resumen"><span class="prep-contador">{{ preparacion_listos }}/{{ preparacion_total }} listos</span></div>
+                    <div class="prep-resumen"><span class="prep-contador">{{ preparacion_listos }}/{{ preparacion_total }} listos</span>{% if costo_empaque_real > 0 %}<span class="chip ok">EMPAQUE $ {{ costo_empaque_real|floatformat:"0g" }}</span>{% endif %}</div>
                 </div>
                 {% if preparacion_total %}<div class="progreso"><div class="progreso-valor" style="width:{{ preparacion_porcentaje }}%"></div></div>{% endif %}
                 {% if preparacion %}
