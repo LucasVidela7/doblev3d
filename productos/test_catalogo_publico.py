@@ -1123,3 +1123,38 @@ class CatalogoPublicoTests(TestCase):
                 + "?q=Pi%C3%B1a"
             ),
         )
+
+
+    def test_categoria_recarga_en_buscador_y_buscador_filtra_solo_texto(self):
+        response = self.client.get(
+            reverse(
+                "catalogo_categoria_productos",
+                args=[self.tipo.slug],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            '#catalogo-explorar',
+        )
+        self.assertContains(
+            response,
+            'id="catalogo-explorar"',
+        )
+        self.assertContains(
+            response,
+            'url.searchParams.delete("categoria")',
+        )
+        self.assertContains(
+            response,
+            'const updateCount = (visible)',
+        )
+        self.assertContains(
+            response,
+            'requestAnimationFrame(centerActiveCategory)',
+        )
+        self.assertContains(
+            response,
+            "Buscar dentro de Sensoriales",
+        )
