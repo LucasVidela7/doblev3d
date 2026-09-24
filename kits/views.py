@@ -96,6 +96,24 @@ def _formulario_kit(
             "nombre",
             "",
         ).strip()
+        descripcion_catalogo = (
+            request.POST.get(
+                "descripcion_catalogo",
+                "",
+            ).strip()
+        )
+        seo_titulo = (
+            request.POST.get(
+                "seo_titulo",
+                "",
+            ).strip()[:180]
+        )
+        seo_descripcion = (
+            request.POST.get(
+                "seo_descripcion",
+                "",
+            ).strip()[:320]
+        )
 
         modalidad = request.POST.get(
             "modalidad",
@@ -189,6 +207,9 @@ def _formulario_kit(
             kit = Kit()
 
         kit.nombre = nombre
+        kit.descripcion_catalogo = descripcion_catalogo
+        kit.seo_titulo = seo_titulo
+        kit.seo_descripcion = seo_descripcion
         kit.modalidad = modalidad
         kit.precio = precio
         kit.activo = activo
