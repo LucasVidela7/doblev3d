@@ -108,6 +108,9 @@ def _leer_post(request, insumo=None):
         "proveedor": (request.POST.get("proveedor") or "").strip()[:160],
         "url_referencia": (request.POST.get("url_referencia") or "").strip()[:500],
         "incremento_personalizado": (request.POST.get("incremento_personalizado") or "").strip(),
+        "disponible_como_complementario": (
+            request.POST.get("disponible_como_complementario") == "on"
+        ),
         "activo": request.POST.get("activo") == "on",
     }
 
@@ -185,6 +188,9 @@ def _leer_post(request, insumo=None):
     if valores["nombre"] and duplicado.exists():
         errores.append("Ya existe un insumo con ese nombre.")
 
+    if valores["tipo_uso"] != "EMPAQUE":
+        valores["disponible_como_complementario"] = False
+
     datos = {
         "nombre": valores["nombre"],
         "tipo_uso": valores["tipo_uso"],
@@ -195,6 +201,9 @@ def _leer_post(request, insumo=None):
         "proveedor": valores["proveedor"],
         "url_referencia": valores["url_referencia"],
         "incremento_personalizado": incremento,
+        "disponible_como_complementario": (
+            valores["disponible_como_complementario"]
+        ),
         "activo": valores["activo"],
     }
     return datos, valores, errores
@@ -267,6 +276,9 @@ def editar(request, insumo_id):
             insumo.incremento_personalizado
             if insumo.incremento_personalizado is not None
             else ""
+        ),
+        "disponible_como_complementario": (
+            insumo.disponible_como_complementario
         ),
         "activo": insumo.activo,
     }
