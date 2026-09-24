@@ -119,6 +119,8 @@
         <div class="metrica"><div class="metrica-label">UNIDADES</div><div class="metrica-valor">{{ cantidad_unidades }}</div><div class="metrica-nota">{{ cantidad_lineas }} líneas comerciales</div></div>
     </section>
 
+    {% include "pedidos/_embalaje_estimado.html" %}
+
     <div class="layout">
         <main class="columna">
             {% if pedido_activo %}
