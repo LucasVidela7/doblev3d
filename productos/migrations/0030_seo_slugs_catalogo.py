@@ -70,17 +70,33 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="tipoproducto",
             name="descripcion_catalogo",
-            field=models.TextField(blank=True, default=""),
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Texto visible en la página pública de esta categoría.",
+            ),
         ),
         migrations.AddField(
             model_name="tipoproducto",
             name="seo_titulo",
-            field=models.CharField(max_length=160, blank=True, default=""),
+            field=models.CharField(
+                max_length=160,
+                blank=True,
+                default="",
+                help_text=(
+                    "Título SEO opcional. Si se deja vacío, se genera automáticamente."
+                ),
+            ),
         ),
         migrations.AddField(
             model_name="tipoproducto",
             name="seo_descripcion",
-            field=models.CharField(max_length=320, blank=True, default=""),
+            field=models.CharField(
+                max_length=320,
+                blank=True,
+                default="",
+                help_text="Descripción SEO opcional para buscadores.",
+            ),
         ),
         migrations.AddField(
             model_name="producto",
@@ -95,17 +111,35 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="producto",
             name="descripcion_catalogo",
-            field=models.TextField(blank=True, default=""),
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Descripción visible en el detalle público del producto.",
+            ),
         ),
         migrations.AddField(
             model_name="producto",
             name="seo_titulo",
-            field=models.CharField(max_length=180, blank=True, default=""),
+            field=models.CharField(
+                max_length=180,
+                blank=True,
+                default="",
+                help_text=(
+                    "Título SEO opcional. Si se deja vacío, se genera automáticamente."
+                ),
+            ),
         ),
         migrations.AddField(
             model_name="producto",
             name="seo_descripcion",
-            field=models.CharField(max_length=320, blank=True, default=""),
+            field=models.CharField(
+                max_length=320,
+                blank=True,
+                default="",
+                help_text=(
+                    "Descripción SEO opcional para buscadores y enlaces compartidos."
+                ),
+            ),
         ),
         migrations.RunPython(completar_slugs, vaciar_slugs),
         migrations.AlterField(
