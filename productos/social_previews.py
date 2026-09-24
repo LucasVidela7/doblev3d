@@ -5,7 +5,7 @@ from urllib.request import Request, urlopen
 from django.core.cache import cache
 from django.http import Http404, HttpResponse
 from django.views.decorators.http import require_GET
-from PIL import Image, ImageOps
+from PIL import Image, ImageDraw, ImageOps
 
 from kits.imagenes import adjuntar_imagenes_reutilizadas
 from kits.models import Kit
@@ -92,12 +92,25 @@ def _collage_jpeg(urls):
 
     # Separación mínima para que el 2x2 se entienda incluso con fotos similares.
     borde = 5
-    for x in range(SOCIAL_CELL_SIZE - borde, SOCIAL_CELL_SIZE + borde):
-        for y in range(SOCIAL_IMAGE_SIZE):
-            lienzo.putpixel((x, y), (255, 255, 255))
-    for y in range(SOCIAL_CELL_SIZE - borde, SOCIAL_CELL_SIZE + borde):
-        for x in range(SOCIAL_IMAGE_SIZE):
-            lienzo.putpixel((x, y), (255, 255, 255))
+    dibujo = ImageDraw.Draw(lienzo)
+    dibujo.rectangle(
+        (
+            SOCIAL_CELL_SIZE - borde,
+            0,
+            SOCIAL_CELL_SIZE + borde,
+            SOCIAL_IMAGE_SIZE,
+        ),
+        fill=(255, 255, 255),
+    )
+    dibujo.rectangle(
+        (
+            0,
+            SOCIAL_CELL_SIZE - borde,
+            SOCIAL_IMAGE_SIZE,
+            SOCIAL_CELL_SIZE + borde,
+        ),
+        fill=(255, 255, 255),
+    )
 
     salida = BytesIO()
     lienzo.save(
