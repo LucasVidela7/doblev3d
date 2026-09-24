@@ -113,6 +113,7 @@ def calcular_escenarios_kit_fijo(componentes):
             }
         )
 
+    costo_componentes = costo_total
     provision_empaque = provision_empaque_unitaria_actual()
     costo_total += provision_empaque
 
@@ -131,9 +132,9 @@ def calcular_escenarios_kit_fijo(componentes):
         }
 
     margen_tope_ponderado = MARGEN_MINIMO
-    if costo_total > 0:
+    if costo_componentes > 0:
         margen_tope_ponderado = max(
-            margen_ponderado / costo_total,
+            margen_ponderado / costo_componentes,
             MARGEN_MINIMO,
         )
 
