@@ -14,6 +14,7 @@ from kits.models import Kit
 from productos.models import Producto
 from productos.miniaturas import asignar_miniaturas_productos
 
+from .adicionales import enriquecer_detalles_presupuesto
 from .miniaturas import (
     asignar_miniatura_resumen,
     asignar_miniaturas_items,
@@ -638,16 +639,24 @@ def lista_presupuestos(request):
 def detalle_presupuesto(request, presupuesto_id):
     presupuesto = get_object_or_404(
         Presupuesto.objects
-        .select_related("cliente", "pedido_generado")
+        .select_related(
+            "cliente",
+            "pedido_generado",
+            "solicitud_web_origen",
+        )
         .prefetch_related(
             "detalles__producto",
             "detalles__kit",
             "detalles__productos_kit__producto",
+            "solicitud_web_origen__items",
         ),
         id=presupuesto_id,
     )
 
-    detalles = list(presupuesto.detalles.all())
+    detalles = enriquecer_detalles_presupuesto(
+        presupuesto,
+        list(presupuesto.detalles.all()),
+    )
     asignar_miniaturas_items(detalles)
 
     return render(
