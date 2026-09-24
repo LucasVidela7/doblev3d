@@ -842,3 +842,91 @@ class CatalogoPublicoTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn("/gestion/login/", response.url)
 
+
+
+    def test_detalle_producto_publica_open_graph_con_foto_principal(self):
+        response = self.client.get(
+            reverse(
+                "catalogo_producto_detalle",
+                args=[self.producto.id],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            'property="og:title" content="Piña sensorial | Doble V 3D"',
+        )
+        self.assertContains(
+            response,
+            'property="og:image" content="https://example.com/qa-pina.jpg"',
+        )
+        self.assertContains(
+            response,
+            'name="twitter:card" content="summary_large_image"',
+        )
+        self.assertContains(
+            response,
+            'rel="canonical" href="http://testserver/productos/'
+            + str(self.producto.id)
+            + '/"',
+        )
+
+    def test_detalle_kit_publica_open_graph_con_collage_2x2(self):
+        response = self.client.get(
+            reverse(
+                "catalogo_kit_detalle",
+                args=[self.kit.id],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        social_url = (
+            "http://testserver"
+            + reverse(
+                "catalogo_kit_social_preview",
+                args=[self.kit.id],
+            )
+        )
+        self.assertContains(
+            response,
+            f'property="og:image" content="{social_url}"',
+        )
+        self.assertContains(
+            response,
+            'property="og:image:width" content="1200"',
+        )
+        self.assertContains(
+            response,
+            'property="og:image:height" content="1200"',
+        )
+
+    @patch(
+        "productos.social_previews._collage_jpeg",
+        return_value=b"fake-jpeg-social-preview",
+    )
+    def test_endpoint_social_de_kit_devuelve_jpeg_publico(
+        self,
+        collage_mock,
+    ):
+        response = self.client.get(
+            reverse(
+                "catalogo_kit_social_preview",
+                args=[self.kit.id],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response["Content-Type"],
+            "image/jpeg",
+        )
+        self.assertIn(
+            "public",
+            response["Cache-Control"],
+        )
+        self.assertEqual(
+            response.content,
+            b"fake-jpeg-social-preview",
+        )
+        collage_mock.assert_called_once()
