@@ -1,4 +1,9 @@
+import io
+import json
 import os
+import tarfile
+import urllib.error
+import urllib.request
 
 import psycopg
 from django.core.management.base import BaseCommand, CommandError
@@ -6,46 +11,71 @@ from psycopg import sql
 
 
 class Command(BaseCommand):
-    help = "Clona los datos de PostgreSQL de production hacia QA. Solo puede ejecutarse en QA."
+    help = "Clona production hacia QA mediante un export HTTPS temporal y autenticado."
 
     def handle(self, *args, **options):
         env = (os.getenv("RAILWAY_ENVIRONMENT_NAME") or os.getenv("APP_ENV") or "").strip().lower()
         if env != "qa":
             raise CommandError(f"Este comando solo puede ejecutarse en QA. Entorno detectado: {env!r}")
 
-        source_url = os.getenv("DB_SYNC_SOURCE_URL")
+        source_url = (os.getenv("DB_SYNC_SOURCE_URL") or "").strip()
+        token = (os.getenv("DB_SYNC_TOKEN") or "").strip()
         target_url = os.getenv("DATABASE_URL")
-        if not source_url or not target_url:
-            raise CommandError("Faltan DB_SYNC_SOURCE_URL o DATABASE_URL.")
+        if not source_url or not token or not target_url:
+            raise CommandError("Faltan DB_SYNC_SOURCE_URL, DB_SYNC_TOKEN o DATABASE_URL.")
+        if not source_url.startswith("https://") or "qa." in source_url or "-qa." in source_url:
+            raise CommandError("DB_SYNC_SOURCE_URL no parece ser un endpoint HTTPS de producción.")
 
-        src = psycopg.connect(source_url, autocommit=False)
-        dst = psycopg.connect(target_url, autocommit=True)
+        request = urllib.request.Request(
+            source_url,
+            method="POST",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "User-Agent": "doblev3d-qa-db-sync/1.0",
+            },
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=120) as response:
+                if response.status != 200:
+                    raise CommandError(f"El exportador respondió HTTP {response.status}.")
+                bundle_bytes = response.read()
+        except urllib.error.HTTPError as exc:
+            raise CommandError(f"El exportador respondió HTTP {exc.code}.") from exc
+        except urllib.error.URLError as exc:
+            raise CommandError(f"No se pudo contactar al exportador de producción: {exc}.") from exc
 
         try:
-            src_id = self._db_identity(src)
-            dst_id = self._db_identity(dst)
-            self.stdout.write(f"Origen: {src_id}")
-            self.stdout.write(f"Destino: {dst_id}")
-            if src_id == dst_id:
-                raise CommandError("Origen y destino resuelven a la misma base. Se aborta antes de borrar datos.")
+            bundle = tarfile.open(fileobj=io.BytesIO(bundle_bytes), mode="r:gz")
+            metadata_file = bundle.extractfile("metadata.json")
+            if metadata_file is None:
+                raise CommandError("El paquete no contiene metadata.json.")
+            metadata = json.loads(metadata_file.read().decode("utf-8"))
+        except (tarfile.TarError, json.JSONDecodeError, KeyError) as exc:
+            raise CommandError(f"Paquete de producción inválido: {exc}.") from exc
 
-            src_tables = self._tables(src)
+        exported_tables = metadata.get("tables") or []
+        exported_sequences = metadata.get("sequences") or []
+        source_table_names = [item["name"] for item in exported_tables]
+
+        dst = psycopg.connect(target_url, autocommit=True)
+        replica_mode = False
+        try:
             dst_tables = self._tables(dst)
-            if src_tables != dst_tables:
-                only_src = sorted(set(src_tables) - set(dst_tables))
-                only_dst = sorted(set(dst_tables) - set(src_tables))
+            if source_table_names != dst_tables:
+                only_src = sorted(set(source_table_names) - set(dst_tables))
+                only_dst = sorted(set(dst_tables) - set(source_table_names))
                 raise CommandError(
-                    f"El esquema no coincide. Solo origen={only_src}; solo destino={only_dst}"
+                    f"El esquema no coincide. Solo producción={only_src}; solo QA={only_dst}. "
+                    "Se aborta antes de borrar datos."
                 )
 
-            for table in src_tables:
-                if self._columns(src, table) != self._columns(dst, table):
-                    raise CommandError(f"Las columnas no coinciden en la tabla {table}.")
+            for table_info in exported_tables:
+                table = table_info["name"]
+                if table_info["columns"] != self._columns(dst, table):
+                    raise CommandError(
+                        f"Las columnas no coinciden en {table}. Se aborta antes de borrar datos."
+                    )
 
-            src.execute("BEGIN")
-            src.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
-
-            replica_mode = False
             try:
                 dst.execute("SET session_replication_role = replica")
                 replica_mode = True
@@ -53,6 +83,7 @@ class Command(BaseCommand):
                 pass
 
             ordered_tables = self._dependency_order(dst, dst_tables)
+            table_info_by_name = {item["name"]: item for item in exported_tables}
 
             with dst.transaction():
                 if not replica_mode:
@@ -62,73 +93,69 @@ class Command(BaseCommand):
                         pass
 
                 if dst_tables:
-                    truncate_sql = sql.SQL("TRUNCATE TABLE {} RESTART IDENTITY CASCADE").format(
-                        sql.SQL(", ").join(sql.Identifier("public", t) for t in dst_tables)
+                    dst.execute(
+                        sql.SQL("TRUNCATE TABLE {} RESTART IDENTITY CASCADE").format(
+                            sql.SQL(", ").join(sql.Identifier("public", t) for t in dst_tables)
+                        )
                     )
-                    dst.execute(truncate_sql)
                 self.stdout.write(f"QA vaciada: {len(dst_tables)} tablas.")
 
                 for table in ordered_tables:
-                    columns = self._columns(src, table)
+                    table_info = table_info_by_name[table]
+                    columns = table_info["columns"]
+                    payload_file = bundle.extractfile(table_info["file"])
+                    if payload_file is None:
+                        raise CommandError(f"Falta el contenido de la tabla {table}.")
+                    payload = payload_file.read()
                     if not columns:
                         continue
                     col_sql = sql.SQL(", ").join(sql.Identifier(c) for c in columns)
-                    copy_out = sql.SQL("COPY {} ({}) TO STDOUT").format(
-                        sql.Identifier("public", table), col_sql
-                    )
                     copy_in = sql.SQL("COPY {} ({}) FROM STDIN").format(
                         sql.Identifier("public", table), col_sql
                     )
-                    with src.cursor().copy(copy_out) as out, dst.cursor().copy(copy_in) as inp:
-                        for chunk in out:
-                            inp.write(chunk)
+                    with dst.cursor().copy(copy_in) as inp:
+                        inp.write(payload)
 
-                for sequence in self._sequences(src):
-                    with src.cursor() as cur:
-                        cur.execute(
-                            sql.SQL("SELECT last_value, is_called FROM {}").format(
-                                sql.Identifier("public", sequence)
-                            )
-                        )
-                        last_value, is_called = cur.fetchone()
+                for sequence_info in exported_sequences:
                     dst.execute(
                         "SELECT setval(%s::regclass, %s, %s)",
-                        (f'public."{sequence}"', last_value, is_called),
+                        (
+                            f'public."{sequence_info["name"]}"',
+                            sequence_info["last_value"],
+                            sequence_info["is_called"],
+                        ),
                     )
 
             if replica_mode:
                 dst.execute("SET session_replication_role = origin")
+                replica_mode = False
 
             mismatches = []
             total_rows = 0
-            for table in dst_tables:
-                source_count = self._count(src, table)
-                target_count = self._count(dst, table)
-                total_rows += target_count
-                if source_count != target_count:
-                    mismatches.append((table, source_count, target_count))
+            for table_info in exported_tables:
+                actual = self._count(dst, table_info["name"])
+                expected = int(table_info["rows"])
+                total_rows += actual
+                if actual != expected:
+                    mismatches.append((table_info["name"], expected, actual))
 
             if mismatches:
                 raise CommandError(f"Hay diferencias de conteo luego de restaurar: {mismatches}")
 
             self.stdout.write(
                 self.style.SUCCESS(
-                    f"SYNC OK: {len(dst_tables)} tablas, {total_rows} filas verificadas y secuencias restauradas."
+                    f"SYNC OK: {len(exported_tables)} tablas, {total_rows} filas verificadas "
+                    f"y {len(exported_sequences)} secuencias restauradas."
                 )
             )
         finally:
-            try:
-                src.rollback()
-            except Exception:
-                pass
-            src.close()
+            if replica_mode:
+                try:
+                    dst.execute("SET session_replication_role = origin")
+                except Exception:
+                    pass
             dst.close()
-
-    @staticmethod
-    def _db_identity(conn):
-        with conn.cursor() as cur:
-            cur.execute("SELECT current_database(), inet_server_addr()::text, inet_server_port()")
-            return cur.fetchone()
+            bundle.close()
 
     @staticmethod
     def _tables(conn):
@@ -154,20 +181,6 @@ class Command(BaseCommand):
                 ORDER BY ordinal_position
                 """,
                 (table,),
-            )
-            return [row[0] for row in cur.fetchall()]
-
-    @staticmethod
-    def _sequences(conn):
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT c.relname
-                FROM pg_class c
-                JOIN pg_namespace n ON n.oid = c.relnamespace
-                WHERE c.relkind = 'S' AND n.nspname = 'public'
-                ORDER BY c.relname
-                """
             )
             return [row[0] for row in cur.fetchall()]
 
