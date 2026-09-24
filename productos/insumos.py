@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from .models import ConfiguracionCatalogo, Insumo
+from .models import ConfiguracionCatalogo, Insumo, ProductoInsumo
 
 
 def _decimal(valor, default=None):
@@ -140,6 +140,18 @@ def _leer_post(request, insumo=None):
             URLValidator()(valores["url_referencia"])
         except ValidationError:
             errores.append("La URL de referencia no es válida.")
+
+    if (
+        insumo
+        and insumo.pk
+        and insumo.tipo_uso == "PRODUCTO"
+        and valores["tipo_uso"] != "PRODUCTO"
+        and ProductoInsumo.objects.filter(insumo=insumo).exists()
+    ):
+        errores.append(
+            "Este insumo está asignado a productos. Quitá esas asignaciones "
+            "antes de cambiarlo a Empaque o Despacho."
+        )
 
     duplicado = Insumo.objects.filter(nombre__iexact=valores["nombre"])
     if insumo and insumo.pk:
