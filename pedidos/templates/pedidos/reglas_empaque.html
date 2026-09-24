@@ -19,10 +19,10 @@ body{margin:0;padding:0 0 105px;font-family:Arial,sans-serif;background:var(--dv
 .notice{margin:0 0 14px;padding:12px 14px;border:1px solid color-mix(in srgb,var(--dv-brand-blue,#134a9a) 18%,var(--dv-border,#dfe5ef));border-radius:13px;background:var(--dv-brand-blue-soft,#eef4ff);color:var(--dv-accent-blue-text,#0d376f);font-size:11px;line-height:1.45}
 
 .rules{display:grid}.rule{padding:14px 15px;border-top:1px solid var(--dv-border,#dfe5ef)}.rule:first-child{border-top:0}
-.rule-top{display:flex;justify-content:space-between;gap:12px}.rule-name{font-weight:950;font-size:13px}.rule-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.rule-top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:start}.rule-main{min-width:0}.rule-name{font-weight:950;font-size:13px;line-height:1.35}.rule-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .chip{min-height:27px;display:inline-flex;align-items:center;padding:0 8px;border-radius:8px;background:var(--dv-surface-soft,#f8faff);color:var(--dv-muted,#667085);font-size:10px;font-weight:850}
 .chip.main{background:var(--dv-brand-blue-soft,#eef4ff);color:var(--dv-accent-blue-text,#0d376f)}.chip.extra{background:color-mix(in srgb,var(--dv-brand-sky,#69b6eb) 12%,var(--dv-surface,#fff));color:var(--dv-brand-blue,#134a9a)}.chip.off{background:var(--dv-danger-soft,#fff0f0);color:var(--dv-danger-text,#8a2828)}
-.actions{display:flex;gap:6px;flex-wrap:wrap}.btn{min-height:38px;display:inline-flex;align-items:center;justify-content:center;padding:0 12px;border:1px solid var(--dv-border,#dfe5ef);border-radius:10px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);font-size:10px;font-weight:900;text-decoration:none;cursor:pointer}
+.actions{display:grid;grid-template-columns:62px 106px 90px;gap:6px;align-items:start}.actions form{margin:0}.actions .btn,.actions form .btn{width:100%;white-space:nowrap}.btn{min-height:38px;display:inline-flex;align-items:center;justify-content:center;padding:0 10px;border:1px solid var(--dv-border,#dfe5ef);border-radius:10px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);font-size:10px;font-weight:900;text-decoration:none;cursor:pointer}
 .btn.primary{background:var(--dv-brand-blue,#134a9a);border-color:var(--dv-brand-blue,#134a9a);color:#fff}.btn.danger{color:var(--dv-danger-text,#9b3030)}
 .empty{padding:28px 16px;text-align:center;color:var(--dv-muted,#667085);font-size:12px}
 
@@ -48,7 +48,7 @@ body{margin:0;padding:0 0 105px;font-family:Arial,sans-serif;background:var(--dv
 html[data-dv-theme="dark"] .toggle-ui:after{background:#f7f8fb}
 @media(max-width:900px){.layout{grid-template-columns:1fr}.form-card{order:-1}}
 @media(max-width:560px){
-  .page{padding:15px 10px}.grid{grid-template-columns:1fr}.field.full{grid-column:auto}.rule-top{flex-direction:column}.actions>*{flex:1}
+  .page{padding:15px 10px}.grid{grid-template-columns:1fr}.field.full{grid-column:auto}.rule-top{grid-template-columns:1fr}.actions{grid-template-columns:repeat(3,minmax(0,1fr));width:100%}
   .form-shell{padding:10px}.form-section{padding:11px}.complement-add{grid-template-columns:1fr}.complement-add .btn{width:100%}
   .complement-row{grid-template-columns:minmax(0,1fr) 76px 34px}.form-actions{position:sticky;bottom:72px;z-index:5;padding:8px;margin:10px -2px 0;border:1px solid var(--dv-border,#dfe5ef);border-radius:12px;background:color-mix(in srgb,var(--dv-surface,#fff) 94%,transparent);backdrop-filter:blur(8px)}.form-actions>*{flex:1}
 }
@@ -79,7 +79,7 @@ html[data-dv-theme="dark"] .toggle-ui:after{background:#f7f8fb}
       {% for regla in reglas %}
         <article class="rule">
           <div class="rule-top">
-            <div>
+            <div class="rule-main">
               <div class="rule-name">{{ regla.nombre }}</div>
               <div class="rule-meta">
                 <span class="chip main">{{ regla.cantidad_insumo|floatformat:"-3" }} × {{ regla.insumo.nombre }}</span>
