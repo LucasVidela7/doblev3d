@@ -80,7 +80,7 @@ class CatalogoRotacionFotosTests(TestCase):
 
     def test_detalle_kit_rota_las_dos_fotos_de_cada_producto(self):
         response = self.client.get(
-            reverse("catalogo_kit_detalle", args=[self.kit.id])
+            reverse("catalogo_kit_detalle", args=[self.kit.slug])
         )
         html = response.content.decode()
 
