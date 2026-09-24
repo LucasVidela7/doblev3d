@@ -26,6 +26,47 @@
 
 @media(max-width:950px){.res{grid-template-columns:repeat(3,1fr)}.layout{grid-template-columns:1fr}}
 @media(max-width:700px){.c{padding:15px 10px}.h{flex-direction:column}.hero{width:100%}.photo{width:74px;height:74px}.h .a{width:100%;flex-wrap:nowrap}.h .a>a{flex:1}.more-menu{flex:0 0 auto}h1{font-size:27px}.res{grid-template-columns:repeat(2,1fr);gap:7px}.metric{padding:11px}.val{font-size:17px}.produccion-grid{grid-template-columns:repeat(2,1fr)}.pieza-row{grid-template-columns:minmax(0,1fr) 58px}.pieza-row span:nth-child(n+3){display:none}.pieza-row.header span:nth-child(n+3){display:none}.armado-form{grid-template-columns:1fr}.mov{grid-template-columns:75px minmax(0,1fr) auto}.more-popover{width:min(260px,calc(100vw - 20px))}}
+
+/* Normalización visual de Gestión · detalle de producto */
+body{background:var(--dv-bg,var(--f));color:var(--dv-text,var(--t))}
+.c{width:min(1240px,100%)}
+.btn{font-size:11px}
+.cod{font-size:11px}.badge{font-size:10px}
+.mensaje{font-size:12px}
+.salud{background:var(--dv-surface,#fff);border-color:var(--dv-border,var(--b))}
+.salud strong{font-size:14px}.salud p,.alert-list{font-size:12px}
+.metric{background:var(--dv-surface,#fff);border-color:var(--dv-border,var(--b));position:relative;overflow:hidden}
+.metric::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--metric-accent,#5d8dcc)}
+.metric:nth-child(1){--metric-accent:#3d8ed0}.metric:nth-child(2){--metric-accent:#8069c8}.metric:nth-child(3){--metric-accent:#36a66a}.metric:nth-child(4){--metric-accent:#39a5b8}.metric:nth-child(5){--metric-accent:#e39a36}.metric:nth-child(6){--metric-accent:#d45f68}
+.lab{font-size:9px}.note{font-size:10px}.val{font-size:20px}
+.card,details.section{background:var(--dv-surface,#fff);border-color:var(--dv-border,var(--b))}
+details.section>summary{font-size:13px;background:color-mix(in srgb,var(--dv-brand-blue,#134a9a) 5%,var(--dv-surface,#fff))}
+.fila{font-size:12px;border-color:var(--dv-border,#e8ebef)}.titulo{font-size:13px}.mini{font-size:11px}
+.prod-box{background:color-mix(in srgb,#e39a36 8%,var(--dv-surface-soft,#f6f7f9));border:1px solid color-mix(in srgb,#e39a36 18%,var(--dv-border,#e3e6ea))}
+.prod-box small{font-size:9px}.prod-box strong{font-size:16px}
+.trabajo,.pieza-row,.kit,.mov{font-size:11px}.trabajo-meta{font-size:10px}.pieza-row.header{font-size:9px}.mov-fecha{font-size:10px}
+.armado{background:color-mix(in srgb,var(--dv-brand-blue,#134a9a) 5%,var(--dv-surface,#fff));border-color:color-mix(in srgb,var(--dv-brand-blue,#134a9a) 18%,var(--dv-border,#dfe5ef))}
+.quick{border-top:3px solid var(--dv-brand-blue,#134a9a)}
+.quick .titulo{color:var(--dv-brand-blue,#134a9a)}
+.more-popover .btn{font-size:11px!important}
+html[data-dv-theme="dark"] .photo,html[data-dv-theme="dark"] .prod-box,html[data-dv-theme="dark"] .armado{background:var(--dv-surface-soft,#1b2434)}
+html[data-dv-theme="dark"] .fila{border-color:var(--dv-border,#2d394d)}
+html[data-dv-theme="dark"] .salud p,html[data-dv-theme="dark"] .mini,html[data-dv-theme="dark"] .note,html[data-dv-theme="dark"] .trabajo-meta{color:var(--dv-muted,#a8b4c8)}
+
+/* Modal rápido de planificación */
+.plan-modal{position:fixed;z-index:2600;inset:0;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(8,12,20,.58);backdrop-filter:blur(4px)}
+.plan-modal.open{display:flex}
+.plan-dialog{width:min(520px,100%);border:1px solid var(--dv-border,#dfe5ef);border-radius:18px;background:var(--dv-surface,#fff);box-shadow:0 24px 75px rgba(0,0,0,.32);overflow:hidden}
+.plan-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:16px 17px;border-bottom:1px solid var(--dv-border,#dfe5ef);background:color-mix(in srgb,#e39a36 8%,var(--dv-surface,#fff))}
+.plan-head strong{display:block;font-size:15px}.plan-head span{display:block;margin-top:4px;color:var(--dv-muted,#667085);font-size:11px;line-height:1.4}
+.plan-close{width:36px;height:36px;border:1px solid var(--dv-border,#dfe5ef);border-radius:10px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);font-size:19px;cursor:pointer}
+.plan-body{padding:16px}.plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.plan-field label{display:block;margin-bottom:5px;color:var(--dv-muted,#667085);font-size:10px;font-weight:900}
+.plan-field input{width:100%;min-height:46px;padding:9px 11px;border:1px solid var(--dv-border,#dfe5ef);border-radius:11px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);font-size:14px}
+.plan-summary{margin-top:11px;padding:11px 12px;border:1px solid color-mix(in srgb,#e39a36 25%,var(--dv-border,#dfe5ef));border-radius:12px;background:color-mix(in srgb,#e39a36 8%,var(--dv-surface,#fff));font-size:11px;line-height:1.45}
+.plan-summary strong{color:color-mix(in srgb,#b86a08 85%,var(--dv-text,#17233a))}
+.plan-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:13px}
+@media(max-width:700px){.plan-modal{align-items:flex-end;padding:8px}.plan-dialog{border-radius:18px 18px 10px 10px}.plan-grid{grid-template-columns:1fr}.fila{font-size:12px}.mini{font-size:10.5px}}
 </style>
 </head>
 <body>
@@ -47,7 +88,7 @@
     </div>
     <div class="a">
       <a class="btn" href="{% url 'productos:lista' %}">← PRODUCTOS</a>
-      <a class="btn dark" href="{% url 'productos:editar' producto.id %}">✎ EDITAR</a>
+      <a class="btn dark" href="{% url 'productos:editar' producto.id %}">✎ EDITAR PRODUCTO</a>
       <details class="more-menu"><summary class="btn">⋯</summary><div class="more-popover">
         <a class="btn" href="{% url 'calculadora:precios' %}?modo=existente&producto_id={{ producto.id }}">🧮 CALCULADORA</a>
         <form method="post" action="{% url 'productos:cambiar_activo' producto.id %}">{% csrf_token %}<button class="btn {% if producto.activo %}danger-btn{% endif %}" type="submit">{% if producto.activo %}○ DESACTIVAR{% else %}● ACTIVAR{% endif %}</button></form>
@@ -93,7 +134,7 @@
             <div class="prod-box"><small>FALTA INICIAR</small><strong>{{ producto.falta_iniciar }}</strong></div>
           </div>
           <div class="acciones-produccion">
-            {% if producto.requiere_impresion %}<a class="btn dark" href="{% url 'produccion:lista' %}?producto={{ producto.id }}&cantidad={{ cantidad_sugerida }}">+ PLANIFICAR IMPRESIÓN</a>{% endif %}
+            {% if producto.requiere_impresion %}<button class="btn dark" type="button" onclick="abrirPlanificacion()">+ PLANIFICAR IMPRESIÓN</button>{% endif %}
             <a class="btn" href="{% url 'produccion:lista' %}?producto={{ producto.id }}">VER EN PRODUCCIÓN</a>
           </div>
           {% for trabajo in producciones_activas %}
@@ -222,7 +263,43 @@
     </div>
   </div>
 </div>
+
+{% if producto.requiere_impresion %}
+<div class="plan-modal" id="planModal" aria-hidden="true" onclick="cerrarPlanificacionFondo(event)">
+  <div class="plan-dialog" role="dialog" aria-modal="true" aria-labelledby="planTitle" data-hours="{{ producto.horas }}" data-minutes="{{ producto.minutos }}">
+    <div class="plan-head">
+      <div><strong id="planTitle">Planificar {{ producto.nombre }}</strong><span>Se crea un trabajo pendiente para stock. La impresora se elige cuando comiences a imprimir.</span></div>
+      <button class="plan-close" type="button" onclick="cerrarPlanificacion()" aria-label="Cerrar">×</button>
+    </div>
+    <form class="plan-body" method="post" action="{% url 'produccion:planificar_desde_producto' producto.id %}">
+      {% csrf_token %}
+      <div class="plan-grid">
+        <div class="plan-field">
+          <label>CANTIDAD A PLANIFICAR</label>
+          <input id="planCantidad" type="number" name="cantidad" min="1" value="{{ cantidad_sugerida }}" required oninput="actualizarResumenPlan()">
+        </div>
+        <div class="plan-field">
+          <label>TIEMPO UNITARIO</label>
+          <input value="{{ producto.tiempo_formateado }}" disabled>
+        </div>
+      </div>
+      <div class="plan-summary" id="planResumen">Preparando estimación…</div>
+      <div class="plan-actions">
+        <button class="btn" type="button" onclick="cerrarPlanificacion()">CANCELAR</button>
+        <button class="btn dark" type="submit">AGREGAR A LA COLA</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
 {% include "shared/navigation.html" %}
-<script>document.addEventListener('click',function(e){document.querySelectorAll('.more-menu[open]').forEach(function(m){if(!m.contains(e.target))m.removeAttribute('open')})});</script>
+<script>
+function abrirPlanificacion(){const m=document.getElementById('planModal');if(!m)return;m.classList.add('open');m.setAttribute('aria-hidden','false');actualizarResumenPlan();setTimeout(()=>document.getElementById('planCantidad')?.focus(),50)}
+function cerrarPlanificacion(){const m=document.getElementById('planModal');if(!m)return;m.classList.remove('open');m.setAttribute('aria-hidden','true')}
+function cerrarPlanificacionFondo(e){if(e.target?.id==='planModal')cerrarPlanificacion()}
+function actualizarResumenPlan(){const modal=document.querySelector('.plan-dialog');const q=Math.max(Number(document.getElementById('planCantidad')?.value||0),0);const h=Number(modal?.dataset.hours||0);const m=Number(modal?.dataset.minutes||0);const unit=h*60+m;const out=document.getElementById('planResumen');if(!out)return;if(!q){out.textContent='Ingresá una cantidad mayor a cero.';return}if(unit<=0){out.innerHTML='<strong>Sin tiempo configurado.</strong> El sistema intentará usar un tiempo histórico para esta cantidad.';return}const total=unit*q;const hh=Math.floor(total/60),mm=total%60;const texto=(hh?hh+' h ':'')+(mm?mm+' min':'');out.innerHTML='<strong>'+q+' unidad'+(q===1?'':'es')+'</strong> · duración estimada '+texto+' · destino STOCK.'}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')cerrarPlanificacion()});
+document.addEventListener('click',function(e){document.querySelectorAll('.more-menu[open]').forEach(function(m){if(!m.contains(e.target))m.removeAttribute('open')})});
+</script>
 </body>
 </html>
