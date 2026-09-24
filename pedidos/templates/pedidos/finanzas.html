@@ -78,7 +78,7 @@ th{font-size:9px}td{font-size:11px}.empty{font-size:11px}
     </div>
   </header>
 
-  {% if messages %}<div class="mensajes">{% for message in messages %}<div class="mensaje {{ message.tags }}">{{ message }}</div>{% endfor %}</div>{% endif %}
+  {% include "shared/messages_toasts.html" %}
 
   <nav class="tabs" aria-label="Secciones de Finanzas">
     <a class="tab {% if vista == 'resumen' %}active{% endif %}" href="?{% if query_base %}{{ query_base }}&{% endif %}vista=resumen">RESUMEN</a>
