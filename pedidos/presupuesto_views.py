@@ -585,9 +585,9 @@ def lista_presupuestos(request):
         Presupuesto.objects
         .select_related("cliente", "pedido_generado")
         .prefetch_related(
-            "detalles__producto",
-            "detalles__kit__componentes__producto",
-            "detalles__productos_kit__producto",
+            "detalles__producto__tipo",
+            "detalles__kit__componentes__producto__tipo",
+            "detalles__productos_kit__producto__tipo",
         )
         .order_by("-id")
     )
@@ -646,9 +646,9 @@ def detalle_presupuesto(request, presupuesto_id):
             "solicitud_web_origen",
         )
         .prefetch_related(
-            "detalles__producto",
-            "detalles__kit__componentes__producto",
-            "detalles__productos_kit__producto",
+            "detalles__producto__tipo",
+            "detalles__kit__componentes__producto__tipo",
+            "detalles__productos_kit__producto__tipo",
             "solicitud_web_origen__items",
         ),
         id=presupuesto_id,
@@ -809,9 +809,9 @@ def aprobar_presupuesto(request, presupuesto_id):
         .select_for_update()
         .select_related("cliente")
         .prefetch_related(
-            "detalles__producto",
+            "detalles__producto__tipo",
             "detalles__kit",
-            "detalles__productos_kit__producto",
+            "detalles__productos_kit__producto__tipo",
         ),
         id=presupuesto_id,
     )
@@ -1003,9 +1003,9 @@ def repetir_pedido_como_presupuesto(request, pedido_id):
         Pedido.objects
         .select_related("cliente")
         .prefetch_related(
-            "detalles__producto",
+            "detalles__producto__tipo",
             "detalles__kit",
-            "detalles__productos_kit__producto",
+            "detalles__productos_kit__producto__tipo",
         ),
         id=pedido_id,
     )
