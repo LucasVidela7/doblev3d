@@ -13,7 +13,7 @@ from django.urls import reverse
 from clientes.models import Cliente
 from clientes.telefonos import buscar_cliente_por_telefono
 from kits.models import Kit
-from productos.models import Insumo, Producto
+from productos.models import CompraInsumo, Insumo, Producto
 from produccion.models import Produccion
 from calculadora.precios import (
     fila_precio,
@@ -3167,6 +3167,24 @@ def eliminar_gasto(
         id=gasto_id,
     )
 
+    if CompraInsumo.objects.filter(gasto=gasto).exists():
+        messages.error(
+            request,
+            (
+                "Este gasto pertenece a una compra de insumos y no puede "
+                "eliminarse desde Finanzas porque dejaría el stock "
+                "desincronizado."
+            ),
+        )
+        periodo = request.POST.get(
+            "periodo",
+            timezone.localdate().strftime("%Y-%m"),
+        )
+        return redirect(
+            f"{redirect('pedidos:finanzas').url}"
+            f"?periodo={periodo}&vista=gastos"
+        )
+
     descripcion = gasto.descripcion
     gasto.delete()
 
@@ -3857,6 +3875,7 @@ def finanzas(request):
             fecha_compra__gte=inicio,
             fecha_compra__lte=fin,
         )
+        .select_related("compra_insumos")
         .prefetch_related("cuotas")
         .order_by(
             "-fecha_compra",
@@ -3864,9 +3883,18 @@ def finanzas(request):
         )
     )
 
+    compras_stock_periodo = (
+        gastos_base
+        .filter(compra_insumos__isnull=False)
+        .aggregate(total=Sum("monto_total"))
+        .get("total")
+        or Decimal("0")
+    )
+
     gastos_operativos = (
         gastos_base
         .filter(tipo="OPERATIVO")
+        .filter(compra_insumos__isnull=True)
         .aggregate(total=Sum("monto_total"))
         .get("total")
         or Decimal("0")
@@ -4222,7 +4250,10 @@ def finanzas(request):
 
         gastos_operativos_acumulados = (
             Gasto.objects
-            .filter(tipo="OPERATIVO")
+            .filter(
+                tipo="OPERATIVO",
+                compra_insumos__isnull=True,
+            )
             .aggregate(total=Sum("monto_total"))
             .get("total")
             or Decimal("0")
@@ -4340,6 +4371,8 @@ def finanzas(request):
 
             "gastos_operativos":
                 gastos_operativos,
+            "compras_stock_periodo":
+                compras_stock_periodo,
             "inversiones_periodo":
                 inversiones_periodo,
             "resultado_operativo":
