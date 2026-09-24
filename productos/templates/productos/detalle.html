@@ -98,7 +98,7 @@ html[data-dv-theme="dark"] .salud p,html[data-dv-theme="dark"] .mini,html[data-d
 
   {% include "productos/_productos_subnav.html" %}
 
-  {% if messages %}{% for message in messages %}<div class="mensaje">{{ message }}</div>{% endfor %}{% endif %}
+  {% include "shared/messages_toasts.html" %}
 
   <div class="salud {{ producto.salud_clase }}">
     <div class="salud-icon">{% if producto.necesita_atencion %}⚠{% else %}✓{% endif %}</div>
