@@ -31,11 +31,7 @@ h1{margin:0;font-size:30px}.sub{margin-top:5px;color:var(--dv-muted,#667085);fon
 </head>
 <body class="dv-commercial-page dv-commercial-detail dv-solicitudes-page">
 <div class="shell">
-    {% if messages %}
-        {% for message in messages %}
-            <div class="card">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
+    {% include "shared/messages_toasts.html" %}
 
     <div class="head">
         <div>
