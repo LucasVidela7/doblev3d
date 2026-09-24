@@ -52,13 +52,44 @@
     background:#fff;
     color:#0d376f;
     text-decoration:none;
+    font:inherit;
     font-size:.74rem;
     font-weight:900;
+    cursor:pointer;
+    box-shadow:0 4px 12px rgba(19,74,154,.04);
+    transition:
+        transform .16s ease,
+        background .16s ease,
+        color .16s ease,
+        border-color .16s ease,
+        box-shadow .16s ease;
 }
 .dv-special-request__btn.whatsapp{
     border-color:#25d366;
     background:#25d366;
     color:#fff;
+}
+@media(hover:hover){
+    .dv-special-request__btn:not(.whatsapp):hover{
+        background:#eef4ff;
+        color:#134a9a;
+        border-color:#0d376f;
+        transform:translateY(-1px);
+        box-shadow:0 8px 18px rgba(19,74,154,.14);
+    }
+    .dv-special-request__btn.whatsapp:hover{
+        background:#1fbd58;
+        border-color:#1fbd58;
+        transform:translateY(-1px);
+        box-shadow:0 8px 18px rgba(37,211,102,.18);
+    }
+}
+.dv-special-request__btn:active{
+    transform:translateY(0);
+}
+.dv-special-request__btn:focus-visible{
+    outline:3px solid rgba(19,74,154,.22);
+    outline-offset:3px;
 }
 @media(max-width:720px){
     .dv-special-request{padding:15px;border-radius:15px}
