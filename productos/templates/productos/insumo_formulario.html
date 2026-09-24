@@ -29,7 +29,7 @@ html[data-dv-theme="dark"] .errors{background:#351f27;border-color:#6e3340;color
       <h1>{% if insumo %}Editar insumo{% else %}Nuevo insumo{% endif %}</h1>
       <div class="sub">{% if insumo %}{{ insumo.codigo }} · {{ insumo.nombre }}{% else %}Cargá el costo y la presentación de compra para obtener el costo unitario real.{% endif %}</div>
     </div>
-    <a class="btn" href="{% url 'productos:insumos' %}">VOLVER A INSUMOS</a>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">{% if insumo %}<a class="btn" href="{% url 'productos:compras_insumos' %}?insumo={{ insumo.id }}">REGISTRAR COMPRA</a>{% endif %}<a class="btn" href="{% url 'productos:insumos' %}">VOLVER A INSUMOS</a></div>
   </div>
 
   {% include "productos/_productos_subnav.html" %}
@@ -41,7 +41,7 @@ html[data-dv-theme="dark"] .errors{background:#351f27;border-color:#6e3340;color
   <form class="form-card" method="post" id="insumoForm">
     {% csrf_token %}
     <h2 class="section-title">Datos del insumo</h2>
-    <p class="section-copy">En esta etapa el insumo se administra de forma independiente. La asignación a productos y paquetes se incorpora en las siguientes etapas.</p>
+    <p class="section-copy">{% if insumo %}Esta ficha define el insumo. Para una reposición normal usá <strong>Registrar compra</strong>: aumenta stock, conserva el historial y recalcula el costo promedio. Editar precio/cantidad acá se considera un ajuste manual del costo base.{% else %}Cargá el costo inicial y la presentación de compra. Las reposiciones posteriores se registran desde Compras de insumos.{% endif %}</p>
 
     <div class="grid">
       <div class="field full">
@@ -114,7 +114,7 @@ html[data-dv-theme="dark"] .errors{background:#351f27;border-color:#6e3340;color
     </div>
 
     <div class="preview" aria-label="Vista previa de costo">
-      <div class="preview-box"><small>COSTO UNITARIO</small><strong id="unitCost">$ 0,00</strong></div>
+      <div class="preview-box"><small>COSTO DE PRESENTACIÓN</small><strong id="unitCost">$ 0,00</strong></div>
       <div class="preview-box"><small>INCREMENTO APLICADO</small><strong id="appliedPercent">{{ incremento_general|floatformat:"2" }}%</strong></div>
       <div class="preview-box applied"><small>COSTO UNITARIO CON PROVISIÓN</small><strong id="appliedCost">$ 0,00</strong></div>
     </div>
