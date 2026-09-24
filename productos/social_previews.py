@@ -11,6 +11,11 @@ from PIL import Image, ImageDraw, ImageOps
 from kits.imagenes import adjuntar_imagenes_reutilizadas
 from kits.models import Kit
 
+from .image_environment import (
+    ambientes_imagenes_lectura,
+    seleccionar_imagenes_lectura,
+)
+from .image_models import ProductoImagen
 from .models import Producto
 
 
@@ -201,7 +206,19 @@ def producto_social_preview(request, producto_id):
     if not producto:
         raise Http404("Producto no disponible")
 
-    url = producto.catalogo_imagen_url
+    candidatas = list(
+        ProductoImagen.objects
+        .filter(
+            producto=producto,
+            ambiente__in=ambientes_imagenes_lectura(),
+        )
+        .order_by("orden", "id")
+    )
+    imagenes = seleccionar_imagenes_lectura(
+        candidatas,
+        limite=1,
+    )
+    url = imagenes[0].url if imagenes else ""
     if not url:
         raise Http404("El producto no tiene imagen disponible")
 
