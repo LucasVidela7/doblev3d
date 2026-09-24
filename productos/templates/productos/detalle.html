@@ -159,6 +159,8 @@
           <div class="fila"><span>Insumos directos</span><strong>$ {{ producto.costo_insumos_directos|floatformat:'2g' }}</strong></div>
           {% if producto.costo_insumos_componentes > 0 %}<div class="fila"><span>Insumos de piezas</span><strong>$ {{ producto.costo_insumos_componentes|floatformat:'2g' }}</strong></div>{% endif %}
           <div class="fila"><span>Costo productivo total</span><strong>$ {{ producto.costo_productivo|floatformat:'0g' }}</strong></div>
+          <div class="fila"><span>Provisión comercial de empaque</span><strong>$ {{ producto.provision_empaque_comercial|floatformat:'2g' }}</strong></div>
+          <div class="fila"><span>Costo considerado para precio</span><strong>$ {{ producto.costo_comercial_total|floatformat:'2g' }}</strong></div>
           <div class="fila"><span>Precio calculado</span><strong>$ {{ producto.subtotal|floatformat:'0g' }}</strong></div>
           <div class="fila"><span>Ganancia estimada</span><strong>$ {{ producto.ganancia|floatformat:'0g' }}</strong></div>
           <div class="fila"><span>Margen configurado</span><strong>{{ producto.margen_ganancia|floatformat:'-2' }}%</strong></div>
