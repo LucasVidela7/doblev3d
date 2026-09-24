@@ -346,12 +346,20 @@ def catalogo_producto_detalle(request, producto_id):
                 config_catalogo.colores_disponibles_detalle
             ),
             **_social_defaults(request),
-            "social_image_url": _url_absoluta(
-                request,
-                producto.catalogo_imagen_url,
-            )
-            or request.build_absolute_uri(
-                static("brand/logo.png")
+            "social_image_is_generated": bool(
+                producto.catalogo_imagen_url
+            ),
+            "social_image_url": (
+                request.build_absolute_uri(
+                    reverse(
+                        "catalogo_producto_social_preview",
+                        args=[producto.id],
+                    )
+                )
+                if producto.catalogo_imagen_url
+                else request.build_absolute_uri(
+                    static("brand/logo.png")
+                )
             ),
             "social_description": (
                 f"{producto.nombre} · Producto de Doble V 3D."
