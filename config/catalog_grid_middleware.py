@@ -179,7 +179,7 @@ class CatalogGridMiddleware:
         view_name = match.view_name if match else ""
 
         if (
-            view_name not in {"catalogo_productos", "catalogo_categoria", "catalogo_kits"}
+            view_name not in {"catalogo_productos", "catalogo_kits"}
             or response.status_code != 200
             or getattr(response, "streaming", False)
             or "text/html" not in response.get("Content-Type", "")
