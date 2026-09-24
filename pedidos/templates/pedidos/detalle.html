@@ -128,7 +128,7 @@
                     <div class="prep-resumen"><span class="prep-contador">{{ preparacion_listos }}/{{ preparacion_total }} listos</span>{% if costo_empaque_real > 0 %}<span class="chip ok">EMPAQUE $ {{ costo_empaque_real|floatformat:"0g" }}</span>{% endif %}</div>
                 </div>
                 {% if preparacion_total %}<div class="progreso"><div class="progreso-valor" style="width:{{ preparacion_porcentaje }}%"></div></div>{% endif %}
-                {% if preparacion %}
+                {% if preparacion or paquetes or productos_sueltos %}
                 <div class="pedido-vista-selector preparacion-vista-selector">
                     <div>
                         <strong>Vista de preparación</strong>
@@ -155,10 +155,12 @@
                         <div class="prep-estado {% if item.estado_operativo == 'LISTO' or item.estado_operativo == 'DISPONIBLE' %}ok{% elif item.estado_operativo == 'FALTANTE' %}falta{% else %}manual{% endif %}"><div class="label">{% if item.estado_operativo == 'LISTO' %}PREPARADO{% elif item.estado_operativo == 'FALTANTE' %}STOCK INSUFICIENTE{% elif item.estado_operativo == 'DISPONIBLE' %}DISPONIBLE{% else %}PREPARACIÓN MANUAL{% endif %}</div><div class="valor">{{ item.estado_texto }}</div></div>
                         <form method="post" action="{% url 'pedidos:cambiar_preparacion' pedido.id %}" class="prep-form">{% csrf_token %}{% if item.es_personalizado %}<input type="hidden" name="detalle_personalizado_id" value="{{ item.detalle_personalizado_id }}">{% else %}<input type="hidden" name="estado_id" value="{{ item.estado_id }}">{% endif %}<input type="hidden" name="listo" value="0"><label class="prep-check"><input type="checkbox" name="listo" value="1" {% if item.listo %}checked{% endif %} {% if not preparacion_editable or not item.puede_marcar_listo %}disabled{% endif %} onchange="this.form.submit()"><span class="prep-check-ui">✓</span></label></form>
                     </div>
+                    {% empty %}
+                    <div class="sin-datos">No hay unidades pendientes de impresión. Usá la vista por paquete para registrar el empaque.</div>
                     {% endfor %}
                 </div>
                 {% include "pedidos/_pedido_paquetes_detalle.html" %}
-                {% else %}<div class="sin-datos">Este pedido no requiere preparación física. Consultá el detalle comercial debajo.</div>{% endif %}
+                {% else %}<div class="sin-datos">Este pedido no tiene productos ni paquetes que requieran preparación física.</div>{% endif %}
             </section>
             {% endif %}
 
