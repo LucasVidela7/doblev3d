@@ -367,6 +367,8 @@ class CentroPreparacionTests(TestCase):
 
         self.assertContains(detalle_pedido, "POR PAQUETE")
         self.assertContains(detalle_pedido, "PAQUETE 1 DE 6")
+        self.assertContains(detalle_pedido, "Vista de preparación")
+        self.assertNotContains(detalle_pedido, "Vista del pedido")
         self.assertContains(
             detalle_pedido,
             'data-pedido-vista="paquetes"',
