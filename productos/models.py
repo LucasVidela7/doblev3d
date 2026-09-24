@@ -667,6 +667,15 @@ class Insumo(models.Model):
     precio_actualizado_en = models.DateTimeField(
         default=timezone.now,
     )
+    disponible_como_complementario = models.BooleanField(
+        default=False,
+        verbose_name="Disponible como complementario de empaque",
+        help_text=(
+            "Sólo aplica a insumos de tipo Empaque. Si está activo, "
+            "puede seleccionarse como sticker, tarjeta, cinta u otro "
+            "consumible complementario en las reglas de empaque."
+        ),
+    )
     activo = models.BooleanField(default=True)
     creado_en = models.DateTimeField(auto_now_add=True)
     actualizado_en = models.DateTimeField(auto_now=True)
