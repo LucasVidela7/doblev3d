@@ -32,17 +32,25 @@ def pedido_publico(request, token):
     """Detalle público de un pedido accesible sólo mediante token UUID."""
     pedido = get_object_or_404(
         Pedido.objects
-        .select_related("cliente")
+        .select_related(
+            "cliente",
+            "presupuesto_origen",
+            "presupuesto_origen__solicitud_web_origen",
+        )
         .prefetch_related(
             "detalles__producto",
             "detalles__kit__componentes__producto",
             "detalles__productos_kit__producto",
+            "presupuesto_origen__solicitud_web_origen__items",
             "pagos",
         ),
         public_token=token,
     )
 
-    detalles = list(pedido.detalles.all())
+    detalles = enriquecer_detalles_pedido(
+        pedido,
+        list(pedido.detalles.all()),
+    )
 
     productos_por_detalle = {}
     ids_productos = set()
@@ -121,6 +129,8 @@ def pedido_publico(request, token):
                 "cantidad": detalle.cantidad,
                 "nombre": _nombre_detalle(detalle),
                 "subtotal": detalle.subtotal,
+                "precio_unitario": detalle.precio_unitario,
+                "adicionales": detalle.adicionales,
                 "imagenes": imagenes,
                 "personalizacion": (
                     detalle.detalle_personalizacion
