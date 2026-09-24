@@ -13,7 +13,7 @@ from django.urls import reverse
 from clientes.models import Cliente
 from clientes.telefonos import buscar_cliente_por_telefono
 from kits.models import Kit
-from productos.models import Producto
+from productos.models import Insumo, Producto
 from produccion.models import Produccion
 from calculadora.precios import (
     fila_precio,
@@ -3688,6 +3688,27 @@ def _resolver_rango_finanzas(request, hoy):
 # ==========================================================
 # FINANZAS / RENTABILIDAD
 # ==========================================================
+def _restaurar_empaques_pedido(pedido):
+    usos = list(
+        PedidoEmpaque.objects
+        .select_for_update()
+        .filter(pedido=pedido)
+        .order_by("insumo_id", "id")
+    )
+    for uso in usos:
+        insumo = Insumo.objects.select_for_update().get(id=uso.insumo_id)
+        insumo.stock = (
+            Decimal(str(insumo.stock or 0))
+            + Decimal(str(uso.cantidad or 0))
+        )
+        insumo.save(update_fields=["stock"])
+    if usos:
+        PedidoEmpaque.objects.filter(
+            id__in=[uso.id for uso in usos]
+        ).delete()
+    return len(usos)
+
+
 # FINANZAS / RENTABILIDAD
 # ==========================================================
 
@@ -4600,6 +4621,8 @@ def cancelar_pedido(request, pedido_id):
             ]
         )
 
+    _restaurar_empaques_pedido(pedido)
+
     pedido.estado = "CANCELADO"
 
     pedido.save(
@@ -4674,6 +4697,8 @@ def eliminar_pedido(request, pedido_id):
         producto.save(
             update_fields=["stock"]
         )
+
+    _restaurar_empaques_pedido(pedido)
 
     # ------------------------------------------------------
     # BORRAR PEDIDO
