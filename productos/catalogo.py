@@ -105,7 +105,11 @@ def _catalogo_publico(request, vista_catalogo, categoria_actual=None):
             parametros.pop("categoria", None)
             parametros.pop("tipo", None)
             destino = reverse(
-                "catalogo_categoria",
+                (
+                    "catalogo_categoria_kits"
+                    if vista_catalogo == "kits"
+                    else "catalogo_categoria_productos"
+                ),
                 args=[categoria_destino.slug],
             )
             query = parametros.urlencode()
@@ -332,6 +336,7 @@ def _catalogo_publico(request, vista_catalogo, categoria_actual=None):
                 seo_categoria(
                     request,
                     categoria_actual,
+                    vista_catalogo,
                     config_catalogo,
                 )
                 if categoria_actual is not None
@@ -361,17 +366,39 @@ def catalogo_kits(request):
     return _catalogo_publico(request, "kits")
 
 
-def catalogo_categoria(request, slug):
-    """Landing SEO pública de una categoría de productos."""
-    categoria = get_object_or_404(
+def _categoria_publica(slug):
+    return get_object_or_404(
         TipoProducto,
         slug=slug,
         activo=True,
     )
+
+
+def catalogo_categoria_productos(request, slug):
+    """Landing SEO de una categoría dentro de Productos."""
     return _catalogo_publico(
         request,
-        "categoria",
-        categoria_actual=categoria,
+        "productos",
+        categoria_actual=_categoria_publica(slug),
+    )
+
+
+def catalogo_categoria_kits(request, slug):
+    """Landing SEO de una categoría dentro de Kits."""
+    return _catalogo_publico(
+        request,
+        "kits",
+        categoria_actual=_categoria_publica(slug),
+    )
+
+
+def catalogo_categoria(request, slug):
+    """Compatibilidad del enlace general creado durante QA."""
+    categoria = _categoria_publica(slug)
+    return redirect(
+        "catalogo_categoria_productos",
+        slug=categoria.slug,
+        permanent=True,
     )
 
 
