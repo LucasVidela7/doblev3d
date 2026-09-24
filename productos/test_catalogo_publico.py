@@ -855,7 +855,7 @@ class CatalogoPublicoTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(
             response,
-            'property="og:title" content="Piña sensorial | Doble V 3D"',
+            'property="og:title" content="Piña sensorial | Sensoriales | Doble V 3D"',
         )
         social_url = (
             "http://testserver"
