@@ -1,0 +1,79 @@
+<section class="pedido-paquetes" data-pedido-vista-panel="paquetes" hidden>
+    {% if paquetes %}
+    <div class="pedido-paquetes-resumen">
+        <div>
+            <strong>{{ total_paquetes }} paquete{{ total_paquetes|pluralize:"s" }}</strong>
+            <span>Cada tarjeta representa un kit físico para separar al momento de armar.</span>
+        </div>
+        <span class="pedido-paquetes-badge">POR PAQUETE</span>
+    </div>
+
+    <div class="pedido-paquetes-grid">
+        {% for paquete in paquetes %}
+        <article class="pedido-paquete">
+            <header class="pedido-paquete-head">
+                <div>
+                    <span>PAQUETE {{ paquete.numero }} DE {{ paquete.total_paquetes }}</span>
+                    <strong>{{ paquete.nombre_kit }}</strong>
+                </div>
+                {% if paquete.cantidad_linea > 1 %}
+                <span class="pedido-paquete-unidad">KIT {{ paquete.unidad_linea }}/{{ paquete.cantidad_linea }}</span>
+                {% endif %}
+            </header>
+
+            <div class="pedido-paquete-productos">
+                {% for item in paquete.productos %}
+                <div class="pedido-paquete-producto">
+                    {% if item.producto and item.producto.imagen_produccion_url %}
+                    <img class="pedido-paquete-thumb" src="{{ item.producto.imagen_produccion_url }}" alt="" loading="lazy">
+                    {% else %}
+                    <span class="pedido-paquete-thumb vacia">3D</span>
+                    {% endif %}
+                    <div>
+                        <strong>{{ item.nombre }}</strong>
+                        <span>{{ item.cantidad }} unidad{{ item.cantidad|pluralize:"es" }}</span>
+                    </div>
+                    {% if item.estado_operativo == "LISTO" %}
+                    <span class="pedido-paquete-estado listo">LISTO</span>
+                    {% elif item.estado_operativo == "RESERVADO" %}
+                    <span class="pedido-paquete-estado reservado">RESERVADO</span>
+                    {% elif item.estado_operativo == "FALTANTE" %}
+                    <span class="pedido-paquete-estado falta">FALTA</span>
+                    {% elif item.estado_operativo == "DISPONIBLE" %}
+                    <span class="pedido-paquete-estado disponible">DISPONIBLE</span>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <div class="pedido-paquete-vacio">No se pudo reconstruir la composición de este kit.</div>
+                {% endfor %}
+            </div>
+
+            {% if paquete.distribucion_aproximada %}
+            <div class="pedido-paquete-nota">
+                La composición histórica no divide exactamente por cantidad; se distribuyeron las piezas entre paquetes como guía.
+            </div>
+            {% endif %}
+        </article>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if productos_sueltos %}
+    <div class="pedido-sueltas">
+        <div class="pedido-sueltas-head">
+            <strong>FUERA DE LOS KITS</strong>
+            <span>También forman parte del pedido, pero no van dentro de un paquete de kit.</span>
+        </div>
+        {% for item in productos_sueltos %}
+        <div class="pedido-suelta">
+            <span>{{ item.nombre }}</span>
+            <strong>x {{ item.cantidad }}</strong>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if not paquetes and not productos_sueltos %}
+    <div class="sin-datos">Este pedido no tiene composición por paquetes disponible.</div>
+    {% endif %}
+</section>
