@@ -6,6 +6,7 @@ from productos.image_models import ProductoImagen
 from productos.models import ConfiguracionCatalogo
 from productos.whatsapp import whatsapp_url
 
+from .adicionales import enriquecer_detalles_pedido
 from .models import Pedido
 
 
