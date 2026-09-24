@@ -231,7 +231,7 @@ def seo_producto(
                 "name": tipo,
                 "item": request.build_absolute_uri(
                     reverse(
-                        "catalogo_categoria",
+                        "catalogo_categoria_productos",
                         args=[producto.tipo.slug],
                     )
                 ),
@@ -363,7 +363,7 @@ def seo_kit(
                 "name": kit.tipo_producto.nombre,
                 "item": request.build_absolute_uri(
                     reverse(
-                        "catalogo_categoria",
+                        "catalogo_categoria_kits",
                         args=[kit.tipo_producto.slug],
                     )
                 ),
@@ -409,27 +409,42 @@ def seo_kit(
     }
 
 
-def seo_categoria(request, categoria, config=None):
+def seo_categoria(request, categoria, vista_catalogo, config=None):
     config = config or (
         ConfiguracionCatalogo.objects.first()
         or ConfiguracionCatalogo()
     )
+    es_kits = vista_catalogo == "kits"
+    seccion = "Kits" if es_kits else "Productos"
+    ruta_seccion = (
+        "catalogo_kits"
+        if es_kits
+        else "catalogo_productos"
+    )
+    ruta_categoria = (
+        "catalogo_categoria_kits"
+        if es_kits
+        else "catalogo_categoria_productos"
+    )
     title = (
         (categoria.seo_titulo or "").strip()
-        or f"{categoria.nombre} impresos en 3D | Doble V 3D"
+        or (
+            f"{seccion} de {categoria.nombre} impresos en 3D "
+            "| Doble V 3D"
+        )
     )
     description = (
         (categoria.seo_descripcion or "").strip()
         or (categoria.descripcion_catalogo or "").strip()
         or (
-            f"Explorá productos y kits de {categoria.nombre} impresos "
+            f"Explorá {seccion.lower()} de {categoria.nombre} impresos "
             "en 3D por Doble V 3D. Consultá precios, fotos y opciones "
             "disponibles y pedí presupuesto online."
         )
     )
     canonical = request.build_absolute_uri(
         reverse(
-            "catalogo_categoria",
+            ruta_categoria,
             args=[categoria.slug],
         )
     )
@@ -448,6 +463,14 @@ def seo_categoria(request, categoria, config=None):
             {
                 "@type": "ListItem",
                 "position": 2,
+                "name": seccion,
+                "item": request.build_absolute_uri(
+                    reverse(ruta_seccion)
+                ),
+            },
+            {
+                "@type": "ListItem",
+                "position": 3,
                 "name": categoria.nombre,
                 "item": canonical,
             },
@@ -613,7 +636,7 @@ def sitemap_xml(request):
             )
         )
 
-    for categoria in (
+    categorias_publicas = list(
         TipoProducto.objects
         .filter(
             activo=True,
@@ -621,15 +644,49 @@ def sitemap_xml(request):
         )
         .exclude(slug="")
         .order_by("nombre")
-    ):
-        urls.append(
-            request.build_absolute_uri(
-                reverse(
-                    "catalogo_categoria",
-                    args=[categoria.slug],
+    )
+    tipos_con_productos = set(
+        productos.values_list("tipo_id", flat=True)
+    )
+    tipos_con_kits = set()
+    for kit in kits:
+        categoria_id = kit.tipo_producto_id
+        if (
+            not categoria_id
+            and kit.modalidad == "FIJO"
+        ):
+            tipos_componentes = {
+                componente.producto.tipo_id
+                for componente in kit.componentes.all()
+                if (
+                    componente.producto_id
+                    and componente.producto.tipo_id
+                )
+            }
+            if len(tipos_componentes) == 1:
+                categoria_id = next(iter(tipos_componentes))
+        if categoria_id:
+            tipos_con_kits.add(categoria_id)
+
+    for categoria in categorias_publicas:
+        if categoria.id in tipos_con_productos:
+            urls.append(
+                request.build_absolute_uri(
+                    reverse(
+                        "catalogo_categoria_productos",
+                        args=[categoria.slug],
+                    )
                 )
             )
-        )
+        if categoria.id in tipos_con_kits:
+            urls.append(
+                request.build_absolute_uri(
+                    reverse(
+                        "catalogo_categoria_kits",
+                        args=[categoria.slug],
+                    )
+                )
+            )
 
     escaped = [
         (
