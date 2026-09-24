@@ -48,7 +48,7 @@
         </div>
     </header>
 
-    {% if messages %}<div class="mensajes">{% for message in messages %}<div class="mensaje {{ message.tags|default:'info' }}">{{ message }}</div>{% endfor %}</div>{% endif %}
+    {% include "shared/messages_toasts.html" %}
 
     {% if tiene_origen_aprobado or pedido.estado == 'LISTO' %}
     <section class="comunicacion-cliente">
