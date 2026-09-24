@@ -11,6 +11,8 @@ from productos.catalogo import (
     catalogo_kits,
     catalogo_productos,
     catalogo_categoria,
+    catalogo_categoria_productos,
+    catalogo_categoria_kits,
     catalogo_producto_detalle,
     catalogo_producto_legacy,
     catalogo_kit_detalle,
@@ -61,6 +63,16 @@ urlpatterns = [
         "kits/",
         catalogo_kits,
         name="catalogo_kits",
+    ),
+    path(
+        "productos/categorias/<slug:slug>/",
+        catalogo_categoria_productos,
+        name="catalogo_categoria_productos",
+    ),
+    path(
+        "kits/categorias/<slug:slug>/",
+        catalogo_categoria_kits,
+        name="catalogo_categoria_kits",
     ),
     path(
         "categorias/<slug:slug>/",
