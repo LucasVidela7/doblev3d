@@ -1096,6 +1096,20 @@ def configuracion(request):
         )
         actualizados.append("incremento_insumos_por_defecto")
 
+        try:
+            provision_empaque = Decimal(
+                (request.POST.get("provision_empaque_unitaria") or "0")
+                .strip()
+                .replace(",", ".")
+            )
+        except Exception:
+            provision_empaque = Decimal("0")
+        config.provision_empaque_unitaria = max(
+            provision_empaque,
+            Decimal("0"),
+        )
+        actualizados.append("provision_empaque_unitaria")
+
         config.save(
             update_fields=actualizados,
         )
