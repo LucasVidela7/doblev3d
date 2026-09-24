@@ -1,3 +1,11 @@
+<style>
+.pedido-empaque{margin:9px;padding:10px;border:1px solid var(--dv-border,#dfe5ef);border-radius:11px;background:var(--dv-surface-soft,#f8faff)}
+.pedido-empaque-info{min-width:0}.pedido-empaque-kicker{display:block;color:var(--dv-muted,#667085);font-size:7px;font-weight:950;letter-spacing:.05em}.pedido-empaque-info strong{display:block;margin-top:3px;font-size:10px}.pedido-empaque-info>span:last-child{display:block;margin-top:3px;color:var(--dv-muted,#667085);font-size:8px;line-height:1.35}
+.pedido-empaque-form{display:grid;grid-template-columns:minmax(0,1fr) 90px auto;gap:7px;margin-top:9px}.pedido-empaque-form select,.pedido-empaque-form input{min-height:38px;padding:7px 8px;border:1px solid var(--dv-border,#dfe5ef);border-radius:9px;background:var(--dv-surface,#fff);color:var(--dv-text,#17233a);font-size:9px}.pedido-empaque-form button{min-height:38px;padding:0 10px;border:1px solid var(--dv-brand-blue,#134a9a);border-radius:9px;background:var(--dv-brand-blue,#134a9a);color:#fff;font-size:8px;font-weight:950;cursor:pointer}.pedido-empaque-liberar{margin-top:6px}.pedido-empaque-liberar button{border:0;background:transparent;color:var(--dv-danger-text,#963a3a);font-size:7px;font-weight:900;cursor:pointer;padding:3px 0}
+.pedido-suelta-empaque{margin-top:9px}
+html[data-dv-theme="dark"] .pedido-empaque{background:var(--dv-surface-soft)!important;border-color:var(--dv-border)!important}
+@media(max-width:640px){.pedido-empaque-form{grid-template-columns:1fr 92px}.pedido-empaque-form button{grid-column:1/-1}}
+</style>
 <section class="pedido-paquetes" data-pedido-vista-panel="paquetes" hidden>
     {% if paquetes %}
     <div class="pedido-paquetes-resumen">
@@ -53,6 +61,7 @@
                 La composición histórica no divide exactamente por cantidad; se distribuyeron las piezas entre paquetes como guía.
             </div>
             {% endif %}
+            {% include "pedidos/_empaque_paquete_control.html" with paquete=paquete %}
         </article>
         {% endfor %}
     </div>
@@ -70,6 +79,11 @@
             <strong>x {{ item.cantidad }}</strong>
         </div>
         {% endfor %}
+        {% if paquete_sueltos %}
+        <div class="pedido-suelta-empaque">
+            {% include "pedidos/_empaque_paquete_control.html" with paquete=paquete_sueltos %}
+        </div>
+        {% endif %}
     </div>
     {% endif %}
 
