@@ -134,7 +134,7 @@ def privacidad(request):
     return render(
         request,
         "productos/legal_privacidad.html",
-        _contexto_legal(),
+        _contexto_legal(request),
     )
 
 
