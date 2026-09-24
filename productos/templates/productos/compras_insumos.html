@@ -59,7 +59,7 @@ h1{margin:0;font-size:34px}.sub{margin-top:5px;color:var(--dv-muted,#667085);fon
         <div class="grid">
           <div class="field">
             <label>FECHA</label>
-            <input type="date" name="fecha_compra" value="{{ valores.fecha_compra|default:hoy|date:'Y-m-d' }}" required>
+            <input type="date" name="fecha_compra" value="{% if valores.fecha_compra %}{{ valores.fecha_compra }}{% else %}{{ hoy|date:'Y-m-d' }}{% endif %}" required>
           </div>
           <div class="field">
             <label>PROVEEDOR</label>
@@ -69,7 +69,7 @@ h1{margin:0;font-size:34px}.sub{margin-top:5px;color:var(--dv-muted,#667085);fon
             <label>MEDIO DE PAGO</label>
             <select name="medio_pago" id="medioPago">
               {% for valor,etiqueta in medios_pago %}
-              <option value="{{ valor }}" {% if valores.medio_pago == valor %}selected{% endif %}>{{ etiqueta }}</option>
+              <option value="{{ valor }}" {% if valores.medio_pago == valor or not valores.medio_pago and valor == 'TRANSFERENCIA' %}selected{% endif %}>{{ etiqueta }}</option>
               {% endfor %}
             </select>
           </div>
