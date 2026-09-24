@@ -1,3 +1,4 @@
+from hashlib import sha256
 from io import BytesIO
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
@@ -178,11 +179,11 @@ def kit_social_preview(request, kit_id):
         raise Http404("El kit no tiene imágenes disponibles")
 
     # La clave cambia cuando cambia cualquiera de las URLs del collage.
+    firma = sha256(
+        "|".join(urls).encode("utf-8")
+    ).hexdigest()
     cache_key = (
-        "dv-social-kit-v1:"
-        + str(kit.id)
-        + ":"
-        + "|".join(urls)
+        f"dv-social-kit-v1:{kit.id}:{firma}"
     )
     data = cache.get(cache_key)
     if data is None:
