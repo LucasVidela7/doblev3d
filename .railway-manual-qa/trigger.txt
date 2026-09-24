@@ -111,3 +111,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-24 - Etapa 2 Insumos: deploy final con optimizacion de catalogo
 2026-09-24 - Etapa 2 Insumos: fix final template l10n
 2026-09-24 - Etapa 3 Empaques: reglas, provision invisible, stock y rentabilidad
+2026-09-24 - Etapa 3 Empaques: fix final productos sueltos
