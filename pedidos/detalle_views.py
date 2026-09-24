@@ -160,6 +160,150 @@ def _armar_preparacion(pedido):
     return preparacion
 
 
+def _armar_paquetes_detalle(pedido, preparacion):
+    """Reconstruye cada kit físico del pedido para usarlo como guía de armado."""
+    estado_por_producto = {
+        item["producto"].id: item
+        for item in preparacion
+        if item.get("producto")
+    }
+
+    paquetes = []
+    sueltos = []
+
+    for detalle in pedido.detalles.all():
+        if detalle.estado == "CANCELADO":
+            continue
+
+        if detalle.tipo_item != "KIT" or not detalle.kit:
+            if detalle.producto:
+                estado = estado_por_producto.get(
+                    detalle.producto_id,
+                    {},
+                )
+                sueltos.append(
+                    {
+                        "producto": detalle.producto,
+                        "nombre": (
+                            f"{detalle.producto.nombre} personalizado"
+                            if detalle.tipo_item == "PERSONALIZADO"
+                            else detalle.producto.nombre
+                        ),
+                        "cantidad": int(detalle.cantidad or 0),
+                        "estado_operativo": estado.get(
+                            "estado_operativo",
+                            (
+                                "MANUAL"
+                                if detalle.tipo_item == "PERSONALIZADO"
+                                else ""
+                            ),
+                        ),
+                        "estado_texto": estado.get(
+                            "estado_texto",
+                            "",
+                        ),
+                    }
+                )
+            continue
+
+        cantidad_kits = max(
+            int(detalle.cantidad or 0),
+            1,
+        )
+        nombre_kit = (
+            (detalle.kit_snapshot or {}).get("nombre")
+            or detalle.kit.nombre
+        )
+
+        paquetes_linea = [
+            {
+                "numero": 0,
+                "nombre_kit": nombre_kit,
+                "unidad_linea": unidad + 1,
+                "cantidad_linea": cantidad_kits,
+                "productos": [],
+                "distribucion_aproximada": False,
+            }
+            for unidad in range(cantidad_kits)
+        ]
+
+        componentes = list(
+            detalle.productos_kit.all()
+        )
+
+        if not componentes and detalle.kit.modalidad == "FIJO":
+            componentes = []
+            for componente in detalle.kit.componentes.all():
+                componentes.append(
+                    {
+                        "producto": componente.producto,
+                        "cantidad": (
+                            int(componente.cantidad or 0)
+                            * cantidad_kits
+                        ),
+                    }
+                )
+
+        for componente in componentes:
+            if isinstance(componente, dict):
+                producto = componente["producto"]
+                total = int(componente["cantidad"] or 0)
+            else:
+                producto = componente.producto
+                total = int(componente.cantidad or 0)
+
+            if total <= 0:
+                continue
+
+            base, resto = divmod(
+                total,
+                cantidad_kits,
+            )
+            if resto:
+                for paquete in paquetes_linea:
+                    paquete["distribucion_aproximada"] = True
+
+            for indice, paquete in enumerate(paquetes_linea):
+                cantidad_paquete = (
+                    base
+                    + (1 if indice < resto else 0)
+                )
+                if cantidad_paquete <= 0:
+                    continue
+
+                estado = estado_por_producto.get(
+                    producto.id,
+                    {},
+                )
+                paquete["productos"].append(
+                    {
+                        "producto": producto,
+                        "nombre": producto.nombre,
+                        "cantidad": cantidad_paquete,
+                        "estado_operativo": estado.get(
+                            "estado_operativo",
+                            "",
+                        ),
+                        "estado_texto": estado.get(
+                            "estado_texto",
+                            "",
+                        ),
+                    }
+                )
+
+        paquetes.extend(paquetes_linea)
+
+    total_paquetes = len(paquetes)
+    for numero, paquete in enumerate(
+        paquetes,
+        start=1,
+    ):
+        paquete["numero"] = numero
+        paquete["total_paquetes"] = total_paquetes
+
+    return paquetes, sueltos
+
+
 def detalle_pedido(request, pedido_id):
     pedido = get_object_or_404(
         Pedido.objects
@@ -186,12 +330,29 @@ def detalle_pedido(request, pedido_id):
 
     pagos = list(pedido.pagos.all())
     preparacion = _armar_preparacion(pedido)
+    paquetes, productos_sueltos = _armar_paquetes_detalle(
+        pedido,
+        preparacion,
+    )
+    productos_preparacion = [
+        item["producto"]
+        for item in preparacion
+        if item.get("producto")
+    ]
+    productos_paquetes = [
+        item["producto"]
+        for paquete in paquetes
+        for item in paquete["productos"]
+        if item.get("producto")
+    ]
+    productos_paquetes.extend(
+        item["producto"]
+        for item in productos_sueltos
+        if item.get("producto")
+    )
     asignar_miniaturas_productos(
-        [
-            item["producto"]
-            for item in preparacion
-            if item.get("producto")
-        ]
+        productos_preparacion
+        + productos_paquetes
     )
 
     cantidad_unidades = sum(
@@ -263,6 +424,9 @@ def detalle_pedido(request, pedido_id):
             "detalles": detalles,
             "pagos": pagos,
             "preparacion": preparacion,
+            "paquetes": paquetes,
+            "total_paquetes": len(paquetes),
+            "productos_sueltos": productos_sueltos,
             "preparacion_total": preparacion_total,
             "preparacion_listos": preparacion_listos,
             "preparacion_porcentaje": preparacion_porcentaje,
