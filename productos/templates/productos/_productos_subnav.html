@@ -33,18 +33,22 @@
     background:var(--dv-brand-blue-soft,#eef4ff);
     color:var(--dv-accent-blue-text,#0d376f);
 }
-@media(max-width:560px){
-    .dv-products-subnav{width:100%}
-    .dv-products-subnav a{flex:1}
+@media(max-width:640px){
+    .dv-products-subnav{width:100%;overflow-x:auto}
+    .dv-products-subnav a{flex:1;min-width:max-content}
 }
 </style>
 <nav class="dv-products-subnav" aria-label="Secciones de productos">
     <a
         href="{% url 'productos:lista' %}"
-        class="{% if request.resolver_match.url_name != 'insumos' and request.resolver_match.url_name != 'insumo_nuevo' and request.resolver_match.url_name != 'insumo_editar' %}is-active{% endif %}"
+        class="{% if request.resolver_match.namespace == 'productos' and request.resolver_match.url_name != 'insumos' and request.resolver_match.url_name != 'insumo_nuevo' and request.resolver_match.url_name != 'insumo_editar' %}is-active{% endif %}"
     >PRODUCTOS</a>
     <a
         href="{% url 'productos:insumos' %}"
         class="{% if request.resolver_match.url_name == 'insumos' or request.resolver_match.url_name == 'insumo_nuevo' or request.resolver_match.url_name == 'insumo_editar' %}is-active{% endif %}"
     >INSUMOS</a>
+    <a
+        href="{% url 'pedidos:reglas_empaque' %}"
+        class="{% if request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name == 'reglas_empaque' %}is-active{% endif %}"
+    >EMPAQUES</a>
 </nav>
