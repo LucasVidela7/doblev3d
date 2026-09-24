@@ -8,6 +8,7 @@ from productos.image_environment import (
     ambientes_imagenes_lectura,
     clave_imagen_lectura,
     entorno_imagenes,
+    seleccionar_imagenes_lectura,
 )
 from productos.image_models import ProductoImagen
 from productos.imagekit_service import imagekit_configurado
@@ -602,8 +603,11 @@ class ProductImagesUIMiddleware:
             )
             .order_by("orden", "id")
         )
-        imagenes.sort(key=clave_imagen_lectura)
-        imagenes = imagenes[:2]
+        imagenes = (
+            seleccionar_imagenes_lectura(imagenes, limite=2)
+            if view_name == "productos:detalle"
+            else sorted(imagenes, key=clave_imagen_lectura)[:2]
+        )
 
         try:
             contenido = response.content.decode(response.charset or "utf-8")
