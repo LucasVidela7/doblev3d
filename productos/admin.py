@@ -5,6 +5,7 @@ from .models import (
     Insumo,
     Producto,
     ProductoComponente,
+    ProductoInsumo,
     TipoProducto,
 )
 
@@ -65,6 +66,12 @@ class TipoProductoAdmin(admin.ModelAdmin):
     list_filter = ("activo",)
 
 
+class ProductoInsumoInline(admin.TabularInline):
+    model = ProductoInsumo
+    extra = 0
+    autocomplete_fields = ("insumo",)
+
+
 class ProductoComponenteInline(admin.TabularInline):
     model = ProductoComponente
     fk_name = "producto"
@@ -102,7 +109,7 @@ class ProductoAdmin(admin.ModelAdmin):
         "personalizable",
         "activo",
     )
-    inlines = (ProductoComponenteInline,)
+    inlines = (ProductoComponenteInline, ProductoInsumoInline,)
 
     @admin.display(description="COSTO")
     def mostrar_costo(self, obj):
