@@ -33,6 +33,18 @@
     background:var(--dv-brand-blue-soft,#eef4ff);
     color:var(--dv-accent-blue-text,#0d376f);
 }
+.dv-products-subnav a.nav-insumos.is-active{
+    background:color-mix(in srgb,#38a7e8 16%,var(--dv-surface,#fff));
+    color:color-mix(in srgb,#1677b8 88%,var(--dv-text,#17233a));
+}
+.dv-products-subnav a.nav-compras.is-active{
+    background:color-mix(in srgb,#35b56f 16%,var(--dv-surface,#fff));
+    color:color-mix(in srgb,#18834a 88%,var(--dv-text,#17233a));
+}
+.dv-products-subnav a.nav-empaques.is-active{
+    background:color-mix(in srgb,#f0a63a 18%,var(--dv-surface,#fff));
+    color:color-mix(in srgb,#b76a08 88%,var(--dv-text,#17233a));
+}
 @media(max-width:640px){
     .dv-products-subnav{width:100%;overflow-x:auto}
     .dv-products-subnav a{flex:1;min-width:max-content}
@@ -45,14 +57,14 @@
     >PRODUCTOS</a>
     <a
         href="{% url 'productos:insumos' %}"
-        class="{% if request.resolver_match.url_name == 'insumos' or request.resolver_match.url_name == 'insumo_nuevo' or request.resolver_match.url_name == 'insumo_editar' %}is-active{% endif %}"
+        class="nav-insumos {% if request.resolver_match.url_name == 'insumos' or request.resolver_match.url_name == 'insumo_nuevo' or request.resolver_match.url_name == 'insumo_editar' %}is-active{% endif %}"
     >INSUMOS</a>
     <a
         href="{% url 'productos:compras_insumos' %}"
-        class="{% if request.resolver_match.url_name == 'compras_insumos' or request.resolver_match.url_name == 'compra_insumo_registrar' %}is-active{% endif %}"
+        class="nav-compras {% if request.resolver_match.url_name == 'compras_insumos' or request.resolver_match.url_name == 'compra_insumo_registrar' %}is-active{% endif %}"
     >COMPRAS</a>
     <a
         href="{% url 'pedidos:reglas_empaque' %}"
-        class="{% if request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name == 'reglas_empaque' %}is-active{% endif %}"
+        class="nav-empaques {% if request.resolver_match.namespace == 'pedidos' and request.resolver_match.url_name == 'reglas_empaque' %}is-active{% endif %}"
     >EMPAQUES</a>
 </nav>
