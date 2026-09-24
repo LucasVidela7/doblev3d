@@ -101,6 +101,8 @@ h1{margin:0;font-size:30px}.sub{margin-top:5px;color:var(--dv-muted,#667085);fon
         <div><div class="label">EMAIL</div><div class="value">{% if solicitud.email %}{{ solicitud.email }}{% else %}—{% endif %}</div></div>
     </div>
 
+    {% include "pedidos/_embalaje_estimado.html" %}
+
     <div class="card">
         <div class="label" style="margin-bottom:10px">CARRITO RECIBIDO</div>
         <div class="items">
