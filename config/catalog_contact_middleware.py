@@ -350,9 +350,12 @@ def _legal_footer_html(view_name=""):
         "catalogo",
         "catalogo_legacy",
         "catalogo_productos",
+        "catalogo_categoria",
         "catalogo_producto_detalle",
+        "catalogo_producto_legacy",
         "catalogo_kits",
         "catalogo_kit_detalle",
+        "catalogo_kit_legacy",
         "catalogo_carrito",
         "catalogo_carrito_gracias",
     }
