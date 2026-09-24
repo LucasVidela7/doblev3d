@@ -1,0 +1,50 @@
+<style>
+.dv-products-subnav{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin:0 0 14px;
+    padding:5px;
+    width:max-content;
+    max-width:100%;
+    border:1px solid var(--dv-border,#dfe5ef);
+    border-radius:13px;
+    background:var(--dv-surface,#fff);
+    box-shadow:var(--dv-shadow-soft,0 4px 14px rgba(19,74,154,.055));
+}
+.dv-products-subnav a{
+    min-height:38px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 13px;
+    border-radius:9px;
+    color:var(--dv-muted,#667085);
+    text-decoration:none;
+    font-size:12px;
+    font-weight:900;
+    white-space:nowrap;
+}
+.dv-products-subnav a:hover{
+    background:var(--dv-surface-soft,#f8faff);
+    color:var(--dv-text,#17233a);
+}
+.dv-products-subnav a.is-active{
+    background:var(--dv-brand-blue-soft,#eef4ff);
+    color:var(--dv-accent-blue-text,#0d376f);
+}
+@media(max-width:560px){
+    .dv-products-subnav{width:100%}
+    .dv-products-subnav a{flex:1}
+}
+</style>
+<nav class="dv-products-subnav" aria-label="Secciones de productos">
+    <a
+        href="{% url 'productos:lista' %}"
+        class="{% if request.resolver_match.url_name != 'insumos' and request.resolver_match.url_name != 'insumo_nuevo' and request.resolver_match.url_name != 'insumo_editar' %}is-active{% endif %}"
+    >PRODUCTOS</a>
+    <a
+        href="{% url 'productos:insumos' %}"
+        class="{% if request.resolver_match.url_name == 'insumos' or request.resolver_match.url_name == 'insumo_nuevo' or request.resolver_match.url_name == 'insumo_editar' %}is-active{% endif %}"
+    >INSUMOS</a>
+</nav>
