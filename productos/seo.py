@@ -187,15 +187,16 @@ def seo_producto(
             "@type": "Brand",
             "name": "Doble V 3D",
         },
-        "offers": {
+    }
+    if price > 0:
+        product["offers"] = {
             "@type": "Offer",
             "url": canonical,
             "priceCurrency": "ARS",
             "price": f"{price:.2f}",
             "availability": "https://schema.org/InStock",
             "itemCondition": "https://schema.org/NewCondition",
-        },
-    }
+        }
     if image:
         product["image"] = [image]
 
@@ -300,15 +301,16 @@ def seo_kit(
             "@type": "Brand",
             "name": "Doble V 3D",
         },
-        "offers": {
+    }
+    if price > 0:
+        product["offers"] = {
             "@type": "Offer",
             "url": canonical,
             "priceCurrency": "ARS",
             "price": f"{price:.2f}",
             "availability": "https://schema.org/InStock",
             "itemCondition": "https://schema.org/NewCondition",
-        },
-    }
+        }
     if image_available:
         product["image"] = [social_image]
 
