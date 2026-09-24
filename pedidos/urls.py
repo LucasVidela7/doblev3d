@@ -4,6 +4,7 @@ from . import (
     acciones_impresion,
     acciones_pedido,
     detalle_views,
+    empaques,
     historial_views,
     pedido_form_views,
     preparacion_views,
@@ -91,6 +92,21 @@ urlpatterns = [
         "impresiones/",
         preparacion_views.impresiones_por_pedido,
         name="impresiones",
+    ),
+    path(
+        "empaques/reglas/",
+        empaques.reglas,
+        name="reglas_empaque",
+    ),
+    path(
+        "empaques/reglas/<int:regla_id>/activo/",
+        empaques.cambiar_regla_activo,
+        name="regla_empaque_activo",
+    ),
+    path(
+        "empaques/reglas/<int:regla_id>/eliminar/",
+        empaques.eliminar_regla,
+        name="regla_empaque_eliminar",
     ),
 
     path(
@@ -188,6 +204,16 @@ urlpatterns = [
         "<int:pedido_id>/preparacion/",
         detalle_views.cambiar_preparacion,
         name="cambiar_preparacion",
+    ),
+    path(
+        "<int:pedido_id>/empaque/usar/",
+        empaques.usar_empaque,
+        name="usar_empaque",
+    ),
+    path(
+        "<int:pedido_id>/empaque/liberar/",
+        empaques.liberar_empaque,
+        name="liberar_empaque",
     ),
 
     path(
