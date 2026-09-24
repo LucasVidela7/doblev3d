@@ -18,6 +18,11 @@ urlpatterns = [
         name="nueva",
     ),
     path(
+        "producto/<int:producto_id>/planificar/",
+        views.planificar_desde_producto,
+        name="planificar_desde_producto",
+    ),
+    path(
         "accion-rapida/",
         views.accion_rapida_necesidad,
         name="accion_rapida",
