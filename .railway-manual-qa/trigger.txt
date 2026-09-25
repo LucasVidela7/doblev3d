@@ -153,3 +153,5 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-25T12:07-03 deploy reimpresion avanzada con AMS y color
 
 2026-09-25T12:12-03 deploy reimpresion AMS y comandos Bambu seguros
+
+2026-09-25T12:20-03 deploy biblioteca privada gcode 3mf
