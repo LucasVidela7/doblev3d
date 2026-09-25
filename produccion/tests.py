@@ -420,6 +420,160 @@ class PlanificacionProduccionTests(TestCase):
             ),
         )
 
+    @patch(
+        "produccion.views._archivo_fisico_disponible",
+        return_value=True,
+    )
+    def test_iniciar_bambu_reintenta_si_envio_anterior_no_fue_confirmado(
+        self,
+        disponible_mock,
+    ):
+        archivo = ArchivoImpresion.objects.create(
+            producto=self.producto,
+            nombre="Archivo retry",
+            cantidad_unidades=1,
+            archivo="productos/P0001/retry.gcode.3mf",
+            nombre_original="retry.gcode.3mf",
+            tamano_bytes=100,
+            sha256="c" * 64,
+            placas=[1],
+            activo=True,
+            predeterminado=True,
+        )
+        estado_bambu = ImpresoraEstadoBambu.objects.create(
+            impresora=self.impresora,
+            serial="TEST-A1-RETRY",
+            nombre_bridge="A1-retry",
+            conectada=True,
+            estado="FINISH",
+            carrete_externo={
+                "tray_type": "PLA",
+                "tray_color": "FFFFFFFF",
+            },
+        )
+        produccion = Produccion.objects.create(
+            producto=self.producto,
+            cantidad=1,
+            estado="PENDIENTE",
+            impresora=self.impresora,
+            archivo_impresion=archivo,
+            tiempo_impresion_minutos=150,
+        )
+        anterior = ComandoBambu.objects.create(
+            tipo="PRINT",
+            estado="EJECUTADO",
+            impresora_estado=estado_bambu,
+            produccion=produccion,
+            trabajo_bambu_esperado="anterior.gcode.3mf",
+            resuelto_en=timezone.now() - timedelta(minutes=3),
+        )
+
+        respuesta = self.client.post(
+            reverse(
+                "produccion:iniciar",
+                args=[produccion.id],
+            ),
+            {
+                "impresora": self.impresora.id,
+                "filamento": "EXTERNO",
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 302)
+
+        anterior.refresh_from_db()
+        self.assertEqual(anterior.estado, "ERROR")
+        self.assertIn(
+            "no confirmado por telemetría",
+            anterior.error,
+        )
+
+        nuevos = ComandoBambu.objects.filter(
+            produccion=produccion,
+            tipo="PRINT",
+            estado="PENDIENTE",
+        )
+        self.assertEqual(nuevos.count(), 1)
+        self.assertNotEqual(
+            nuevos.first().id_comando,
+            anterior.id_comando,
+        )
+
+    @patch(
+        "produccion.views._archivo_fisico_disponible",
+        return_value=True,
+    )
+    def test_print_pendiente_reserva_impresora_para_otra_produccion(
+        self,
+        disponible_mock,
+    ):
+        archivo = ArchivoImpresion.objects.create(
+            producto=self.producto,
+            nombre="Archivo reserva",
+            cantidad_unidades=1,
+            archivo="productos/P0001/reserva.gcode.3mf",
+            nombre_original="reserva.gcode.3mf",
+            tamano_bytes=100,
+            sha256="d" * 64,
+            placas=[1],
+            activo=True,
+            predeterminado=True,
+        )
+        estado_bambu = ImpresoraEstadoBambu.objects.create(
+            impresora=self.impresora,
+            serial="TEST-A1-RESERVA",
+            nombre_bridge="A1-reserva",
+            conectada=True,
+            estado="FINISH",
+            carrete_externo={
+                "tray_type": "PLA",
+                "tray_color": "FFFFFFFF",
+            },
+        )
+        primera = Produccion.objects.create(
+            producto=self.producto,
+            cantidad=1,
+            estado="PENDIENTE",
+            impresora=self.impresora,
+            archivo_impresion=archivo,
+            tiempo_impresion_minutos=150,
+        )
+        ComandoBambu.objects.create(
+            tipo="PRINT",
+            estado="PENDIENTE",
+            impresora_estado=estado_bambu,
+            produccion=primera,
+            trabajo_bambu_esperado="primera.gcode.3mf",
+        )
+        segunda = Produccion.objects.create(
+            producto=self.producto,
+            cantidad=1,
+            estado="PENDIENTE",
+            archivo_impresion=archivo,
+            tiempo_impresion_minutos=150,
+        )
+
+        respuesta = self.client.post(
+            reverse(
+                "produccion:iniciar",
+                args=[segunda.id],
+            ),
+            {
+                "impresora": self.impresora.id,
+                "filamento": "EXTERNO",
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 302)
+        segunda.refresh_from_db()
+        self.assertIsNone(segunda.impresora)
+        self.assertFalse(
+            ComandoBambu.objects.filter(
+                produccion=segunda,
+                tipo="PRINT",
+            ).exists()
+        )
+
     @patch("produccion.views.timezone.now")
     def test_planificacion_vencida_muestra_fin_si_inicia_ahora(
         self,
