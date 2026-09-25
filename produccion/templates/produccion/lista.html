@@ -33,6 +33,21 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 .message{padding:11px 13px;border-radius:12px;margin-bottom:9px;font-size:10px;font-weight:800}
 .message.success{background:var(--green);color:var(--green-t)}.message.error{background:var(--red);color:var(--red-t)}
 
+.mock-bambu-panel{margin-bottom:14px;padding:13px;border:1px dashed color-mix(in srgb,var(--dv-brand-sky) 55%,var(--dv-border));border-radius:16px;background:color-mix(in srgb,var(--dv-brand-sky) 7%,var(--dv-surface))}
+.mock-bambu-panel__head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.mock-bambu-panel__title{font-size:13px;font-weight:900}
+.mock-bambu-panel__note{margin-top:4px;color:var(--dv-muted);font-size:10px;line-height:1.45}
+.mock-bambu-panel__badge{display:inline-flex;align-items:center;min-height:26px;padding:0 9px;border-radius:999px;background:var(--dv-brand-sky);color:#fff;font-size:8px;font-weight:900;white-space:nowrap}
+.mock-bambu-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.mock-bambu-card{padding:10px;border:1px solid var(--dv-border);border-radius:12px;background:var(--dv-surface)}
+.mock-bambu-card__top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mock-bambu-card__name{font-size:11px;font-weight:900}
+.mock-bambu-card__meta{margin-top:5px;color:var(--dv-muted);font-size:9px;line-height:1.45}
+.mock-bambu-card__form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;margin-top:8px}
+.mock-bambu-card__form select{width:100%;min-height:38px;border:1px solid var(--dv-border);border-radius:10px;background:var(--dv-surface);color:var(--dv-text);padding:6px 8px;font-size:9px}
+.mock-bambu-card__form .btn{min-height:38px}
+@media(max-width:650px){.mock-bambu-panel__head{display:block}.mock-bambu-panel__badge{margin-top:8px}.mock-bambu-grid{grid-template-columns:1fr}.mock-bambu-card__form{grid-template-columns:1fr}.mock-bambu-card__form .btn{width:100%}}
+
 .flow-nav{position:sticky;top:8px;z-index:12;display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-bottom:12px;padding:5px;border:1px solid rgba(225,229,235,.9);border-radius:16px;background:rgba(255,255,255,.94);box-shadow:var(--shadow);backdrop-filter:blur(8px)}
 .flow-nav a{min-height:39px;display:flex;align-items:center;justify-content:center;gap:5px;border-radius:11px;text-decoration:none;color:var(--muted);font-size:8px;font-weight:900}
 .flow-nav a:hover{background:#f2f4f7;color:var(--text)}
@@ -359,6 +374,63 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 
     {% include "shared/messages_toasts.html" %}
 
+    {% if bambu_mock_enabled and request.user.is_staff %}
+    <section class="mock-bambu-panel" id="bambu-mock">
+        <div class="mock-bambu-panel__head">
+            <div>
+                <div class="mock-bambu-panel__title">🧪 Simulador Bambu · QA</div>
+                <div class="mock-bambu-panel__note">
+                    No controla impresoras físicas. En <strong>AUTO</strong>, usá el flujo normal de “Iniciar”:
+                    espera Raspberry → transferencia → PREPARE → RUNNING → FINISH → CONTROL en ~60 segundos.
+                </div>
+            </div>
+            <span class="mock-bambu-panel__badge">SOLO QA</span>
+        </div>
+
+        <div class="mock-bambu-grid">
+            {% for mock in bambu_mock_resumen %}
+            <article class="mock-bambu-card">
+                <div class="mock-bambu-card__top">
+                    <div class="mock-bambu-card__name">🖨 {{ mock.name }}</div>
+                    {% if mock.connected %}
+                        <span class="pill {% if mock.state == 'RUNNING' or mock.state == 'PREPARE' %}busy{% elif mock.state == 'FAILED' %}high{% else %}free{% endif %}">
+                            {{ mock.state }}
+                        </span>
+                    {% else %}
+                        <span class="pill high">OFFLINE</span>
+                    {% endif %}
+                </div>
+                <div class="mock-bambu-card__meta">
+                    Modo: {{ mock.forced }} · Fase: {{ mock.phase }}
+                    {% if mock.progress is not None %} · {{ mock.progress }}%{% endif %}
+                    {% if mock.job %}<br>{{ mock.job }}{% endif %}
+                </div>
+                <form
+                    method="post"
+                    action="{% url 'produccion:bambu_mock_control' mock.serial %}"
+                    class="mock-bambu-card__form"
+                >
+                    {% csrf_token %}
+                    <select name="action" aria-label="Estado simulado">
+                        <option value="AUTO" {% if mock.forced == "AUTO" %}selected{% endif %}>AUTO · ciclo real acelerado</option>
+                        <option value="AVAILABLE">Disponible</option>
+                        <option value="PREPARE">Preparando</option>
+                        <option value="RUNNING">Imprimiendo</option>
+                        <option value="PAUSE">Pausada</option>
+                        <option value="FINISH">Finalizada</option>
+                        <option value="ERROR">Error</option>
+                        <option value="OFFLINE">Offline</option>
+                    </select>
+                    <button class="btn dark" type="submit">APLICAR</button>
+                </form>
+            </article>
+            {% empty %}
+            <div class="empty">Inicializando impresoras mock…</div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
     <nav class="flow-nav" aria-label="Flujo de producción">
         <a href="#ahora">🖨 IMPRESORAS</a>
         <a href="#prod-necesidad">↓ NECESIDAD</a>
@@ -465,7 +537,9 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                 <h2 class="section-title">Ahora</h2>
                 <div class="subtitle">Estado real de cada impresora y producción vinculada.</div>
             </div>
-            <div class="section-help">Actualización automática cada ~30 s · solo con esta pestaña visible.</div>
+            <div class="section-help">
+                Actualización automática cada {% if bambu_mock_enabled %}~5 s en simulador{% else %}~30 s{% endif %} · solo con esta pestaña visible.
+            </div>
         </div>
 
         <div class="printers">
@@ -1805,7 +1879,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 
     let liveRefreshInFlight=false;
     let lastLiveRefresh=Date.now();
-    const LIVE_REFRESH_MS=30000;
+    const LIVE_REFRESH_MS={% if bambu_mock_enabled %}5000{% else %}30000{% endif %};
 
     function liveRefreshBlocked(){
         if(document.visibilityState!=="visible")return true;
