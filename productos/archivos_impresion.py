@@ -1,7 +1,9 @@
 import hashlib
 import logging
+import math
 import re
 import zipfile
+from decimal import Decimal
 from pathlib import Path, PurePosixPath
 
 from django.conf import settings
@@ -21,6 +23,72 @@ PLATE_RE = re.compile(
     r"(?:^|/)plate_(\d+)\.gcode$",
     re.IGNORECASE,
 )
+
+
+WEIGHT_RE = re.compile(
+    r"total\s+filament\s+weight\s*\[g\]\s*:\s*([0-9]+(?:\.[0-9]+)?)",
+    re.IGNORECASE,
+)
+
+TOTAL_TIME_RE = re.compile(
+    r"total\s+estimated\s+time\s*:\s*"
+    r"(?:(\d+)h\s*)?"
+    r"(?:(\d+)m\s*)?"
+    r"(?:(\d+)s)?",
+    re.IGNORECASE,
+)
+
+
+def _metadata_gcode_texto(texto):
+    peso = None
+    minutos = None
+
+    peso_match = WEIGHT_RE.search(
+        texto
+    )
+    if peso_match:
+        try:
+            peso = Decimal(
+                peso_match.group(1)
+            ).quantize(
+                Decimal("0.01")
+            )
+        except Exception:
+            peso = None
+
+    tiempo_match = TOTAL_TIME_RE.search(
+        texto
+    )
+    if tiempo_match:
+        horas = int(
+            tiempo_match.group(1)
+            or 0
+        )
+        mins = int(
+            tiempo_match.group(2)
+            or 0
+        )
+        segundos = int(
+            tiempo_match.group(3)
+            or 0
+        )
+        total_segundos = (
+            horas * 3600
+            + mins * 60
+            + segundos
+        )
+        if total_segundos > 0:
+            minutos = max(
+                1,
+                math.ceil(
+                    total_segundos / 60
+                ),
+            )
+
+    return {
+        "peso_estimado_gramos": peso,
+        "tiempo_estimado_minutos": minutos,
+    }
 
 
 def _nombre_base(nombre):
@@ -230,6 +298,30 @@ def _analizar_gcode_3mf(archivo):
                 if item.lower().endswith(".gcode")
             ]
 
+            metadata_gcode = {
+                "peso_estimado_gramos": None,
+                "tiempo_estimado_minutos": None,
+            }
+
+            if len(gcodes) == 1:
+                try:
+                    texto_gcode = paquete.read(
+                        gcodes[0]
+                    ).decode(
+                        "utf-8",
+                        errors="ignore",
+                    )
+                    metadata_gcode = (
+                        _metadata_gcode_texto(
+                            texto_gcode
+                        )
+                    )
+                except Exception:
+                    metadata_gcode = {
+                        "peso_estimado_gramos": None,
+                        "tiempo_estimado_minutos": None,
+                    }
+
             if not gcodes:
                 raise ValueError(
                     "El .gcode.3mf no contiene ningún archivo G-code."
@@ -266,6 +358,16 @@ def _analizar_gcode_3mf(archivo):
         "sha256": sha.hexdigest(),
         "tamano_bytes": tamano,
         "placas": placas,
+        "peso_estimado_gramos": (
+            metadata_gcode.get(
+                "peso_estimado_gramos"
+            )
+        ),
+        "tiempo_estimado_minutos": (
+            metadata_gcode.get(
+                "tiempo_estimado_minutos"
+            )
+        ),
     }
 
 
@@ -475,6 +577,12 @@ def subir(request, producto_id):
         sha256=analisis["sha256"],
         placas=analisis["placas"],
         perfil_impresora=perfil_impresora,
+        peso_estimado_gramos=analisis[
+            "peso_estimado_gramos"
+        ],
+        tiempo_estimado_minutos=analisis[
+            "tiempo_estimado_minutos"
+        ],
         notas=notas,
         activo=True,
         predeterminado=predeterminado,
@@ -804,6 +912,12 @@ def reemplazar(
         sha256=analisis["sha256"],
         placas=analisis["placas"],
         perfil_impresora=anterior.perfil_impresora,
+        peso_estimado_gramos=analisis[
+            "peso_estimado_gramos"
+        ],
+        tiempo_estimado_minutos=analisis[
+            "tiempo_estimado_minutos"
+        ],
         notas=notas,
         activo=True,
         predeterminado=True,
