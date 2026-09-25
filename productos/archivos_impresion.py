@@ -61,6 +61,29 @@ def _desmarcar_predeterminado(
     qs.update(predeterminado=False)
 
 
+def _archivo_fisico_disponible(
+    registro,
+):
+    nombre = str(
+        getattr(
+            registro.archivo,
+            "name",
+            "",
+        )
+        or ""
+    ).strip()
+
+    if not nombre:
+        return False
+
+    try:
+        return registro.archivo.storage.exists(
+            nombre
+        )
+    except OSError:
+        return False
+
+
 def _guardar_archivo_impresion(
     registro,
     archivo,
@@ -277,6 +300,7 @@ def subir(request, producto_id):
 
     duplicado = (
         ArchivoImpresion.objects
+        .select_for_update()
         .filter(
             producto=producto,
             sha256=analisis["sha256"],
@@ -285,11 +309,86 @@ def subir(request, producto_id):
     )
 
     if duplicado:
-        messages.error(
+        if (
+            duplicado.cantidad_unidades
+            != cantidad_unidades
+        ):
+            messages.error(
+                request,
+                (
+                    "Ese mismo archivo ya está asociado a "
+                    f"{duplicado.cantidad_unidades} unidad(es). "
+                    "No se puede reutilizar para una cantidad distinta."
+                ),
+            )
+            return redirect(
+                "productos:detalle",
+                producto_id=producto.id,
+            )
+
+        from produccion.models import Produccion
+
+        if not _archivo_fisico_disponible(
+            duplicado
+        ):
+            try:
+                _guardar_archivo_impresion(
+                    duplicado,
+                    archivo,
+                )
+            except ValueError as error:
+                messages.error(
+                    request,
+                    str(error),
+                )
+                return redirect(
+                    "productos:detalle",
+                    producto_id=producto.id,
+                )
+
+            duplicado.activo = True
+            duplicado.predeterminado = True
+            duplicado.save(
+                update_fields=[
+                    "activo",
+                    "predeterminado",
+                    "actualizado_en",
+                ]
+            )
+
+            Produccion.objects.filter(
+                producto=producto,
+                cantidad=cantidad_unidades,
+                estado="PENDIENTE",
+            ).update(
+                archivo_impresion=duplicado
+            )
+
+            messages.success(
+                request,
+                (
+                    f"Se reparó “{duplicado.nombre_original}”. "
+                    "El registro existía, pero faltaba el archivo físico."
+                ),
+            )
+            return redirect(
+                "productos:detalle",
+                producto_id=producto.id,
+            )
+
+        Produccion.objects.filter(
+            producto=producto,
+            cantidad=cantidad_unidades,
+            estado="PENDIENTE",
+        ).update(
+            archivo_impresion=duplicado
+        )
+
+        messages.info(
             request,
             (
-                "Ese mismo archivo ya está cargado como "
-                f"“{duplicado.nombre}”."
+                f"“{duplicado.nombre_original}” ya está cargado "
+                "y disponible. No fue necesario subirlo otra vez."
             ),
         )
         return redirect(
@@ -378,6 +477,16 @@ def subir(request, producto_id):
             "productos:detalle",
             producto_id=producto.id,
         )
+
+    from produccion.models import Produccion
+
+    Produccion.objects.filter(
+        producto=producto,
+        cantidad=cantidad_unidades,
+        estado="PENDIENTE",
+    ).update(
+        archivo_impresion=registro
+    )
 
     placas = (
         ", ".join(
