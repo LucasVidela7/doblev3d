@@ -591,6 +591,18 @@ def reemplazar(
     )
     nuevo.save()
 
+    # Las planificaciones que todavía no empezaron deben usar la versión
+    # nueva. Las impresiones en curso y el historial conservan el archivo
+    # exacto con el que fueron ejecutadas.
+    from produccion.models import Produccion
+
+    Produccion.objects.filter(
+        archivo_impresion=anterior,
+        estado="PENDIENTE",
+    ).update(
+        archivo_impresion=nuevo
+    )
+
     anterior.activo = False
     anterior.predeterminado = False
     anterior.save(
