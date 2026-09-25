@@ -423,6 +423,7 @@ class ComandoBambu(models.Model):
         ("PENDIENTE", "Pendiente"),
         ("EJECUTADO", "Ejecutado"),
         ("ERROR", "Error"),
+        ("EXPIRADO", "Expirado"),
     ]
 
     id_comando = models.UUIDField(
@@ -458,6 +459,16 @@ class ComandoBambu(models.Model):
 
     creado_en = models.DateTimeField(
         auto_now_add=True,
+    )
+
+    expira_en = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    trabajo_bambu_esperado = models.CharField(
+        max_length=255,
+        blank=True,
     )
 
     resuelto_en = models.DateTimeField(
