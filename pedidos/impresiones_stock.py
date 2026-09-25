@@ -6,6 +6,7 @@ from .impresiones_compuestas import (
 def _actualizar_prioridad(item):
     falta_iniciar = int(item.get("falta_iniciar") or 0)
     en_produccion = int(item.get("en_produccion") or 0)
+    en_control = int(item.get("en_control") or 0)
     planificadas = int(item.get("planificadas") or 0)
     a_imprimir = int(item.get("a_imprimir") or 0)
 
@@ -18,7 +19,11 @@ def _actualizar_prioridad(item):
     elif falta_iniciar >= 1:
         item["prioridad"] = "BAJA"
         item["prioridad_clase"] = "prioridad-baja"
-    elif (en_produccion > 0 or planificadas > 0) and a_imprimir > 0:
+    elif (
+        en_produccion > 0
+        or en_control > 0
+        or planificadas > 0
+    ) and a_imprimir > 0:
         item["prioridad"] = "EN CURSO"
         item["prioridad_clase"] = "prioridad-curso"
     else:
@@ -51,6 +56,7 @@ def aplicar_stock_real(productos):
         )
         planificadas = max(int(item.get("planificadas") or 0), 0)
         en_produccion = max(int(item.get("en_produccion") or 0), 0)
+        en_control = max(int(item.get("en_control") or 0), 0)
 
         necesidad_normal = max(cantidad_normal - stock, 0)
 
@@ -62,6 +68,10 @@ def aplicar_stock_real(productos):
             max(int(personalizacion.get("imprimiendo") or 0), 0)
             for personalizacion in item.get("personalizaciones", [])
         )
+        personalizadas_control = sum(
+            max(int(personalizacion.get("control") or 0), 0)
+            for personalizacion in item.get("personalizaciones", [])
+        )
 
         planificadas_estandar = max(
             planificadas - personalizadas_planificadas,
@@ -71,6 +81,10 @@ def aplicar_stock_real(productos):
             en_produccion - personalizadas_imprimiendo,
             0,
         )
+        control_estandar = max(
+            en_control - personalizadas_control,
+            0,
+        )
 
         item["stock"] = stock
         item["necesidad_normal_impresion"] = necesidad_normal
@@ -78,11 +92,15 @@ def aplicar_stock_real(productos):
         item["falta_normal_planificar"] = max(
             necesidad_normal
             - planificadas_estandar
-            - imprimiendo_estandar,
+            - imprimiendo_estandar
+            - control_estandar,
             0,
         )
         item["falta_iniciar"] = max(
-            item["a_imprimir"] - planificadas - en_produccion,
+            item["a_imprimir"]
+            - planificadas
+            - en_produccion
+            - en_control,
             0,
         )
 
