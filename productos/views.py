@@ -1,5 +1,6 @@
 from decimal import Decimal, InvalidOperation
 
+from django.conf import settings
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Count, Prefetch, Q, Sum
@@ -455,6 +456,20 @@ def detalle(request, producto_id):
         1,
     )
 
+    archivos_impresion = list(
+        producto.archivos_impresion.all()
+    )
+
+    for archivo_impresion in archivos_impresion:
+        try:
+            archivo_impresion.disponible = (
+                archivo_impresion.archivo.storage.exists(
+                    archivo_impresion.archivo.name
+                )
+            )
+        except OSError:
+            archivo_impresion.disponible = False
+
     return render(
         request,
         "productos/detalle.html",
@@ -468,6 +483,12 @@ def detalle(request, producto_id):
                 producto.insumos_asignados.select_related("insumo").all()
             ),
             "cantidad_sugerida": cantidad_sugerida,
+            "archivos_impresion": archivos_impresion,
+            "archivos_impresion_persistentes": getattr(
+                settings,
+                "PRINT_FILES_PERSISTENT",
+                False,
+            ),
             "margen_minimo": MARGEN_MINIMO,
         },
     )
