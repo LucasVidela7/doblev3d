@@ -161,3 +161,5 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-25T12:43-03 deploy renombre impresoras
 
 2026-09-25T12:55-03 deploy asociacion impresiones externas Bambu Studio
+
+2026-09-25T13:02-03 deploy descarga privada gcode a Raspberry
