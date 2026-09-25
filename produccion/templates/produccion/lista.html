@@ -1025,7 +1025,13 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
             Sin G-code asociado actualmente.
         </div>
 
-        <form method="post" enctype="multipart/form-data" id="gcodeProductionForm">
+        <form
+            method="post"
+            enctype="multipart/form-data"
+            id="gcodeProductionForm"
+            data-dv-submit-lock
+            data-dv-loading-label="Guardando G-code"
+        >
             {% csrf_token %}
             <div class="reprint-grid">
                 <div class="reprint-field">
