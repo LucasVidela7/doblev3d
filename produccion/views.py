@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from pedidos.models import Pedido
-from productos.archivos_impresion import _analizar_gcode_3mf, _desmarcar_predeterminado, _guardar_archivo_impresion, _nombre_base
+from productos.archivos_impresion import _analizar_gcode_3mf, _archivo_fisico_disponible, _desmarcar_predeterminado, _guardar_archivo_impresion, _nombre_base
 from productos.models import ArchivoImpresion, ConfiguracionCatalogo, Producto, detalle_color_catalogo
 from productos.miniaturas import asignar_miniaturas_productos
 
@@ -2273,6 +2273,14 @@ def cargar_gcode_produccion(
                     cantidad_unidades=produccion.cantidad,
                     excluir_id=existente.id,
                 )
+
+                if not _archivo_fisico_disponible(
+                    existente
+                ):
+                    _guardar_archivo_impresion(
+                        existente,
+                        archivo,
+                    )
 
                 nuevo = existente
                 nuevo.activo = True
