@@ -179,3 +179,5 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-25T13:36-03 fix postgres lock gcode upload
 
 2026-09-25T13:41-03 fix duplicado huerfano gcode
+
+2026-09-25T13:47-03 sync gcode producto con produccion pendiente
