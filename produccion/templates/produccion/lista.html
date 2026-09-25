@@ -874,7 +874,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                     </header>
                     <div class="dv-kanban-list">
                         {% for produccion in trabajos_imprimiendo_lista %}
-                        <article class="dv-kanban-card">
+                        <article class="dv-kanban-card" data-production-id="{{ produccion.id }}" data-product-id="{{ produccion.producto_id }}">
                             <div class="prod-card-image">
                                 {% if produccion.producto.imagen_produccion_url %}
                                     <img class="product-thumb" src="{{ produccion.producto.imagen_produccion_url }}" alt="" loading="lazy">
@@ -885,7 +885,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                     <div class="dv-kanban-card__code">{{ produccion.codigo }}{% if produccion.impresora %} · {{ produccion.impresora.nombre }}{% endif %}</div>
                                     <div class="dv-kanban-card__title">{{ produccion.producto.nombre }} × {{ produccion.cantidad }}</div>
                                     <div class="dv-kanban-card__meta">
-                                        {{ produccion.tiempo_impresion_formateado }}
+                                        {{ produccion.tiempo_operativo_texto }} · {{ produccion.peso_operativo_texto }}
                                         {% if produccion.fin_estimado %}<br>Fin estimado {{ produccion.fin_estimado|date:"H:i" }}{% endif %}
                                         {% if produccion.pedido %}<br>{{ produccion.pedido.codigo }} · {{ produccion.pedido.cliente.nombre }}{% endif %}
                                         {% if produccion.origen == "BAMBU_STUDIO" %}
@@ -912,6 +912,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                                 type="button"
                                                 data-bambu-cancel-open
                                                 data-cancel-url="{% url 'produccion:cancelar_bambu' produccion.id %}"
+                                                data-production-id="{{ produccion.id }}"
                                                 data-printer="{{ produccion.impresora.nombre }}"
                                                 data-job="{{ produccion.producto.nombre }} × {{ produccion.cantidad }}"
                                             >CANCELAR</button>
@@ -926,6 +927,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                                 type="button"
                                                 data-bambu-cancel-open
                                                 data-cancel-url="{% url 'produccion:cancelar_bambu' produccion.id %}"
+                                                data-production-id="{{ produccion.id }}"
                                                 data-printer="{{ produccion.impresora.nombre }}"
                                                 data-job="{{ produccion.producto.nombre }} × {{ produccion.cantidad }}"
                                             >CANCELAR</button>
@@ -956,7 +958,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                     </header>
                     <div class="dv-kanban-list">
                         {% for produccion in control_calidad_lista %}
-                        <article class="dv-kanban-card">
+                        <article class="dv-kanban-card" data-production-id="{{ produccion.id }}" data-product-id="{{ produccion.producto_id }}">
                             <div class="prod-card-image">
                                 {% if produccion.producto.imagen_produccion_url %}
                                     <img class="product-thumb" src="{{ produccion.producto.imagen_produccion_url }}" alt="" loading="lazy">
@@ -1023,7 +1025,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                     </header>
                     <div class="dv-kanban-list">
                         {% for produccion in historial_reciente %}
-                        <article class="dv-kanban-card">
+                        <article class="dv-kanban-card" data-production-id="{{ produccion.id }}" data-product-id="{{ produccion.producto_id }}">
                             <div class="prod-card-image">
                                 {% if produccion.producto.imagen_produccion_url %}
                                     <img class="product-thumb" src="{{ produccion.producto.imagen_produccion_url }}" alt="" loading="lazy">
@@ -1053,7 +1055,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         <details class="card manual">
             <summary>＋ MÁS OPCIONES · PRODUCIR PARA STOCK / PLANIFICAR MANUAL</summary>
             <div class="manual-body">
-                <form method="post" action="{% url 'produccion:nueva' %}" class="manual-grid">
+                <form method="post" action="{% url 'produccion:nueva' %}" class="manual-grid" data-production-ajax>
                     {% csrf_token %}
                     <div class="field">
                         <label>PRODUCTO</label>
@@ -1089,6 +1091,56 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
     </section>
 </div>
 
+<dialog class="dv-confirm-dialog" id="startProductionDialog">
+    <div class="dv-confirm-dialog__body">
+        <div class="dv-confirm-dialog__icon">▶</div>
+        <h3>Elegir impresora</h3>
+        <p>Seleccioná la impresora donde querés iniciar este trabajo. Las impresoras ocupadas o con una impresión física activa quedan bloqueadas.</p>
+
+        <div class="dv-confirm-dialog__job">
+            <span id="startProductionCode">Producción</span><br>
+            <span id="startProductionJob">Trabajo</span>
+        </div>
+
+        <div class="start-printer-grid" id="startPrinterGrid">
+            {% for impresora in impresoras %}
+            <button
+                type="button"
+                class="start-printer-option"
+                data-start-printer="{{ impresora.id }}"
+                {% if not impresora.esta_libre %}disabled{% endif %}
+            >
+                <strong>🖨 {{ impresora.nombre }}</strong>
+                <span>
+                    {% if impresora.esta_libre %}
+                        Disponible para iniciar.
+                    {% elif impresora.trabajo_actual %}
+                        Ocupada por {{ impresora.trabajo_actual.codigo }} · {{ impresora.trabajo_actual.producto.nombre }} × {{ impresora.trabajo_actual.cantidad }}.
+                    {% elif impresora.bambu_estado and impresora.bambu_estado.esta_imprimiendo %}
+                        La A1 está imprimiendo físicamente.
+                    {% else %}
+                        No disponible en este momento.
+                    {% endif %}
+                </span>
+            </button>
+            {% endfor %}
+        </div>
+
+        <form method="post" id="startProductionForm" data-production-ajax>
+            {% csrf_token %}
+            <input type="hidden" name="impresora" id="startProductionPrinter">
+            <input type="hidden" name="accion" id="startProductionAction" value="INICIAR">
+            <input type="hidden" name="producto" id="startProductionProduct">
+            <input type="hidden" name="cantidad" id="startProductionQuantity">
+            <input type="hidden" name="personalizado_id" id="startProductionPersonalized">
+            <div class="dv-confirm-dialog__actions">
+                <button class="btn" type="button" id="startProductionClose">VOLVER</button>
+                <button class="btn green" type="submit" id="startProductionConfirm" disabled>CONFIRMAR INICIO</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
 <dialog class="dv-confirm-dialog" id="gcodeProductionDialog">
     <div class="dv-confirm-dialog__body">
         <div class="dv-confirm-dialog__icon">⬆</div>
@@ -1113,6 +1165,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
             id="gcodeProductionForm"
             data-dv-submit-lock
             data-dv-loading-label="Guardando G-code"
+            data-production-ajax
         >
             {% csrf_token %}
             <div class="reprint-grid">
@@ -1184,7 +1237,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
             <span id="bambuReprintJob">Trabajo</span>
         </div>
 
-        <form method="post" id="bambuReprintForm">
+        <form method="post" id="bambuReprintForm" data-production-ajax>
             {% csrf_token %}
             <div class="reprint-grid">
                 <div class="reprint-field">
@@ -1281,7 +1334,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         </div>
         <div class="dv-confirm-dialog__actions">
             <button class="btn" type="button" id="bambuCancelClose">VOLVER</button>
-            <form method="post" id="bambuCancelForm">
+            <form method="post" id="bambuCancelForm" data-production-ajax>
                 {% csrf_token %}
                 <button class="btn red" type="submit">SÍ, INTERRUMPIR</button>
             </form>
