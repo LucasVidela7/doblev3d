@@ -2,6 +2,7 @@ import logging
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
+from django.conf import settings
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Q
@@ -899,6 +900,19 @@ def lista_produccion(request):
     from pedidos.personalizados_produccion import sincronizar_personalizados_pendientes
 
     sincronizar_personalizados_pendientes()
+
+    bambu_mock_resumen = []
+
+    if getattr(
+        settings,
+        "BAMBU_MOCK_ENABLED",
+        False,
+    ):
+        from . import bambu_mock
+
+        bambu_mock_resumen = (
+            bambu_mock.summary()
+        )
 
     """
     Vista operativa de producción.
@@ -2054,6 +2068,14 @@ def lista_produccion(request):
             "peso_faltante_texto": peso_faltante_texto,
             "bambu_estados": bambu_estados,
             "bambu_sin_vincular": bambu_sin_vincular,
+            "bambu_mock_enabled": bool(
+                getattr(
+                    settings,
+                    "BAMBU_MOCK_ENABLED",
+                    False,
+                )
+            ),
+            "bambu_mock_resumen": bambu_mock_resumen,
             "colores_reimpresion": (
                 ConfiguracionCatalogo.objects
                 .filter(pk=1)
@@ -3296,6 +3318,15 @@ def inicio_bambu_estado(
     request,
     produccion_id,
 ):
+    if getattr(
+        settings,
+        "BAMBU_MOCK_ENABLED",
+        False,
+    ):
+        from . import bambu_mock
+
+        bambu_mock.tick()
+
     if request.method != "GET":
         return JsonResponse(
             {
@@ -3505,6 +3536,93 @@ def inicio_bambu_estado(
                 "en el próximo ciclo de sincronización."
             ),
         }
+    )
+
+
+# ============================================================
+# CONTROL DEL SIMULADOR BAMBU (SOLO QA)
+# ============================================================
+
+def bambu_mock_control(
+    request,
+    serial,
+):
+    if request.method != "POST":
+        return JsonResponse(
+            {
+                "ok": False,
+                "detail": "Método no permitido.",
+            },
+            status=405,
+        )
+
+    if not getattr(
+        settings,
+        "BAMBU_MOCK_ENABLED",
+        False,
+    ):
+        return JsonResponse(
+            {
+                "ok": False,
+                "detail": (
+                    "El simulador Bambu no está "
+                    "habilitado en este entorno."
+                ),
+            },
+            status=404,
+        )
+
+    if not request.user.is_staff:
+        return JsonResponse(
+            {
+                "ok": False,
+                "detail": "No autorizado.",
+            },
+            status=403,
+        )
+
+    from . import bambu_mock
+
+    action = (
+        request.POST.get(
+            "action",
+            "",
+        )
+        .strip()
+        .upper()
+    )
+
+    try:
+        estado = (
+            bambu_mock.set_forced_state(
+                serial,
+                action,
+            )
+        )
+    except (
+        ValueError,
+        RuntimeError,
+    ) as error:
+        messages.error(
+            request,
+            str(error),
+        )
+        return redirect(
+            reverse("produccion:lista")
+            + "#bambu-mock"
+        )
+
+    messages.success(
+        request,
+        (
+            f"{estado.nombre_bridge or estado.serial}: "
+            f"simulación {action} aplicada."
+        ),
+    )
+
+    return redirect(
+        reverse("produccion:lista")
+        + "#bambu-mock"
     )
 
 
