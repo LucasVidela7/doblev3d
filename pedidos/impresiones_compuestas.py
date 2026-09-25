@@ -141,7 +141,7 @@ def _detalle_personalizacion(detalle):
 def _producciones_activas_por_producto():
     producciones = (
         Produccion.objects
-        .filter(estado__in=["PENDIENTE", "IMPRIMIENDO"])
+        .filter(estado__in=["PENDIENTE", "IMPRIMIENDO", "CONTROL"])
         .select_related("producto", "impresora")
         .order_by("producto_id", "id")
     )
@@ -150,8 +150,10 @@ def _producciones_activas_por_producto():
         lambda: {
             "planificadas": 0,
             "imprimiendo": 0,
+            "control": 0,
             "planificadas_estandar": 0,
             "imprimiendo_estandar": 0,
+            "control_estandar": 0,
             "impresoras": [],
         }
     )
@@ -159,6 +161,7 @@ def _producciones_activas_por_producto():
         lambda: {
             "planificadas": 0,
             "imprimiendo": 0,
+            "control": 0,
         }
     )
 
@@ -168,6 +171,8 @@ def _producciones_activas_por_producto():
 
         if produccion.estado == "PENDIENTE":
             datos["planificadas"] += cantidad
+        elif produccion.estado == "CONTROL":
+            datos["control"] += cantidad
         else:
             datos["imprimiendo"] += cantidad
             if produccion.impresora:
@@ -185,12 +190,16 @@ def _producciones_activas_por_producto():
             clave = (produccion.producto_id, detalle_id)
             if produccion.estado == "PENDIENTE":
                 personalizados[clave]["planificadas"] += cantidad
+            elif produccion.estado == "CONTROL":
+                personalizados[clave]["control"] += cantidad
             else:
                 personalizados[clave]["imprimiendo"] += cantidad
             continue
 
         if produccion.estado == "PENDIENTE":
             datos["planificadas_estandar"] += cantidad
+        elif produccion.estado == "CONTROL":
+            datos["control_estandar"] += cantidad
         else:
             datos["imprimiendo_estandar"] += cantidad
 
@@ -483,7 +492,7 @@ def _cantidad_personalizada_ya_planificada(detalle, producto):
         Produccion.objects
         .filter(
             producto=producto,
-            estado__in=["PENDIENTE", "IMPRIMIENDO"],
+            estado__in=["PENDIENTE", "IMPRIMIENDO", "CONTROL"],
             observaciones__contains=marca,
         )
         .aggregate(total=Sum("cantidad"))
