@@ -527,12 +527,28 @@ html[data-dv-theme="dark"] .cfg-nav a.is-active .cfg-nav-copy small{color:#d9e2e
 <div class="cfg-section-head"><div><h2>Notificaciones</h2><p>Avisos internos cuando entra una nueva solicitud desde el catálogo.</p></div><div class="cfg-icon">🔔</div></div>
 <div class="cfg-grid">
 <div class="cfg-box">
-<div class="cfg-switch-row"><div><div class="cfg-box-title">Avisar nuevos pedidos web</div><div class="cfg-box-copy">Control global de notificaciones push para todos los dispositivos.</div></div><label class="cfg-switch"><input type="checkbox" name="notificaciones_pedidos_web_activas" {% if config.notificaciones_pedidos_web_activas %}checked{% endif %}><span class="cfg-switch-track"></span></label></div>
+<div class="cfg-switch-row"><div><div class="cfg-box-title">Avisar nuevos pedidos web</div><div class="cfg-box-copy">Control global de notificaciones push para solicitudes del catálogo.</div></div><label class="cfg-switch"><input type="checkbox" name="notificaciones_pedidos_web_activas" {% if config.notificaciones_pedidos_web_activas %}checked{% endif %}><span class="cfg-switch-track"></span></label></div>
 </div>
 <div class="cfg-box">
 {% if webpush_configurado %}
 <button type="button" id="dvGlobalPushToggle" class="cfg-device" data-public-key="{{ webpush_public_key }}" data-worker="{% url 'dashboard:push_service_worker' %}" data-subscribe="{% url 'dashboard:push_suscribir' %}" data-unsubscribe="{% url 'dashboard:push_desuscribir' %}" aria-label="Activar notificaciones en este dispositivo" aria-pressed="false"><span class="cfg-device-icon">🔔</span><span class="cfg-device-copy"><strong data-push-label>Activar avisos</strong><span>Este navegador · {{ dispositivos_push_activos }} dispositivo{{ dispositivos_push_activos|pluralize }} activo{{ dispositivos_push_activos|pluralize }}</span></span></button>
 {% else %}<div class="cfg-note">Web Push todavía no tiene las claves VAPID configuradas en este entorno.</div>{% endif %}
+</div>
+
+<div class="cfg-box full">
+<div class="cfg-switch-row"><div><div class="cfg-box-title">Avisos de impresoras</div><div class="cfg-box-copy">Alertas operativas enviadas desde el Bambu Bridge. Son independientes de los avisos de pedidos web.</div></div><label class="cfg-switch"><input type="checkbox" name="avisos_impresion_activos" {% if produccion_config.avisos_impresion_activos %}checked{% endif %}><span class="cfg-switch-track"></span></label></div>
+</div>
+
+<div class="cfg-box">
+<div class="cfg-switch-row"><div><div class="cfg-box-title">Próxima a finalizar</div><div class="cfg-box-copy">Avisa una sola vez cuando el tiempo restante cruza el umbral configurado.</div></div><label class="cfg-switch"><input type="checkbox" name="avisar_antes_finalizar" {% if produccion_config.avisar_antes_finalizar %}checked{% endif %}><span class="cfg-switch-track"></span></label></div>
+<label class="cfg-label" for="minutos_aviso_finalizacion"><span>AVISAR CUANDO QUEDEN</span></label>
+<input class="cfg-input" id="minutos_aviso_finalizacion" name="minutos_aviso_finalizacion" type="number" min="1" max="240" value="{{ produccion_config.minutos_aviso_finalizacion }}">
+<div class="cfg-box-copy">Minutos restantes aproximados. Valor sugerido: 15.</div>
+</div>
+
+<div class="cfg-box">
+<div class="cfg-switch-row"><div><div class="cfg-box-title">Impresión finalizada</div><div class="cfg-box-copy">La impresión pasa a Control, pero no suma stock hasta que confirmes que salió bien.</div></div><label class="cfg-switch"><input type="checkbox" name="avisar_finalizacion" {% if produccion_config.avisar_finalizacion %}checked{% endif %}><span class="cfg-switch-track"></span></label></div>
+<div class="cfg-switch-row" style="margin-top:14px"><div><div class="cfg-box-title">Cancelación / interrupción</div><div class="cfg-box-copy">Avisa si la impresora informa un estado de cancelación o fallo.</div></div><label class="cfg-switch"><input type="checkbox" name="avisar_cancelacion" {% if produccion_config.avisar_cancelacion %}checked{% endif %}><span class="cfg-switch-track"></span></label></div>
 </div>
 </div>
 </section>
