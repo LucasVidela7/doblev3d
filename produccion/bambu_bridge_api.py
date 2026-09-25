@@ -176,7 +176,9 @@ def _procesar_resultados_comandos(resultados):
 
         comando = (
             ComandoBambu.objects
-            .select_for_update()
+            .select_for_update(
+                of=("self",)
+            )
             .filter(
                 id_comando=id_comando,
                 estado="PENDIENTE",
