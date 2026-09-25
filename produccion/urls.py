@@ -38,6 +38,11 @@ urlpatterns = [
         name="bambu_vincular",
     ),
     path(
+        "bambu/<int:estado_id>/vincular-impresion/",
+        views.vincular_impresion_externa,
+        name="bambu_vincular_impresion",
+    ),
+    path(
         "<int:produccion_id>/iniciar/",
         views.iniciar_produccion,
         name="iniciar",
