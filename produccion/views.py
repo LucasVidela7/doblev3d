@@ -741,6 +741,24 @@ def lista_produccion(request):
         .order_by("-fecha", "-id")[:12]
     )
 
+    control_calidad_lista = list(
+        Produccion.objects
+        .filter(
+            estado__in=[
+                "CONTROL",
+                "FALLIDA",
+            ]
+        )
+        .select_related(
+            "producto",
+            "impresora",
+            "pedido",
+            "pedido__cliente",
+            "reimpresion_de",
+        )
+        .order_by("-fecha", "-id")[:20]
+    )
+
     impresoras_libres_lista = [
         impresora
         for impresora in impresoras
@@ -792,6 +810,11 @@ def lista_produccion(request):
     productos_visibles.extend(
         produccion.producto
         for produccion in historial_reciente
+        if getattr(produccion, "producto", None)
+    )
+    productos_visibles.extend(
+        produccion.producto
+        for produccion in control_calidad_lista
         if getattr(produccion, "producto", None)
     )
 
@@ -1014,6 +1037,12 @@ def lista_produccion(request):
             "cola_pendiente": cola_pendiente,
             "trabajos_imprimiendo_lista": trabajos_imprimiendo_lista,
             "historial_reciente": historial_reciente,
+            "control_calidad_lista": control_calidad_lista,
+            "cantidad_control": sum(
+                1
+                for produccion in control_calidad_lista
+                if produccion.estado == "CONTROL"
+            ),
             "impresoras_libres_lista": impresoras_libres_lista,
             "sugerencia_actual": sugerencia_actual,
             "total_falta_planificar": total_falta_planificar,
@@ -1814,7 +1843,7 @@ def repetir_produccion(
             "pedido",
         ),
         id=produccion_id,
-        estado="LISTO",
+        estado__in=["LISTO", "FALLIDA"],
     )
 
     inicio_actual = timezone.now()
@@ -1831,6 +1860,11 @@ def repetir_produccion(
             original
             .tiempo_impresion_minutos
         ),
+        reimpresion_de=(
+            original
+            if original.estado == "FALLIDA"
+            else None
+        ),
     )
 
     messages.success(
@@ -1845,6 +1879,109 @@ def repetir_produccion(
 
     return redirect(
         "produccion:lista"
+    )
+
+
+# ============================================================
+# CONTROL DE CALIDAD POST IMPRESIÓN
+# ============================================================
+
+@transaction.atomic
+def controlar_produccion(
+    request,
+    produccion_id,
+):
+    if request.method != "POST":
+        return redirect(
+            "produccion:lista"
+        )
+
+    produccion = get_object_or_404(
+        Produccion.objects
+        .select_for_update(of=("self",))
+        .select_related(
+            "producto",
+            "impresora",
+        ),
+        id=produccion_id,
+        estado="CONTROL",
+    )
+
+    resultado = (
+        request.POST.get("resultado", "")
+        .strip()
+        .upper()
+    )
+
+    if resultado not in {
+        "OK",
+        "FALLA",
+    }:
+        messages.error(
+            request,
+            "Elegí si la impresión quedó correcta o falló.",
+        )
+        return redirect(
+            reverse("produccion:lista") + "#prod-control"
+        )
+
+    if resultado == "OK":
+        if (
+            produccion.destino == "STOCK"
+            and not produccion.ingresado_stock
+        ):
+            producto = (
+                Producto.objects
+                .select_for_update()
+                .get(
+                    id=produccion.producto_id
+                )
+            )
+
+            producto.stock += (
+                produccion.cantidad
+            )
+            producto.save(
+                update_fields=["stock"]
+            )
+            produccion.ingresado_stock = True
+
+        produccion.estado = "LISTO"
+        produccion.resultado_control = "OK"
+        mensaje = (
+            f"{produccion.codigo} aprobada. "
+            + (
+                f"Se sumaron {produccion.cantidad} unidad(es) al stock."
+                if produccion.destino == "STOCK"
+                else "La impresión quedó confirmada como correcta."
+            )
+        )
+    else:
+        produccion.estado = "FALLIDA"
+        produccion.resultado_control = "FALLA"
+        produccion.ingresado_stock = False
+        mensaje = (
+            f"{produccion.codigo} marcada como fallida. "
+            "No se agregó stock y podés reimprimirla."
+        )
+
+    produccion.control_calidad_en = timezone.now()
+    produccion.save(
+        update_fields=[
+            "estado",
+            "resultado_control",
+            "control_calidad_en",
+            "ingresado_stock",
+        ]
+    )
+
+    messages.success(
+        request,
+        mensaje,
+    )
+
+    return redirect(
+        reverse("produccion:lista") + "#prod-control"
     )
 
 
@@ -1882,6 +2019,7 @@ def cambiar_estado(
     if nuevo_estado not in [
         "PENDIENTE",
         "IMPRIMIENDO",
+        "CONTROL",
         "LISTO",
         "CANCELADO",
     ]:
@@ -1908,6 +2046,21 @@ def cambiar_estado(
         )
         return redirect(
             "produccion:lista"
+        )
+
+    if (
+        produccion.estado == "CONTROL"
+        and nuevo_estado == "LISTO"
+    ):
+        messages.error(
+            request,
+            (
+                "Primero confirmá el control de calidad "
+                "de la impresión."
+            ),
+        )
+        return redirect(
+            reverse("produccion:lista") + "#prod-control"
         )
 
     # --------------------------------------------------------
