@@ -39,6 +39,8 @@ class LoginRequiredMiddleware:
         "catalogo_arrepentimiento_gracias",
         "healthcheck",
         "bambu_bridge_sync",
+        "bambu_bridge_download_file",
+        "bambu_bridge_download_production_file",
         "robots_txt",
         "sitemap_xml",
         "evento",
