@@ -117,6 +117,59 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 .bambu-filament.active{border-color:var(--dv-brand-sky);box-shadow:0 0 0 2px color-mix(in srgb,var(--dv-brand-sky) 18%,transparent)}
 .bambu-filament-dot{width:12px;height:12px;border:1px solid var(--dv-border);border-radius:50%;background:var(--filament-color,var(--dv-surface-muted));box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)}
 .bambu-filament small{color:var(--dv-muted);font-size:7px;font-weight:800}
+
+.filament-native-select{
+    position:absolute!important;
+    width:1px!important;
+    height:1px!important;
+    padding:0!important;
+    margin:-1px!important;
+    overflow:hidden!important;
+    clip:rect(0,0,0,0)!important;
+    white-space:nowrap!important;
+    border:0!important;
+    opacity:0!important;
+    pointer-events:none!important;
+}
+.filament-picker{position:relative;width:100%}
+.filament-picker__trigger{
+    width:100%;min-height:44px;display:flex;align-items:center;gap:9px;
+    padding:8px 11px;border:1px solid var(--dv-border);border-radius:11px;
+    background:var(--dv-surface);color:var(--dv-text);text-align:left;
+    cursor:pointer;font-size:10px;font-weight:800
+}
+.filament-picker__trigger:disabled{opacity:.55;cursor:not-allowed}
+.filament-picker__trigger-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.filament-picker__chevron{color:var(--dv-muted);font-size:11px}
+.filament-color-dot{
+    width:16px;height:16px;flex:0 0 16px;border-radius:50%;
+    border:1px solid color-mix(in srgb,var(--dv-text) 22%,transparent);
+    background:var(--filament-color,var(--dv-surface-muted));
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)
+}
+.filament-color-dot.is-empty{
+    background:linear-gradient(135deg,var(--dv-surface-muted) 0 46%,var(--dv-border) 46% 54%,var(--dv-surface-muted) 54% 100%)
+}
+.filament-picker__menu{
+    position:absolute;z-index:40;left:0;right:0;top:calc(100% + 6px);
+    max-height:260px;overflow:auto;padding:6px;border:1px solid var(--dv-border);
+    border-radius:12px;background:var(--dv-surface);box-shadow:0 16px 38px rgba(0,0,0,.20)
+}
+.filament-picker__option{
+    width:100%;display:flex;align-items:center;gap:10px;min-height:44px;
+    padding:8px 9px;border:0;border-radius:9px;background:transparent;
+    color:var(--dv-text);text-align:left;cursor:pointer
+}
+.filament-picker__option:hover,
+.filament-picker__option:focus-visible{background:var(--dv-surface-muted);outline:none}
+.filament-picker__option.is-selected{background:color-mix(in srgb,var(--dv-brand-sky) 12%,var(--dv-surface))}
+.filament-picker__option-main{min-width:0;flex:1}
+.filament-picker__option-main strong{display:block;font-size:10px}
+.filament-picker__option-main small{display:block;margin-top:2px;color:var(--dv-muted);font-size:8px}
+.filament-picker__option[hidden]{display:none!important}
+@media(max-width:650px){
+    .filament-picker__menu{position:static;margin-top:6px;max-height:220px}
+}
 .external-print{margin-top:11px;padding:11px;border:1px solid rgba(240,57,59,.34);border-radius:12px;background:var(--dv-brand-red-soft);color:var(--dv-text)}
 .external-print__eyebrow{font-size:8px;font-weight:900;letter-spacing:.04em;color:var(--dv-muted)}
 .external-print__job{margin-top:5px;font-size:11px;font-weight:900;overflow-wrap:anywhere}
@@ -1177,7 +1230,10 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                 <select
                     name="filamento"
                     id="startProductionFilament"
+                    class="filament-native-select"
                     disabled
+                    aria-hidden="true"
+                    tabindex="-1"
                 >
                     <option value="">Seleccionar filamento...</option>
                     {% for impresora in impresoras %}
@@ -1186,21 +1242,94 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                 <option
                                     value="AMS:{{ slot.ams_id }}:{{ slot.tray_id }}"
                                     data-printer="{{ impresora.id }}"
+                                    data-color="{{ slot.color }}"
+                                    data-label="Slot {{ slot.slot }} · {{ slot.tipo }}"
+                                    data-detail="AMS {{ slot.ams_id|add:1 }}{% if slot.rfid %} · RFID{% endif %}"
                                 >
-                                    AMS · Slot {{ slot.slot }} · {{ slot.tipo }}{% if slot.color %} · {{ slot.color }}{% endif %}
+                                    AMS · Slot {{ slot.slot }} · {{ slot.tipo }}
                                 </option>
                             {% endfor %}
                             {% if impresora.bambu_estado.carrete_externo_info %}
                                 <option
                                     value="EXTERNO"
                                     data-printer="{{ impresora.id }}"
+                                    data-color="{{ impresora.bambu_estado.carrete_externo_info.color }}"
+                                    data-label="Carrete externo · {{ impresora.bambu_estado.carrete_externo_info.tipo }}"
+                                    data-detail="Externo"
                                 >
-                                    Carrete externo · {{ impresora.bambu_estado.carrete_externo_info.tipo }}{% if impresora.bambu_estado.carrete_externo_info.color %} · {{ impresora.bambu_estado.carrete_externo_info.color }}{% endif %}
+                                    Carrete externo · {{ impresora.bambu_estado.carrete_externo_info.tipo }}
                                 </option>
                             {% endif %}
                         {% endif %}
                     {% endfor %}
                 </select>
+
+                <div
+                    class="filament-picker"
+                    data-filament-picker
+                    data-select-id="startProductionFilament"
+                >
+                    <button
+                        type="button"
+                        class="filament-picker__trigger"
+                        data-filament-trigger
+                        disabled
+                    >
+                        <span class="filament-color-dot is-empty" data-filament-trigger-dot></span>
+                        <span class="filament-picker__trigger-text" data-filament-trigger-text>
+                            Seleccionar filamento...
+                        </span>
+                        <span class="filament-picker__chevron">⌄</span>
+                    </button>
+                    <div class="filament-picker__menu" data-filament-menu hidden>
+                        {% for impresora in impresoras %}
+                            {% if impresora.bambu_estado %}
+                                {% for slot in impresora.bambu_estado.ams_slots %}
+                                    <button
+                                        type="button"
+                                        class="filament-picker__option"
+                                        data-filament-option
+                                        data-printer="{{ impresora.id }}"
+                                        data-value="AMS:{{ slot.ams_id }}:{{ slot.tray_id }}"
+                                        data-color="{{ slot.color }}"
+                                        data-label="Slot {{ slot.slot }} · {{ slot.tipo }}"
+                                        hidden
+                                    >
+                                        <span
+                                            class="filament-color-dot{% if not slot.color %} is-empty{% endif %}"
+                                            {% if slot.color %}style="--filament-color:{{ slot.color }}"{% endif %}
+                                        ></span>
+                                        <span class="filament-picker__option-main">
+                                            <strong>Slot {{ slot.slot }} · {{ slot.tipo }}</strong>
+                                            <small>AMS {{ slot.ams_id|add:1 }}{% if slot.rfid %} · RFID{% endif %}</small>
+                                        </span>
+                                    </button>
+                                {% endfor %}
+                                {% if impresora.bambu_estado.carrete_externo_info %}
+                                    <button
+                                        type="button"
+                                        class="filament-picker__option"
+                                        data-filament-option
+                                        data-printer="{{ impresora.id }}"
+                                        data-value="EXTERNO"
+                                        data-color="{{ impresora.bambu_estado.carrete_externo_info.color }}"
+                                        data-label="Carrete externo · {{ impresora.bambu_estado.carrete_externo_info.tipo }}"
+                                        hidden
+                                    >
+                                        <span
+                                            class="filament-color-dot{% if not impresora.bambu_estado.carrete_externo_info.color %} is-empty{% endif %}"
+                                            {% if impresora.bambu_estado.carrete_externo_info.color %}style="--filament-color:{{ impresora.bambu_estado.carrete_externo_info.color }}"{% endif %}
+                                        ></span>
+                                        <span class="filament-picker__option-main">
+                                            <strong>Carrete externo · {{ impresora.bambu_estado.carrete_externo_info.tipo }}</strong>
+                                            <small>Externo</small>
+                                        </span>
+                                    </button>
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
                 <div class="reprint-hint" style="margin-top:7px">
                     En una Bambu, Gestión enviará el G-code a la Raspberry y esperará la confirmación física antes de marcarla como imprimiendo.
                 </div>
@@ -1375,7 +1504,14 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 
                 <div class="reprint-field">
                     <label for="bambuReprintFilament">FILAMENTO / COLOR</label>
-                    <select name="filamento" id="bambuReprintFilament" required disabled>
+                    <select
+                        name="filamento"
+                        id="bambuReprintFilament"
+                        class="filament-native-select"
+                        disabled
+                        aria-hidden="true"
+                        tabindex="-1"
+                    >
                         <option value="">Primero elegí una impresora...</option>
                         {% for impresora in impresoras %}
                             {% if impresora.bambu_estado %}
@@ -1384,8 +1520,10 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                         value="AMS:{{ slot.ams_id }}:{{ slot.tray_id }}"
                                         data-printer="{{ impresora.id }}"
                                         data-source="AMS"
+                                        data-color="{{ slot.color }}"
+                                        data-label="Slot {{ slot.slot }} · {{ slot.tipo }}"
                                     >
-                                        AMS · Slot {{ slot.slot }} · {{ slot.tipo }}{% if slot.color %} · {{ slot.color }}{% endif %}
+                                        AMS · Slot {{ slot.slot }} · {{ slot.tipo }}
                                     </option>
                                 {% endfor %}
                                 {% if impresora.bambu_estado.carrete_externo_info %}
@@ -1393,8 +1531,10 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                         value="EXTERNO"
                                         data-printer="{{ impresora.id }}"
                                         data-source="EXTERNO"
+                                        data-color="{{ impresora.bambu_estado.carrete_externo_info.color }}"
+                                        data-label="Carrete externo · {{ impresora.bambu_estado.carrete_externo_info.tipo }}"
                                     >
-                                        Carrete externo · {{ impresora.bambu_estado.carrete_externo_info.tipo }}{% if impresora.bambu_estado.carrete_externo_info.color %} · {{ impresora.bambu_estado.carrete_externo_info.color }}{% endif %}
+                                        Carrete externo · {{ impresora.bambu_estado.carrete_externo_info.tipo }}
                                     </option>
                                 {% endif %}
                             {% endif %}
@@ -1402,11 +1542,94 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                 value="MANUAL"
                                 data-printer="{{ impresora.id }}"
                                 data-source="MANUAL"
+                                data-label="Cambio manual de filamento"
                             >
                                 Cambio manual de filamento
                             </option>
                         {% endfor %}
                     </select>
+
+                    <div
+                        class="filament-picker"
+                        data-filament-picker
+                        data-select-id="bambuReprintFilament"
+                    >
+                        <button
+                            type="button"
+                            class="filament-picker__trigger"
+                            data-filament-trigger
+                            disabled
+                        >
+                            <span class="filament-color-dot is-empty" data-filament-trigger-dot></span>
+                            <span class="filament-picker__trigger-text" data-filament-trigger-text>
+                                Primero elegí una impresora...
+                            </span>
+                            <span class="filament-picker__chevron">⌄</span>
+                        </button>
+                        <div class="filament-picker__menu" data-filament-menu hidden>
+                            {% for impresora in impresoras %}
+                                {% if impresora.bambu_estado %}
+                                    {% for slot in impresora.bambu_estado.ams_slots %}
+                                        <button
+                                            type="button"
+                                            class="filament-picker__option"
+                                            data-filament-option
+                                            data-printer="{{ impresora.id }}"
+                                            data-value="AMS:{{ slot.ams_id }}:{{ slot.tray_id }}"
+                                            data-color="{{ slot.color }}"
+                                            data-label="Slot {{ slot.slot }} · {{ slot.tipo }}"
+                                            hidden
+                                        >
+                                            <span
+                                                class="filament-color-dot{% if not slot.color %} is-empty{% endif %}"
+                                                {% if slot.color %}style="--filament-color:{{ slot.color }}"{% endif %}
+                                            ></span>
+                                            <span class="filament-picker__option-main">
+                                                <strong>Slot {{ slot.slot }} · {{ slot.tipo }}</strong>
+                                                <small>AMS {{ slot.ams_id|add:1 }}{% if slot.rfid %} · RFID{% endif %}</small>
+                                            </span>
+                                        </button>
+                                    {% endfor %}
+                                    {% if impresora.bambu_estado.carrete_externo_info %}
+                                        <button
+                                            type="button"
+                                            class="filament-picker__option"
+                                            data-filament-option
+                                            data-printer="{{ impresora.id }}"
+                                            data-value="EXTERNO"
+                                            data-color="{{ impresora.bambu_estado.carrete_externo_info.color }}"
+                                            data-label="Carrete externo · {{ impresora.bambu_estado.carrete_externo_info.tipo }}"
+                                            hidden
+                                        >
+                                            <span
+                                                class="filament-color-dot{% if not impresora.bambu_estado.carrete_externo_info.color %} is-empty{% endif %}"
+                                                {% if impresora.bambu_estado.carrete_externo_info.color %}style="--filament-color:{{ impresora.bambu_estado.carrete_externo_info.color }}"{% endif %}
+                                            ></span>
+                                            <span class="filament-picker__option-main">
+                                                <strong>Carrete externo · {{ impresora.bambu_estado.carrete_externo_info.tipo }}</strong>
+                                                <small>Externo</small>
+                                            </span>
+                                        </button>
+                                    {% endif %}
+                                {% endif %}
+                                <button
+                                    type="button"
+                                    class="filament-picker__option"
+                                    data-filament-option
+                                    data-printer="{{ impresora.id }}"
+                                    data-value="MANUAL"
+                                    data-label="Cambio manual de filamento"
+                                    hidden
+                                >
+                                    <span class="filament-color-dot is-empty"></span>
+                                    <span class="filament-picker__option-main">
+                                        <strong>Cambio manual de filamento</strong>
+                                        <small>Elegir material y color manualmente</small>
+                                    </span>
+                                </button>
+                            {% endfor %}
+                        </div>
+                    </div>
                 </div>
 
                 <div id="bambuReprintManual" style="display:none">
@@ -2248,6 +2471,12 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                 option.disabled=true;
             });
         }
+        syncFilamentPicker(
+            "startProductionFilament",
+            "",
+            false,
+            "Seleccionar filamento..."
+        );
         if(startFilamentWrap)startFilamentWrap.style.display="none";
         byId("startProductionProduct").value=kind==="quick"?productId:"";
         byId("startProductionQuantity").value=kind==="quick"?quantity:"";
@@ -2268,6 +2497,187 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         if(confirm)confirm.disabled=true;
 
         dialog.showModal();
+    }
+
+    function filamentPickerFor(selectId){
+        return document.querySelector(
+            '[data-filament-picker][data-select-id="'
+            +CSS.escape(selectId)
+            +'"]'
+        );
+    }
+
+    function closeFilamentPickers(except=null){
+        document.querySelectorAll(
+            "[data-filament-menu]"
+        ).forEach(function(menu){
+            if(menu!==except){
+                menu.hidden=true;
+            }
+        });
+    }
+
+    function resetFilamentPicker(
+        selectId,
+        placeholder
+    ){
+        const select=byId(selectId);
+        const picker=filamentPickerFor(selectId);
+
+        if(select){
+            select.value="";
+        }
+        if(!picker)return;
+
+        const trigger=picker.querySelector(
+            "[data-filament-trigger]"
+        );
+        const text=picker.querySelector(
+            "[data-filament-trigger-text]"
+        );
+        const dot=picker.querySelector(
+            "[data-filament-trigger-dot]"
+        );
+        const menu=picker.querySelector(
+            "[data-filament-menu]"
+        );
+
+        if(text){
+            text.textContent=(
+                placeholder
+                ||"Seleccionar filamento..."
+            );
+        }
+        if(dot){
+            dot.classList.add("is-empty");
+            dot.style.removeProperty(
+                "--filament-color"
+            );
+        }
+        if(menu)menu.hidden=true;
+
+        picker.querySelectorAll(
+            "[data-filament-option]"
+        ).forEach(function(option){
+            option.classList.remove(
+                "is-selected"
+            );
+        });
+
+        if(trigger){
+            trigger.disabled=(
+                !select
+                ||select.disabled
+            );
+        }
+    }
+
+    function syncFilamentPicker(
+        selectId,
+        printerId,
+        enabled,
+        placeholder
+    ){
+        const select=byId(selectId);
+        const picker=filamentPickerFor(selectId);
+
+        if(!select||!picker)return;
+
+        resetFilamentPicker(
+            selectId,
+            placeholder
+        );
+
+        const trigger=picker.querySelector(
+            "[data-filament-trigger]"
+        );
+
+        picker.querySelectorAll(
+            "[data-filament-option]"
+        ).forEach(function(option){
+            const visible=(
+                Boolean(enabled)
+                &&option.dataset.printer
+                ===String(printerId||"")
+            );
+
+            option.hidden=!visible;
+            option.disabled=!visible;
+        });
+
+        if(trigger){
+            trigger.disabled=!enabled;
+        }
+    }
+
+    function chooseFilamentOption(option){
+        const picker=option.closest(
+            "[data-filament-picker]"
+        );
+        if(!picker)return;
+
+        const selectId=picker.dataset.selectId||"";
+        const select=byId(selectId);
+        if(!select)return;
+
+        const value=option.dataset.value||"";
+        const label=option.dataset.label||(
+            option.textContent||""
+        ).trim();
+        const color=(
+            option.dataset.color||""
+        ).trim();
+
+        select.value=value;
+
+        picker.querySelectorAll(
+            "[data-filament-option]"
+        ).forEach(function(item){
+            item.classList.toggle(
+                "is-selected",
+                item===option
+            );
+        });
+
+        const text=picker.querySelector(
+            "[data-filament-trigger-text]"
+        );
+        const dot=picker.querySelector(
+            "[data-filament-trigger-dot]"
+        );
+        const menu=picker.querySelector(
+            "[data-filament-menu]"
+        );
+
+        if(text)text.textContent=label;
+
+        if(dot){
+            if(color){
+                dot.classList.remove(
+                    "is-empty"
+                );
+                dot.style.setProperty(
+                    "--filament-color",
+                    color
+                );
+            }else{
+                dot.classList.add(
+                    "is-empty"
+                );
+                dot.style.removeProperty(
+                    "--filament-color"
+                );
+            }
+        }
+
+        if(menu)menu.hidden=true;
+
+        select.dispatchEvent(
+            new Event(
+                "change",
+                {bubbles:true}
+            )
+        );
     }
 
     function choosePrinter(button){
@@ -2293,7 +2703,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 
         if(filament){
             filament.value="";
-            filament.required=isBambu;
+            filament.required=false;
             filament.disabled=!isBambu;
 
             filament.querySelectorAll("option[data-printer]").forEach(function(option){
@@ -2301,6 +2711,13 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                 option.hidden=!visible;
                 option.disabled=!visible;
             });
+
+            syncFilamentPicker(
+                "startProductionFilament",
+                printerId,
+                isBambu,
+                "Seleccionar filamento..."
+            );
         }
 
         if(filamentWrap){
@@ -2358,7 +2775,17 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         });
 
         filament.disabled=!printerId;
+        filament.required=false;
         filament.value="";
+
+        syncFilamentPicker(
+            "bambuReprintFilament",
+            printerId,
+            Boolean(printerId),
+            printerId
+                ?"Seleccionar filamento..."
+                :"Primero elegí una impresora..."
+        );
 
         if(manual)manual.style.display="none";
         if(manualColor)manualColor.required=false;
@@ -2418,6 +2845,44 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
     }
 
     document.addEventListener("click",function(event){
+        const filamentOption=event.target.closest(
+            "[data-filament-option]"
+        );
+        if(filamentOption){
+            event.preventDefault();
+            chooseFilamentOption(
+                filamentOption
+            );
+            return;
+        }
+
+        const filamentTrigger=event.target.closest(
+            "[data-filament-trigger]"
+        );
+        if(filamentTrigger){
+            event.preventDefault();
+
+            if(filamentTrigger.disabled){
+                return;
+            }
+
+            const picker=filamentTrigger.closest(
+                "[data-filament-picker]"
+            );
+            const menu=picker?.querySelector(
+                "[data-filament-menu]"
+            );
+
+            if(menu){
+                const willOpen=menu.hidden;
+                closeFilamentPickers(
+                    willOpen?menu:null
+                );
+                menu.hidden=!willOpen;
+            }
+            return;
+        }
+
         const start=event.target.closest("[data-start-open]");
         if(start){
             event.preventDefault();
@@ -2477,7 +2942,13 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 
         const dialog=event.target;
         if(dialog instanceof HTMLDialogElement&&dialog.open&&event.target===dialog){
+            closeFilamentPickers();
             dialog.close();
+            return;
+        }
+
+        if(!event.target.closest("[data-filament-picker]")){
+            closeFilamentPickers();
         }
     });
 
