@@ -33,7 +33,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 .message{padding:11px 13px;border-radius:12px;margin-bottom:9px;font-size:10px;font-weight:800}
 .message.success{background:var(--green);color:var(--green-t)}.message.error{background:var(--red);color:var(--red-t)}
 
-.flow-nav{position:sticky;top:8px;z-index:12;display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:12px;padding:5px;border:1px solid rgba(225,229,235,.9);border-radius:16px;background:rgba(255,255,255,.94);box-shadow:var(--shadow);backdrop-filter:blur(8px)}
+.flow-nav{position:sticky;top:8px;z-index:12;display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-bottom:12px;padding:5px;border:1px solid rgba(225,229,235,.9);border-radius:16px;background:rgba(255,255,255,.94);box-shadow:var(--shadow);backdrop-filter:blur(8px)}
 .flow-nav a{min-height:39px;display:flex;align-items:center;justify-content:center;gap:5px;border-radius:11px;text-decoration:none;color:var(--muted);font-size:8px;font-weight:900}
 .flow-nav a:hover{background:#f2f4f7;color:var(--text)}
 
@@ -162,7 +162,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 .production-kanban .manual{margin-top:10px}
 .production-kanban .manual summary{font-size:11px}
 @media(max-width:650px){
-    .flow-nav{grid-template-columns:repeat(5,minmax(105px,1fr));overflow-x:auto;scrollbar-width:none}
+    .flow-nav{grid-template-columns:repeat(6,minmax(105px,1fr));overflow-x:auto;scrollbar-width:none}
     .flow-nav::-webkit-scrollbar{display:none}
     .production-kanban .prod-actions.two{grid-template-columns:1fr}
     .production-kanban .prod-kpi-row{grid-template-columns:repeat(3,1fr)}
@@ -205,6 +205,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         <a href="#prod-necesidad">↓ NECESIDAD</a>
         <a href="#prod-cola">≡ COLA</a>
         <a href="#prod-imprimiendo">● IMPRIMIENDO</a>
+        <a href="#prod-control">◉ CONTROL</a>
         <a href="#prod-listos">✓ LISTOS</a>
     </nav>
 
@@ -222,7 +223,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         <div class="metric">
             <div class="metric-label">IMPRIMIENDO</div>
             <div class="metric-value">{{ total_imprimiendo_unidades }}</div>
-            <div class="metric-note">{{ cantidad_imprimiendo }} trabajos activos</div>
+            <div class="metric-note">{{ cantidad_imprimiendo }} activos · {{ cantidad_control }} en control</div>
         </div>
         <div class="metric">
             <div class="metric-label">IMPRESORAS LIBRES</div>
@@ -408,8 +409,8 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                         <div class="printer-actions">
                             <form method="post" action="{% url 'produccion:cambiar_estado' impresora.trabajo_actual.id %}">
                                 {% csrf_token %}
-                                <input type="hidden" name="estado" value="LISTO">
-                                <button class="btn green" type="submit">✓ MARCAR LISTO</button>
+                                <input type="hidden" name="estado" value="CONTROL">
+                                <button class="btn green" type="submit">✓ FINALIZÓ / REVISAR</button>
                             </form>
                             <form method="post" action="{% url 'produccion:cambiar_estado' impresora.trabajo_actual.id %}">
                                 {% csrf_token %}
@@ -495,7 +496,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         </form>
 
         <div class="dv-kanban-shell">
-            <div class="dv-kanban-board" style="--dv-kanban-cols:4">
+            <div class="dv-kanban-board" style="--dv-kanban-cols:5">
                 <section class="dv-kanban-column is-danger" id="prod-necesidad">
                     <header class="dv-kanban-column__head">
                         <div><h2>Necesidad</h2><p>Faltantes que todavía no están cubiertos.</p></div>
@@ -645,8 +646,8 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                 <div style="display:flex;gap:5px">
                                     <form method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
                                         {% csrf_token %}
-                                        <input type="hidden" name="estado" value="LISTO">
-                                        <button class="btn green" type="submit">✓ LISTO</button>
+                                        <input type="hidden" name="estado" value="CONTROL">
+                                        <button class="btn green" type="submit">✓ FINALIZÓ</button>
                                     </form>
                                     <form method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
                                         {% csrf_token %}
@@ -657,6 +658,69 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                             </div>
                         </article>
                         {% empty %}<div class="dv-kanban-empty">No hay impresiones activas.</div>{% endfor %}
+                    </div>
+                </section>
+
+                <section class="dv-kanban-column is-warning" id="prod-control">
+                    <header class="dv-kanban-column__head">
+                        <div><h2>Control</h2><p>Terminadas físicamente. Confirmá la calidad antes de sumar stock.</p></div>
+                        <span class="dv-kanban-count">{{ cantidad_control }}</span>
+                    </header>
+                    <div class="dv-kanban-list">
+                        {% for produccion in control_calidad_lista %}
+                        <article class="dv-kanban-card">
+                            <div class="prod-card-image">
+                                {% if produccion.producto.imagen_produccion_url %}
+                                    <img class="product-thumb" src="{{ produccion.producto.imagen_produccion_url }}" alt="" loading="lazy">
+                                {% else %}
+                                    <span class="product-thumb product-thumb-empty">3D</span>
+                                {% endif %}
+                                <div>
+                                    <div class="dv-kanban-card__code">
+                                        {{ produccion.codigo }}
+                                        {% if produccion.impresora %} · {{ produccion.impresora.nombre }}{% endif %}
+                                    </div>
+                                    <div class="dv-kanban-card__title">{{ produccion.producto.nombre }} × {{ produccion.cantidad }}</div>
+                                    <div class="dv-kanban-card__meta">
+                                        {% if produccion.estado == "CONTROL" %}
+                                            Impresión terminada · pendiente de revisión física.
+                                            {% if produccion.evento_fin_bambu == "CANCELADA" %}<br>La A1 informó una interrupción/cancelación.{% endif %}
+                                        {% else %}
+                                            Falló el control · no ingresó stock.
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if produccion.estado == "CONTROL" %}
+                            <div class="prod-actions two">
+                                <form method="post" action="{% url 'produccion:control' produccion.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="resultado" value="OK">
+                                    <button class="btn green" type="submit">✓ IMPRESIÓN CORRECTA</button>
+                                </form>
+                                <form method="post" action="{% url 'produccion:control' produccion.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="resultado" value="FALLA">
+                                    <button class="btn red" type="submit">✕ FALLÓ</button>
+                                </form>
+                            </div>
+                            <div class="prod-note">
+                                Recién al confirmar “Impresión correcta” se actualiza el stock cuando corresponda.
+                            </div>
+                            {% else %}
+                            <div class="dv-kanban-card__footer">
+                                <span class="dv-kanban-badge" style="background:var(--dv-danger-soft,#fde8e8);color:var(--dv-danger-text,#963737)">FALLIDA</span>
+                                <form method="post" action="{% url 'produccion:repetir' produccion.id %}">
+                                    {% csrf_token %}
+                                    <button class="btn" type="submit">↻ REIMPRIMIR</button>
+                                </form>
+                            </div>
+                            {% endif %}
+                        </article>
+                        {% empty %}
+                        <div class="dv-kanban-empty">No hay impresiones pendientes de control.</div>
+                        {% endfor %}
                     </div>
                 </section>
 
