@@ -76,7 +76,9 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 .dv-confirm-dialog__actions .btn{width:100%;min-height:42px;font-size:9px}
 .reprint-grid{display:grid;gap:10px;margin-top:14px}
 .reprint-field label{display:block;margin-bottom:5px;color:var(--dv-muted);font-size:8px;font-weight:900}
-.reprint-field select,.reprint-field input{width:100%;min-height:42px;border:1px solid var(--dv-border);border-radius:11px;background:var(--dv-surface);color:var(--dv-text);padding:7px 10px;font-size:10px}
+.reprint-field select,.reprint-field input,.reprint-field textarea{width:100%;min-height:42px;border:1px solid var(--dv-border);border-radius:11px;background:var(--dv-surface);color:var(--dv-text);padding:7px 10px;font-size:10px}
+.reprint-field textarea{min-height:82px;resize:vertical}
+.gcode-current{margin-top:10px;padding:9px 10px;border:1px solid var(--dv-border);border-radius:10px;background:var(--dv-surface-soft);color:var(--dv-muted);font-size:9px;line-height:1.45}
 .reprint-hint{padding:9px 10px;border:1px solid var(--dv-border);border-radius:10px;background:var(--dv-surface-soft);color:var(--dv-muted);font-size:9px;line-height:1.45}
 
 .bambu-live-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:9px}
@@ -759,11 +761,24 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                             </form>
                             <div class="dv-kanban-card__footer">
                                 <span class="dv-kanban-badge">PENDIENTE</span>
-                                <form method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="estado" value="CANCELADO">
-                                    <button class="btn red" type="submit">QUITAR</button>
-                                </form>
+                                <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+                                    <button
+                                        class="btn"
+                                        type="button"
+                                        data-gcode-open
+                                        data-gcode-url="{% url 'produccion:cargar_gcode' produccion.id %}"
+                                        data-gcode-code="{{ produccion.codigo }}"
+                                        data-gcode-job="{{ produccion.producto.nombre }} × {{ produccion.cantidad }}"
+                                        data-gcode-current="{% if produccion.archivo_impresion %}{{ produccion.archivo_impresion.nombre_original }}{% endif %}"
+                                        data-gcode-version="{% if produccion.archivo_impresion %}{{ produccion.archivo_impresion.version }}{% endif %}"
+                                        data-gcode-profile="{% if produccion.archivo_impresion %}{{ produccion.archivo_impresion.perfil_impresora }}{% endif %}"
+                                    >{% if produccion.archivo_impresion %}↻ G-CODE{% else %}＋ G-CODE{% endif %}</button>
+                                    <form method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="estado" value="CANCELADO">
+                                        <button class="btn red" type="submit">QUITAR</button>
+                                    </form>
+                                </div>
                             </div>
                         </article>
                         {% empty %}<div class="dv-kanban-empty">No hay trabajos en cola.</div>{% endfor %}
@@ -992,6 +1007,82 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
     </section>
 </div>
 
+<dialog class="dv-confirm-dialog" id="gcodeProductionDialog">
+    <div class="dv-confirm-dialog__body">
+        <div class="dv-confirm-dialog__icon">⬆</div>
+        <h3>Archivo de impresión</h3>
+        <p>
+            Subí el .gcode.3mf para esta combinación de producto y cantidad.
+            Si ya existe uno principal, la nueva versión lo sustituirá y se aplicará también a las demás producciones pendientes iguales.
+        </p>
+
+        <div class="dv-confirm-dialog__job">
+            <span id="gcodeProductionCode">Producción</span><br>
+            <span id="gcodeProductionJob">Producto × cantidad</span>
+        </div>
+
+        <div class="gcode-current" id="gcodeProductionCurrent">
+            Sin G-code asociado actualmente.
+        </div>
+
+        <form method="post" enctype="multipart/form-data" id="gcodeProductionForm">
+            {% csrf_token %}
+            <div class="reprint-grid">
+                <div class="reprint-field">
+                    <label for="gcodeProductionFile">ARCHIVO .GCODE.3MF</label>
+                    <input
+                        type="file"
+                        name="archivo"
+                        id="gcodeProductionFile"
+                        accept=".gcode.3mf"
+                        required
+                    >
+                </div>
+
+                <div class="reprint-field">
+                    <label for="gcodeProductionVersion">VERSIÓN</label>
+                    <input
+                        type="text"
+                        name="version"
+                        id="gcodeProductionVersion"
+                        maxlength="60"
+                        placeholder="Ej. v2"
+                    >
+                </div>
+
+                <div class="reprint-field">
+                    <label for="gcodeProductionProfile">PERFIL / IMPRESORA</label>
+                    <input
+                        type="text"
+                        name="perfil_impresora"
+                        id="gcodeProductionProfile"
+                        maxlength="120"
+                        placeholder="Ej. A1 · 0.4 mm"
+                    >
+                </div>
+
+                <div class="reprint-field">
+                    <label for="gcodeProductionNotes">NOTAS</label>
+                    <textarea
+                        name="notas"
+                        id="gcodeProductionNotes"
+                        placeholder="Opcional: qué cambió, soportes, perfil, observaciones..."
+                    ></textarea>
+                </div>
+
+                <div class="reprint-hint">
+                    La cantidad no se elige acá: queda tomada de la producción. Así evitamos asociar accidentalmente un archivo ×6 a una producción ×4.
+                </div>
+            </div>
+
+            <div class="dv-confirm-dialog__actions">
+                <button class="btn" type="button" id="gcodeProductionClose">VOLVER</button>
+                <button class="btn green" type="submit">GUARDAR G-CODE</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
 <dialog class="dv-confirm-dialog" id="bambuReprintDialog">
     <div class="dv-confirm-dialog__body">
         <div class="dv-confirm-dialog__icon">↻</div>
@@ -1121,6 +1212,73 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         pedido.style.display=destino.value==='PEDIDO'?'block':'none';
     }
     if(destino){destino.addEventListener('change',sync);sync();}
+
+    const gcodeDialog=document.getElementById('gcodeProductionDialog');
+    const gcodeForm=document.getElementById('gcodeProductionForm');
+    const gcodeClose=document.getElementById('gcodeProductionClose');
+    const gcodeCode=document.getElementById('gcodeProductionCode');
+    const gcodeJob=document.getElementById('gcodeProductionJob');
+    const gcodeCurrent=document.getElementById('gcodeProductionCurrent');
+    const gcodeFile=document.getElementById('gcodeProductionFile');
+    const gcodeVersion=document.getElementById('gcodeProductionVersion');
+    const gcodeProfile=document.getElementById('gcodeProductionProfile');
+    const gcodeNotes=document.getElementById('gcodeProductionNotes');
+
+    document.querySelectorAll('[data-gcode-open]').forEach(function(button){
+        button.addEventListener('click',function(){
+            if(!gcodeDialog||!gcodeForm)return;
+
+            gcodeForm.action=button.dataset.gcodeUrl||'';
+
+            if(gcodeCode){
+                gcodeCode.textContent=button.dataset.gcodeCode||'Producción';
+            }
+
+            if(gcodeJob){
+                gcodeJob.textContent=button.dataset.gcodeJob||'Producto × cantidad';
+            }
+
+            const current=(button.dataset.gcodeCurrent||'').trim();
+
+            if(gcodeCurrent){
+                gcodeCurrent.textContent=current
+                    ? 'Actual: '+current
+                    : 'Sin G-code asociado actualmente.';
+            }
+
+            if(gcodeVersion){
+                gcodeVersion.value=button.dataset.gcodeVersion||'';
+            }
+
+            if(gcodeProfile){
+                gcodeProfile.value=button.dataset.gcodeProfile||'';
+            }
+
+            if(gcodeNotes){
+                gcodeNotes.value='';
+            }
+
+            if(gcodeFile){
+                gcodeFile.value='';
+            }
+
+            gcodeDialog.showModal();
+        });
+    });
+
+    if(gcodeClose){
+        gcodeClose.addEventListener('click',function(){
+            gcodeDialog?.close();
+        });
+    }
+
+    if(gcodeDialog){
+        gcodeDialog.addEventListener('click',function(event){
+            if(event.target===gcodeDialog){
+                gcodeDialog.close();
+            }
+        });
+    }
 
     const reprintDialog=document.getElementById('bambuReprintDialog');
     const reprintForm=document.getElementById('bambuReprintForm');
