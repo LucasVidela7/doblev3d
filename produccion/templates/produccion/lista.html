@@ -1108,6 +1108,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                 type="button"
                 class="start-printer-option"
                 data-start-printer="{{ impresora.id }}"
+                data-start-bambu="{% if impresora.bambu_estado %}1{% else %}0{% endif %}"
                 {% if not impresora.esta_libre %}disabled{% endif %}
             >
                 <strong>🖨 {{ impresora.nombre }}</strong>
@@ -1133,6 +1134,45 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
             <input type="hidden" name="producto" id="startProductionProduct">
             <input type="hidden" name="cantidad" id="startProductionQuantity">
             <input type="hidden" name="personalizado_id" id="startProductionPersonalized">
+
+            <div
+                class="reprint-field"
+                id="startProductionFilamentWrap"
+                style="display:none;margin-top:12px"
+            >
+                <label for="startProductionFilament">FILAMENTO / COLOR</label>
+                <select
+                    name="filamento"
+                    id="startProductionFilament"
+                    disabled
+                >
+                    <option value="">Seleccionar filamento...</option>
+                    {% for impresora in impresoras %}
+                        {% if impresora.bambu_estado %}
+                            {% for slot in impresora.bambu_estado.ams_slots %}
+                                <option
+                                    value="AMS:{{ slot.ams_id }}:{{ slot.tray_id }}"
+                                    data-printer="{{ impresora.id }}"
+                                >
+                                    AMS · Slot {{ slot.slot }} · {{ slot.tipo }}{% if slot.color %} · {{ slot.color }}{% endif %}
+                                </option>
+                            {% endfor %}
+                            {% if impresora.bambu_estado.carrete_externo_info %}
+                                <option
+                                    value="EXTERNO"
+                                    data-printer="{{ impresora.id }}"
+                                >
+                                    Carrete externo · {{ impresora.bambu_estado.carrete_externo_info.tipo }}{% if impresora.bambu_estado.carrete_externo_info.color %} · {{ impresora.bambu_estado.carrete_externo_info.color }}{% endif %}
+                                </option>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                <div class="reprint-hint" style="margin-top:7px">
+                    En una Bambu, Gestión enviará el G-code a la Raspberry y esperará la confirmación física antes de marcarla como imprimiendo.
+                </div>
+            </div>
+
             <div class="dv-confirm-dialog__actions">
                 <button class="btn" type="button" id="startProductionClose">VOLVER</button>
                 <button class="btn green" type="submit" id="startProductionConfirm" disabled>CONFIRMAR INICIO</button>
@@ -1564,6 +1604,18 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         form.dataset.submitting="0";
 
         byId("startProductionPrinter").value="";
+        const startFilament=byId("startProductionFilament");
+        const startFilamentWrap=byId("startProductionFilamentWrap");
+        if(startFilament){
+            startFilament.value="";
+            startFilament.disabled=true;
+            startFilament.required=false;
+            startFilament.querySelectorAll("option[data-printer]").forEach(function(option){
+                option.hidden=true;
+                option.disabled=true;
+            });
+        }
+        if(startFilamentWrap)startFilamentWrap.style.display="none";
         byId("startProductionProduct").value=kind==="quick"?productId:"";
         byId("startProductionQuantity").value=kind==="quick"?quantity:"";
         byId("startProductionPersonalized").value=kind==="quick"?personalizedId:"";
@@ -1598,8 +1650,33 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
             );
         });
 
-        byId("startProductionPrinter").value=button.dataset.startPrinter||"";
-        byId("startProductionConfirm").disabled=false;
+        const printerId=button.dataset.startPrinter||"";
+        const isBambu=button.dataset.startBambu==="1";
+        const filament=byId("startProductionFilament");
+        const filamentWrap=byId("startProductionFilamentWrap");
+        const confirm=byId("startProductionConfirm");
+
+        byId("startProductionPrinter").value=printerId;
+
+        if(filament){
+            filament.value="";
+            filament.required=isBambu;
+            filament.disabled=!isBambu;
+
+            filament.querySelectorAll("option[data-printer]").forEach(function(option){
+                const visible=isBambu&&option.dataset.printer===printerId;
+                option.hidden=!visible;
+                option.disabled=!visible;
+            });
+        }
+
+        if(filamentWrap){
+            filamentWrap.style.display=isBambu?"block":"none";
+        }
+
+        if(confirm){
+            confirm.disabled=isBambu;
+        }
     }
 
     function openGcodeDialog(button){
@@ -1694,6 +1771,16 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         byId("bambuCancelPrinter").textContent=button.dataset.printer||"Impresora";
         byId("bambuCancelJob").textContent=button.dataset.job||"Impresión actual";
         dialog.showModal();
+    }
+
+    const startFilamentSelect=byId("startProductionFilament");
+    if(startFilamentSelect){
+        startFilamentSelect.addEventListener("change",function(){
+            const confirm=byId("startProductionConfirm");
+            if(confirm){
+                confirm.disabled=!startFilamentSelect.value;
+            }
+        });
     }
 
     document.addEventListener("click",function(event){
