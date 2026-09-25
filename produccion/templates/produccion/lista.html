@@ -64,6 +64,16 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 .printer-next{margin-top:11px;padding:10px;border-radius:11px;background:#f7f8fa}
 .printer-actions{display:grid;grid-template-columns:1fr auto;gap:6px;margin-top:9px}
 .printer-actions form{margin:0}.printer-actions select{width:100%;min-height:36px;border:1px solid #d7dce2;border-radius:9px;background:#fff;padding:5px 7px;font-size:9px}
+.printer-action-note{display:flex;align-items:center;min-height:40px;padding:0 10px;border:1px solid var(--dv-border);border-radius:11px;background:var(--dv-surface-muted);color:var(--dv-muted);font-size:8px;font-weight:900}
+.dv-confirm-dialog{width:min(520px,calc(100% - 28px));padding:0;border:1px solid var(--dv-border);border-radius:18px;background:var(--dv-surface);color:var(--dv-text);box-shadow:0 24px 70px rgba(0,0,0,.32)}
+.dv-confirm-dialog::backdrop{background:rgba(7,12,20,.68);backdrop-filter:blur(3px)}
+.dv-confirm-dialog__body{padding:20px}
+.dv-confirm-dialog__icon{width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:13px;background:var(--dv-danger-soft,#fde8e8);font-size:20px}
+.dv-confirm-dialog h3{margin:12px 0 0;font-size:18px}
+.dv-confirm-dialog p{margin:8px 0 0;color:var(--dv-muted);font-size:11px;line-height:1.55}
+.dv-confirm-dialog__job{margin-top:12px;padding:10px 11px;border:1px solid var(--dv-border);border-radius:11px;background:var(--dv-surface-soft);font-size:10px;font-weight:900}
+.dv-confirm-dialog__actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:17px}
+.dv-confirm-dialog__actions .btn{width:100%;min-height:42px;font-size:9px}
 
 .bambu-live-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:9px}
 .bambu-live{padding:14px;border:1px solid var(--dv-border);border-radius:16px;background:var(--dv-surface);box-shadow:var(--dv-shadow-soft);color:var(--dv-text)}
@@ -431,16 +441,49 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                             </div>
                         </div>
                         <div class="printer-actions">
-                            <form method="post" action="{% url 'produccion:cambiar_estado' impresora.trabajo_actual.id %}">
-                                {% csrf_token %}
-                                <input type="hidden" name="estado" value="CONTROL">
-                                <button class="btn green" type="submit">✓ FINALIZÓ / REVISAR</button>
-                            </form>
-                            <form method="post" action="{% url 'produccion:cambiar_estado' impresora.trabajo_actual.id %}">
-                                {% csrf_token %}
-                                <input type="hidden" name="estado" value="CANCELADO">
-                                <button class="btn red" type="submit">CANCELAR</button>
-                            </form>
+                            {% if impresora.bambu_estado %}
+                                {% if impresora.puede_finalizar_manual %}
+                                <form method="post" action="{% url 'produccion:cambiar_estado' impresora.trabajo_actual.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="estado" value="CONTROL">
+                                    <button class="btn green" type="submit">✓ FINALIZÓ / REVISAR</button>
+                                </form>
+                                {% else %}
+                                <div class="printer-action-note">
+                                    {% if impresora.bambu_estado.esta_imprimiendo %}
+                                        ● LA A1 SIGUE IMPRIMIENDO
+                                    {% else %}
+                                        TELEMETRÍA NO DISPONIBLE
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+
+                                {% if impresora.cancelacion_pendiente %}
+                                    <button class="btn red" type="button" disabled>CANCELANDO…</button>
+                                {% elif impresora.puede_cancelar_bambu %}
+                                    <button
+                                        class="btn red"
+                                        type="button"
+                                        data-bambu-cancel-open
+                                        data-cancel-url="{% url 'produccion:cancelar_bambu' impresora.trabajo_actual.id %}"
+                                        data-printer="{{ impresora.nombre }}"
+                                        data-job="{{ impresora.trabajo_actual.producto.nombre }} × {{ impresora.trabajo_actual.cantidad }}"
+                                    >CANCELAR</button>
+                                {% else %}
+                                    <button class="btn red" type="button" disabled>CANCELAR</button>
+                                {% endif %}
+                            {% else %}
+                                <form method="post" action="{% url 'produccion:cambiar_estado' impresora.trabajo_actual.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="estado" value="CONTROL">
+                                    <button class="btn green" type="submit">✓ FINALIZÓ / REVISAR</button>
+                                </form>
+                                <form method="post" action="{% url 'produccion:cambiar_estado' impresora.trabajo_actual.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="estado" value="CANCELADO">
+                                    <button class="btn red" type="submit">CANCELAR</button>
+                                </form>
+                            {% endif %}
                         </div>
                     {% elif impresora.siguiente_trabajo %}
                         <div class="printer-next">
@@ -668,16 +711,44 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                             <div class="dv-kanban-card__footer">
                                 <span class="dv-kanban-badge">IMPRIMIENDO</span>
                                 <div style="display:flex;gap:5px">
-                                    <form method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="estado" value="CONTROL">
-                                        <button class="btn green" type="submit">✓ FINALIZÓ</button>
-                                    </form>
-                                    <form method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="estado" value="CANCELADO">
-                                        <button class="btn red" type="submit">CANCELAR</button>
-                                    </form>
+                                    {% if produccion.impresora.estado_bambu %}
+                                        {% if produccion.impresora.estado_bambu.estado == "RUNNING" or produccion.impresora.estado_bambu.estado == "PAUSE" or produccion.impresora.estado_bambu.estado == "PREPARE" %}
+                                            <button class="btn green" type="button" disabled>● EN IMPRESIÓN</button>
+                                            <button
+                                                class="btn red"
+                                                type="button"
+                                                data-bambu-cancel-open
+                                                data-cancel-url="{% url 'produccion:cancelar_bambu' produccion.id %}"
+                                                data-printer="{{ produccion.impresora.nombre }}"
+                                                data-job="{{ produccion.producto.nombre }} × {{ produccion.cantidad }}"
+                                            >CANCELAR</button>
+                                        {% else %}
+                                            <form method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="estado" value="CONTROL">
+                                                <button class="btn green" type="submit">✓ FINALIZÓ</button>
+                                            </form>
+                                            <button
+                                                class="btn red"
+                                                type="button"
+                                                data-bambu-cancel-open
+                                                data-cancel-url="{% url 'produccion:cancelar_bambu' produccion.id %}"
+                                                data-printer="{{ produccion.impresora.nombre }}"
+                                                data-job="{{ produccion.producto.nombre }} × {{ produccion.cantidad }}"
+                                            >CANCELAR</button>
+                                        {% endif %}
+                                    {% else %}
+                                        <form method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="estado" value="CONTROL">
+                                            <button class="btn green" type="submit">✓ FINALIZÓ</button>
+                                        </form>
+                                        <form method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="estado" value="CANCELADO">
+                                            <button class="btn red" type="submit">CANCELAR</button>
+                                        </form>
+                                    {% endif %}
                                 </div>
                             </div>
                         </article>
@@ -821,6 +892,28 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
     </section>
 </div>
 
+<dialog class="dv-confirm-dialog" id="bambuCancelDialog">
+    <div class="dv-confirm-dialog__body">
+        <div class="dv-confirm-dialog__icon">■</div>
+        <h3>Interrumpir impresión</h3>
+        <p>
+            Esta acción enviará una orden real de <strong>STOP</strong> a la A1 mediante la Raspberry.
+            La pieza no se agregará al stock.
+        </p>
+        <div class="dv-confirm-dialog__job">
+            <span id="bambuCancelPrinter">Impresora</span><br>
+            <span id="bambuCancelJob">Trabajo</span>
+        </div>
+        <div class="dv-confirm-dialog__actions">
+            <button class="btn" type="button" id="bambuCancelClose">VOLVER</button>
+            <form method="post" id="bambuCancelForm">
+                {% csrf_token %}
+                <button class="btn red" type="submit">SÍ, INTERRUMPIR</button>
+            </form>
+        </div>
+    </div>
+</dialog>
+
 {% include "shared/navigation.html" %}
 
 <script>
@@ -832,6 +925,40 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         pedido.style.display=destino.value==='PEDIDO'?'block':'none';
     }
     if(destino){destino.addEventListener('change',sync);sync();}
+
+    const cancelDialog=document.getElementById('bambuCancelDialog');
+    const cancelForm=document.getElementById('bambuCancelForm');
+    const cancelClose=document.getElementById('bambuCancelClose');
+    const cancelPrinter=document.getElementById('bambuCancelPrinter');
+    const cancelJob=document.getElementById('bambuCancelJob');
+
+    document.querySelectorAll('[data-bambu-cancel-open]').forEach(function(button){
+        button.addEventListener('click',function(){
+            if(!cancelDialog||!cancelForm)return;
+            cancelForm.action=button.dataset.cancelUrl||'';
+            if(cancelPrinter){
+                cancelPrinter.textContent=button.dataset.printer||'Impresora';
+            }
+            if(cancelJob){
+                cancelJob.textContent=button.dataset.job||'Impresión actual';
+            }
+            cancelDialog.showModal();
+        });
+    });
+
+    if(cancelClose){
+        cancelClose.addEventListener('click',function(){
+            cancelDialog?.close();
+        });
+    }
+
+    if(cancelDialog){
+        cancelDialog.addEventListener('click',function(event){
+            if(event.target===cancelDialog){
+                cancelDialog.close();
+            }
+        });
+    }
 })();
 </script>
 {% endtimezone %}
