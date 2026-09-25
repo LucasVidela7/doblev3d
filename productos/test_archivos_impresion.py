@@ -609,3 +609,73 @@ class ArchivoImpresionTests(TestCase):
                 f"/{archivo.id}/download/"
             )
         )
+
+
+    def test_reintento_repara_registro_sin_archivo_fisico(self):
+        archivo_upload = self._archivo_valido(
+            "pepino-x6.gcode.3mf"
+        )
+
+        contenido = archivo_upload.read()
+        archivo_upload.seek(0)
+
+        import hashlib
+
+        sha = hashlib.sha256(
+            contenido
+        ).hexdigest()
+
+        huerfano = ArchivoImpresion.objects.create(
+            producto=self.producto,
+            nombre="Pepino x6",
+            version="v1",
+            cantidad_unidades=6,
+            archivo=(
+                "productos/P0001/"
+                "faltante.gcode.3mf"
+            ),
+            nombre_original=(
+                "pepino-x6.gcode.3mf"
+            ),
+            tamano_bytes=len(contenido),
+            sha256=sha,
+            placas=[1],
+            activo=True,
+            predeterminado=True,
+        )
+
+        self.assertFalse(
+            huerfano.archivo.storage.exists(
+                huerfano.archivo.name
+            )
+        )
+
+        respuesta = self.client.post(
+            reverse(
+                "productos:archivo_impresion_subir",
+                args=[self.producto.id],
+            ),
+            {
+                "archivo": self._archivo_valido(
+                    "pepino-x6.gcode.3mf"
+                ),
+                "cantidad_unidades": "6",
+            },
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            302,
+        )
+
+        huerfano.refresh_from_db()
+
+        self.assertTrue(
+            huerfano.archivo.storage.exists(
+                huerfano.archivo.name
+            )
+        )
+        self.assertEqual(
+            ArchivoImpresion.objects.count(),
+            1,
+        )
