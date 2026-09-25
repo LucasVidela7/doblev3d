@@ -105,6 +105,11 @@ urlpatterns = [
         name="archivo_impresion_activo",
     ),
     path(
+        "<int:producto_id>/archivos-impresion/<int:archivo_id>/reemplazar/",
+        archivos_impresion.reemplazar,
+        name="archivo_impresion_reemplazar",
+    ),
+    path(
         "<int:producto_id>/archivos-impresion/<int:archivo_id>/eliminar/",
         archivos_impresion.eliminar,
         name="archivo_impresion_eliminar",
