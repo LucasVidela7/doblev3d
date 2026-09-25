@@ -141,3 +141,5 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-25T11:16-03 deploy correccion modo oscuro Bambu en vivo
 
 2026-09-25T11:24-03 deploy vinculo Bambu con impresoras de produccion
+
+2026-09-25T11:31-03 deploy comparacion Gestion vs Bambu
