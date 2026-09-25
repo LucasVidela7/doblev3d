@@ -28,6 +28,7 @@ def _nuevo_item(producto, es_pieza=False):
         "a_imprimir": 0,
         "planificadas": 0,
         "en_produccion": 0,
+        "en_control": 0,
         "falta_iniciar": 0,
         "falta_normal_planificar": 0,
         "impresoras": [],
@@ -352,25 +353,30 @@ def obtener_impresiones_por_producto():
             {
                 "planificadas": 0,
                 "imprimiendo": 0,
+                "control": 0,
                 "planificadas_estandar": 0,
                 "imprimiendo_estandar": 0,
+                "control_estandar": 0,
                 "impresoras": [],
             },
         )
 
         item["planificadas"] = activas["planificadas"]
         item["en_produccion"] = activas["imprimiendo"]
+        item["en_control"] = activas["control"]
         item["impresoras"] = activas["impresoras"]
         item["falta_iniciar"] = max(
             item["a_imprimir"]
             - item["planificadas"]
-            - item["en_produccion"],
+            - item["en_produccion"]
+            - item["en_control"],
             0,
         )
         item["falta_normal_planificar"] = max(
             item["necesidad_normal_impresion"]
             - activas["planificadas_estandar"]
-            - activas["imprimiendo_estandar"],
+            - activas["imprimiendo_estandar"]
+            - activas["control_estandar"],
             0,
         )
         item["origenes"] = sorted(item["origenes"])
@@ -378,14 +384,20 @@ def obtener_impresiones_por_producto():
         for personalizacion in item["personalizaciones"]:
             estado = activas_personalizadas.get(
                 (producto.id, personalizacion["detalle_id"]),
-                {"planificadas": 0, "imprimiendo": 0},
+                {
+                    "planificadas": 0,
+                    "imprimiendo": 0,
+                    "control": 0,
+                },
             )
             personalizacion["planificadas"] = estado["planificadas"]
             personalizacion["imprimiendo"] = estado["imprimiendo"]
+            personalizacion["control"] = estado["control"]
             personalizacion["falta_planificar"] = max(
                 personalizacion["cantidad"]
                 - estado["planificadas"]
-                - estado["imprimiendo"],
+                - estado["imprimiendo"]
+                - estado["control"],
                 0,
             )
 
@@ -403,7 +415,11 @@ def obtener_impresiones_por_producto():
         elif falta_iniciar >= 1:
             item["prioridad"] = "BAJA"
             item["prioridad_clase"] = "prioridad-baja"
-        elif (en_produccion > 0 or planificadas > 0) and a_imprimir > 0:
+        elif (
+            en_produccion > 0
+            or planificadas > 0
+            or item["en_control"] > 0
+        ) and a_imprimir > 0:
             item["prioridad"] = "EN CURSO"
             item["prioridad_clase"] = "prioridad-curso"
         else:
