@@ -723,20 +723,29 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                 <div class="prod-kpi hot"><span>FALTA</span><b>{{ item.falta_iniciar }}</b></div>
                             </div>
                             {% if item.puede_planificar_rapido %}
-                            <form method="post" action="{% url 'produccion:accion_rapida' %}" class="prod-actions">
+                            <form
+                                method="post"
+                                action="{% url 'produccion:accion_rapida' %}"
+                                class="prod-actions"
+                                data-production-ajax
+                                data-focus-product="{{ item.producto.id }}"
+                                data-quick-form
+                            >
                                 {% csrf_token %}
                                 <input type="hidden" name="producto" value="{{ item.producto.id }}">
-                                <input type="number" name="cantidad" min="1" value="{{ item.cantidad_sugerida }}" required aria-label="Cantidad">
-                                <select name="impresora" aria-label="Impresora">
-                                    {% for impresora in impresoras_libres_lista %}
-                                        <option value="{{ impresora.id }}">{{ impresora.nombre }}</option>
-                                    {% empty %}
-                                        <option value="">Sin impresoras libres</option>
-                                    {% endfor %}
-                                </select>
+                                <input type="number" name="cantidad" min="1" value="{{ item.cantidad_sugerida }}" required aria-label="Cantidad" data-quick-quantity>
                                 <div class="prod-actions two" style="margin-top:0">
                                     <button class="btn dark" type="submit" name="accion" value="PLANIFICAR">＋ A COLA</button>
-                                    <button class="btn green" type="submit" name="accion" value="INICIAR" {% if not impresoras_libres_lista %}disabled{% endif %}>▶ AHORA</button>
+                                    <button
+                                        class="btn green"
+                                        type="button"
+                                        data-start-open
+                                        data-start-kind="quick"
+                                        data-start-url="{% url 'produccion:accion_rapida' %}"
+                                        data-start-code="{{ item.producto.codigo }}"
+                                        data-start-job-base="{{ item.producto.nombre }}"
+                                        data-product-id="{{ item.producto.id }}"
+                                    >▶ AHORA</button>
                                 </div>
                             </form>
                             <div class="prod-note">{{ item.tiempo_sugerido_texto }} aprox. para la cantidad sugerida.</div>
@@ -750,21 +759,31 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                     <div class="prod-personal-item">
                                         <div class="dv-kanban-card__code">{{ personalizacion.pedido_codigo }} · {{ personalizacion.falta_planificar }} faltan</div>
                                         <div class="dv-kanban-card__meta">{{ personalizacion.detalle|default:"Sin detalle" }}{% if personalizacion.color %} · {{ personalizacion.color }}{% endif %}</div>
-                                        <form method="post" action="{% url 'produccion:accion_rapida' %}" class="prod-actions">
+                                        <form
+                                            method="post"
+                                            action="{% url 'produccion:accion_rapida' %}"
+                                            class="prod-actions"
+                                            data-production-ajax
+                                            data-focus-product="{{ item.producto.id }}"
+                                            data-quick-form
+                                        >
                                             {% csrf_token %}
                                             <input type="hidden" name="producto" value="{{ item.producto.id }}">
                                             <input type="hidden" name="personalizado_id" value="{{ personalizacion.detalle_id }}">
-                                            <input type="number" name="cantidad" min="1" max="{{ personalizacion.falta_planificar }}" value="{{ personalizacion.falta_planificar }}" required>
-                                            <select name="impresora">
-                                                {% for impresora in impresoras_libres_lista %}
-                                                    <option value="{{ impresora.id }}">{{ impresora.nombre }}</option>
-                                                {% empty %}
-                                                    <option value="">Sin impresoras libres</option>
-                                                {% endfor %}
-                                            </select>
+                                            <input type="number" name="cantidad" min="1" max="{{ personalizacion.falta_planificar }}" value="{{ personalizacion.falta_planificar }}" required data-quick-quantity>
                                             <div class="prod-actions two" style="margin-top:0">
                                                 <button class="btn dark" type="submit" name="accion" value="PLANIFICAR">＋ COLA</button>
-                                                <button class="btn green" type="submit" name="accion" value="INICIAR" {% if not impresoras_libres_lista %}disabled{% endif %}>▶ AHORA</button>
+                                                <button
+                                                    class="btn green"
+                                                    type="button"
+                                                    data-start-open
+                                                    data-start-kind="quick"
+                                                    data-start-url="{% url 'produccion:accion_rapida' %}"
+                                                    data-start-code="{{ personalizacion.pedido_codigo }}"
+                                                    data-start-job-base="{{ item.producto.nombre }}"
+                                                    data-product-id="{{ item.producto.id }}"
+                                                    data-personalized-id="{{ personalizacion.detalle_id }}"
+                                                >▶ AHORA</button>
                                             </div>
                                         </form>
                                     </div>
@@ -784,7 +803,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                     </header>
                     <div class="dv-kanban-list">
                         {% for produccion in cola_pendiente %}
-                        <article class="dv-kanban-card">
+                        <article class="dv-kanban-card" data-production-id="{{ produccion.id }}" data-product-id="{{ produccion.producto_id }}">
                             <div class="prod-card-image">
                                 {% if produccion.producto.imagen_produccion_url %}
                                     <img class="product-thumb" src="{{ produccion.producto.imagen_produccion_url }}" alt="" loading="lazy">
@@ -795,27 +814,28 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                     <div class="dv-kanban-card__code">{{ produccion.codigo }}</div>
                                     <div class="dv-kanban-card__title">{{ produccion.producto.nombre }} × {{ produccion.cantidad }}</div>
                                     <div class="dv-kanban-card__meta">
-                                        {{ produccion.tiempo_impresion_formateado }}
+                                        {{ produccion.tiempo_operativo_texto }} · {{ produccion.peso_operativo_texto }}
                                         {% if produccion.pedido %}<br>{{ produccion.pedido.codigo }} · {{ produccion.pedido.cliente.nombre }}{% endif %}
                                         {% if produccion.archivo_impresion %}
-                                            <br>G-code: {{ produccion.archivo_impresion.nombre }} × {{ produccion.archivo_impresion.cantidad_unidades }}
+                                            <br>G-code: {{ produccion.archivo_impresion.nombre_original }}
                                         {% else %}
                                             <br>Sin G-code exacto asociado
                                         {% endif %}
                                     </div>
                                 </div>
                             </div>
-                            <form method="post" action="{% url 'produccion:iniciar' produccion.id %}" class="prod-actions">
-                                {% csrf_token %}
-                                <select name="impresora" required>
-                                    {% for impresora in impresoras_libres_lista %}
-                                        <option value="{{ impresora.id }}">{{ impresora.nombre }}</option>
-                                    {% empty %}
-                                        <option value="">Sin impresoras libres</option>
-                                    {% endfor %}
-                                </select>
-                                <button class="btn green" type="submit" {% if not impresoras_libres_lista %}disabled{% endif %}>▶ INICIAR</button>
-                            </form>
+                            <div class="prod-actions">
+                                <button
+                                    class="btn green"
+                                    type="button"
+                                    data-start-open
+                                    data-start-kind="existing"
+                                    data-start-url="{% url 'produccion:iniciar' produccion.id %}"
+                                    data-start-code="{{ produccion.codigo }}"
+                                    data-start-job="{{ produccion.producto.nombre }} × {{ produccion.cantidad }}"
+                                    data-production-id="{{ produccion.id }}"
+                                >▶ INICIAR</button>
+                            </div>
                             <div class="dv-kanban-card__footer">
                                 <span class="dv-kanban-badge">PENDIENTE</span>
                                 <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
@@ -830,7 +850,12 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                         data-gcode-version="{% if produccion.archivo_impresion %}{{ produccion.archivo_impresion.version }}{% endif %}"
                                         data-gcode-profile="{% if produccion.archivo_impresion %}{{ produccion.archivo_impresion.perfil_impresora }}{% endif %}"
                                     >{% if produccion.archivo_impresion %}↻ G-CODE{% else %}＋ G-CODE{% endif %}</button>
-                                    <form method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
+                                    <form
+                                        method="post"
+                                        action="{% url 'produccion:cambiar_estado' produccion.id %}"
+                                        data-production-ajax
+                                        data-focus-production="{{ produccion.id }}"
+                                    >
                                         {% csrf_token %}
                                         <input type="hidden" name="estado" value="CANCELADO">
                                         <button class="btn red" type="submit">QUITAR</button>
