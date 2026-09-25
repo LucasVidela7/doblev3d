@@ -135,6 +135,12 @@ class Produccion(models.Model):
         ("CANCELADO", "Cancelado"),
     ]
 
+    ORIGENES = [
+        ("GESTION", "Gestión"),
+        ("BAMBU_STUDIO", "Bambu Studio"),
+        ("MANUAL", "Manual"),
+    ]
+
     fecha = models.DateTimeField(
         auto_now_add=True,
     )
@@ -167,6 +173,12 @@ class Produccion(models.Model):
         max_length=20,
         choices=ESTADOS,
         default="PENDIENTE",
+    )
+
+    origen = models.CharField(
+        max_length=20,
+        choices=ORIGENES,
+        default="GESTION",
     )
 
     impresora = models.ForeignKey(
@@ -216,6 +228,19 @@ class Produccion(models.Model):
         null=True,
         blank=True,
         related_name="reimpresiones",
+    )
+
+    archivo_impresion = models.ForeignKey(
+        "productos.ArchivoImpresion",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="producciones",
+    )
+
+    bambu_trabajo = models.CharField(
+        max_length=255,
+        blank=True,
     )
 
     bambu_fuente_filamento = models.CharField(
