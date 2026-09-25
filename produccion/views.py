@@ -10,7 +10,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from pedidos.models import Pedido
-from productos.archivos_impresion import _analizar_gcode_3mf, _desmarcar_predeterminado, _nombre_base
+from productos.archivos_impresion import _analizar_gcode_3mf, _desmarcar_predeterminado, _guardar_archivo_impresion, _nombre_base
 from productos.models import ArchivoImpresion, ConfiguracionCatalogo, Producto, detalle_color_catalogo
 from productos.miniaturas import asignar_miniaturas_productos
 
@@ -2261,6 +2261,12 @@ def cargar_gcode_produccion(
     )
 
     if existente:
+        _desmarcar_predeterminado(
+            producto_id=produccion.producto_id,
+            cantidad_unidades=produccion.cantidad,
+            excluir_id=existente.id,
+        )
+
         nuevo = existente
         nuevo.activo = True
         nuevo.predeterminado = True
@@ -2336,12 +2342,19 @@ def cargar_gcode_produccion(
             predeterminado=True,
         )
 
-        nuevo.archivo.save(
-            str(archivo.name),
-            archivo,
-            save=False,
-        )
-        nuevo.save()
+        try:
+            _guardar_archivo_impresion(
+                nuevo,
+                archivo,
+            )
+        except ValueError as error:
+            messages.error(
+                request,
+                str(error),
+            )
+            return redirect(
+                reverse("produccion:lista") + "#prod-cola"
+            )
 
     _desmarcar_predeterminado(
         producto_id=produccion.producto_id,
