@@ -385,14 +385,18 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         <div class="section-head">
             <div>
                 <h2 class="section-title">Ahora</h2>
-                <div class="subtitle">Qué está haciendo cada impresora y cuál es el siguiente trabajo disponible.</div>
+                <div class="subtitle">Estado real de cada impresora y producción vinculada.</div>
             </div>
-            <div class="section-help">Marcar LISTO libera la máquina y recalcula la necesidad.</div>
+            <div class="section-help">La vinculación Bambu se administra desde Configuración.</div>
         </div>
 
         <div class="printers">
             {% for impresora in impresoras %}
-                <article class="printer {% if impresora.esta_libre %}free{% else %}busy{% endif %}">
+                <article
+                    class="printer {% if impresora.esta_libre %}free{% else %}busy{% endif %}"
+                    data-printer-id="{{ impresora.id }}"
+                    {% if impresora.trabajo_actual %}data-production-id="{{ impresora.trabajo_actual.id }}"{% endif %}
+                >
                     <div class="printer-head">
                         <div class="printer-name">🖨 {{ impresora.nombre }}</div>
                         {% if impresora.esta_libre %}
@@ -402,11 +406,38 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                         {% endif %}
                     </div>
 
+                    {% if impresora.trabajo_actual %}
+                        <div class="printer-summary">
+                            {% if impresora.trabajo_actual.producto.imagen_produccion_url %}
+                                <img class="product-thumb" src="{{ impresora.trabajo_actual.producto.imagen_produccion_url }}" alt="" loading="lazy">
+                            {% else %}
+                                <span class="product-thumb product-thumb-empty">3D</span>
+                            {% endif %}
+                            <div>
+                                <div class="printer-summary__code">PRODUCCIÓN {{ impresora.trabajo_actual.codigo }}</div>
+                                <div class="printer-summary__title">{{ impresora.trabajo_actual.producto.nombre }} × {{ impresora.trabajo_actual.cantidad }}</div>
+                                <div class="printer-summary__stats">
+                                    <span class="printer-summary__stat">⏱ {{ impresora.trabajo_actual.tiempo_operativo_texto }}</span>
+                                    <span class="printer-summary__stat">⚖ {{ impresora.trabajo_actual.peso_operativo_texto }}</span>
+                                    {% if impresora.trabajo_actual.archivo_impresion %}
+                                        <span class="printer-summary__stat">G-code ×{{ impresora.trabajo_actual.archivo_impresion.cantidad_unidades }}</span>
+                                    {% endif %}
+                                </div>
+                                {% if impresora.trabajo_actual.archivo_impresion %}
+                                    <div class="meta">Archivo: {{ impresora.trabajo_actual.archivo_impresion.nombre_original }}</div>
+                                {% endif %}
+                                {% if impresora.trabajo_actual.origen == "BAMBU_STUDIO" %}
+                                    <div class="meta">Origen: Bambu Studio</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+
                     {% if impresora.bambu_estado %}
                         {% with bambu=impresora.bambu_estado %}
-                        <div class="bambu-inline">
-                            <div class="bambu-inline-head">
-                                <div class="bambu-inline-title">BAMBU EN VIVO · {{ bambu.nombre_bridge|default:bambu.serial }}</div>
+                        <div class="printer-live">
+                            <div class="printer-live__top">
+                                <div class="printer-live__name">BAMBU EN VIVO · {{ bambu.nombre_bridge|default:bambu.serial }}</div>
                                 {% if bambu.sync_reciente and bambu.conectada %}
                                     <span class="pill free">EN LÍNEA</span>
                                 {% elif bambu.conectada %}
@@ -416,18 +447,17 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                 {% endif %}
                             </div>
 
-                            <div class="bambu-inline-job">{{ bambu.trabajo|default:"Sin trabajo informado" }}</div>
+                            <div class="printer-live__job">{{ bambu.trabajo|default:"Sin trabajo informado" }}</div>
 
                             <div class="bambu-progress" aria-label="Progreso real de impresión">
                                 <span style="width:{{ bambu.progreso|default:0 }}%"></span>
                             </div>
 
-                            <div class="bambu-inline-meta">
+                            <div class="printer-live__meta">
                                 {% if bambu.estado == "RUNNING" %}IMPRIMIENDO{% else %}{{ bambu.estado|default:"SIN DATO" }}{% endif %}
                                 · {% if bambu.progreso is not None %}{{ bambu.progreso }}%{% else %}—{% endif %}
                                 · Restante {{ bambu.restante_texto }}
-                                <br>
-                                Nozzle {% if bambu.temperatura_nozzle is not None %}{{ bambu.temperatura_nozzle|floatformat:0 }} °C{% else %}—{% endif %}
+                                · Nozzle {% if bambu.temperatura_nozzle is not None %}{{ bambu.temperatura_nozzle|floatformat:0 }} °C{% else %}—{% endif %}
                                 · Cama {% if bambu.temperatura_bed is not None %}{{ bambu.temperatura_bed|floatformat:0 }} °C{% else %}—{% endif %}
                                 · Wi-Fi {{ bambu.wifi|default:"—" }}
                             </div>
@@ -459,53 +489,24 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                 {% else %}
                                     {{ impresora.bambu_coherencia_texto }}
                                 {% endif %}
-
                                 {% if bambu.fin_real_estimado %}
-                                    <div class="bambu-timing">
-                                        Fin estimado: {{ bambu.fin_real_estimado|date:"H:i" }}
-                                    </div>
+                                    <div class="bambu-timing">Fin estimado: {{ bambu.fin_real_estimado|date:"H:i" }}</div>
                                 {% endif %}
-                            </div>
-
-                            <div class="bambu-inline-actions">
-                                <form method="post" action="{% url 'produccion:bambu_vincular' bambu.id %}">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="accion" value="DESVINCULAR">
-                                    <button class="btn" type="submit">DESVINCULAR</button>
-                                </form>
                             </div>
                         </div>
                         {% endwith %}
                     {% endif %}
 
                     {% if impresora.trabajo_actual %}
-                        <div class="product-visual">
-                            {% if impresora.trabajo_actual.producto.imagen_produccion_url %}
-                                <img class="product-thumb" src="{{ impresora.trabajo_actual.producto.imagen_produccion_url }}" alt="" loading="lazy">
-                            {% else %}
-                                <span class="product-thumb product-thumb-empty">3D</span>
-                            {% endif %}
-                            <div>
-                                <div class="printer-job">{{ impresora.trabajo_actual.producto.nombre }} × {{ impresora.trabajo_actual.cantidad }}</div>
-                                <div class="meta">
-                                    {{ impresora.trabajo_actual.codigo }} · {{ impresora.trabajo_actual.tiempo_impresion_formateado }}
-                                    {% if impresora.trabajo_actual.fin_estimado %}<br>Fin estimado {{ impresora.trabajo_actual.fin_estimado|date:"H:i" }}{% endif %}
-                                    {% if impresora.trabajo_actual.archivo_impresion and impresora.trabajo_actual.origen != "BAMBU_STUDIO" %}
-                                        <br>G-code: {{ impresora.trabajo_actual.archivo_impresion.nombre }} × {{ impresora.trabajo_actual.archivo_impresion.cantidad_unidades }}
-                                    {% endif %}
-                                    {% if impresora.trabajo_actual.origen == "BAMBU_STUDIO" %}
-                                        <br>Origen: Bambu Studio
-                                        {% if impresora.trabajo_actual.archivo_impresion %}
-                                            · {{ impresora.trabajo_actual.archivo_impresion.nombre }} × {{ impresora.trabajo_actual.archivo_impresion.cantidad_unidades }}
-                                        {% endif %}
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
                         <div class="printer-actions">
                             {% if impresora.bambu_estado %}
                                 {% if impresora.puede_finalizar_manual %}
-                                <form method="post" action="{% url 'produccion:cambiar_estado' impresora.trabajo_actual.id %}">
+                                <form
+                                    method="post"
+                                    action="{% url 'produccion:cambiar_estado' impresora.trabajo_actual.id %}"
+                                    data-production-ajax
+                                    data-focus-production="{{ impresora.trabajo_actual.id }}"
+                                >
                                     {% csrf_token %}
                                     <input type="hidden" name="estado" value="CONTROL">
                                     <button class="btn green" type="submit">✓ FINALIZÓ / REVISAR</button>
@@ -528,6 +529,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                         type="button"
                                         data-bambu-cancel-open
                                         data-cancel-url="{% url 'produccion:cancelar_bambu' impresora.trabajo_actual.id %}"
+                                        data-production-id="{{ impresora.trabajo_actual.id }}"
                                         data-printer="{{ impresora.nombre }}"
                                         data-job="{{ impresora.trabajo_actual.producto.nombre }} × {{ impresora.trabajo_actual.cantidad }}"
                                     >CANCELAR</button>
@@ -535,12 +537,22 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                     <button class="btn red" type="button" disabled>CANCELAR</button>
                                 {% endif %}
                             {% else %}
-                                <form method="post" action="{% url 'produccion:cambiar_estado' impresora.trabajo_actual.id %}">
+                                <form
+                                    method="post"
+                                    action="{% url 'produccion:cambiar_estado' impresora.trabajo_actual.id %}"
+                                    data-production-ajax
+                                    data-focus-production="{{ impresora.trabajo_actual.id }}"
+                                >
                                     {% csrf_token %}
                                     <input type="hidden" name="estado" value="CONTROL">
                                     <button class="btn green" type="submit">✓ FINALIZÓ / REVISAR</button>
                                 </form>
-                                <form method="post" action="{% url 'produccion:cambiar_estado' impresora.trabajo_actual.id %}">
+                                <form
+                                    method="post"
+                                    action="{% url 'produccion:cambiar_estado' impresora.trabajo_actual.id %}"
+                                    data-production-ajax
+                                    data-focus-production="{{ impresora.trabajo_actual.id }}"
+                                >
                                     {% csrf_token %}
                                     <input type="hidden" name="estado" value="CANCELADO">
                                     <button class="btn red" type="submit">CANCELAR</button>
@@ -554,7 +566,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 
                             {% if impresora.archivo_externo_coincidente %}
                                 <div class="external-print__match">
-                                    <strong>Coincidencia de biblioteca encontrada</strong><br>
+                                    <strong>Coincidencia encontrada</strong><br>
                                     {{ impresora.archivo_externo_coincidente.producto.nombre }}
                                     × {{ impresora.archivo_externo_coincidente.cantidad_unidades }}
                                     · {{ impresora.archivo_externo_coincidente.nombre }}
@@ -566,8 +578,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                 </div>
                             {% else %}
                                 <div class="external-print__match">
-                                    No hubo coincidencia exacta con un .gcode.3mf de la biblioteca.
-                                    Podés asociarla manualmente a una producción pendiente.
+                                    No hubo coincidencia exacta con la biblioteca. Podés asociarla a una producción pendiente.
                                 </div>
                             {% endif %}
 
@@ -576,6 +587,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                     method="post"
                                     action="{% url 'produccion:bambu_vincular_impresion' impresora.bambu_estado.id %}"
                                     class="external-print__form"
+                                    data-production-ajax
                                 >
                                     {% csrf_token %}
                                     <select name="produccion" required aria-label="Producción pendiente">
@@ -591,12 +603,8 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                             {% endwith %}
                                         {% endfor %}
                                     </select>
-                                    <button class="btn dark" type="submit">VINCULAR</button>
+                                    <button class="btn dark" type="submit">ASOCIAR</button>
                                 </form>
-                            {% else %}
-                                <div class="meta" style="margin-top:8px">
-                                    No hay producciones pendientes para asociar.
-                                </div>
                             {% endif %}
                         </div>
                     {% elif impresora.siguiente_trabajo %}
@@ -610,14 +618,20 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                 {% endif %}
                                 <div>
                                     <div class="printer-job">{{ impresora.siguiente_trabajo.producto.nombre }} × {{ impresora.siguiente_trabajo.cantidad }}</div>
-                                    <div class="meta">{{ impresora.siguiente_trabajo.codigo }} · {{ impresora.siguiente_trabajo.tiempo_impresion_formateado }}</div>
+                                    <div class="meta">{{ impresora.siguiente_trabajo.codigo }} · {{ impresora.siguiente_trabajo.tiempo_operativo_texto }} · {{ impresora.siguiente_trabajo.peso_operativo_texto }}</div>
                                 </div>
                             </div>
-                            <form method="post" action="{% url 'produccion:iniciar' impresora.siguiente_trabajo.id %}" style="margin-top:8px">
-                                {% csrf_token %}
-                                <input type="hidden" name="impresora" value="{{ impresora.id }}">
-                                <button class="btn green" type="submit">▶ INICIAR SIGUIENTE</button>
-                            </form>
+                            <button
+                                class="btn green"
+                                type="button"
+                                style="margin-top:8px;width:100%"
+                                data-start-open
+                                data-start-kind="existing"
+                                data-start-url="{% url 'produccion:iniciar' impresora.siguiente_trabajo.id %}"
+                                data-start-code="{{ impresora.siguiente_trabajo.codigo }}"
+                                data-start-job="{{ impresora.siguiente_trabajo.producto.nombre }} × {{ impresora.siguiente_trabajo.cantidad }}"
+                                data-production-id="{{ impresora.siguiente_trabajo.id }}"
+                            >▶ INICIAR</button>
                         </div>
                     {% elif impresora.sugerencia_necesidad and impresora.sugerencia_necesidad.puede_planificar_rapido %}
                         <div class="printer-next">
@@ -633,13 +647,18 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                     <div class="meta">{{ impresora.sugerencia_necesidad.tiempo_sugerido_texto }} · prioridad {{ impresora.sugerencia_necesidad.prioridad|lower }}</div>
                                 </div>
                             </div>
-                            <form method="post" action="{% url 'produccion:accion_rapida' %}" style="margin-top:8px">
-                                {% csrf_token %}
-                                <input type="hidden" name="producto" value="{{ impresora.sugerencia_necesidad.producto.id }}">
-                                <input type="hidden" name="cantidad" value="{{ impresora.sugerencia_necesidad.cantidad_sugerida }}">
-                                <input type="hidden" name="impresora" value="{{ impresora.id }}">
-                                <button class="btn green" type="submit" name="accion" value="INICIAR">▶ IMPRIMIR AHORA</button>
-                            </form>
+                            <button
+                                class="btn green"
+                                type="button"
+                                style="margin-top:8px;width:100%"
+                                data-start-open
+                                data-start-kind="quick"
+                                data-start-url="{% url 'produccion:accion_rapida' %}"
+                                data-start-code="{{ impresora.sugerencia_necesidad.producto.codigo }}"
+                                data-start-job="{{ impresora.sugerencia_necesidad.producto.nombre }} × {{ impresora.sugerencia_necesidad.cantidad_sugerida }}"
+                                data-product-id="{{ impresora.sugerencia_necesidad.producto.id }}"
+                                data-quantity="{{ impresora.sugerencia_necesidad.cantidad_sugerida }}"
+                            >▶ IMPRIMIR AHORA</button>
                         </div>
                     {% else %}
                         <div class="meta" style="margin-top:11px">No hay trabajos pendientes. La impresora está disponible.</div>
