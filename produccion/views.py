@@ -359,12 +359,25 @@ def _impresora_ocupada(
         Produccion.objects
         .filter(
             impresora=impresora,
-            estado="IMPRIMIENDO",
+        )
+        .filter(
+            Q(
+                estado="IMPRIMIENDO",
+            )
+            | Q(
+                estado="PENDIENTE",
+                comandos_bambu__tipo="PRINT",
+                comandos_bambu__estado__in=[
+                    "PENDIENTE",
+                    "EJECUTADO",
+                ],
+            )
         )
         .select_related(
             "producto",
             "impresora",
         )
+        .distinct()
         .order_by("id")
     )
 
@@ -416,6 +429,387 @@ def _impresion_fisica_bambu_activa(impresora):
         return estado
 
     return None
+
+
+def _filamento_para_print_bambu(
+    estado_bambu,
+    seleccion,
+):
+    seleccion = str(
+        seleccion or ""
+    ).strip()
+
+    if seleccion.startswith("AMS:"):
+        partes = seleccion.split(":")
+
+        if len(partes) != 3:
+            raise ValueError(
+                "El slot AMS seleccionado no es válido."
+            )
+
+        try:
+            ams_id = int(partes[1])
+            tray_id = int(partes[2])
+        except (TypeError, ValueError):
+            raise ValueError(
+                "El slot AMS seleccionado no es válido."
+            )
+
+        bandeja = None
+        ams_data = (
+            estado_bambu.ams
+            if isinstance(
+                estado_bambu.ams,
+                dict,
+            )
+            else {}
+        )
+
+        for unidad in ams_data.get("ams", []) or []:
+            if not isinstance(unidad, dict):
+                continue
+
+            try:
+                unidad_id = int(
+                    unidad.get("id", 0)
+                )
+            except (TypeError, ValueError):
+                continue
+
+            if unidad_id != ams_id:
+                continue
+
+            for candidata in unidad.get("tray", []) or []:
+                if not isinstance(candidata, dict):
+                    continue
+
+                try:
+                    candidata_id = int(
+                        candidata.get("id", 0)
+                    )
+                except (TypeError, ValueError):
+                    continue
+
+                if candidata_id == tray_id:
+                    bandeja = candidata
+                    break
+
+        if not bandeja:
+            raise ValueError(
+                "Ese filamento ya no figura cargado en el AMS."
+            )
+
+        material = str(
+            bandeja.get("tray_type")
+            or "Filamento"
+        )[:80]
+        color_raw = str(
+            bandeja.get("tray_color")
+            or ""
+        ).strip()
+        color_hex = (
+            f"#{color_raw[:6].upper()}"
+            if len(color_raw) >= 6
+            else ""
+        )
+
+        indice_global = (
+            ams_id * 4
+            + tray_id
+        )
+
+        return {
+            "fuente": "AMS",
+            "ams_id": ams_id,
+            "tray_id": tray_id,
+            "material": material,
+            "color_nombre": color_hex,
+            "color_hex": color_hex,
+            "use_ams": True,
+            "ams_mapping": [
+                indice_global,
+                -1,
+                -1,
+                -1,
+                -1,
+            ],
+        }
+
+    if seleccion == "EXTERNO":
+        carrete = (
+            estado_bambu.carrete_externo
+            if isinstance(
+                estado_bambu.carrete_externo,
+                dict,
+            )
+            else {}
+        )
+
+        if not carrete:
+            raise ValueError(
+                "No se detecta un carrete externo cargado."
+            )
+
+        material = str(
+            carrete.get("tray_type")
+            or "Filamento"
+        )[:80]
+        color_raw = str(
+            carrete.get("tray_color")
+            or ""
+        ).strip()
+        color_hex = (
+            f"#{color_raw[:6].upper()}"
+            if len(color_raw) >= 6
+            else ""
+        )
+
+        return {
+            "fuente": "EXTERNO",
+            "ams_id": None,
+            "tray_id": None,
+            "material": material,
+            "color_nombre": color_hex,
+            "color_hex": color_hex,
+            "use_ams": False,
+            "ams_mapping": [-1],
+        }
+
+    raise ValueError(
+        "Elegí el filamento que debe usar la impresora."
+    )
+
+
+def _nombre_remoto_print_bambu(
+    produccion,
+    archivo,
+):
+    codigo = "".join(
+        caracter
+        for caracter in produccion.codigo.upper()
+        if caracter.isalnum()
+    )[:20] or "PRD"
+
+    return (
+        f"DV_{codigo}_"
+        f"{archivo.sha256[:8]}.gcode.3mf"
+    )
+
+
+def _encolar_print_bambu(
+    *,
+    produccion,
+    impresora,
+    seleccion_filamento,
+):
+    estado_bambu = (
+        ImpresoraEstadoBambu.objects
+        .select_for_update()
+        .filter(
+            impresora=impresora,
+        )
+        .first()
+    )
+
+    if not estado_bambu:
+        return None
+
+    ahora = timezone.now()
+
+    sync_reciente = bool(
+        estado_bambu.ultimo_contacto
+        and (
+            ahora
+            - estado_bambu.ultimo_contacto
+        ) <= timedelta(minutes=2)
+    )
+
+    if (
+        not sync_reciente
+        or not estado_bambu.conectada
+    ):
+        raise ValueError(
+            "La Raspberry no tiene telemetría reciente "
+            "de esta A1."
+        )
+
+    estado_fisico = (
+        estado_bambu.estado or ""
+    ).strip().upper()
+
+    if estado_fisico in {
+        "RUNNING",
+        "PAUSE",
+        "PREPARE",
+    }:
+        raise ValueError(
+            "La A1 dejó de estar libre antes de iniciar."
+        )
+
+    archivo = (
+        produccion.archivo_impresion
+        or _archivo_planificado(
+            produccion.producto,
+            produccion.cantidad,
+        )
+    )
+
+    if not archivo:
+        raise ValueError(
+            "Esta producción no tiene un G-code exacto "
+            "asociado."
+        )
+
+    if not _archivo_fisico_disponible(
+        archivo
+    ):
+        raise ValueError(
+            "El G-code asociado no está disponible "
+            "físicamente en Production."
+        )
+
+    placas = [
+        int(placa)
+        for placa in (
+            archivo.placas
+            or []
+        )
+        if str(placa).isdigit()
+        and int(placa) > 0
+    ]
+
+    if len(placas) != 1:
+        raise ValueError(
+            "Para iniciar desde Gestión el .gcode.3mf "
+            "debe tener exactamente una placa detectada."
+        )
+
+    seleccion = (
+        _filamento_para_print_bambu(
+            estado_bambu,
+            seleccion_filamento,
+        )
+    )
+
+    existente = (
+        ComandoBambu.objects
+        .select_for_update()
+        .filter(
+            produccion=produccion,
+            tipo="PRINT",
+            estado__in=[
+                "PENDIENTE",
+                "EJECUTADO",
+            ],
+        )
+        .order_by("-creado_en")
+        .first()
+    )
+
+    if existente:
+        if existente.estado == "PENDIENTE":
+            raise ValueError(
+                "Esta producción ya tiene un inicio Bambu "
+                "pendiente."
+            )
+
+        referencia = (
+            existente.resuelto_en
+            or existente.creado_en
+        )
+        espera_reintento = timedelta(
+            minutes=2
+        )
+
+        if (
+            not referencia
+            or ahora - referencia
+            < espera_reintento
+        ):
+            raise ValueError(
+                "El inicio ya fue enviado a la A1 y Gestión "
+                "todavía está esperando confirmación por telemetría."
+            )
+
+        # Si la A1 continúa físicamente libre varios minutos
+        # después de un PRINT enviado, cerramos ese intento y
+        # permitimos generar un UUID nuevo. Nunca reutilizamos
+        # el comando anterior.
+        existente.estado = "ERROR"
+        existente.resuelto_en = ahora
+        existente.error = (
+            "Inicio no confirmado por telemetría; "
+            "se habilitó un nuevo intento."
+        )
+        existente.save(
+            update_fields=[
+                "estado",
+                "resuelto_en",
+                "error",
+            ]
+        )
+
+    nombre_remoto = (
+        _nombre_remoto_print_bambu(
+            produccion,
+            archivo,
+        )
+    )
+
+    produccion.impresora = impresora
+    produccion.estado = "PENDIENTE"
+    produccion.inicio_impresion = None
+    produccion.archivo_impresion = archivo
+    produccion.bambu_trabajo = nombre_remoto
+    produccion.bambu_fuente_filamento = (
+        seleccion["fuente"]
+    )
+    produccion.bambu_ams_id = (
+        seleccion["ams_id"]
+    )
+    produccion.bambu_tray_id = (
+        seleccion["tray_id"]
+    )
+    produccion.bambu_material = (
+        seleccion["material"]
+    )
+    produccion.bambu_color_nombre = (
+        seleccion["color_nombre"]
+    )
+    produccion.bambu_color_hex = (
+        seleccion["color_hex"]
+    )
+    produccion.bambu_requiere_cambio_manual = False
+
+    produccion.save(
+        update_fields=[
+            "impresora",
+            "estado",
+            "inicio_impresion",
+            "archivo_impresion",
+            "bambu_trabajo",
+            "bambu_fuente_filamento",
+            "bambu_ams_id",
+            "bambu_tray_id",
+            "bambu_material",
+            "bambu_color_nombre",
+            "bambu_color_hex",
+            "bambu_requiere_cambio_manual",
+        ]
+    )
+
+    return ComandoBambu.objects.create(
+        tipo="PRINT",
+        impresora_estado=estado_bambu,
+        produccion=produccion,
+        expira_en=(
+            ahora
+            + timedelta(minutes=10)
+        ),
+        trabajo_bambu_esperado=(
+            nombre_remoto
+        )[:255],
+    )
 
 
 # ============================================================
@@ -1813,6 +2207,7 @@ def accion_rapida_necesidad(request):
     impresora = None
     estado = "PENDIENTE"
     inicio = timezone.now()
+    estado_bambu_inicio = None
 
     if accion == "INICIAR":
         impresora_id = (
@@ -1862,7 +2257,19 @@ def accion_rapida_necesidad(request):
                 reverse("produccion:lista") + "#ahora"
             )
 
-        estado = "IMPRIMIENDO"
+        estado_bambu_inicio = (
+            ImpresoraEstadoBambu.objects
+            .filter(
+                impresora=impresora,
+            )
+            .first()
+        )
+
+        estado = (
+            "PENDIENTE"
+            if estado_bambu_inicio
+            else "IMPRIMIENDO"
+        )
     elif accion != "PLANIFICAR":
         messages.error(
             request,
@@ -1887,6 +2294,66 @@ def accion_rapida_necesidad(request):
         ),
         observaciones=observaciones,
     )
+
+    if (
+        accion == "INICIAR"
+        and estado_bambu_inicio
+    ):
+        try:
+            _encolar_print_bambu(
+                produccion=produccion,
+                impresora=impresora,
+                seleccion_filamento=(
+                    request.POST.get(
+                        "filamento",
+                        "",
+                    )
+                ),
+            )
+        except ValueError as error:
+            produccion.delete()
+            messages.error(
+                request,
+                str(error),
+            )
+            return redirect(
+                reverse("produccion:lista")
+                + "#prod-necesidad"
+            )
+
+        messages.success(
+            request,
+            (
+                f"{produccion.codigo} quedó solicitada "
+                f"para {impresora.nombre}. "
+                "Se marcará IMPRIMIENDO cuando la A1 "
+                "confirme el inicio."
+            ),
+        )
+
+        if (
+            request.headers.get(
+                "X-Requested-With"
+            )
+            == "XMLHttpRequest"
+        ):
+            return JsonResponse(
+                {
+                    "ok": True,
+                    "bambu": True,
+                    "production_id": produccion.id,
+                    "production_code": produccion.codigo,
+                    "printer": impresora.nombre,
+                    "status_url": reverse(
+                        "produccion:inicio_bambu_estado",
+                        args=[produccion.id],
+                    ),
+                }
+            )
+
+        return redirect(
+            reverse("produccion:lista") + "#prod-cola"
+        )
 
     if estado == "IMPRIMIENDO":
         messages.success(
@@ -2727,6 +3194,72 @@ def iniciar_produccion(
             reverse("produccion:lista") + "#ahora"
         )
 
+    estado_bambu = (
+        ImpresoraEstadoBambu.objects
+        .filter(
+            impresora=impresora,
+        )
+        .first()
+    )
+
+    if estado_bambu:
+        try:
+            _encolar_print_bambu(
+                produccion=produccion,
+                impresora=impresora,
+                seleccion_filamento=(
+                    request.POST.get(
+                        "filamento",
+                        "",
+                    )
+                ),
+            )
+        except ValueError as error:
+            messages.error(
+                request,
+                str(error),
+            )
+            return redirect(
+                reverse("produccion:lista")
+                + "#prod-cola"
+            )
+
+        messages.success(
+            request,
+            (
+                f"{produccion.codigo} quedó solicitada "
+                f"para {impresora.nombre}. "
+                "La Raspberry la iniciará en el próximo sync "
+                "y Gestión la marcará IMPRIMIENDO recién "
+                "cuando la A1 lo confirme por telemetría."
+            ),
+        )
+
+        if (
+            request.headers.get(
+                "X-Requested-With"
+            )
+            == "XMLHttpRequest"
+        ):
+            return JsonResponse(
+                {
+                    "ok": True,
+                    "bambu": True,
+                    "production_id": produccion.id,
+                    "production_code": produccion.codigo,
+                    "printer": impresora.nombre,
+                    "status_url": reverse(
+                        "produccion:inicio_bambu_estado",
+                        args=[produccion.id],
+                    ),
+                }
+            )
+
+        return redirect(
+            reverse("produccion:lista")
+            + "#prod-cola"
+        )
+
     produccion.impresora = impresora
     produccion.inicio_impresion = (
         inicio_actual
@@ -2744,7 +3277,7 @@ def iniciar_produccion(
     messages.success(
         request,
         (
-            f"{produccion.codigo} enviada a "
+            f"{produccion.codigo} iniciada manualmente en "
             f"{impresora.nombre}. "
             "Inicio actualizado al horario actual."
         ),
@@ -2752,6 +3285,226 @@ def iniciar_produccion(
 
     return redirect(
         "produccion:lista"
+    )
+
+
+# ============================================================
+# ESTADO DE INICIO BAMBU
+# ============================================================
+
+def inicio_bambu_estado(
+    request,
+    produccion_id,
+):
+    if request.method != "GET":
+        return JsonResponse(
+            {
+                "ok": False,
+                "detail": "Método no permitido.",
+            },
+            status=405,
+        )
+
+    produccion = (
+        Produccion.objects
+        .select_related(
+            "impresora",
+            "archivo_impresion",
+        )
+        .filter(
+            id=produccion_id,
+        )
+        .first()
+    )
+
+    if not produccion:
+        return JsonResponse(
+            {
+                "ok": False,
+                "detail": "Producción inexistente.",
+            },
+            status=404,
+        )
+
+    comando = (
+        ComandoBambu.objects
+        .filter(
+            produccion=produccion,
+            tipo="PRINT",
+        )
+        .select_related(
+            "impresora_estado",
+        )
+        .order_by(
+            "-creado_en",
+            "-id",
+        )
+        .first()
+    )
+
+    estado_bambu = (
+        comando.impresora_estado
+        if comando
+        else (
+            ImpresoraEstadoBambu.objects
+            .filter(
+                impresora_id=(
+                    produccion.impresora_id
+                )
+            )
+            .first()
+            if produccion.impresora_id
+            else None
+        )
+    )
+
+    archivo = produccion.archivo_impresion
+
+    base = {
+        "ok": True,
+        "production_id": produccion.id,
+        "production_code": produccion.codigo,
+        "production_state": produccion.estado,
+        "printer": (
+            produccion.impresora.nombre
+            if produccion.impresora_id
+            else ""
+        ),
+        "file_name": (
+            archivo.nombre_original
+            if archivo
+            else ""
+        ),
+        "file_size_bytes": (
+            int(
+                archivo.tamano_bytes
+                or 0
+            )
+            if archivo
+            else 0
+        ),
+        "command_state": (
+            comando.estado
+            if comando
+            else ""
+        ),
+        "printer_state": (
+            estado_bambu.estado
+            if estado_bambu
+            else ""
+        ),
+    }
+
+    if produccion.estado == "IMPRIMIENDO":
+        return JsonResponse(
+            {
+                **base,
+                "phase": "confirmed",
+                "progress": 100,
+                "done": True,
+                "error": False,
+                "indeterminate": False,
+                "label": "Inicio confirmado por la A1",
+                "detail": (
+                    "La impresora está en PREPARE/RUNNING "
+                    "y Gestión ya la marcó como imprimiendo."
+                ),
+            }
+        )
+
+    if not comando:
+        return JsonResponse(
+            {
+                **base,
+                "phase": "queued",
+                "progress": 10,
+                "done": False,
+                "error": False,
+                "indeterminate": False,
+                "label": "Preparando solicitud",
+                "detail": (
+                    "Gestión todavía está creando "
+                    "la orden de impresión."
+                ),
+            }
+        )
+
+    if comando.estado in {
+        "ERROR",
+        "EXPIRADO",
+    }:
+        return JsonResponse(
+            {
+                **base,
+                "phase": "error",
+                "progress": 100,
+                "done": True,
+                "error": True,
+                "indeterminate": False,
+                "label": "No se pudo iniciar la impresión",
+                "detail": (
+                    comando.error
+                    or "La orden venció antes de ser confirmada."
+                ),
+            }
+        )
+
+    if comando.estado == "EJECUTADO":
+        return JsonResponse(
+            {
+                **base,
+                "phase": "confirming",
+                "progress": 88,
+                "done": False,
+                "error": False,
+                "indeterminate": True,
+                "label": "Archivo enviado · confirmando A1",
+                "detail": (
+                    "La Raspberry completó la orden. "
+                    "Esperando la telemetría física PREPARE/RUNNING."
+                ),
+            }
+        )
+
+    recibida_por_raspberry = bool(
+        estado_bambu
+        and estado_bambu.ultimo_contacto
+        and estado_bambu.ultimo_contacto
+        >= comando.creado_en
+    )
+
+    if recibida_por_raspberry:
+        return JsonResponse(
+            {
+                **base,
+                "phase": "transferring",
+                "progress": 58,
+                "done": False,
+                "error": False,
+                "indeterminate": True,
+                "label": "Raspberry procesando el G-code",
+                "detail": (
+                    "La orden ya llegó al bridge. "
+                    "Está preparando, transfiriendo por FTPS "
+                    "y validando el inicio."
+                ),
+            }
+        )
+
+    return JsonResponse(
+        {
+            **base,
+            "phase": "waiting",
+            "progress": 28,
+            "done": False,
+            "error": False,
+            "indeterminate": True,
+            "label": "Esperando a la Raspberry",
+            "detail": (
+                "La orden está en cola y será tomada "
+                "en el próximo ciclo de sincronización."
+            ),
+        }
     )
 
 
