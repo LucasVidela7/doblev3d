@@ -322,6 +322,104 @@ class PlanificacionProduccionTests(TestCase):
             150,
         )
 
+    @patch(
+        "produccion.views._archivo_fisico_disponible",
+        return_value=True,
+    )
+    def test_iniciar_bambu_encola_print_y_espera_telemetria(
+        self,
+        disponible_mock,
+    ):
+        archivo = ArchivoImpresion.objects.create(
+            producto=self.producto,
+            nombre="Pepino x1",
+            cantidad_unidades=1,
+            archivo="productos/P0001/test.gcode.3mf",
+            nombre_original="PEPINO_plate_1.gcode.3mf",
+            tamano_bytes=12345,
+            sha256="a" * 64,
+            placas=[1],
+            activo=True,
+            predeterminado=True,
+        )
+
+        estado_bambu = (
+            ImpresoraEstadoBambu.objects.create(
+                impresora=self.impresora,
+                serial="TEST-A1-PRINT",
+                nombre_bridge="A1-test",
+                conectada=True,
+                estado="FINISH",
+                carrete_externo={
+                    "tray_type": "PLA",
+                    "tray_color": "FFFFFFFF",
+                },
+            )
+        )
+
+        produccion = Produccion.objects.create(
+            producto=self.producto,
+            cantidad=1,
+            estado="PENDIENTE",
+            archivo_impresion=archivo,
+            tiempo_impresion_minutos=150,
+        )
+
+        respuesta = self.client.post(
+            reverse(
+                "produccion:iniciar",
+                args=[produccion.id],
+            ),
+            {
+                "impresora": self.impresora.id,
+                "filamento": "EXTERNO",
+            },
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            302,
+        )
+
+        produccion.refresh_from_db()
+
+        self.assertEqual(
+            produccion.estado,
+            "PENDIENTE",
+        )
+        self.assertEqual(
+            produccion.impresora,
+            self.impresora,
+        )
+        self.assertIsNone(
+            produccion.inicio_impresion
+        )
+        self.assertEqual(
+            produccion.bambu_fuente_filamento,
+            "EXTERNO",
+        )
+
+        comando = ComandoBambu.objects.get(
+            produccion=produccion,
+            tipo="PRINT",
+        )
+
+        self.assertEqual(
+            comando.estado,
+            "PENDIENTE",
+        )
+        self.assertEqual(
+            comando.impresora_estado,
+            estado_bambu,
+        )
+        self.assertEqual(
+            comando.trabajo_bambu_esperado,
+            (
+                f"DV_{produccion.codigo}_"
+                f"{archivo.sha256[:8]}.gcode.3mf"
+            ),
+        )
+
     @patch("produccion.views.timezone.now")
     def test_planificacion_vencida_muestra_fin_si_inicia_ahora(
         self,
