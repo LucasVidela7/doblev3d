@@ -376,3 +376,69 @@ class EventoBambu(models.Model):
 
     def __str__(self):
         return f"{self.get_tipo_display()} · {self.impresora_estado}"
+
+
+
+class ComandoBambu(models.Model):
+    TIPOS = [
+        ("STOP", "Detener impresión"),
+    ]
+
+    ESTADOS = [
+        ("PENDIENTE", "Pendiente"),
+        ("EJECUTADO", "Ejecutado"),
+        ("ERROR", "Error"),
+    ]
+
+    id_comando = models.UUIDField(
+        unique=True,
+        editable=False,
+    )
+
+    tipo = models.CharField(
+        max_length=30,
+        choices=TIPOS,
+    )
+
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADOS,
+        default="PENDIENTE",
+    )
+
+    impresora_estado = models.ForeignKey(
+        ImpresoraEstadoBambu,
+        on_delete=models.CASCADE,
+        related_name="comandos",
+    )
+
+    produccion = models.ForeignKey(
+        Produccion,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="comandos_bambu",
+    )
+
+    creado_en = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    resuelto_en = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    error = models.TextField(
+        blank=True,
+    )
+
+    class Meta:
+        ordering = ["creado_en", "id"]
+
+    def __str__(self):
+        return (
+            f"{self.get_tipo_display()} · "
+            f"{self.impresora_estado} · "
+            f"{self.get_estado_display()}"
+        )
