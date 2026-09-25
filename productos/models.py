@@ -972,6 +972,29 @@ class Producto(models.Model):
     def es_compuesto(self):
         return self.tipo_fabricacion == "COMPUESTO"
 
+    def archivo_impresion_para_cantidad(self, cantidad):
+        try:
+            cantidad = int(cantidad)
+        except (TypeError, ValueError):
+            return None
+
+        if cantidad <= 0 or not self.pk:
+            return None
+
+        return (
+            self.archivos_impresion
+            .filter(
+                cantidad_unidades=cantidad,
+                activo=True,
+            )
+            .order_by(
+                "-predeterminado",
+                "-actualizado_en",
+                "-id",
+            )
+            .first()
+        )
+
     @property
     def descripcion_componentes_catalogo(self):
         """Resumen corto y legible de las piezas que forman un producto compuesto."""
@@ -1302,6 +1325,22 @@ class ArchivoImpresion(models.Model):
         blank=True,
     )
 
+    cantidad_unidades = models.PositiveIntegerField(
+        default=1,
+        help_text=(
+            "Cantidad de unidades del producto incluidas "
+            "en este archivo de impresión."
+        ),
+    )
+
+    reemplaza_a = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reemplazos",
+    )
+
     archivo = models.FileField(
         upload_to=archivo_impresion_upload_to,
         max_length=320,
@@ -1352,9 +1391,25 @@ class ArchivoImpresion(models.Model):
 
     class Meta:
         ordering = [
+            "cantidad_unidades",
             "-predeterminado",
             "-actualizado_en",
             "-id",
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "producto",
+                    "cantidad_unidades",
+                ],
+                condition=models.Q(
+                    predeterminado=True,
+                ),
+                name=(
+                    "uniq_archivo_predeterminado_"
+                    "producto_cantidad"
+                ),
+            ),
         ]
 
     @property
@@ -1384,6 +1439,7 @@ class ArchivoImpresion(models.Model):
         )
         return (
             f"{self.producto.codigo} · "
+            f"{self.cantidad_unidades} u. · "
             f"{self.nombre}{version}"
         )
 
