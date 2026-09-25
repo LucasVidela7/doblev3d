@@ -61,6 +61,27 @@ def _desmarcar_predeterminado(
     qs.update(predeterminado=False)
 
 
+def _sincronizar_pendientes_gcode(
+    *,
+    producto_id,
+    cantidad_unidades,
+    archivo=None,
+):
+    from produccion.models import Produccion
+
+    return (
+        Produccion.objects
+        .filter(
+            producto_id=producto_id,
+            cantidad=cantidad_unidades,
+            estado="PENDIENTE",
+        )
+        .update(
+            archivo_impresion=archivo
+        )
+    )
+
+
 def _archivo_fisico_disponible(
     registro,
 ):
@@ -356,12 +377,10 @@ def subir(request, producto_id):
                 ]
             )
 
-            Produccion.objects.filter(
-                producto=producto,
-                cantidad=cantidad_unidades,
-                estado="PENDIENTE",
-            ).update(
-                archivo_impresion=duplicado
+            _sincronizar_pendientes_gcode(
+                producto_id=producto.id,
+                cantidad_unidades=cantidad_unidades,
+                archivo=duplicado,
             )
 
             messages.success(
@@ -376,12 +395,10 @@ def subir(request, producto_id):
                 producto_id=producto.id,
             )
 
-        Produccion.objects.filter(
-            producto=producto,
-            cantidad=cantidad_unidades,
-            estado="PENDIENTE",
-        ).update(
-            archivo_impresion=duplicado
+        _sincronizar_pendientes_gcode(
+            producto_id=producto.id,
+            cantidad_unidades=cantidad_unidades,
+            archivo=duplicado,
         )
 
         messages.info(
@@ -480,12 +497,10 @@ def subir(request, producto_id):
 
     from produccion.models import Produccion
 
-    Produccion.objects.filter(
-        producto=producto,
-        cantidad=cantidad_unidades,
-        estado="PENDIENTE",
-    ).update(
-        archivo_impresion=registro
+    _sincronizar_pendientes_gcode(
+        producto_id=producto.id,
+        cantidad_unidades=cantidad_unidades,
+        archivo=registro,
     )
 
     placas = (
@@ -585,6 +600,12 @@ def predeterminar(
             ]
         )
 
+    _sincronizar_pendientes_gcode(
+        producto_id=producto_id,
+        cantidad_unidades=registro.cantidad_unidades,
+        archivo=registro,
+    )
+
     messages.success(
         request,
         (
@@ -631,7 +652,7 @@ def cambiar_activo(
             ArchivoImpresion.objects
             .filter(
                 producto_id=producto_id,
-                cantidad_unidades=registro.cantidad_unidades,
+                cantidad_unidades=cantidad_unidades,
                 activo=True,
                 predeterminado=True,
             )
@@ -646,6 +667,23 @@ def cambiar_activo(
                     "actualizado_en",
                 ]
             )
+
+    principal = (
+        ArchivoImpresion.objects
+        .filter(
+            producto_id=producto_id,
+            cantidad_unidades=registro.cantidad_unidades,
+            activo=True,
+            predeterminado=True,
+        )
+        .first()
+    )
+
+    _sincronizar_pendientes_gcode(
+        producto_id=producto_id,
+        cantidad_unidades=registro.cantidad_unidades,
+        archivo=principal,
+    )
 
     messages.success(
         request,
@@ -791,11 +829,10 @@ def reemplazar(
     # exacto con el que fueron ejecutadas.
     from produccion.models import Produccion
 
-    Produccion.objects.filter(
-        archivo_impresion=anterior,
-        estado="PENDIENTE",
-    ).update(
-        archivo_impresion=nuevo
+    _sincronizar_pendientes_gcode(
+        producto_id=producto_id,
+        cantidad_unidades=nuevo.cantidad_unidades,
+        archivo=nuevo,
     )
 
     anterior.activo = False
@@ -840,6 +877,7 @@ def eliminar(
     era_predeterminado = (
         registro.predeterminado
     )
+    cantidad_unidades = registro.cantidad_unidades
     nombre = registro.nombre
     storage = registro.archivo.storage
     path = registro.archivo.name
@@ -857,7 +895,7 @@ def eliminar(
             ArchivoImpresion.objects
             .filter(
                 producto_id=producto_id,
-                cantidad_unidades=registro.cantidad_unidades,
+                cantidad_unidades=cantidad_unidades,
                 activo=True,
             )
             .order_by(
@@ -875,6 +913,23 @@ def eliminar(
                     "actualizado_en",
                 ]
             )
+    else:
+        siguiente = (
+            ArchivoImpresion.objects
+            .filter(
+                producto_id=producto_id,
+                cantidad_unidades=cantidad_unidades,
+                activo=True,
+                predeterminado=True,
+            )
+            .first()
+        )
+
+    _sincronizar_pendientes_gcode(
+        producto_id=producto_id,
+        cantidad_unidades=cantidad_unidades,
+        archivo=siguiente,
+    )
 
     messages.success(
         request,
