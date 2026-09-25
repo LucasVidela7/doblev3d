@@ -81,6 +81,16 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 #bambu-en-vivo .section-head{margin-bottom:16px}
 #bambu-en-vivo .subtitle{margin-top:5px}
 
+.bambu-link-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;margin-top:11px;padding-top:11px;border-top:1px solid var(--dv-border)}
+.bambu-link-form select{width:100%;min-height:38px;border:1px solid var(--dv-border);border-radius:10px;background:var(--dv-surface);color:var(--dv-text);padding:6px 8px;font-size:10px}
+.bambu-inline{margin-top:11px;padding:10px;border:1px solid var(--dv-border);border-radius:12px;background:var(--dv-surface-soft)}
+.bambu-inline-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.bambu-inline-title{font-size:9px;font-weight:900;color:var(--dv-muted)}
+.bambu-inline-job{margin-top:7px;font-size:10px;font-weight:900;line-height:1.35;overflow-wrap:anywhere;color:var(--dv-text)}
+.bambu-inline-meta{margin-top:6px;color:var(--dv-muted);font-size:9px;line-height:1.45}
+.bambu-inline-actions{display:flex;justify-content:flex-end;margin-top:7px}
+.bambu-inline-actions form{margin:0}
+.bambu-inline-actions .btn{min-height:30px;font-size:7px;padding:0 9px}
 .recommendation{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px;padding:12px 13px;border:1px solid #cddcef;border-radius:14px;background:#f6f9ff}
 .recommendation strong{font-size:11px}.recommendation .meta{margin-top:3px}
 
@@ -216,18 +226,18 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         </div>
     </div>
 
-    {% if bambu_estados %}
+    {% if bambu_sin_vincular %}
     <section class="section" id="bambu-en-vivo">
         <div class="section-head">
             <div>
                 <h2 class="section-title">Bambu en vivo</h2>
-                <div class="subtitle">Estado real informado por las A1 a través de la Raspberry.</div>
+                <div class="subtitle">Hay impresoras detectadas por la Raspberry que todavía no están vinculadas a Gestión.</div>
             </div>
-            <div class="section-help">Solo lectura · no modifica la planificación.</div>
+            <div class="section-help">Vinculá cada serial una sola vez.</div>
         </div>
 
         <div class="bambu-live-grid">
-            {% for bambu in bambu_estados %}
+            {% for bambu in bambu_sin_vincular %}
                 <article class="bambu-live{% if not bambu.sync_reciente %} stale{% endif %}">
                     <div class="bambu-live-head">
                         <div class="bambu-live-name">🖨 {{ bambu.nombre_bridge|default:bambu.serial }}</div>
@@ -277,6 +287,17 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                         Último sync: {{ bambu.ultimo_contacto|date:"H:i:s" }}
                         {% if not bambu.sync_reciente %} · datos no recientes{% endif %}
                     </div>
+
+                    <form method="post" action="{% url 'produccion:bambu_vincular' bambu.id %}" class="bambu-link-form">
+                        {% csrf_token %}
+                        <select name="impresora" required aria-label="Vincular con impresora">
+                            <option value="">Vincular con...</option>
+                            {% for impresora in impresoras %}
+                                <option value="{{ impresora.id }}">{{ impresora.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn dark" type="submit">VINCULAR</button>
+                    </form>
                 </article>
             {% endfor %}
         </div>
@@ -303,6 +324,47 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                             <span class="pill busy">IMPRIMIENDO</span>
                         {% endif %}
                     </div>
+
+                    {% if impresora.bambu_estado %}
+                        {% with bambu=impresora.bambu_estado %}
+                        <div class="bambu-inline">
+                            <div class="bambu-inline-head">
+                                <div class="bambu-inline-title">BAMBU EN VIVO · {{ bambu.nombre_bridge|default:bambu.serial }}</div>
+                                {% if bambu.sync_reciente and bambu.conectada %}
+                                    <span class="pill free">EN LÍNEA</span>
+                                {% elif bambu.conectada %}
+                                    <span class="pill medium">SYNC VENCIDO</span>
+                                {% else %}
+                                    <span class="pill high">DESCONECTADA</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="bambu-inline-job">{{ bambu.trabajo|default:"Sin trabajo informado" }}</div>
+
+                            <div class="bambu-progress" aria-label="Progreso real de impresión">
+                                <span style="width:{{ bambu.progreso|default:0 }}%"></span>
+                            </div>
+
+                            <div class="bambu-inline-meta">
+                                {% if bambu.estado == "RUNNING" %}IMPRIMIENDO{% else %}{{ bambu.estado|default:"SIN DATO" }}{% endif %}
+                                · {% if bambu.progreso is not None %}{{ bambu.progreso }}%{% else %}—{% endif %}
+                                · Restante {{ bambu.restante_texto }}
+                                <br>
+                                Nozzle {% if bambu.temperatura_nozzle is not None %}{{ bambu.temperatura_nozzle|floatformat:0 }} °C{% else %}—{% endif %}
+                                · Cama {% if bambu.temperatura_bed is not None %}{{ bambu.temperatura_bed|floatformat:0 }} °C{% else %}—{% endif %}
+                                · Wi-Fi {{ bambu.wifi|default:"—" }}
+                            </div>
+
+                            <div class="bambu-inline-actions">
+                                <form method="post" action="{% url 'produccion:bambu_vincular' bambu.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="accion" value="DESVINCULAR">
+                                    <button class="btn" type="submit">DESVINCULAR</button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endwith %}
+                    {% endif %}
 
                     {% if impresora.trabajo_actual %}
                         <div class="product-visual">
