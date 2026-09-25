@@ -92,6 +92,7 @@ class ArchivoImpresionTests(TestCase):
                 "nombre": "Perfil stock",
                 "version": "v1",
                 "perfil_impresora": "A1 · 0.4 mm",
+                "cantidad_unidades": "6",
             },
         )
 
@@ -115,6 +116,10 @@ class ArchivoImpresionTests(TestCase):
         self.assertEqual(
             registro.placas,
             [1],
+        )
+        self.assertEqual(
+            registro.cantidad_unidades,
+            6,
         )
         self.assertEqual(
             len(registro.sha256),
@@ -141,6 +146,7 @@ class ArchivoImpresionTests(TestCase):
                     b"hola",
                     content_type="text/plain",
                 ),
+                "cantidad_unidades": "1",
             },
         )
 
@@ -162,6 +168,7 @@ class ArchivoImpresionTests(TestCase):
             url,
             {
                 "archivo": self._archivo_valido(),
+                "cantidad_unidades": "1",
             },
         )
         self.client.post(
@@ -170,6 +177,7 @@ class ArchivoImpresionTests(TestCase):
                 "archivo": self._archivo_valido(
                     "copia.gcode.3mf"
                 ),
+                "cantidad_unidades": "1",
             },
         )
 
@@ -186,6 +194,7 @@ class ArchivoImpresionTests(TestCase):
             ),
             {
                 "archivo": self._archivo_valido(),
+                "cantidad_unidades": "1",
             },
         )
 
@@ -208,4 +217,160 @@ class ArchivoImpresionTests(TestCase):
         self.assertIn(
             "attachment",
             respuesta["Content-Disposition"],
+        )
+
+
+    def test_cada_cantidad_puede_tener_archivo_principal(self):
+        url = reverse(
+            "productos:archivo_impresion_subir",
+            args=[self.producto.id],
+        )
+
+        self.client.post(
+            url,
+            {
+                "archivo": self._archivo_valido(
+                    "x6.gcode.3mf"
+                ),
+                "cantidad_unidades": "6",
+            },
+        )
+
+        archivo_6 = ArchivoImpresion.objects.get(
+            cantidad_unidades=6
+        )
+
+        # Generamos otro contenido para evitar el control de duplicados.
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(
+            buffer,
+            "w",
+            zipfile.ZIP_DEFLATED,
+        ) as paquete:
+            paquete.writestr(
+                "Metadata/plate_1.gcode",
+                "; x12\nG28\nG1 X10\n",
+            )
+
+        archivo_12_upload = SimpleUploadedFile(
+            "x12.gcode.3mf",
+            buffer.getvalue(),
+            content_type="application/octet-stream",
+        )
+
+        self.client.post(
+            url,
+            {
+                "archivo": archivo_12_upload,
+                "cantidad_unidades": "12",
+            },
+        )
+
+        archivo_12 = ArchivoImpresion.objects.get(
+            cantidad_unidades=12
+        )
+
+        self.assertTrue(
+            archivo_6.predeterminado
+        )
+        self.assertTrue(
+            archivo_12.predeterminado
+        )
+        self.assertEqual(
+            self.producto.archivo_impresion_para_cantidad(6).id,
+            archivo_6.id,
+        )
+        self.assertEqual(
+            self.producto.archivo_impresion_para_cantidad(12).id,
+            archivo_12.id,
+        )
+        self.assertIsNone(
+            self.producto.archivo_impresion_para_cantidad(3)
+        )
+
+    def test_sustituir_conserva_historial_y_misma_cantidad(self):
+        url = reverse(
+            "productos:archivo_impresion_subir",
+            args=[self.producto.id],
+        )
+
+        self.client.post(
+            url,
+            {
+                "archivo": self._archivo_valido(
+                    "pepino-x6-v1.gcode.3mf"
+                ),
+                "cantidad_unidades": "6",
+                "nombre": "Pepino x6",
+                "version": "v1",
+            },
+        )
+
+        anterior = ArchivoImpresion.objects.get()
+
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(
+            buffer,
+            "w",
+            zipfile.ZIP_DEFLATED,
+        ) as paquete:
+            paquete.writestr(
+                "Metadata/plate_1.gcode",
+                "; version nueva\nG28\nG1 X20\n",
+            )
+
+        nuevo_upload = SimpleUploadedFile(
+            "pepino-x6-v2.gcode.3mf",
+            buffer.getvalue(),
+            content_type="application/octet-stream",
+        )
+
+        respuesta = self.client.post(
+            reverse(
+                "productos:archivo_impresion_reemplazar",
+                args=[
+                    self.producto.id,
+                    anterior.id,
+                ],
+            ),
+            {
+                "archivo": nuevo_upload,
+                "version": "v2",
+                "notas": "Ajuste de soportes",
+            },
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            302,
+        )
+
+        anterior.refresh_from_db()
+        nuevo = ArchivoImpresion.objects.exclude(
+            id=anterior.id
+        ).get()
+
+        self.assertFalse(
+            anterior.activo
+        )
+        self.assertFalse(
+            anterior.predeterminado
+        )
+        self.assertTrue(
+            nuevo.activo
+        )
+        self.assertTrue(
+            nuevo.predeterminado
+        )
+        self.assertEqual(
+            nuevo.cantidad_unidades,
+            6,
+        )
+        self.assertEqual(
+            nuevo.reemplaza_a_id,
+            anterior.id,
+        )
+        self.assertEqual(
+            nuevo.version,
+            "v2",
         )
