@@ -236,6 +236,9 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 .printer-live__job{margin-top:7px;font-size:11px;font-weight:900;line-height:1.4;overflow-wrap:anywhere}
 .printer-live__meta{margin-top:7px;color:var(--dv-muted);font-size:10.5px;line-height:1.5}
 .printer-live .bambu-progress{margin-top:8px}
+.bambu-error{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:9px;padding:9px 10px;border:1px solid color-mix(in srgb,#d9534f 48%,var(--dv-border));border-radius:11px;background:color-mix(in srgb,#d9534f 10%,var(--dv-surface));font-size:10.5px;line-height:1.4}
+.bambu-error strong{font-size:9.5px;letter-spacing:.03em}
+.bambu-error span{overflow-wrap:anywhere}
 .bambu-coherence{font-size:10.5px}
 .bambu-timing{font-size:10.5px}
 .bambu-filament{font-size:10px}.bambu-filament small{font-size:9px}
@@ -286,7 +289,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         <a href="#prod-listos">✓ LISTOS</a>
     </nav>
 
-    <div class="metrics">
+    <div class="metrics" id="production-metrics">
         <div class="metric">
             <div class="metric-label">FALTA IMPRIMIR</div>
             <div class="metric-value">{{ total_falta_planificar }}</div>
@@ -325,7 +328,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                     <div class="bambu-live-head">
                         <div class="bambu-live-name">🖨 {{ bambu.nombre_bridge|default:bambu.serial }}</div>
                         {% if bambu.sync_reciente and bambu.conectada %}
-                            <span class="pill free">EN LÍNEA</span>
+                            <span class="pill {{ bambu.estado_clase }}">{{ bambu.estado_texto }}</span>
                         {% elif bambu.conectada %}
                             <span class="pill medium">SYNC VENCIDO</span>
                         {% else %}
@@ -345,11 +348,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                         <div class="bambu-live-kpi">
                             <span>ESTADO</span>
                             <b>
-                                {% if bambu.estado == "RUNNING" %}
-                                    IMPRIMIENDO
-                                {% else %}
-                                    {{ bambu.estado|default:"SIN DATO" }}
-                                {% endif %}
+                                {{ bambu.estado_texto|default:"SIN DATO" }}
                             </b>
                         </div>
                         <div class="bambu-live-kpi">
@@ -387,7 +386,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                 <h2 class="section-title">Ahora</h2>
                 <div class="subtitle">Estado real de cada impresora y producción vinculada.</div>
             </div>
-            <div class="section-help">La vinculación Bambu se administra desde Configuración.</div>
+            <div class="section-help">Actualización automática cada ~30 s · solo con esta pestaña visible.</div>
         </div>
 
         <div class="printers">
@@ -439,7 +438,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                             <div class="printer-live__top">
                                 <div class="printer-live__name">BAMBU EN VIVO · {{ bambu.nombre_bridge|default:bambu.serial }}</div>
                                 {% if bambu.sync_reciente and bambu.conectada %}
-                                    <span class="pill free">EN LÍNEA</span>
+                                    <span class="pill {{ bambu.estado_clase }}">{{ bambu.estado_texto }}</span>
                                 {% elif bambu.conectada %}
                                     <span class="pill medium">SYNC VENCIDO</span>
                                 {% else %}
@@ -454,13 +453,21 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                             </div>
 
                             <div class="printer-live__meta">
-                                {% if bambu.estado == "RUNNING" %}IMPRIMIENDO{% else %}{{ bambu.estado|default:"SIN DATO" }}{% endif %}
+                                {{ bambu.estado_texto|default:"SIN DATO" }}
                                 · {% if bambu.progreso is not None %}{{ bambu.progreso }}%{% else %}—{% endif %}
                                 · Restante {{ bambu.restante_texto }}
                                 · Nozzle {% if bambu.temperatura_nozzle is not None %}{{ bambu.temperatura_nozzle|floatformat:0 }} °C{% else %}—{% endif %}
                                 · Cama {% if bambu.temperatura_bed is not None %}{{ bambu.temperatura_bed|floatformat:0 }} °C{% else %}—{% endif %}
                                 · Wi-Fi {{ bambu.wifi|default:"—" }}
+                                · Sync {{ bambu.ultimo_contacto|date:"H:i:s" }}
                             </div>
+
+                            {% if bambu.tiene_error %}
+                            <div class="bambu-error" role="alert">
+                                <strong>⚠ ERROR DE IMPRESORA</strong>
+                                <span>{{ bambu.error_texto }}</span>
+                            </div>
+                            {% endif %}
 
                             {% if bambu.ams_slots or bambu.carrete_externo_info %}
                             <div class="bambu-filaments" aria-label="Filamentos detectados">
@@ -1496,6 +1503,81 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
             focusModifiedPlanning(focus||{});
         });
     }
+
+    let liveRefreshInFlight=false;
+    let lastLiveRefresh=Date.now();
+    const LIVE_REFRESH_MS=30000;
+
+    function liveRefreshBlocked(){
+        if(document.visibilityState!=="visible")return true;
+        if(document.querySelector("dialog[open]"))return true;
+        if(document.querySelector('[data-production-ajax][data-submitting="1"]'))return true;
+
+        const active=document.activeElement;
+        return Boolean(
+            active
+            &&(
+                active.matches("input,select,textarea")
+                ||active.isContentEditable
+            )
+        );
+    }
+
+    async function refreshLiveProduction(){
+        if(liveRefreshInFlight||liveRefreshBlocked())return;
+
+        liveRefreshInFlight=true;
+
+        try{
+            const response=await fetch(window.location.href,{
+                method:"GET",
+                credentials:"same-origin",
+                cache:"no-store",
+                headers:{
+                    "X-Requested-With":"XMLHttpRequest",
+                    "X-DV-Live-Refresh":"1"
+                }
+            });
+
+            if(!response.ok){
+                throw new Error("live-refresh");
+            }
+
+            const html=await response.text();
+            const doc=new DOMParser().parseFromString(html,"text/html");
+
+            [
+                "production-metrics",
+                "ahora",
+                "flujo-produccion"
+            ].forEach(function(id){
+                replaceNodeFromDocument(doc,id);
+            });
+
+            lastLiveRefresh=Date.now();
+        }catch(error){
+            // Reintento silencioso en el próximo ciclo.
+        }finally{
+            liveRefreshInFlight=false;
+        }
+    }
+
+    window.setInterval(
+        refreshLiveProduction,
+        LIVE_REFRESH_MS
+    );
+
+    document.addEventListener(
+        "visibilitychange",
+        function(){
+            if(
+                document.visibilityState==="visible"
+                &&Date.now()-lastLiveRefresh>15000
+            ){
+                refreshLiveProduction();
+            }
+        }
+    );
 
     async function submitProductionForm(form,submitter){
         if(form.dataset.submitting==="1")return;
