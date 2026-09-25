@@ -2366,6 +2366,12 @@ def cargar_gcode_produccion(
                         "placas"
                     ],
                     perfil_impresora=perfil,
+                    peso_estimado_gramos=analisis[
+                        "peso_estimado_gramos"
+                    ],
+                    tiempo_estimado_minutos=analisis[
+                        "tiempo_estimado_minutos"
+                    ],
                     notas=notas,
                     activo=True,
                     predeterminado=True,
