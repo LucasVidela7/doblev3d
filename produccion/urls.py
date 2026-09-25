@@ -33,6 +33,11 @@ urlpatterns = [
         name="tiempo_recomendado",
     ),
     path(
+        "bambu/<int:estado_id>/vincular/",
+        views.vincular_impresora_bambu,
+        name="bambu_vincular",
+    ),
+    path(
         "<int:produccion_id>/iniciar/",
         views.iniciar_produccion,
         name="iniciar",
