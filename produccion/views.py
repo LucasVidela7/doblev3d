@@ -10,7 +10,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from pedidos.models import Pedido
-from productos.models import Producto
+from productos.models import ConfiguracionCatalogo, Producto, detalle_color_catalogo
 from productos.miniaturas import asignar_miniaturas_productos
 
 from .models import ComandoBambu, Impresora, ImpresoraEstadoBambu, Produccion
@@ -1236,6 +1236,14 @@ def lista_produccion(request):
             "peso_faltante_texto": peso_faltante_texto,
             "bambu_estados": bambu_estados,
             "bambu_sin_vincular": bambu_sin_vincular,
+            "colores_reimpresion": (
+                ConfiguracionCatalogo.objects
+                .filter(pk=1)
+                .first()
+                .colores_disponibles_detalle
+                if ConfiguracionCatalogo.objects.filter(pk=1).exists()
+                else []
+            ),
         },
     )
 
@@ -2029,10 +2037,237 @@ def repetir_produccion(
 
     inicio_actual = timezone.now()
 
+    impresora = None
+    fuente_filamento = ""
+    ams_id = None
+    tray_id = None
+    material = ""
+    color_nombre = ""
+    color_hex = ""
+    requiere_cambio_manual = False
+
+    if original.estado == "FALLIDA":
+        impresora_id = (
+            request.POST.get("impresora", "")
+            .strip()
+        )
+
+        if not impresora_id:
+            messages.error(
+                request,
+                "Elegí la impresora para la reimpresión.",
+            )
+            return redirect(
+                reverse("produccion:lista") + "#prod-control"
+            )
+
+        impresora = get_object_or_404(
+            Impresora,
+            id=impresora_id,
+            activa=True,
+        )
+
+        seleccion = (
+            request.POST.get("filamento", "")
+            .strip()
+        )
+
+        if not seleccion:
+            messages.error(
+                request,
+                "Elegí el filamento para la reimpresión.",
+            )
+            return redirect(
+                reverse("produccion:lista") + "#prod-control"
+            )
+
+        estado_bambu = (
+            ImpresoraEstadoBambu.objects
+            .filter(impresora=impresora)
+            .first()
+        )
+
+        if seleccion.startswith("AMS:"):
+            if not estado_bambu:
+                messages.error(
+                    request,
+                    "La impresora elegida no tiene telemetría Bambu.",
+                )
+                return redirect(
+                    reverse("produccion:lista") + "#prod-control"
+                )
+
+            partes = seleccion.split(":")
+            if len(partes) != 3:
+                messages.error(
+                    request,
+                    "El slot AMS seleccionado no es válido.",
+                )
+                return redirect(
+                    reverse("produccion:lista") + "#prod-control"
+                )
+
+            try:
+                ams_id = int(partes[1])
+                tray_id = int(partes[2])
+            except (TypeError, ValueError):
+                messages.error(
+                    request,
+                    "El slot AMS seleccionado no es válido.",
+                )
+                return redirect(
+                    reverse("produccion:lista") + "#prod-control"
+                )
+
+            bandeja = None
+            ams_data = (
+                estado_bambu.ams
+                if isinstance(estado_bambu.ams, dict)
+                else {}
+            )
+
+            for unidad in ams_data.get("ams", []) or []:
+                if not isinstance(unidad, dict):
+                    continue
+                try:
+                    unidad_id = int(
+                        unidad.get("id", 0)
+                    )
+                except (TypeError, ValueError):
+                    continue
+                if unidad_id != ams_id:
+                    continue
+
+                for candidata in unidad.get("tray", []) or []:
+                    if not isinstance(candidata, dict):
+                        continue
+                    try:
+                        candidata_id = int(
+                            candidata.get("id", 0)
+                        )
+                    except (TypeError, ValueError):
+                        continue
+                    if candidata_id == tray_id:
+                        bandeja = candidata
+                        break
+
+            if not bandeja:
+                messages.error(
+                    request,
+                    "Ese filamento ya no figura cargado en el AMS.",
+                )
+                return redirect(
+                    reverse("produccion:lista") + "#prod-control"
+                )
+
+            fuente_filamento = "AMS"
+            material = str(
+                bandeja.get("tray_type") or "Filamento"
+            )[:80]
+            color_raw = str(
+                bandeja.get("tray_color") or ""
+            ).strip()
+            color_hex = (
+                f"#{color_raw[:6].upper()}"
+                if len(color_raw) >= 6
+                else ""
+            )
+            color_nombre = color_hex
+
+        elif seleccion == "EXTERNO":
+            if not estado_bambu:
+                messages.error(
+                    request,
+                    "La impresora elegida no tiene telemetría Bambu.",
+                )
+                return redirect(
+                    reverse("produccion:lista") + "#prod-control"
+                )
+
+            carrete = (
+                estado_bambu.carrete_externo
+                if isinstance(
+                    estado_bambu.carrete_externo,
+                    dict,
+                )
+                else {}
+            )
+
+            if not carrete:
+                messages.error(
+                    request,
+                    "No se detecta un carrete externo cargado.",
+                )
+                return redirect(
+                    reverse("produccion:lista") + "#prod-control"
+                )
+
+            fuente_filamento = "EXTERNO"
+            material = str(
+                carrete.get("tray_type") or "Filamento"
+            )[:80]
+            color_raw = str(
+                carrete.get("tray_color") or ""
+            ).strip()
+            color_hex = (
+                f"#{color_raw[:6].upper()}"
+                if len(color_raw) >= 6
+                else ""
+            )
+            color_nombre = color_hex
+
+        elif seleccion == "MANUAL":
+            color_manual = (
+                request.POST.get(
+                    "color_manual",
+                    "",
+                ).strip()
+            )
+
+            if not color_manual:
+                messages.error(
+                    request,
+                    "Elegí el color para el cambio manual.",
+                )
+                return redirect(
+                    reverse("produccion:lista") + "#prod-control"
+                )
+
+            detalle_color = detalle_color_catalogo(
+                color_manual
+            )
+
+            fuente_filamento = "MANUAL"
+            material = (
+                request.POST.get(
+                    "material_manual",
+                    "PLA",
+                ).strip()
+                or "PLA"
+            )[:80]
+            color_nombre = (
+                detalle_color["nombre"]
+                or color_manual
+            )[:100]
+            color_hex = (
+                detalle_color["hex"]
+                or ""
+            )[:9]
+            requiere_cambio_manual = True
+
+        else:
+            messages.error(
+                request,
+                "La opción de filamento no es válida.",
+            )
+            return redirect(
+                reverse("produccion:lista") + "#prod-control"
+            )
+
     nueva = Produccion.objects.create(
         producto=original.producto,
         cantidad=original.cantidad,
-        impresora=None,
+        impresora=impresora,
         destino=original.destino,
         pedido=original.pedido,
         estado="PENDIENTE",
@@ -2046,17 +2281,46 @@ def repetir_produccion(
             if original.estado == "FALLIDA"
             else None
         ),
-    )
-
-    messages.success(
-        request,
-        (
-            f"{nueva.codigo} creada repitiendo "
-            f"{original.codigo}. "
-            "Quedó PLANIFICADA con horario actual; "
-            "la impresora se elige al comenzar."
+        bambu_fuente_filamento=fuente_filamento,
+        bambu_ams_id=ams_id,
+        bambu_tray_id=tray_id,
+        bambu_material=material,
+        bambu_color_nombre=color_nombre,
+        bambu_color_hex=color_hex,
+        bambu_requiere_cambio_manual=(
+            requiere_cambio_manual
         ),
     )
+
+    if original.estado == "FALLIDA":
+        filamento_texto = (
+            f"{material} {color_nombre}".strip()
+            if material or color_nombre
+            else "filamento seleccionado"
+        )
+        messages.success(
+            request,
+            (
+                f"{nueva.codigo} creada como reimpresión de "
+                f"{original.codigo} para {impresora.nombre}. "
+                f"Filamento: {filamento_texto}. "
+                + (
+                    "Requiere cambio manual antes de iniciar."
+                    if requiere_cambio_manual
+                    else "Quedó preparada para iniciar."
+                )
+            ),
+        )
+    else:
+        messages.success(
+            request,
+            (
+                f"{nueva.codigo} creada repitiendo "
+                f"{original.codigo}. "
+                "Quedó PLANIFICADA con horario actual; "
+                "la impresora se elige al comenzar."
+            ),
+        )
 
     return redirect(
         "produccion:lista"
