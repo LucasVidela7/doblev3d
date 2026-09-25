@@ -128,6 +128,27 @@ def _tiempo_sugerido_produccion(producto, cantidad):
     return unitario * cantidad
 
 
+def _color_bambu_css(valor):
+    limpio = (
+        str(valor or "")
+        .strip()
+        .lstrip("#")
+    )
+
+    if len(limpio) >= 6:
+        limpio = limpio[:6]
+
+    if len(limpio) != 6:
+        return ""
+
+    try:
+        int(limpio, 16)
+    except ValueError:
+        return ""
+
+    return f"#{limpio.upper()}"
+
+
 def _formatear_minutos(total):
     total = max(int(total or 0), 0)
     if total <= 0:
@@ -845,6 +866,118 @@ def lista_produccion(request):
                 ahora - estado_bambu.ultimo_contacto
             ) <= timedelta(minutes=2)
         )
+
+        estado_bambu.ams_slots = []
+        estado_bambu.carrete_externo_info = None
+
+        ams_data = (
+            estado_bambu.ams
+            if isinstance(estado_bambu.ams, dict)
+            else {}
+        )
+        tray_now = str(
+            ams_data.get("tray_now", "")
+        )
+
+        for unidad in ams_data.get("ams", []) or []:
+            if not isinstance(unidad, dict):
+                continue
+
+            try:
+                ams_id = int(
+                    unidad.get("id", 0)
+                )
+            except (TypeError, ValueError):
+                ams_id = 0
+
+            for bandeja in unidad.get("tray", []) or []:
+                if not isinstance(bandeja, dict):
+                    continue
+
+                try:
+                    tray_id = int(
+                        bandeja.get("id", 0)
+                    )
+                except (TypeError, ValueError):
+                    tray_id = 0
+
+                tipo = str(
+                    bandeja.get("tray_type") or ""
+                ).strip()
+                color_raw = str(
+                    bandeja.get("tray_color") or ""
+                ).strip()
+
+                if (
+                    not tipo
+                    and color_raw in {
+                        "",
+                        "00000000",
+                        "000000FF",
+                    }
+                    and not bandeja.get("tray_info_idx")
+                ):
+                    continue
+
+                indice_global = (
+                    ams_id * 4
+                    + tray_id
+                )
+
+                estado_bambu.ams_slots.append(
+                    {
+                        "ams_id": ams_id,
+                        "tray_id": tray_id,
+                        "slot": tray_id + 1,
+                        "label": (
+                            f"AMS {ams_id + 1} · "
+                            f"Slot {tray_id + 1}"
+                        ),
+                        "tipo": tipo or "Filamento",
+                        "color": (
+                            _color_bambu_css(
+                                color_raw
+                            )
+                        ),
+                        "activo": (
+                            tray_now
+                            == str(indice_global)
+                        ),
+                        "rfid": bool(
+                            str(
+                                bandeja.get(
+                                    "tag_uid"
+                                )
+                                or ""
+                            ).strip(
+                                "0"
+                            )
+                        ),
+                    }
+                )
+
+        carrete = (
+            estado_bambu.carrete_externo
+            if isinstance(
+                estado_bambu.carrete_externo,
+                dict,
+            )
+            else {}
+        )
+
+        tipo_externo = str(
+            carrete.get("tray_type") or ""
+        ).strip()
+        color_externo = _color_bambu_css(
+            carrete.get("tray_color")
+        )
+
+        if tipo_externo or color_externo:
+            estado_bambu.carrete_externo_info = {
+                "tipo": tipo_externo or "Filamento",
+                "color": color_externo,
+                "activo": tray_now == "254",
+            }
 
         restante = estado_bambu.minutos_restantes
         if restante is None:
