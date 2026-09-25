@@ -5,7 +5,7 @@
     <style>
       .print-storage-note{margin-bottom:12px;padding:10px 12px;border:1px solid var(--dv-border,#e3e6ea);border-radius:11px;background:var(--dv-surface-soft,#f7f8fa);color:var(--dv-muted,#747980);font-size:10px;line-height:1.45}
       .print-storage-note.warn{border-color:#e6c36a;background:color-mix(in srgb,#e6c36a 10%,var(--dv-surface,#fff));color:var(--dv-text,#24272b)}
-      .print-upload{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(110px,.55fr) minmax(150px,.7fr);gap:8px;align-items:end;padding:12px;border:1px solid var(--dv-border,#e3e6ea);border-radius:13px;background:var(--dv-surface-soft,#f7f8fa)}
+      .print-upload{display:grid;grid-template-columns:minmax(0,1.6fr) 100px minmax(110px,.55fr) minmax(150px,.7fr);gap:8px;align-items:end;padding:12px;border:1px solid var(--dv-border,#e3e6ea);border-radius:13px;background:var(--dv-surface-soft,#f7f8fa)}
       .print-field label{display:block;margin-bottom:5px;color:var(--dv-muted,#747980);font-size:8px;font-weight:900}
       .print-field input,.print-field textarea{width:100%;min-height:42px;border:1px solid var(--dv-border,#d4d7dc);border-radius:10px;background:var(--dv-surface,#fff);color:var(--dv-text,#24272b);padding:8px 10px;font-size:10px}
       .print-field textarea{min-height:70px;resize:vertical}
@@ -53,6 +53,17 @@
       </div>
 
       <div class="print-field">
+        <label>CANTIDAD</label>
+        <input
+          type="number"
+          name="cantidad_unidades"
+          min="1"
+          value="1"
+          required
+        >
+      </div>
+
+      <div class="print-field">
         <label>VERSIÓN</label>
         <input
           type="text"
@@ -84,7 +95,7 @@
 
       <label class="print-check">
         <input type="checkbox" name="predeterminado" value="1">
-        Usar como archivo predeterminado
+        Usar como principal para esta cantidad
       </label>
 
       <button class="btn dark" type="submit">↑ SUBIR ARCHIVO</button>
@@ -106,7 +117,8 @@
             {% if archivo.version %} · {{ archivo.version }}{% endif %}
           </div>
           <div class="meta" style="margin-top:5px">
-            {% if archivo.predeterminado %}<span class="badge ok">PREDETERMINADO</span>{% endif %}
+            <span class="badge blue">× {{ archivo.cantidad_unidades }} u.</span>
+            {% if archivo.predeterminado %}<span class="badge ok">PRINCIPAL PARA ×{{ archivo.cantidad_unidades }}</span>{% endif %}
             {% if archivo.activo %}<span class="badge">ACTIVO</span>{% else %}<span class="badge warning">INACTIVO</span>{% endif %}
             {% if not archivo.disponible %}<span class="badge danger">ARCHIVO NO DISPONIBLE</span>{% endif %}
           </div>
@@ -129,8 +141,35 @@
           {% if archivo.activo and not archivo.predeterminado %}
             <form method="post" action="{% url 'productos:archivo_impresion_predeterminar' producto.id archivo.id %}">
               {% csrf_token %}
-              <button class="btn" type="submit">★ PREDETERMINAR</button>
+              <button class="btn" type="submit">★ USAR PARA ×{{ archivo.cantidad_unidades }}</button>
             </form>
+          {% endif %}
+
+          {% if archivo.activo %}
+          <details>
+            <summary class="btn" style="list-style:none">↻ SUSTITUIR</summary>
+            <form
+              method="post"
+              enctype="multipart/form-data"
+              action="{% url 'productos:archivo_impresion_reemplazar' producto.id archivo.id %}"
+              style="margin-top:7px;display:grid;gap:6px;min-width:240px"
+            >
+              {% csrf_token %}
+              <div class="print-field">
+                <label>NUEVO .GCODE.3MF PARA ×{{ archivo.cantidad_unidades }}</label>
+                <input type="file" name="archivo" accept=".gcode.3mf" required>
+              </div>
+              <div class="print-field">
+                <label>VERSIÓN</label>
+                <input type="text" name="version" maxlength="60" value="{{ archivo.version }}" placeholder="Ej. v4">
+              </div>
+              <div class="print-field">
+                <label>NOTAS</label>
+                <textarea name="notas" placeholder="Qué cambió respecto de la versión anterior">{{ archivo.notas }}</textarea>
+              </div>
+              <button class="btn dark" type="submit">CONFIRMAR SUSTITUCIÓN</button>
+            </form>
+          </details>
           {% endif %}
 
           <form method="post" action="{% url 'productos:archivo_impresion_activo' producto.id archivo.id %}">
