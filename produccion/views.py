@@ -269,6 +269,48 @@ def _impresora_ocupada(
     return qs.first()
 
 
+def _impresion_fisica_bambu_activa(impresora):
+    if not impresora:
+        return None
+
+    estado = (
+        ImpresoraEstadoBambu.objects
+        .filter(
+            impresora=impresora,
+        )
+        .first()
+    )
+
+    if not estado:
+        return None
+
+    reciente = bool(
+        estado.ultimo_contacto
+        and (
+            timezone.now()
+            - estado.ultimo_contacto
+        ) <= timedelta(minutes=2)
+    )
+
+    estado_fisico = (
+        estado.estado or ""
+    ).strip().upper()
+
+    if (
+        reciente
+        and estado.conectada
+        and estado_fisico
+        in {
+            "RUNNING",
+            "PAUSE",
+            "PREPARE",
+        }
+    ):
+        return estado
+
+    return None
+
+
 # ============================================================
 # VÍNCULO BAMBU ↔ IMPRESORA
 # ============================================================
@@ -1598,6 +1640,23 @@ def accion_rapida_necesidad(request):
             return redirect(
                 reverse("produccion:lista") + "#ahora"
             )
+
+        fisica = _impresion_fisica_bambu_activa(
+            impresora
+        )
+        if fisica:
+            messages.error(
+                request,
+                (
+                    f"{impresora.nombre} ya está imprimiendo "
+                    "físicamente. Vinculá primero esa impresión "
+                    "a una producción pendiente."
+                ),
+            )
+            return redirect(
+                reverse("produccion:lista") + "#ahora"
+            )
+
         estado = "IMPRIMIENDO"
     elif accion != "PLANIFICAR":
         messages.error(
@@ -2157,6 +2216,22 @@ def iniciar_produccion(
         )
         return redirect(
             "produccion:lista"
+        )
+
+    fisica = _impresion_fisica_bambu_activa(
+        impresora
+    )
+    if fisica:
+        messages.error(
+            request,
+            (
+                f"{impresora.nombre} ya está ejecutando "
+                "una impresión detectada por la Raspberry. "
+                "Vinculala antes de iniciar otro trabajo."
+            ),
+        )
+        return redirect(
+            reverse("produccion:lista") + "#ahora"
         )
 
     produccion.impresora = impresora
