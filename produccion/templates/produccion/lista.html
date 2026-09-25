@@ -240,16 +240,31 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 .bambu-error strong{font-size:9.5px;letter-spacing:.03em}
 .bambu-error span{overflow-wrap:anywhere}
 
-.gcode-upload-progress{margin-top:12px;padding:12px;border:1px solid var(--dv-border);border-radius:12px;background:color-mix(in srgb,var(--dv-surface) 92%,transparent)}
-.gcode-upload-progress__head{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:11px;font-weight:800}
-.gcode-upload-progress__head strong{font-variant-numeric:tabular-nums}
-.gcode-upload-progress__track{height:10px;margin-top:8px;overflow:hidden;border-radius:999px;background:color-mix(in srgb,var(--dv-text) 12%,transparent)}
-.gcode-upload-progress__track span{display:block;width:0;height:100%;border-radius:inherit;background:var(--dv-primary);transition:width .18s ease}
-.gcode-upload-progress__note{margin-top:7px;font-size:10px;line-height:1.45;color:var(--dv-muted)}
-.gcode-upload-progress.is-processing .gcode-upload-progress__track span{animation:gcode-pulse 1s ease-in-out infinite}
-.gcode-upload-progress.is-success .gcode-upload-progress__track span{width:100%}
-.gcode-upload-progress.is-error{border-color:color-mix(in srgb,#d9534f 55%,var(--dv-border))}
-@keyframes gcode-pulse{0%,100%{opacity:.72}50%{opacity:1}}
+.gcode-upload-progress,
+.start-send-progress{margin-top:12px;padding:12px;border:1px solid var(--dv-border);border-radius:12px;background:color-mix(in srgb,var(--dv-surface) 92%,transparent)}
+.gcode-upload-progress__head,
+.start-send-progress__head{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:11px;font-weight:800}
+.gcode-upload-progress__head strong,
+.start-send-progress__head strong{font-variant-numeric:tabular-nums}
+.gcode-upload-progress__track,
+.start-send-progress__track{height:10px;margin-top:8px;overflow:hidden;border-radius:999px;background:color-mix(in srgb,var(--dv-text) 12%,transparent)}
+.gcode-upload-progress__track span,
+.start-send-progress__track span{display:block;width:0;min-width:0;height:100%;border-radius:inherit;background:var(--dv-brand-sky);transition:width .45s cubic-bezier(.22,.61,.36,1);will-change:width}
+.gcode-upload-progress__note,
+.start-send-progress__note{margin-top:7px;font-size:10px;line-height:1.45;color:var(--dv-muted)}
+.gcode-upload-progress.is-processing .gcode-upload-progress__track span,
+.start-send-progress.is-indeterminate .start-send-progress__track span{
+    background-image:linear-gradient(110deg,transparent 0%,rgba(255,255,255,.32) 35%,transparent 70%);
+    background-size:180% 100%;
+    animation:dv-progress-shimmer 1.05s linear infinite
+}
+.gcode-upload-progress.is-success .gcode-upload-progress__track span,
+.start-send-progress.is-success .start-send-progress__track span{width:100%}
+.gcode-upload-progress.is-error,
+.start-send-progress.is-error{border-color:color-mix(in srgb,#d9534f 55%,var(--dv-border))}
+.gcode-upload-progress.is-error .gcode-upload-progress__track span,
+.start-send-progress.is-error .start-send-progress__track span{background:#d9534f}
+@keyframes dv-progress-shimmer{0%{background-position:120% 0}100%{background-position:-80% 0}}
 .bambu-coherence{font-size:10.5px}
 .bambu-timing{font-size:10.5px}
 .bambu-filament{font-size:10px}.bambu-filament small{font-size:9px}
@@ -1126,6 +1141,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                 type="button"
                 class="start-printer-option"
                 data-start-printer="{{ impresora.id }}"
+                data-start-bambu="{% if impresora.bambu_estado %}1{% else %}0{% endif %}"
                 {% if not impresora.esta_libre %}disabled{% endif %}
             >
                 <strong>🖨 {{ impresora.nombre }}</strong>
@@ -1151,6 +1167,70 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
             <input type="hidden" name="producto" id="startProductionProduct">
             <input type="hidden" name="cantidad" id="startProductionQuantity">
             <input type="hidden" name="personalizado_id" id="startProductionPersonalized">
+
+            <div
+                class="reprint-field"
+                id="startProductionFilamentWrap"
+                style="display:none;margin-top:12px"
+            >
+                <label for="startProductionFilament">FILAMENTO / COLOR</label>
+                <select
+                    name="filamento"
+                    id="startProductionFilament"
+                    disabled
+                >
+                    <option value="">Seleccionar filamento...</option>
+                    {% for impresora in impresoras %}
+                        {% if impresora.bambu_estado %}
+                            {% for slot in impresora.bambu_estado.ams_slots %}
+                                <option
+                                    value="AMS:{{ slot.ams_id }}:{{ slot.tray_id }}"
+                                    data-printer="{{ impresora.id }}"
+                                >
+                                    AMS · Slot {{ slot.slot }} · {{ slot.tipo }}{% if slot.color %} · {{ slot.color }}{% endif %}
+                                </option>
+                            {% endfor %}
+                            {% if impresora.bambu_estado.carrete_externo_info %}
+                                <option
+                                    value="EXTERNO"
+                                    data-printer="{{ impresora.id }}"
+                                >
+                                    Carrete externo · {{ impresora.bambu_estado.carrete_externo_info.tipo }}{% if impresora.bambu_estado.carrete_externo_info.color %} · {{ impresora.bambu_estado.carrete_externo_info.color }}{% endif %}
+                                </option>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                <div class="reprint-hint" style="margin-top:7px">
+                    En una Bambu, Gestión enviará el G-code a la Raspberry y esperará la confirmación física antes de marcarla como imprimiendo.
+                </div>
+            </div>
+
+            <div
+                class="start-send-progress"
+                id="startSendProgress"
+                hidden
+                aria-live="polite"
+            >
+                <div class="start-send-progress__head">
+                    <span id="startSendStatus">Preparando inicio...</span>
+                    <strong id="startSendPercent">0%</strong>
+                </div>
+                <div
+                    class="start-send-progress__track"
+                    id="startSendTrack"
+                    role="progressbar"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-valuenow="0"
+                >
+                    <span id="startSendBar"></span>
+                </div>
+                <div class="start-send-progress__note" id="startSendNote">
+                    Gestión todavía no envió la orden.
+                </div>
+            </div>
+
             <div class="dv-confirm-dialog__actions">
                 <button class="btn" type="button" id="startProductionClose">VOLVER</button>
                 <button class="btn green" type="submit" id="startProductionConfirm" disabled>CONFIRMAR INICIO</button>
@@ -1575,6 +1655,22 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         }
     );
 
+    function setProgressWidth(bar,value){
+        if(!bar)return;
+
+        const safe=Math.max(0,Math.min(100,Number(value||0)));
+        const current=Number(bar.dataset.progress||0);
+
+        bar.style.width=current+"%";
+
+        window.requestAnimationFrame(function(){
+            window.requestAnimationFrame(function(){
+                bar.dataset.progress=String(safe);
+                bar.style.width=safe+"%";
+            });
+        });
+    }
+
     function resetGcodeUploadProgress(){
         const wrap=byId("gcodeUploadProgress");
         const bar=byId("gcodeUploadBar");
@@ -1586,21 +1682,16 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         if(!wrap)return;
 
         wrap.hidden=true;
-        wrap.classList.remove(
-            "is-processing",
-            "is-success",
-            "is-error"
-        );
+        wrap.classList.remove("is-processing","is-success","is-error");
 
-        if(bar)bar.style.width="0%";
+        if(bar){
+            bar.dataset.progress="0";
+            bar.style.width="0%";
+        }
         if(percent)percent.textContent="0%";
         if(status)status.textContent="Preparando archivo...";
         if(track)track.setAttribute("aria-valuenow","0");
-        if(note){
-            note.textContent=(
-                "No cierres esta ventana mientras se está enviando el archivo."
-            );
-        }
+        if(note)note.textContent="No cierres esta ventana mientras se está enviando el archivo.";
     }
 
     function setGcodeUploadProgress(options){
@@ -1613,48 +1704,19 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 
         if(!wrap)return;
 
-        const value=Math.max(
-            0,
-            Math.min(
-                100,
-                Number(options?.percent||0)
-            )
-        );
+        const value=Math.max(0,Math.min(100,Number(options?.percent||0)));
 
         wrap.hidden=false;
-        wrap.classList.toggle(
-            "is-processing",
-            options?.phase==="processing"
-        );
-        wrap.classList.toggle(
-            "is-success",
-            options?.phase==="success"
-        );
-        wrap.classList.toggle(
-            "is-error",
-            options?.phase==="error"
-        );
+        wrap.classList.toggle("is-processing",options?.phase==="processing");
+        wrap.classList.toggle("is-success",options?.phase==="success");
+        wrap.classList.toggle("is-error",options?.phase==="error");
 
-        if(bar)bar.style.width=value+"%";
-        if(percent){
-            percent.textContent=(
-                options?.phase==="processing"
-                ? "100%"
-                : Math.round(value)+"%"
-            );
-        }
-        if(status&&options?.status){
-            status.textContent=options.status;
-        }
-        if(note&&options?.note){
-            note.textContent=options.note;
-        }
-        if(track){
-            track.setAttribute(
-                "aria-valuenow",
-                String(Math.round(value))
-            );
-        }
+        setProgressWidth(bar,value);
+
+        if(percent)percent.textContent=Math.round(value)+"%";
+        if(status&&options?.status)status.textContent=options.status;
+        if(note&&options?.note)note.textContent=options.note;
+        if(track)track.setAttribute("aria-valuenow",String(Math.round(value)));
     }
 
     function submitGcodeUpload(form,submitter){
@@ -1667,33 +1729,24 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                 'button[type="submit"],input[type="submit"],button[type="button"]'
             )
         );
-        buttons.forEach(function(button){
-            button.disabled=true;
-        });
+        buttons.forEach(function(button){button.disabled=true;});
 
         const formData=new FormData(form);
 
         if(submitter?.name){
-            formData.set(
-                submitter.name,
-                submitter.value||""
-            );
+            formData.set(submitter.name,submitter.value||"");
         }
 
         const productionId=form.dataset.focusProduction||"";
         const productId=form.dataset.focusProduct||"";
-        const file=form.querySelector(
-            'input[type="file"][name="archivo"]'
-        )?.files?.[0];
+        const file=form.querySelector('input[type="file"][name="archivo"]')?.files?.[0];
 
         setGcodeUploadProgress({
-            percent:0,
+            percent:2,
             phase:"upload",
             status:"Subiendo a Gestión...",
             note:file
-                ? file.name+" · "+(
-                    file.size/1024/1024
-                ).toFixed(1)+" MB"
+                ? file.name+" · "+(file.size/1024/1024).toFixed(1)+" MB"
                 : "Enviando archivo..."
         });
 
@@ -1705,173 +1758,374 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
             true
         );
 
-        xhr.setRequestHeader(
-            "X-Requested-With",
-            "XMLHttpRequest"
-        );
+        xhr.setRequestHeader("X-Requested-With","XMLHttpRequest");
 
-        xhr.upload.addEventListener(
-            "progress",
-            function(event){
-                if(!event.lengthComputable)return;
+        xhr.upload.addEventListener("progress",function(event){
+            if(!event.lengthComputable)return;
 
-                const percent=(
-                    event.loaded/event.total
-                )*100;
+            const percent=(event.loaded/event.total)*100;
 
-                setGcodeUploadProgress({
-                    percent,
-                    phase:"upload",
-                    status:"Subiendo a Gestión...",
-                    note:(
-                        (event.loaded/1024/1024).toFixed(1)
-                        +" MB de "
-                        +(event.total/1024/1024).toFixed(1)
-                        +" MB"
-                    )
-                });
-            }
-        );
+            setGcodeUploadProgress({
+                percent,
+                phase:"upload",
+                status:"Subiendo a Gestión...",
+                note:(
+                    (event.loaded/1024/1024).toFixed(1)
+                    +" MB de "
+                    +(event.total/1024/1024).toFixed(1)
+                    +" MB"
+                )
+            });
+        });
 
-        xhr.upload.addEventListener(
-            "load",
-            function(){
-                setGcodeUploadProgress({
-                    percent:100,
-                    phase:"processing",
-                    status:"Procesando y guardando archivo...",
-                    note:"La subida terminó. Gestión está validando el G-code y guardándolo."
-                });
-            }
-        );
+        xhr.upload.addEventListener("load",function(){
+            setGcodeUploadProgress({
+                percent:100,
+                phase:"processing",
+                status:"Procesando y guardando archivo...",
+                note:"La subida terminó. Gestión está validando el G-code y guardándolo."
+            });
+        });
 
-        xhr.addEventListener(
-            "load",
-            function(){
-                const ok=(
-                    xhr.status>=200
-                    &&xhr.status<300
-                );
+        xhr.addEventListener("load",function(){
+            const ok=xhr.status>=200&&xhr.status<300;
 
-                if(!ok){
-                    form.dataset.submitting="0";
-                    buttons.forEach(function(button){
-                        button.disabled=false;
-                    });
-
-                    setGcodeUploadProgress({
-                        percent:100,
-                        phase:"error",
-                        status:"No se pudo guardar",
-                        note:"La subida terminó, pero Gestión devolvió un error."
-                    });
-
-                    window.DVToast?.error?.(
-                        "No se pudo guardar el G-code."
-                    );
-                    return;
-                }
-
-                const html=xhr.responseText||"";
-                const doc=new DOMParser().parseFromString(
-                    html,
-                    "text/html"
-                );
-
-                const returnedError=Array.from(
-                    doc.querySelectorAll(
-                        ".dv-django-messages [data-dv-toast]"
-                    )
-                ).some(function(node){
-                    return (
-                        node.dataset.dvToastType||""
-                    ).toLowerCase().includes("error");
-                });
-
-                if(returnedError){
-                    form.dataset.submitting="0";
-                    buttons.forEach(function(button){
-                        button.disabled=false;
-                    });
-
-                    setGcodeUploadProgress({
-                        percent:100,
-                        phase:"error",
-                        status:"El archivo no pudo guardarse",
-                        note:"Revisá el mensaje de error mostrado por Gestión."
-                    });
-
-                    showReturnedMessages(doc);
-                    return;
-                }
+            if(!ok){
+                form.dataset.submitting="0";
+                buttons.forEach(function(button){button.disabled=false;});
 
                 setGcodeUploadProgress({
                     percent:100,
-                    phase:"success",
-                    status:"G-code guardado correctamente",
-                    note:"Quedó en Gestión. La Raspberry lo tomará en el próximo ciclo de sincronización."
+                    phase:"error",
+                    status:"No se pudo guardar",
+                    note:"La subida terminó, pero Gestión devolvió un error."
                 });
 
-                window.setTimeout(function(){
-                    closeDialog(
-                        "gcodeProductionDialog"
-                    );
-
-                    refreshFromHtml(
-                        html,
-                        {
-                            productionId,
-                            productId
-                        }
-                    );
-                },650);
+                window.DVToast?.error?.("No se pudo guardar el G-code.");
+                return;
             }
-        );
 
-        xhr.addEventListener(
-            "error",
-            function(){
+            const html=xhr.responseText||"";
+            const doc=new DOMParser().parseFromString(html,"text/html");
+
+            const returnedError=Array.from(
+                doc.querySelectorAll(".dv-django-messages [data-dv-toast]")
+            ).some(function(node){
+                return (node.dataset.dvToastType||"").toLowerCase().includes("error");
+            });
+
+            if(returnedError){
                 form.dataset.submitting="0";
-                buttons.forEach(function(button){
-                    button.disabled=false;
-                });
+                buttons.forEach(function(button){button.disabled=false;});
 
                 setGcodeUploadProgress({
-                    percent:0,
+                    percent:100,
                     phase:"error",
-                    status:"Se interrumpió la conexión",
-                    note:"El archivo no terminó de enviarse. Podés volver a intentarlo."
+                    status:"El archivo no pudo guardarse",
+                    note:"Revisá el mensaje de error mostrado por Gestión."
                 });
 
-                window.DVToast?.error?.(
-                    "Se interrumpió la subida del G-code."
-                );
+                showReturnedMessages(doc);
+                return;
             }
-        );
 
-        xhr.addEventListener(
-            "timeout",
-            function(){
-                form.dataset.submitting="0";
-                buttons.forEach(function(button){
-                    button.disabled=false;
-                });
+            setGcodeUploadProgress({
+                percent:100,
+                phase:"success",
+                status:"G-code guardado correctamente",
+                note:"Quedó en Gestión. La Raspberry lo tomará en el próximo ciclo de sincronización."
+            });
 
-                setGcodeUploadProgress({
-                    percent:0,
-                    phase:"error",
-                    status:"La subida tardó demasiado",
-                    note:"No se confirmó el guardado del archivo. Revisá antes de volver a subirlo."
-                });
+            window.setTimeout(function(){
+                closeDialog("gcodeProductionDialog");
+                refreshFromHtml(html,{productionId,productId});
+            },900);
+        });
 
-                window.DVToast?.error?.(
-                    "No se confirmó la subida del G-code."
-                );
-            }
-        );
+        xhr.addEventListener("error",function(){
+            form.dataset.submitting="0";
+            buttons.forEach(function(button){button.disabled=false;});
+
+            setGcodeUploadProgress({
+                percent:0,
+                phase:"error",
+                status:"Se interrumpió la conexión",
+                note:"El archivo no terminó de enviarse. Podés volver a intentarlo."
+            });
+
+            window.DVToast?.error?.("Se interrumpió la subida del G-code.");
+        });
+
+        xhr.addEventListener("timeout",function(){
+            form.dataset.submitting="0";
+            buttons.forEach(function(button){button.disabled=false;});
+
+            setGcodeUploadProgress({
+                percent:0,
+                phase:"error",
+                status:"La subida tardó demasiado",
+                note:"No se confirmó el guardado del archivo. Revisá antes de volver a subirlo."
+            });
+
+            window.DVToast?.error?.("No se confirmó la subida del G-code.");
+        });
 
         xhr.timeout=180000;
         xhr.send(formData);
+    }
+
+    let startProgressTimer=null;
+    let startProgressStartedAt=0;
+
+    function stopStartProgressPolling(){
+        if(startProgressTimer){
+            window.clearTimeout(startProgressTimer);
+            startProgressTimer=null;
+        }
+    }
+
+    function resetStartSendProgress(){
+        stopStartProgressPolling();
+
+        const wrap=byId("startSendProgress");
+        const bar=byId("startSendBar");
+        const percent=byId("startSendPercent");
+        const status=byId("startSendStatus");
+        const track=byId("startSendTrack");
+        const note=byId("startSendNote");
+
+        if(!wrap)return;
+
+        wrap.hidden=true;
+        wrap.classList.remove("is-indeterminate","is-success","is-error");
+
+        if(bar){
+            bar.dataset.progress="0";
+            bar.style.width="0%";
+        }
+        if(percent)percent.textContent="0%";
+        if(status)status.textContent="Preparando inicio...";
+        if(note)note.textContent="Gestión todavía no envió la orden.";
+        if(track)track.setAttribute("aria-valuenow","0");
+    }
+
+    function setStartSendProgress(data){
+        const wrap=byId("startSendProgress");
+        const bar=byId("startSendBar");
+        const percent=byId("startSendPercent");
+        const status=byId("startSendStatus");
+        const track=byId("startSendTrack");
+        const note=byId("startSendNote");
+
+        if(!wrap)return;
+
+        const value=Math.max(0,Math.min(100,Number(data?.progress||0)));
+
+        wrap.hidden=false;
+        wrap.classList.toggle("is-indeterminate",Boolean(data?.indeterminate));
+        wrap.classList.toggle("is-success",Boolean(data?.done&&!data?.error));
+        wrap.classList.toggle("is-error",Boolean(data?.error));
+
+        setProgressWidth(bar,value);
+
+        if(percent)percent.textContent=Math.round(value)+"%";
+        if(status)status.textContent=data?.label||"Procesando...";
+        if(note)note.textContent=data?.detail||"";
+        if(track)track.setAttribute("aria-valuenow",String(Math.round(value)));
+    }
+
+    async function refreshProductionAfterStart(){
+        try{
+            const response=await fetch(window.location.href,{
+                method:"GET",
+                credentials:"same-origin",
+                cache:"no-store",
+                headers:{"X-Requested-With":"XMLHttpRequest"}
+            });
+
+            if(!response.ok)return;
+
+            const html=await response.text();
+            refreshFromHtml(html,{});
+        }catch(error){
+            // El auto-refresh normal actualizará la pantalla.
+        }
+    }
+
+    async function pollStartProgress(statusUrl){
+        stopStartProgressPolling();
+
+        try{
+            const response=await fetch(statusUrl,{
+                method:"GET",
+                credentials:"same-origin",
+                cache:"no-store",
+                headers:{"X-Requested-With":"XMLHttpRequest"}
+            });
+
+            if(!response.ok){
+                throw new Error("No se pudo consultar el inicio.");
+            }
+
+            const data=await response.json();
+            setStartSendProgress(data);
+
+            if(data.error){
+                const form=byId("startProductionForm");
+                if(form)form.dataset.submitting="0";
+
+                byId("startProductionClose")?.removeAttribute("disabled");
+                byId("startProductionConfirm")?.removeAttribute("disabled");
+
+                window.DVToast?.error?.(
+                    data.detail||"No se pudo iniciar la impresión."
+                );
+                return;
+            }
+
+            if(data.done){
+                window.setTimeout(async function(){
+                    closeDialog("startProductionDialog");
+                    await refreshProductionAfterStart();
+                },1000);
+                return;
+            }
+
+            if(
+                startProgressStartedAt
+                &&Date.now()-startProgressStartedAt>120000
+            ){
+                setStartSendProgress({
+                    ...data,
+                    progress:Math.max(Number(data.progress||0),88),
+                    label:"Aún esperando confirmación",
+                    detail:(
+                        data.detail
+                        +" · La orden sigue abierta; no se enviará otra automáticamente."
+                    ),
+                    indeterminate:true
+                });
+            }
+
+            startProgressTimer=window.setTimeout(function(){
+                pollStartProgress(statusUrl);
+            },2500);
+        }catch(error){
+            setStartSendProgress({
+                progress:40,
+                label:"Reintentando consulta...",
+                detail:"La orden no se perdió. Gestión volverá a consultar el estado.",
+                indeterminate:true,
+                error:false,
+                done:false
+            });
+
+            startProgressTimer=window.setTimeout(function(){
+                pollStartProgress(statusUrl);
+            },4000);
+        }
+    }
+
+    async function submitBambuStart(form,submitter){
+        if(form.dataset.submitting==="1")return;
+
+        form.dataset.submitting="1";
+        startProgressStartedAt=Date.now();
+
+        const buttons=Array.from(
+            form.querySelectorAll(
+                'button[type="submit"],input[type="submit"],button[type="button"]'
+            )
+        );
+        buttons.forEach(function(button){button.disabled=true;});
+
+        const closeButton=byId("startProductionClose");
+        if(closeButton)closeButton.disabled=true;
+
+        setStartSendProgress({
+            progress:8,
+            label:"Creando solicitud...",
+            detail:"Gestión está validando la impresora, el G-code y el filamento.",
+            indeterminate:true
+        });
+
+        const formData=new FormData(form);
+        if(submitter?.name){
+            formData.set(submitter.name,submitter.value||"");
+        }
+
+        try{
+            const response=await fetch(
+                form.action||window.location.href,
+                {
+                    method:(form.method||"POST").toUpperCase(),
+                    body:formData,
+                    credentials:"same-origin",
+                    headers:{"X-Requested-With":"XMLHttpRequest"}
+                }
+            );
+
+            if(!response.ok){
+                throw new Error("No se pudo crear la orden de impresión.");
+            }
+
+            const contentType=response.headers.get("content-type")||"";
+
+            if(!contentType.includes("application/json")){
+                const html=await response.text();
+                const doc=new DOMParser().parseFromString(html,"text/html");
+
+                showReturnedMessages(doc);
+
+                form.dataset.submitting="0";
+                buttons.forEach(function(button){button.disabled=false;});
+                if(closeButton)closeButton.disabled=false;
+
+                setStartSendProgress({
+                    progress:0,
+                    label:"No se creó la orden",
+                    detail:"Revisá el mensaje mostrado por Gestión.",
+                    indeterminate:false,
+                    error:true,
+                    done:true
+                });
+                return;
+            }
+
+            const data=await response.json();
+
+            if(!data.ok||!data.bambu||!data.status_url){
+                throw new Error(
+                    data.detail||"No se pudo iniciar el seguimiento."
+                );
+            }
+
+            setStartSendProgress({
+                progress:18,
+                label:"Solicitud creada",
+                detail:"La orden quedó en Gestión. Esperando el próximo sync de la Raspberry.",
+                indeterminate:true
+            });
+
+            pollStartProgress(data.status_url);
+        }catch(error){
+            form.dataset.submitting="0";
+            buttons.forEach(function(button){button.disabled=false;});
+            if(closeButton)closeButton.disabled=false;
+
+            setStartSendProgress({
+                progress:0,
+                label:"No se pudo iniciar",
+                detail:error.message||"Error al crear la orden.",
+                indeterminate:false,
+                error:true,
+                done:true
+            });
+
+            window.DVToast?.error?.(
+                error.message||"No se pudo iniciar la impresión."
+            );
+        }
     }
 
     async function submitProductionForm(form,submitter){
@@ -1980,7 +2234,21 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         form.dataset.focusProduct=productId;
         form.dataset.submitting="0";
 
+        resetStartSendProgress();
+
         byId("startProductionPrinter").value="";
+        const startFilament=byId("startProductionFilament");
+        const startFilamentWrap=byId("startProductionFilamentWrap");
+        if(startFilament){
+            startFilament.value="";
+            startFilament.disabled=true;
+            startFilament.required=false;
+            startFilament.querySelectorAll("option[data-printer]").forEach(function(option){
+                option.hidden=true;
+                option.disabled=true;
+            });
+        }
+        if(startFilamentWrap)startFilamentWrap.style.display="none";
         byId("startProductionProduct").value=kind==="quick"?productId:"";
         byId("startProductionQuantity").value=kind==="quick"?quantity:"";
         byId("startProductionPersonalized").value=kind==="quick"?personalizedId:"";
@@ -2015,8 +2283,33 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
             );
         });
 
-        byId("startProductionPrinter").value=button.dataset.startPrinter||"";
-        byId("startProductionConfirm").disabled=false;
+        const printerId=button.dataset.startPrinter||"";
+        const isBambu=button.dataset.startBambu==="1";
+        const filament=byId("startProductionFilament");
+        const filamentWrap=byId("startProductionFilamentWrap");
+        const confirm=byId("startProductionConfirm");
+
+        byId("startProductionPrinter").value=printerId;
+
+        if(filament){
+            filament.value="";
+            filament.required=isBambu;
+            filament.disabled=!isBambu;
+
+            filament.querySelectorAll("option[data-printer]").forEach(function(option){
+                const visible=isBambu&&option.dataset.printer===printerId;
+                option.hidden=!visible;
+                option.disabled=!visible;
+            });
+        }
+
+        if(filamentWrap){
+            filamentWrap.style.display=isBambu?"block":"none";
+        }
+
+        if(confirm){
+            confirm.disabled=isBambu;
+        }
     }
 
     function openGcodeDialog(button){
@@ -2114,6 +2407,16 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         dialog.showModal();
     }
 
+    const startFilamentSelect=byId("startProductionFilament");
+    if(startFilamentSelect){
+        startFilamentSelect.addEventListener("change",function(){
+            const confirm=byId("startProductionConfirm");
+            if(confirm){
+                confirm.disabled=!startFilamentSelect.value;
+            }
+        });
+    }
+
     document.addEventListener("click",function(event){
         const start=event.target.closest("[data-start-open]");
         if(start){
@@ -2151,6 +2454,11 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         }
 
         if(event.target.closest("#startProductionClose")){
+            const form=byId("startProductionForm");
+            if(form?.dataset.submitting==="1"){
+                return;
+            }
+            resetStartSendProgress();
             closeDialog("startProductionDialog");
             return;
         }
@@ -2212,6 +2520,23 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                 event.submitter||null
             );
             return;
+        }
+
+        if(form.id==="startProductionForm"){
+            const selected=(
+                byId("startPrinterGrid")
+                ?.querySelector(
+                    ".start-printer-option.is-selected"
+                )
+            );
+
+            if(selected?.dataset.startBambu==="1"){
+                submitBambuStart(
+                    form,
+                    event.submitter||null
+                );
+                return;
+            }
         }
 
         submitProductionForm(
