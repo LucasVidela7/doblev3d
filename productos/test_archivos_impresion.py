@@ -7,6 +7,8 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
+from produccion.models import Produccion
+
 from .models import ArchivoImpresion, Producto, TipoProducto
 
 
@@ -18,6 +20,7 @@ class ArchivoImpresionTests(TestCase):
         storage_override = self.override_settings(
             PRINT_FILES_ROOT=self.tempdir.name,
             PRINT_FILES_PERSISTENT=True,
+            BAMBU_BRIDGE_TOKEN="test-bridge-token",
             STORAGES={
                 "default": {
                     "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -373,4 +376,121 @@ class ArchivoImpresionTests(TestCase):
         self.assertEqual(
             nuevo.version,
             "v2",
+        )
+
+
+    def test_descarga_privada_para_raspberry_requiere_token(self):
+        self.client.post(
+            reverse(
+                "productos:archivo_impresion_subir",
+                args=[self.producto.id],
+            ),
+            {
+                "archivo": self._archivo_valido(),
+                "cantidad_unidades": "1",
+            },
+        )
+
+        registro = ArchivoImpresion.objects.get()
+
+        url = reverse(
+            "bambu_bridge_download_file",
+            args=[registro.id],
+        )
+
+        sin_token = self.client.get(url)
+
+        self.assertEqual(
+            sin_token.status_code,
+            401,
+        )
+
+        con_token = self.client.get(
+            url,
+            HTTP_AUTHORIZATION=(
+                "Bearer test-bridge-token"
+            ),
+        )
+
+        self.assertEqual(
+            con_token.status_code,
+            200,
+        )
+        self.assertEqual(
+            con_token["X-DV-SHA256"],
+            registro.sha256,
+        )
+        self.assertEqual(
+            con_token["X-DV-Quantity"],
+            "1",
+        )
+
+    def test_sustituir_actualiza_producciones_pendientes(self):
+        url = reverse(
+            "productos:archivo_impresion_subir",
+            args=[self.producto.id],
+        )
+
+        self.client.post(
+            url,
+            {
+                "archivo": self._archivo_valido(
+                    "base.gcode.3mf"
+                ),
+                "cantidad_unidades": "6",
+                "nombre": "Base x6",
+                "version": "v1",
+            },
+        )
+
+        anterior = ArchivoImpresion.objects.get()
+
+        produccion = Produccion.objects.create(
+            producto=self.producto,
+            cantidad=6,
+            destino="STOCK",
+            estado="PENDIENTE",
+            tiempo_impresion_minutos=60,
+            archivo_impresion=anterior,
+        )
+
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(
+            buffer,
+            "w",
+            zipfile.ZIP_DEFLATED,
+        ) as paquete:
+            paquete.writestr(
+                "Metadata/plate_1.gcode",
+                "; reemplazo\nG28\nG1 X42\n",
+            )
+
+        reemplazo = SimpleUploadedFile(
+            "base-v2.gcode.3mf",
+            buffer.getvalue(),
+            content_type="application/octet-stream",
+        )
+
+        self.client.post(
+            reverse(
+                "productos:archivo_impresion_reemplazar",
+                args=[
+                    self.producto.id,
+                    anterior.id,
+                ],
+            ),
+            {
+                "archivo": reemplazo,
+                "version": "v2",
+            },
+        )
+
+        produccion.refresh_from_db()
+        nuevo = ArchivoImpresion.objects.exclude(
+            id=anterior.id
+        ).get()
+
+        self.assertEqual(
+            produccion.archivo_impresion_id,
+            nuevo.id,
         )
