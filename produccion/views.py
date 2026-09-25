@@ -104,6 +104,18 @@ def _conflicto_planificacion(
     return None
 
 
+def _archivo_planificado(producto, cantidad):
+    if not producto:
+        return None
+
+    try:
+        return producto.archivo_impresion_para_cantidad(
+            cantidad
+        )
+    except Exception:
+        return None
+
+
 def _tiempo_sugerido_produccion(producto, cantidad):
     """
     Prioriza un tiempo real ya utilizado para la misma cantidad.
@@ -1676,6 +1688,10 @@ def accion_rapida_necesidad(request):
         impresora=impresora,
         inicio_impresion=inicio,
         tiempo_impresion_minutos=tiempo_total,
+        archivo_impresion=_archivo_planificado(
+            producto,
+            cantidad,
+        ),
         observaciones=observaciones,
     )
 
@@ -1766,6 +1782,10 @@ def planificar_desde_producto(request, producto_id):
         impresora=None,
         inicio_impresion=timezone.now(),
         tiempo_impresion_minutos=tiempo_total,
+        archivo_impresion=_archivo_planificado(
+            producto,
+            cantidad,
+        ),
         observaciones=(
             "Planificada desde el detalle del producto."
         ),
@@ -2108,6 +2128,10 @@ def nueva_produccion(request):
                 inicio_impresion,
             tiempo_impresion_minutos=
                 tiempo_total,
+            archivo_impresion=_archivo_planificado(
+                producto,
+                cantidad,
+            ),
         )
     )
 
@@ -2541,6 +2565,13 @@ def repetir_produccion(
         bambu_color_hex=color_hex,
         bambu_requiere_cambio_manual=(
             requiere_cambio_manual
+        ),
+        archivo_impresion=(
+            _archivo_planificado(
+                original.producto,
+                original.cantidad,
+            )
+            or original.archivo_impresion
         ),
     )
 
