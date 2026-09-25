@@ -442,6 +442,7 @@ class EventoBambu(models.Model):
 class ComandoBambu(models.Model):
     TIPOS = [
         ("STOP", "Detener impresión"),
+        ("PRINT", "Iniciar impresión"),
     ]
 
     ESTADOS = [
