@@ -802,3 +802,64 @@ class ArchivoImpresionTests(TestCase):
             produccion.archivo_impresion_id,
             primero.id,
         )
+
+
+    def test_extrae_peso_y_tiempo_desde_gcode_bambu(self):
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(
+            buffer,
+            "w",
+            zipfile.ZIP_DEFLATED,
+        ) as paquete:
+            paquete.writestr(
+                "Metadata/plate_1.gcode",
+                (
+                    "; total filament weight [g] : 275.76\n"
+                    "; model printing time: 14h 18m 30s; "
+                    "total estimated time: 14h 24m 46s\n"
+                    "G28\n"
+                ),
+            )
+
+        archivo = SimpleUploadedFile(
+            "pepino-x4.gcode.3mf",
+            buffer.getvalue(),
+            content_type="application/octet-stream",
+        )
+
+        respuesta = self.client.post(
+            reverse(
+                "productos:archivo_impresion_subir",
+                args=[self.producto.id],
+            ),
+            {
+                "archivo": archivo,
+                "cantidad_unidades": "4",
+            },
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            302,
+        )
+
+        registro = ArchivoImpresion.objects.get(
+            cantidad_unidades=4
+        )
+
+        self.assertEqual(
+            str(registro.peso_estimado_gramos),
+            "275.76",
+        )
+        self.assertEqual(
+            registro.tiempo_estimado_minutos,
+            865,
+        )
+        self.assertEqual(
+            registro.peso_estimado_texto,
+            "275.8 g",
+        )
+        self.assertEqual(
+            registro.tiempo_estimado_texto,
+            "14 h 25 min",
+        )
