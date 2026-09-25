@@ -297,6 +297,12 @@ def _payload_push(
     }
 
 
+def _respuesta_archivo_impresion(archivo):
+    return _respuesta_archivo_impresion(
+        archivo
+    )
+
+
 @csrf_exempt
 @require_GET
 def bambu_bridge_download_file(
@@ -366,6 +372,67 @@ def bambu_bridge_download_file(
     )
     response["X-DV-Quantity"] = str(
         archivo.cantidad_unidades
+    )
+
+    return response
+
+
+@csrf_exempt
+@require_GET
+def bambu_bridge_download_production_file(
+    request,
+    produccion_id,
+):
+    autorizado, motivo = _autorizado(
+        request
+    )
+
+    if not autorizado:
+        if motivo == "not_configured":
+            return JsonResponse(
+                {
+                    "ok": False,
+                    "detail": "Bambu bridge no configurado.",
+                },
+                status=503,
+            )
+
+        return JsonResponse(
+            {
+                "ok": False,
+                "detail": "No autorizado.",
+            },
+            status=401,
+        )
+
+    produccion = (
+        Produccion.objects
+        .select_related(
+            "archivo_impresion",
+            "archivo_impresion__producto",
+        )
+        .filter(
+            id=produccion_id,
+        )
+        .first()
+    )
+
+    if (
+        not produccion
+        or not produccion.archivo_impresion_id
+    ):
+        raise Http404(
+            "La producción no tiene un archivo de impresión asociado."
+        )
+
+    response = _respuesta_archivo_impresion(
+        produccion.archivo_impresion
+    )
+    response["X-DV-Production-Id"] = str(
+        produccion.id
+    )
+    response["X-DV-Production-Code"] = (
+        produccion.codigo
     )
 
     return response
