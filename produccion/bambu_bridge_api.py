@@ -81,6 +81,54 @@ def _fecha_epoch(valor):
         return None
 
 
+def _normalizar_trabajo_bambu(valor):
+    texto = (
+        str(valor or "")
+        .strip()
+        .replace("\\", "/")
+        .split("/")[-1]
+        .casefold()
+    )
+
+    for sufijo in (
+        ".gcode.3mf",
+        ".3mf",
+        ".gcode",
+    ):
+        if texto.endswith(sufijo):
+            texto = texto[: -len(sufijo)]
+            break
+
+    return "".join(
+        caracter
+        for caracter in texto
+        if caracter.isalnum()
+    )
+
+
+def _trabajo_bambu_coincide(
+    esperado,
+    actual,
+):
+    esperado_normalizado = (
+        _normalizar_trabajo_bambu(
+            esperado
+        )
+    )
+    actual_normalizado = (
+        _normalizar_trabajo_bambu(
+            actual
+        )
+    )
+
+    return bool(
+        esperado_normalizado
+        and actual_normalizado
+        and esperado_normalizado
+        == actual_normalizado
+    )
+
+
 def _autorizado(request):
     esperado = getattr(
         settings,
@@ -128,7 +176,9 @@ def _procesar_resultados_comandos(resultados):
 
         comando = (
             ComandoBambu.objects
-            .select_for_update()
+            .select_for_update(
+                of=("self",)
+            )
             .filter(
                 id_comando=id_comando,
                 estado="PENDIENTE",
@@ -180,6 +230,35 @@ def _procesar_resultados_comandos(resultados):
                     else "CANCELACION_ERROR"
                 )
             )
+
+        if (
+            comando.produccion_id
+            and comando.tipo == "PRINT"
+            and ok
+        ):
+            resultado = (
+                item.get("result")
+                if isinstance(
+                    item.get("result"),
+                    dict,
+                )
+                else {}
+            )
+            remote_name = str(
+                resultado.get(
+                    "remote_name"
+                )
+                or comando.trabajo_bambu_esperado
+                or ""
+            ).strip()[:255]
+
+            if remote_name:
+                Produccion.objects.filter(
+                    id=comando.produccion_id,
+                    estado="PENDIENTE",
+                ).update(
+                    bambu_trabajo=remote_name
+                )
 
 
 def _produccion_activa(estado_bambu):
@@ -631,6 +710,73 @@ def bambu_bridge_sync(request):
                 )
             )
 
+            if (
+                estado.impresora_id
+                and estado_actual
+                in ESTADOS_IMPRIMIENDO
+            ):
+                trabajo_actual = str(
+                    item.get("job_name")
+                    or ""
+                ).strip()
+
+                comandos_print = (
+                    ComandoBambu.objects
+                    .select_for_update()
+                    .filter(
+                        impresora_estado=estado,
+                        tipo="PRINT",
+                        estado="EJECUTADO",
+                        produccion__estado="PENDIENTE",
+                        produccion__impresora_id=(
+                            estado.impresora_id
+                        ),
+                    )
+                    .select_related(
+                        "produccion",
+                    )
+                    .order_by(
+                        "-resuelto_en",
+                        "-id",
+                    )
+                )
+
+                for comando_print in comandos_print[:5]:
+                    esperado = (
+                        comando_print
+                        .trabajo_bambu_esperado
+                    )
+
+                    if not _trabajo_bambu_coincide(
+                        esperado,
+                        trabajo_actual,
+                    ):
+                        continue
+
+                    produccion_iniciada = (
+                        comando_print.produccion
+                    )
+                    produccion_iniciada.estado = (
+                        "IMPRIMIENDO"
+                    )
+                    produccion_iniciada.inicio_impresion = (
+                        timezone.now()
+                    )
+                    produccion_iniciada.bambu_trabajo = (
+                        trabajo_actual
+                        or esperado
+                    )[:255]
+                    produccion_iniciada.origen = "GESTION"
+                    produccion_iniciada.save(
+                        update_fields=[
+                            "estado",
+                            "inicio_impresion",
+                            "bambu_trabajo",
+                            "origen",
+                        ]
+                    )
+                    break
+
             produccion = _produccion_activa(
                 estado
             )
@@ -827,6 +973,7 @@ def bambu_bridge_sync(request):
         .select_related(
             "impresora_estado",
             "produccion",
+            "produccion__archivo_impresion",
         )
         .order_by(
             "creado_en",
@@ -843,14 +990,24 @@ def bambu_bridge_sync(request):
             <= ahora_comandos
         )
 
-        produccion_inactiva = (
-            comando.produccion_id
-            and (
-                not comando.produccion
-                or comando.produccion.estado
-                != "IMPRIMIENDO"
+        if comando.tipo == "PRINT":
+            produccion_inactiva = (
+                comando.produccion_id
+                and (
+                    not comando.produccion
+                    or comando.produccion.estado
+                    != "PENDIENTE"
+                )
             )
-        )
+        else:
+            produccion_inactiva = (
+                comando.produccion_id
+                and (
+                    not comando.produccion
+                    or comando.produccion.estado
+                    != "IMPRIMIENDO"
+                )
+            )
 
         if expirado or produccion_inactiva:
             comando.estado = "EXPIRADO"
@@ -915,6 +1072,85 @@ def bambu_bridge_sync(request):
                         comando.expira_en.isoformat()
                         if comando.expira_en
                         else None
+                    ),
+                    "production_code": (
+                        comando.produccion.codigo
+                        if comando.produccion
+                        else None
+                    ),
+                    "file_sha256": (
+                        comando.produccion
+                        .archivo_impresion
+                        .sha256
+                        if (
+                            comando.tipo == "PRINT"
+                            and comando.produccion
+                            and comando.produccion
+                            .archivo_impresion_id
+                        )
+                        else None
+                    ),
+                    "file_size_bytes": (
+                        comando.produccion
+                        .archivo_impresion
+                        .tamano_bytes
+                        if (
+                            comando.tipo == "PRINT"
+                            and comando.produccion
+                            and comando.produccion
+                            .archivo_impresion_id
+                        )
+                        else None
+                    ),
+                    "plate": (
+                        (
+                            comando.produccion
+                            .archivo_impresion
+                            .placas
+                            or [None]
+                        )[0]
+                        if (
+                            comando.tipo == "PRINT"
+                            and comando.produccion
+                            and comando.produccion
+                            .archivo_impresion_id
+                        )
+                        else None
+                    ),
+                    "use_ams": (
+                        comando.produccion
+                        .bambu_fuente_filamento
+                        == "AMS"
+                        if (
+                            comando.tipo == "PRINT"
+                            and comando.produccion
+                        )
+                        else False
+                    ),
+                    "ams_mapping": (
+                        [
+                            (
+                                int(
+                                    comando.produccion
+                                    .bambu_ams_id
+                                    or 0
+                                )
+                                * 4
+                                + int(
+                                    comando.produccion
+                                    .bambu_tray_id
+                                    or 0
+                                )
+                            )
+                        ]
+                        if (
+                            comando.tipo == "PRINT"
+                            and comando.produccion
+                            and comando.produccion
+                            .bambu_fuente_filamento
+                            == "AMS"
+                        )
+                        else [-1]
                     ),
                 }
                 for comando in comandos
