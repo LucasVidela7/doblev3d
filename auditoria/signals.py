@@ -1,4 +1,5 @@
 from django.contrib.auth.signals import user_logged_in, user_logged_out
+from django.db.models.fields.files import FieldFile
 from django.db.models.signals import post_save, pre_delete, pre_save
 from django.dispatch import receiver
 
@@ -30,8 +31,12 @@ def _debe_auditar(sender):
 
 
 def _valor_serializable(valor):
+    if isinstance(valor, FieldFile):
+        return valor.name or ""
+
     if hasattr(valor, "isoformat"):
         return valor.isoformat()
+
     return valor
 
 
