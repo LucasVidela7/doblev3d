@@ -13,6 +13,7 @@ from django.views.decorators.http import require_POST
 from pedidos.push import enviar_push_operativo
 
 from .models import (
+    ComandoBambu,
     ConfiguracionProduccion,
     EventoBambu,
     ImpresoraEstadoBambu,
@@ -107,6 +108,77 @@ def _autorizado(request):
         hmac.compare_digest(recibido, esperado),
         "invalid",
     )
+
+
+def _procesar_resultados_comandos(resultados):
+    if not isinstance(resultados, list):
+        return
+
+    for item in resultados:
+        if not isinstance(item, dict):
+            continue
+
+        id_comando = str(
+            item.get("command_id") or ""
+        ).strip()
+
+        if not id_comando:
+            continue
+
+        comando = (
+            ComandoBambu.objects
+            .select_for_update()
+            .filter(
+                id_comando=id_comando,
+                estado="PENDIENTE",
+            )
+            .select_related(
+                "produccion",
+            )
+            .first()
+        )
+
+        if not comando:
+            continue
+
+        ok = bool(item.get("ok"))
+
+        comando.estado = (
+            "EJECUTADO"
+            if ok
+            else "ERROR"
+        )
+        comando.resuelto_en = timezone.now()
+        comando.error = (
+            ""
+            if ok
+            else str(
+                item.get("error")
+                or "No se pudo ejecutar el comando."
+            )[:2000]
+        )
+        comando.save(
+            update_fields=[
+                "estado",
+                "resuelto_en",
+                "error",
+            ]
+        )
+
+        if (
+            comando.produccion_id
+            and comando.tipo == "STOP"
+        ):
+            Produccion.objects.filter(
+                id=comando.produccion_id,
+                estado="IMPRIMIENDO",
+            ).update(
+                evento_fin_bambu=(
+                    "CANCELACION_ENVIADA"
+                    if ok
+                    else "CANCELACION_ERROR"
+                )
+            )
 
 
 def _produccion_activa(estado_bambu):
@@ -269,6 +341,11 @@ def bambu_bridge_sync(request):
             status=400,
         )
 
+    command_results = payload.get(
+        "command_results",
+        []
+    )
+
     impresoras = payload.get("printers")
 
     if not isinstance(impresoras, list):
@@ -287,6 +364,10 @@ def bambu_bridge_sync(request):
         config, _ = (
             ConfiguracionProduccion.objects
             .get_or_create(pk=1)
+        )
+
+        _procesar_resultados_comandos(
+            command_results
         )
 
         for item in impresoras:
@@ -429,12 +510,26 @@ def bambu_bridge_sync(request):
                     estado_actual in ESTADOS_CANCELADOS
                     and produccion.estado == "IMPRIMIENDO"
                 ):
-                    produccion.estado = "CONTROL"
+                    cancelacion_solicitada = (
+                        produccion.evento_fin_bambu
+                        in {
+                            "CANCELACION_SOLICITADA",
+                            "CANCELACION_ENVIADA",
+                        }
+                    )
+
+                    produccion.estado = (
+                        "CANCELADO"
+                        if cancelacion_solicitada
+                        else "CONTROL"
+                    )
                     produccion.fin_impresion_detectado = (
                         timezone.now()
                     )
                     produccion.evento_fin_bambu = (
-                        "CANCELADA"
+                        "CANCELADA_USUARIO"
+                        if cancelacion_solicitada
+                        else "CANCELADA"
                     )
                     produccion.resultado_control = ""
                     produccion.save(
@@ -506,12 +601,50 @@ def bambu_bridge_sync(request):
     for aviso in notificaciones:
         enviar_push_operativo(aviso)
 
+    seriales = [
+        item["serial"]
+        for item in actualizadas
+    ]
+
+    comandos = list(
+        ComandoBambu.objects
+        .filter(
+            estado="PENDIENTE",
+            impresora_estado__serial__in=seriales,
+        )
+        .select_related(
+            "impresora_estado",
+            "produccion",
+        )
+        .order_by(
+            "creado_en",
+            "id",
+        )[:20]
+    )
+
     return JsonResponse(
         {
             "ok": True,
             "updated": len(actualizadas),
             "printers": actualizadas,
             "notifications": len(notificaciones),
-            "commands": [],
+            "commands": [
+                {
+                    "command_id": str(
+                        comando.id_comando
+                    ),
+                    "type": comando.tipo,
+                    "printer": (
+                        comando.impresora_estado.nombre_bridge
+                    ),
+                    "serial": (
+                        comando.impresora_estado.serial
+                    ),
+                    "production_id": (
+                        comando.produccion_id
+                    ),
+                }
+                for comando in comandos
+            ],
         }
     )
