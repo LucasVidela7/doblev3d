@@ -3091,10 +3091,13 @@ def vincular_impresion_externa(
             "produccion:lista"
         )
 
+    # Bloqueamos solamente la fila física de telemetría.
+    # No usamos select_related("impresora") acá porque impresora es
+    # nullable y PostgreSQL no permite FOR UPDATE sobre el lado nullable
+    # de un OUTER JOIN.
     estado_bambu = get_object_or_404(
         ImpresoraEstadoBambu.objects
-        .select_for_update()
-        .select_related("impresora"),
+        .select_for_update(),
         id=estado_id,
     )
 
