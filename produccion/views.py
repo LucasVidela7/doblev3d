@@ -10,6 +10,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from pedidos.models import Pedido
+from productos.archivos_impresion import _analizar_gcode_3mf, _desmarcar_predeterminado, _nombre_base
 from productos.models import ArchivoImpresion, ConfiguracionCatalogo, Producto, detalle_color_catalogo
 from productos.miniaturas import asignar_miniaturas_productos
 
@@ -2163,6 +2164,229 @@ def nueva_produccion(request):
 
     return redirect(
         "produccion:lista"
+    )
+
+
+# ============================================================
+# G-CODE DESDE PRODUCCIÓN
+# ============================================================
+
+@transaction.atomic
+def cargar_gcode_produccion(
+    request,
+    produccion_id,
+):
+    if request.method != "POST":
+        return redirect(
+            reverse("produccion:lista") + "#prod-cola"
+        )
+
+    produccion = get_object_or_404(
+        Produccion.objects
+        .select_for_update()
+        .select_related(
+            "producto",
+            "archivo_impresion",
+        ),
+        id=produccion_id,
+        estado="PENDIENTE",
+    )
+
+    archivo = request.FILES.get(
+        "archivo"
+    )
+
+    if archivo is None:
+        messages.error(
+            request,
+            "Seleccioná un archivo .gcode.3mf.",
+        )
+        return redirect(
+            reverse("produccion:lista") + "#prod-cola"
+        )
+
+    try:
+        analisis = _analizar_gcode_3mf(
+            archivo
+        )
+    except ValueError as error:
+        messages.error(
+            request,
+            str(error),
+        )
+        return redirect(
+            reverse("produccion:lista") + "#prod-cola"
+        )
+
+    existente = (
+        ArchivoImpresion.objects
+        .select_for_update()
+        .filter(
+            producto=produccion.producto,
+            sha256=analisis["sha256"],
+        )
+        .first()
+    )
+
+    if (
+        existente
+        and existente.cantidad_unidades
+        != produccion.cantidad
+    ):
+        messages.error(
+            request,
+            (
+                "Ese mismo archivo ya está asociado a "
+                f"{existente.cantidad_unidades} unidad(es). "
+                "No se puede reutilizar para una cantidad distinta."
+            ),
+        )
+        return redirect(
+            reverse("produccion:lista") + "#prod-cola"
+        )
+
+    anterior = (
+        ArchivoImpresion.objects
+        .select_for_update()
+        .filter(
+            producto=produccion.producto,
+            cantidad_unidades=produccion.cantidad,
+            predeterminado=True,
+        )
+        .order_by(
+            "-actualizado_en",
+            "-id",
+        )
+        .first()
+    )
+
+    if existente:
+        nuevo = existente
+        nuevo.activo = True
+        nuevo.predeterminado = True
+        nuevo.save(
+            update_fields=[
+                "activo",
+                "predeterminado",
+                "actualizado_en",
+            ]
+        )
+    else:
+        nombre = (
+            request.POST.get(
+                "nombre",
+                "",
+            ).strip()[:180]
+            or _nombre_base(
+                archivo.name
+            )
+            or (
+                f"{produccion.producto.nombre} "
+                f"x{produccion.cantidad}"
+            )
+        )
+
+        version = (
+            request.POST.get(
+                "version",
+                "",
+            ).strip()[:60]
+        )
+
+        perfil = (
+            request.POST.get(
+                "perfil_impresora",
+                "",
+            ).strip()[:120]
+            or (
+                anterior.perfil_impresora
+                if anterior
+                else ""
+            )
+        )
+
+        notas = (
+            request.POST.get(
+                "notas",
+                "",
+            ).strip()
+        )
+
+        nuevo = ArchivoImpresion(
+            producto=produccion.producto,
+            nombre=nombre,
+            version=version,
+            cantidad_unidades=produccion.cantidad,
+            reemplaza_a=anterior,
+            nombre_original=str(
+                archivo.name
+            )[:255],
+            tamano_bytes=analisis[
+                "tamano_bytes"
+            ],
+            sha256=analisis[
+                "sha256"
+            ],
+            placas=analisis[
+                "placas"
+            ],
+            perfil_impresora=perfil,
+            notas=notas,
+            activo=True,
+            predeterminado=True,
+        )
+
+        nuevo.archivo.save(
+            str(archivo.name),
+            archivo,
+            save=False,
+        )
+        nuevo.save()
+
+    _desmarcar_predeterminado(
+        producto_id=produccion.producto_id,
+        cantidad_unidades=produccion.cantidad,
+        excluir_id=nuevo.id,
+    )
+
+    if (
+        anterior
+        and anterior.id != nuevo.id
+    ):
+        anterior.activo = False
+        anterior.predeterminado = False
+        anterior.save(
+            update_fields=[
+                "activo",
+                "predeterminado",
+                "actualizado_en",
+            ]
+        )
+
+    pendientes_actualizadas = (
+        Produccion.objects
+        .filter(
+            producto_id=produccion.producto_id,
+            cantidad=produccion.cantidad,
+            estado="PENDIENTE",
+        )
+        .update(
+            archivo_impresion=nuevo
+        )
+    )
+
+    messages.success(
+        request,
+        (
+            f"G-code “{nuevo.nombre_original}” asociado a "
+            f"{produccion.producto.nombre} × {produccion.cantidad}. "
+            f"Se actualizaron {pendientes_actualizadas} "
+            "producción(es) pendiente(s) de esa misma combinación."
+        ),
+    )
+
+    return redirect(
+        reverse("produccion:lista") + "#prod-cola"
     )
 
 
