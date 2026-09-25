@@ -852,6 +852,124 @@ def lista_produccion(request):
             )
         )
 
+        bambu = impresora.bambu_estado
+        if not bambu:
+            impresora.bambu_coherencia = "SIN_VINCULO"
+            impresora.bambu_coherencia_texto = (
+                "Sin telemetría Bambu vinculada."
+            )
+            continue
+
+        if not bambu.sync_reciente:
+            impresora.bambu_coherencia = "SIN_DATOS"
+            impresora.bambu_coherencia_texto = (
+                "Esperando una sincronización reciente."
+            )
+            continue
+
+        if not bambu.conectada:
+            impresora.bambu_coherencia = "REVISAR"
+            impresora.bambu_coherencia_texto = (
+                "La Raspberry no ve esta A1 conectada."
+            )
+            continue
+
+        estado_fisico = (
+            bambu.estado or ""
+        ).strip().upper()
+
+        bambu.esta_imprimiendo = estado_fisico in {
+            "RUNNING",
+            "PAUSE",
+            "PREPARE",
+        }
+
+        gestion_imprimiendo = (
+            impresora.trabajo_actual is not None
+        )
+
+        if (
+            bambu.esta_imprimiendo
+            and gestion_imprimiendo
+        ):
+            impresora.bambu_coherencia = "OK"
+            impresora.bambu_coherencia_texto = (
+                "Gestión y la A1 coinciden: ambas "
+                "figuran imprimiendo."
+            )
+        elif (
+            bambu.esta_imprimiendo
+            and not gestion_imprimiendo
+        ):
+            impresora.bambu_coherencia = "REVISAR"
+            impresora.bambu_coherencia_texto = (
+                "La A1 está imprimiendo pero Gestión "
+                "no tiene un trabajo activo."
+            )
+        elif (
+            not bambu.esta_imprimiendo
+            and gestion_imprimiendo
+        ):
+            impresora.bambu_coherencia = "REVISAR"
+            impresora.bambu_coherencia_texto = (
+                "Gestión marca un trabajo imprimiendo "
+                "pero la A1 no está ejecutándolo."
+            )
+        else:
+            impresora.bambu_coherencia = "OK"
+            impresora.bambu_coherencia_texto = (
+                "Gestión y la A1 coinciden: ambas "
+                "figuran disponibles."
+            )
+
+        bambu.fin_real_estimado = None
+        bambu.desvio_planificacion_minutos = None
+        bambu.desvio_planificacion_texto = ""
+
+        if (
+            bambu.esta_imprimiendo
+            and bambu.minutos_restantes is not None
+        ):
+            bambu.fin_real_estimado = (
+                ahora
+                + timedelta(
+                    minutes=max(
+                        int(bambu.minutos_restantes),
+                        0,
+                    )
+                )
+            )
+
+            trabajo_actual = impresora.trabajo_actual
+            if (
+                trabajo_actual
+                and trabajo_actual.fin_estimado
+            ):
+                desvio = round(
+                    (
+                        bambu.fin_real_estimado
+                        - trabajo_actual.fin_estimado
+                    ).total_seconds()
+                    / 60
+                )
+
+                bambu.desvio_planificacion_minutos = (
+                    desvio
+                )
+
+                if abs(desvio) <= 5:
+                    bambu.desvio_planificacion_texto = (
+                        "en línea con la planificación"
+                    )
+                elif desvio > 0:
+                    bambu.desvio_planificacion_texto = (
+                        f"{desvio} min después de lo planificado"
+                    )
+                else:
+                    bambu.desvio_planificacion_texto = (
+                        f"{abs(desvio)} min antes de lo planificado"
+                    )
+
     bambu_sin_vincular = [
         estado_bambu
         for estado_bambu in bambu_estados
