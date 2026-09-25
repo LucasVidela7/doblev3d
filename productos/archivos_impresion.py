@@ -1,7 +1,8 @@
 import hashlib
+import logging
 import re
 import zipfile
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 
 from django.conf import settings
 from django.contrib import messages
@@ -11,6 +12,9 @@ from django.shortcuts import get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 
 from .models import ArchivoImpresion, Producto
+
+
+logger = logging.getLogger(__name__)
 
 
 PLATE_RE = re.compile(
@@ -55,6 +59,72 @@ def _desmarcar_predeterminado(
         qs = qs.exclude(id=excluir_id)
 
     qs.update(predeterminado=False)
+
+
+def _guardar_archivo_impresion(
+    registro,
+    archivo,
+):
+    raiz = Path(
+        getattr(
+            settings,
+            "PRINT_FILES_ROOT",
+            settings.MEDIA_ROOT,
+        )
+    )
+
+    nombre_guardado = ""
+
+    try:
+        raiz.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        registro.archivo.save(
+            str(archivo.name),
+            archivo,
+            save=False,
+        )
+
+        nombre_guardado = (
+            registro.archivo.name
+            or ""
+        )
+
+        registro.save()
+
+    except Exception as error:
+        logger.exception(
+            "Error guardando G-code. producto_id=%s nombre=%s root=%s",
+            getattr(
+                registro,
+                "producto_id",
+                None,
+            ),
+            getattr(
+                archivo,
+                "name",
+                "",
+            ),
+            raiz,
+        )
+
+        if nombre_guardado:
+            try:
+                registro.archivo.storage.delete(
+                    nombre_guardado
+                )
+            except Exception:
+                logger.exception(
+                    "No se pudo limpiar archivo parcial %s",
+                    nombre_guardado,
+                )
+
+        raise ValueError(
+            "No se pudo guardar el archivo de impresión. "
+            "Reintentá en unos segundos."
+        ) from error
 
 
 def _analizar_gcode_3mf(archivo):
@@ -294,12 +364,20 @@ def subir(request, producto_id):
         predeterminado=predeterminado,
     )
 
-    registro.archivo.save(
-        str(archivo.name),
-        archivo,
-        save=False,
-    )
-    registro.save()
+    try:
+        _guardar_archivo_impresion(
+            registro,
+            archivo,
+        )
+    except ValueError as error:
+        messages.error(
+            request,
+            str(error),
+        )
+        return redirect(
+            "productos:detalle",
+            producto_id=producto.id,
+        )
 
     placas = (
         ", ".join(
@@ -584,12 +662,20 @@ def reemplazar(
         predeterminado=True,
     )
 
-    nuevo.archivo.save(
-        str(archivo.name),
-        archivo,
-        save=False,
-    )
-    nuevo.save()
+    try:
+        _guardar_archivo_impresion(
+            nuevo,
+            archivo,
+        )
+    except ValueError as error:
+        messages.error(
+            request,
+            str(error),
+        )
+        return redirect(
+            "productos:detalle",
+            producto_id=producto_id,
+        )
 
     # Las planificaciones que todavía no empezaron deben usar la versión
     # nueva. Las impresiones en curso y el historial conservan el archivo
