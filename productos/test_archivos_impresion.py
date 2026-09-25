@@ -398,6 +398,10 @@ class ArchivoImpresionTests(TestCase):
             args=[registro.id],
         )
 
+        # La Raspberry no tiene sesión de Gestión: autentica solo
+        # mediante el Bearer token del bridge.
+        self.client.logout()
+
         sin_token = self.client.get(url)
 
         self.assertEqual(
@@ -520,6 +524,8 @@ class ArchivoImpresionTests(TestCase):
             tiempo_impresion_minutos=60,
             archivo_impresion=archivo,
         )
+
+        self.client.logout()
 
         respuesta = self.client.get(
             reverse(
