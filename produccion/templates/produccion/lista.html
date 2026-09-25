@@ -239,6 +239,17 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 .bambu-error{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:9px;padding:9px 10px;border:1px solid color-mix(in srgb,#d9534f 48%,var(--dv-border));border-radius:11px;background:color-mix(in srgb,#d9534f 10%,var(--dv-surface));font-size:10.5px;line-height:1.4}
 .bambu-error strong{font-size:9.5px;letter-spacing:.03em}
 .bambu-error span{overflow-wrap:anywhere}
+
+.gcode-upload-progress{margin-top:12px;padding:12px;border:1px solid var(--dv-border);border-radius:12px;background:color-mix(in srgb,var(--dv-surface) 92%,transparent)}
+.gcode-upload-progress__head{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:11px;font-weight:800}
+.gcode-upload-progress__head strong{font-variant-numeric:tabular-nums}
+.gcode-upload-progress__track{height:10px;margin-top:8px;overflow:hidden;border-radius:999px;background:color-mix(in srgb,var(--dv-text) 12%,transparent)}
+.gcode-upload-progress__track span{display:block;width:0;height:100%;border-radius:inherit;background:var(--dv-primary);transition:width .18s ease}
+.gcode-upload-progress__note{margin-top:7px;font-size:10px;line-height:1.45;color:var(--dv-muted)}
+.gcode-upload-progress.is-processing .gcode-upload-progress__track span{animation:gcode-pulse 1s ease-in-out infinite}
+.gcode-upload-progress.is-success .gcode-upload-progress__track span{width:100%}
+.gcode-upload-progress.is-error{border-color:color-mix(in srgb,#d9534f 55%,var(--dv-border))}
+@keyframes gcode-pulse{0%,100%{opacity:.72}50%{opacity:1}}
 .bambu-coherence{font-size:10.5px}
 .bambu-timing{font-size:10.5px}
 .bambu-filament{font-size:10px}.bambu-filament small{font-size:9px}
@@ -1223,6 +1234,31 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                 </div>
             </div>
 
+            <div
+                class="gcode-upload-progress"
+                id="gcodeUploadProgress"
+                hidden
+                aria-live="polite"
+            >
+                <div class="gcode-upload-progress__head">
+                    <span id="gcodeUploadStatus">Preparando archivo...</span>
+                    <strong id="gcodeUploadPercent">0%</strong>
+                </div>
+                <div
+                    class="gcode-upload-progress__track"
+                    role="progressbar"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-valuenow="0"
+                    id="gcodeUploadTrack"
+                >
+                    <span id="gcodeUploadBar"></span>
+                </div>
+                <div class="gcode-upload-progress__note" id="gcodeUploadNote">
+                    No cierres esta ventana mientras se está enviando el archivo.
+                </div>
+            </div>
+
             <div class="dv-confirm-dialog__actions">
                 <button class="btn" type="button" id="gcodeProductionClose">VOLVER</button>
                 <button class="btn green" type="submit">GUARDAR G-CODE</button>
@@ -1539,6 +1575,305 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         }
     );
 
+    function resetGcodeUploadProgress(){
+        const wrap=byId("gcodeUploadProgress");
+        const bar=byId("gcodeUploadBar");
+        const percent=byId("gcodeUploadPercent");
+        const status=byId("gcodeUploadStatus");
+        const track=byId("gcodeUploadTrack");
+        const note=byId("gcodeUploadNote");
+
+        if(!wrap)return;
+
+        wrap.hidden=true;
+        wrap.classList.remove(
+            "is-processing",
+            "is-success",
+            "is-error"
+        );
+
+        if(bar)bar.style.width="0%";
+        if(percent)percent.textContent="0%";
+        if(status)status.textContent="Preparando archivo...";
+        if(track)track.setAttribute("aria-valuenow","0");
+        if(note){
+            note.textContent=(
+                "No cierres esta ventana mientras se está enviando el archivo."
+            );
+        }
+    }
+
+    function setGcodeUploadProgress(options){
+        const wrap=byId("gcodeUploadProgress");
+        const bar=byId("gcodeUploadBar");
+        const percent=byId("gcodeUploadPercent");
+        const status=byId("gcodeUploadStatus");
+        const track=byId("gcodeUploadTrack");
+        const note=byId("gcodeUploadNote");
+
+        if(!wrap)return;
+
+        const value=Math.max(
+            0,
+            Math.min(
+                100,
+                Number(options?.percent||0)
+            )
+        );
+
+        wrap.hidden=false;
+        wrap.classList.toggle(
+            "is-processing",
+            options?.phase==="processing"
+        );
+        wrap.classList.toggle(
+            "is-success",
+            options?.phase==="success"
+        );
+        wrap.classList.toggle(
+            "is-error",
+            options?.phase==="error"
+        );
+
+        if(bar)bar.style.width=value+"%";
+        if(percent){
+            percent.textContent=(
+                options?.phase==="processing"
+                ? "100%"
+                : Math.round(value)+"%"
+            );
+        }
+        if(status&&options?.status){
+            status.textContent=options.status;
+        }
+        if(note&&options?.note){
+            note.textContent=options.note;
+        }
+        if(track){
+            track.setAttribute(
+                "aria-valuenow",
+                String(Math.round(value))
+            );
+        }
+    }
+
+    function submitGcodeUpload(form,submitter){
+        if(form.dataset.submitting==="1")return;
+
+        form.dataset.submitting="1";
+
+        const buttons=Array.from(
+            form.querySelectorAll(
+                'button[type="submit"],input[type="submit"],button[type="button"]'
+            )
+        );
+        buttons.forEach(function(button){
+            button.disabled=true;
+        });
+
+        const formData=new FormData(form);
+
+        if(submitter?.name){
+            formData.set(
+                submitter.name,
+                submitter.value||""
+            );
+        }
+
+        const productionId=form.dataset.focusProduction||"";
+        const productId=form.dataset.focusProduct||"";
+        const file=form.querySelector(
+            'input[type="file"][name="archivo"]'
+        )?.files?.[0];
+
+        setGcodeUploadProgress({
+            percent:0,
+            phase:"upload",
+            status:"Subiendo a Gestión...",
+            note:file
+                ? file.name+" · "+(
+                    file.size/1024/1024
+                ).toFixed(1)+" MB"
+                : "Enviando archivo..."
+        });
+
+        const xhr=new XMLHttpRequest();
+
+        xhr.open(
+            (form.method||"POST").toUpperCase(),
+            form.action||window.location.href,
+            true
+        );
+
+        xhr.setRequestHeader(
+            "X-Requested-With",
+            "XMLHttpRequest"
+        );
+
+        xhr.upload.addEventListener(
+            "progress",
+            function(event){
+                if(!event.lengthComputable)return;
+
+                const percent=(
+                    event.loaded/event.total
+                )*100;
+
+                setGcodeUploadProgress({
+                    percent,
+                    phase:"upload",
+                    status:"Subiendo a Gestión...",
+                    note:(
+                        (event.loaded/1024/1024).toFixed(1)
+                        +" MB de "
+                        +(event.total/1024/1024).toFixed(1)
+                        +" MB"
+                    )
+                });
+            }
+        );
+
+        xhr.upload.addEventListener(
+            "load",
+            function(){
+                setGcodeUploadProgress({
+                    percent:100,
+                    phase:"processing",
+                    status:"Procesando y guardando archivo...",
+                    note:"La subida terminó. Gestión está validando el G-code y guardándolo."
+                });
+            }
+        );
+
+        xhr.addEventListener(
+            "load",
+            function(){
+                const ok=(
+                    xhr.status>=200
+                    &&xhr.status<300
+                );
+
+                if(!ok){
+                    form.dataset.submitting="0";
+                    buttons.forEach(function(button){
+                        button.disabled=false;
+                    });
+
+                    setGcodeUploadProgress({
+                        percent:100,
+                        phase:"error",
+                        status:"No se pudo guardar",
+                        note:"La subida terminó, pero Gestión devolvió un error."
+                    });
+
+                    window.DVToast?.error?.(
+                        "No se pudo guardar el G-code."
+                    );
+                    return;
+                }
+
+                const html=xhr.responseText||"";
+                const doc=new DOMParser().parseFromString(
+                    html,
+                    "text/html"
+                );
+
+                const returnedError=Array.from(
+                    doc.querySelectorAll(
+                        ".dv-django-messages [data-dv-toast]"
+                    )
+                ).some(function(node){
+                    return (
+                        node.dataset.dvToastType||""
+                    ).toLowerCase().includes("error");
+                });
+
+                if(returnedError){
+                    form.dataset.submitting="0";
+                    buttons.forEach(function(button){
+                        button.disabled=false;
+                    });
+
+                    setGcodeUploadProgress({
+                        percent:100,
+                        phase:"error",
+                        status:"El archivo no pudo guardarse",
+                        note:"Revisá el mensaje de error mostrado por Gestión."
+                    });
+
+                    showReturnedMessages(doc);
+                    return;
+                }
+
+                setGcodeUploadProgress({
+                    percent:100,
+                    phase:"success",
+                    status:"G-code guardado correctamente",
+                    note:"Quedó en Gestión. La Raspberry lo tomará en el próximo ciclo de sincronización."
+                });
+
+                window.setTimeout(function(){
+                    closeDialog(
+                        "gcodeProductionDialog"
+                    );
+
+                    refreshFromHtml(
+                        html,
+                        {
+                            productionId,
+                            productId
+                        }
+                    );
+                },650);
+            }
+        );
+
+        xhr.addEventListener(
+            "error",
+            function(){
+                form.dataset.submitting="0";
+                buttons.forEach(function(button){
+                    button.disabled=false;
+                });
+
+                setGcodeUploadProgress({
+                    percent:0,
+                    phase:"error",
+                    status:"Se interrumpió la conexión",
+                    note:"El archivo no terminó de enviarse. Podés volver a intentarlo."
+                });
+
+                window.DVToast?.error?.(
+                    "Se interrumpió la subida del G-code."
+                );
+            }
+        );
+
+        xhr.addEventListener(
+            "timeout",
+            function(){
+                form.dataset.submitting="0";
+                buttons.forEach(function(button){
+                    button.disabled=false;
+                });
+
+                setGcodeUploadProgress({
+                    percent:0,
+                    phase:"error",
+                    status:"La subida tardó demasiado",
+                    note:"No se confirmó el guardado del archivo. Revisá antes de volver a subirlo."
+                });
+
+                window.DVToast?.error?.(
+                    "No se confirmó la subida del G-code."
+                );
+            }
+        );
+
+        xhr.timeout=180000;
+        xhr.send(formData);
+    }
+
     async function submitProductionForm(form,submitter){
         if(form.dataset.submitting==="1")return;
 
@@ -1706,6 +2041,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         byId("gcodeProductionProfile").value=button.dataset.gcodeProfile||"";
         byId("gcodeProductionNotes").value="";
         byId("gcodeProductionFile").value="";
+        resetGcodeUploadProgress();
 
         dialog.showModal();
     }
@@ -1869,6 +2205,15 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         if(!isProductionAjax)return;
 
         event.preventDefault();
+
+        if(form.id==="gcodeProductionForm"){
+            submitGcodeUpload(
+                form,
+                event.submitter||null
+            );
+            return;
+        }
+
         submitProductionForm(
             form,
             event.submitter||null
