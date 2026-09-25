@@ -418,6 +418,349 @@ def _impresion_fisica_bambu_activa(impresora):
     return None
 
 
+def _filamento_para_print_bambu(
+    estado_bambu,
+    seleccion,
+):
+    seleccion = str(
+        seleccion or ""
+    ).strip()
+
+    if seleccion.startswith("AMS:"):
+        partes = seleccion.split(":")
+
+        if len(partes) != 3:
+            raise ValueError(
+                "El slot AMS seleccionado no es válido."
+            )
+
+        try:
+            ams_id = int(partes[1])
+            tray_id = int(partes[2])
+        except (TypeError, ValueError):
+            raise ValueError(
+                "El slot AMS seleccionado no es válido."
+            )
+
+        bandeja = None
+        ams_data = (
+            estado_bambu.ams
+            if isinstance(
+                estado_bambu.ams,
+                dict,
+            )
+            else {}
+        )
+
+        for unidad in ams_data.get("ams", []) or []:
+            if not isinstance(unidad, dict):
+                continue
+
+            try:
+                unidad_id = int(
+                    unidad.get("id", 0)
+                )
+            except (TypeError, ValueError):
+                continue
+
+            if unidad_id != ams_id:
+                continue
+
+            for candidata in unidad.get("tray", []) or []:
+                if not isinstance(candidata, dict):
+                    continue
+
+                try:
+                    candidata_id = int(
+                        candidata.get("id", 0)
+                    )
+                except (TypeError, ValueError):
+                    continue
+
+                if candidata_id == tray_id:
+                    bandeja = candidata
+                    break
+
+        if not bandeja:
+            raise ValueError(
+                "Ese filamento ya no figura cargado en el AMS."
+            )
+
+        material = str(
+            bandeja.get("tray_type")
+            or "Filamento"
+        )[:80]
+        color_raw = str(
+            bandeja.get("tray_color")
+            or ""
+        ).strip()
+        color_hex = (
+            f"#{color_raw[:6].upper()}"
+            if len(color_raw) >= 6
+            else ""
+        )
+
+        indice_global = (
+            ams_id * 4
+            + tray_id
+        )
+
+        return {
+            "fuente": "AMS",
+            "ams_id": ams_id,
+            "tray_id": tray_id,
+            "material": material,
+            "color_nombre": color_hex,
+            "color_hex": color_hex,
+            "use_ams": True,
+            "ams_mapping": [
+                indice_global,
+                -1,
+                -1,
+                -1,
+                -1,
+            ],
+        }
+
+    if seleccion == "EXTERNO":
+        carrete = (
+            estado_bambu.carrete_externo
+            if isinstance(
+                estado_bambu.carrete_externo,
+                dict,
+            )
+            else {}
+        )
+
+        if not carrete:
+            raise ValueError(
+                "No se detecta un carrete externo cargado."
+            )
+
+        material = str(
+            carrete.get("tray_type")
+            or "Filamento"
+        )[:80]
+        color_raw = str(
+            carrete.get("tray_color")
+            or ""
+        ).strip()
+        color_hex = (
+            f"#{color_raw[:6].upper()}"
+            if len(color_raw) >= 6
+            else ""
+        )
+
+        return {
+            "fuente": "EXTERNO",
+            "ams_id": None,
+            "tray_id": None,
+            "material": material,
+            "color_nombre": color_hex,
+            "color_hex": color_hex,
+            "use_ams": False,
+            "ams_mapping": [-1],
+        }
+
+    raise ValueError(
+        "Elegí el filamento que debe usar la impresora."
+    )
+
+
+def _nombre_remoto_print_bambu(
+    produccion,
+    archivo,
+):
+    codigo = "".join(
+        caracter
+        for caracter in produccion.codigo.upper()
+        if caracter.isalnum()
+    )[:20] or "PRD"
+
+    return (
+        f"DV_{codigo}_"
+        f"{archivo.sha256[:8]}.gcode.3mf"
+    )
+
+
+def _encolar_print_bambu(
+    *,
+    produccion,
+    impresora,
+    seleccion_filamento,
+):
+    estado_bambu = (
+        ImpresoraEstadoBambu.objects
+        .select_for_update()
+        .filter(
+            impresora=impresora,
+        )
+        .first()
+    )
+
+    if not estado_bambu:
+        return None
+
+    ahora = timezone.now()
+
+    sync_reciente = bool(
+        estado_bambu.ultimo_contacto
+        and (
+            ahora
+            - estado_bambu.ultimo_contacto
+        ) <= timedelta(minutes=2)
+    )
+
+    if (
+        not sync_reciente
+        or not estado_bambu.conectada
+    ):
+        raise ValueError(
+            "La Raspberry no tiene telemetría reciente "
+            "de esta A1."
+        )
+
+    estado_fisico = (
+        estado_bambu.estado or ""
+    ).strip().upper()
+
+    if estado_fisico in {
+        "RUNNING",
+        "PAUSE",
+        "PREPARE",
+    }:
+        raise ValueError(
+            "La A1 dejó de estar libre antes de iniciar."
+        )
+
+    archivo = (
+        produccion.archivo_impresion
+        or _archivo_planificado(
+            produccion.producto,
+            produccion.cantidad,
+        )
+    )
+
+    if not archivo:
+        raise ValueError(
+            "Esta producción no tiene un G-code exacto "
+            "asociado."
+        )
+
+    if not _archivo_fisico_disponible(
+        archivo
+    ):
+        raise ValueError(
+            "El G-code asociado no está disponible "
+            "físicamente en Production."
+        )
+
+    placas = [
+        int(placa)
+        for placa in (
+            archivo.placas
+            or []
+        )
+        if str(placa).isdigit()
+        and int(placa) > 0
+    ]
+
+    if len(placas) != 1:
+        raise ValueError(
+            "Para iniciar desde Gestión el .gcode.3mf "
+            "debe tener exactamente una placa detectada."
+        )
+
+    seleccion = (
+        _filamento_para_print_bambu(
+            estado_bambu,
+            seleccion_filamento,
+        )
+    )
+
+    existente = (
+        ComandoBambu.objects
+        .filter(
+            produccion=produccion,
+            tipo="PRINT",
+            estado__in=[
+                "PENDIENTE",
+                "EJECUTADO",
+            ],
+        )
+        .order_by("-creado_en")
+        .first()
+    )
+
+    if existente:
+        raise ValueError(
+            "Esta producción ya tiene un inicio Bambu "
+            "pendiente o enviado."
+        )
+
+    nombre_remoto = (
+        _nombre_remoto_print_bambu(
+            produccion,
+            archivo,
+        )
+    )
+
+    produccion.impresora = impresora
+    produccion.estado = "PENDIENTE"
+    produccion.inicio_impresion = None
+    produccion.archivo_impresion = archivo
+    produccion.bambu_trabajo = nombre_remoto
+    produccion.bambu_fuente_filamento = (
+        seleccion["fuente"]
+    )
+    produccion.bambu_ams_id = (
+        seleccion["ams_id"]
+    )
+    produccion.bambu_tray_id = (
+        seleccion["tray_id"]
+    )
+    produccion.bambu_material = (
+        seleccion["material"]
+    )
+    produccion.bambu_color_nombre = (
+        seleccion["color_nombre"]
+    )
+    produccion.bambu_color_hex = (
+        seleccion["color_hex"]
+    )
+    produccion.bambu_requiere_cambio_manual = False
+
+    produccion.save(
+        update_fields=[
+            "impresora",
+            "estado",
+            "inicio_impresion",
+            "archivo_impresion",
+            "bambu_trabajo",
+            "bambu_fuente_filamento",
+            "bambu_ams_id",
+            "bambu_tray_id",
+            "bambu_material",
+            "bambu_color_nombre",
+            "bambu_color_hex",
+            "bambu_requiere_cambio_manual",
+        ]
+    )
+
+    return ComandoBambu.objects.create(
+        tipo="PRINT",
+        impresora_estado=estado_bambu,
+        produccion=produccion,
+        expira_en=(
+            ahora
+            + timedelta(minutes=10)
+        ),
+        trabajo_bambu_esperado=(
+            nombre_remoto
+        )[:255],
+    )
+
+
 # ============================================================
 # VÍNCULO BAMBU ↔ IMPRESORA
 # ============================================================
@@ -1727,6 +2070,7 @@ def accion_rapida_necesidad(request):
     impresora = None
     estado = "PENDIENTE"
     inicio = timezone.now()
+    estado_bambu_inicio = None
 
     if accion == "INICIAR":
         impresora_id = (
@@ -1776,7 +2120,19 @@ def accion_rapida_necesidad(request):
                 reverse("produccion:lista") + "#ahora"
             )
 
-        estado = "IMPRIMIENDO"
+        estado_bambu_inicio = (
+            ImpresoraEstadoBambu.objects
+            .filter(
+                impresora=impresora,
+            )
+            .first()
+        )
+
+        estado = (
+            "PENDIENTE"
+            if estado_bambu_inicio
+            else "IMPRIMIENDO"
+        )
     elif accion != "PLANIFICAR":
         messages.error(
             request,
@@ -1801,6 +2157,45 @@ def accion_rapida_necesidad(request):
         ),
         observaciones=observaciones,
     )
+
+    if (
+        accion == "INICIAR"
+        and estado_bambu_inicio
+    ):
+        try:
+            _encolar_print_bambu(
+                produccion=produccion,
+                impresora=impresora,
+                seleccion_filamento=(
+                    request.POST.get(
+                        "filamento",
+                        "",
+                    )
+                ),
+            )
+        except ValueError as error:
+            produccion.delete()
+            messages.error(
+                request,
+                str(error),
+            )
+            return redirect(
+                reverse("produccion:lista")
+                + "#prod-necesidad"
+            )
+
+        messages.success(
+            request,
+            (
+                f"{produccion.codigo} quedó solicitada "
+                f"para {impresora.nombre}. "
+                "Se marcará IMPRIMIENDO cuando la A1 "
+                "confirme el inicio."
+            ),
+        )
+        return redirect(
+            reverse("produccion:lista") + "#prod-cola"
+        )
 
     if estado == "IMPRIMIENDO":
         messages.success(
@@ -2639,6 +3034,52 @@ def iniciar_produccion(
             reverse("produccion:lista") + "#ahora"
         )
 
+    estado_bambu = (
+        ImpresoraEstadoBambu.objects
+        .filter(
+            impresora=impresora,
+        )
+        .first()
+    )
+
+    if estado_bambu:
+        try:
+            _encolar_print_bambu(
+                produccion=produccion,
+                impresora=impresora,
+                seleccion_filamento=(
+                    request.POST.get(
+                        "filamento",
+                        "",
+                    )
+                ),
+            )
+        except ValueError as error:
+            messages.error(
+                request,
+                str(error),
+            )
+            return redirect(
+                reverse("produccion:lista")
+                + "#prod-cola"
+            )
+
+        messages.success(
+            request,
+            (
+                f"{produccion.codigo} quedó solicitada "
+                f"para {impresora.nombre}. "
+                "La Raspberry la iniciará en el próximo sync "
+                "y Gestión la marcará IMPRIMIENDO recién "
+                "cuando la A1 lo confirme por telemetría."
+            ),
+        )
+
+        return redirect(
+            reverse("produccion:lista")
+            + "#prod-cola"
+        )
+
     produccion.impresora = impresora
     produccion.inicio_impresion = (
         inicio_actual
@@ -2656,7 +3097,7 @@ def iniciar_produccion(
     messages.success(
         request,
         (
-            f"{produccion.codigo} enviada a "
+            f"{produccion.codigo} iniciada manualmente en "
             f"{impresora.nombre}. "
             "Inicio actualizado al horario actual."
         ),
