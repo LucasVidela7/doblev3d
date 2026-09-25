@@ -24,7 +24,7 @@ from pedidos.models import (
 )
 from pedidos.impresiones_stock import obtener_impresiones_por_producto
 from produccion import views as produccion_views
-from produccion.models import Impresora, Produccion
+from produccion.models import ConfiguracionProduccion, Impresora, Produccion
 from productos.models import (
     COLORES_CATALOGO_PREDEFINIDOS,
     ConfiguracionCatalogo,
@@ -476,8 +476,8 @@ def _panel_produccion_dashboard(
                     <div class="dv-maquina-acciones">
                         <form method="post" action="{listo_url}">
                             <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
-                            <input type="hidden" name="estado" value="LISTO">
-                            <button type="submit" class="dv-btn-listo">✓ LISTO</button>
+                            <input type="hidden" name="estado" value="CONTROL">
+                            <button type="submit" class="dv-btn-listo">✓ FINALIZÓ</button>
                         </form>
                         <form method="post" action="{listo_url}">
                             <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
@@ -983,6 +983,9 @@ def configuracion(request):
     metricas_config, _ = MetricasConfiguracion.objects.get_or_create(
         pk=1
     )
+    produccion_config, _ = ConfiguracionProduccion.objects.get_or_create(
+        pk=1
+    )
     try:
         periodo_metricas = int(request.GET.get("periodo", "30"))
     except (TypeError, ValueError):
@@ -1134,6 +1137,41 @@ def configuracion(request):
         )
         invalidar_configuracion_metricas()
 
+        produccion_config.avisos_impresion_activos = (
+            request.POST.get("avisos_impresion_activos") == "on"
+        )
+        produccion_config.avisar_antes_finalizar = (
+            request.POST.get("avisar_antes_finalizar") == "on"
+        )
+        produccion_config.avisar_finalizacion = (
+            request.POST.get("avisar_finalizacion") == "on"
+        )
+        produccion_config.avisar_cancelacion = (
+            request.POST.get("avisar_cancelacion") == "on"
+        )
+        try:
+            minutos_aviso = int(
+                request.POST.get("minutos_aviso_finalizacion")
+                or produccion_config.minutos_aviso_finalizacion
+                or 15
+            )
+        except (TypeError, ValueError):
+            minutos_aviso = 15
+
+        produccion_config.minutos_aviso_finalizacion = max(
+            1,
+            min(minutos_aviso, 240),
+        )
+        produccion_config.save(
+            update_fields=[
+                "avisos_impresion_activos",
+                "avisar_antes_finalizar",
+                "minutos_aviso_finalizacion",
+                "avisar_finalizacion",
+                "avisar_cancelacion",
+            ],
+        )
+
         secciones_validas = {
             "tienda",
             "costos",
@@ -1235,6 +1273,7 @@ def configuracion(request):
                 .count()
             ),
             "metricas_config": metricas_config,
+            "produccion_config": produccion_config,
             "metricas": resumen_metricas(periodo_metricas),
             "turnstile_configurado": bool(
                 getattr(settings, "TURNSTILE_SITE_KEY", "")
