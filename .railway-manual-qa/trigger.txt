@@ -143,3 +143,5 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-25T11:24-03 deploy vinculo Bambu con impresoras de produccion
 
 2026-09-25T11:31-03 deploy comparacion Gestion vs Bambu
+
+2026-09-25T11:45-03 deploy control calidad alertas y base AMS
