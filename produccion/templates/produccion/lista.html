@@ -96,6 +96,11 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 .bambu-coherence.warn{background:var(--dv-brand-red-soft);border-color:rgba(240,57,59,.32);color:var(--dv-text)}
 .bambu-coherence.neutral{background:var(--dv-surface-muted);color:var(--dv-muted)}
 .bambu-timing{margin-top:7px;padding-top:7px;border-top:1px solid var(--dv-border);color:var(--dv-muted);font-size:9px;line-height:1.45}
+.bambu-filaments{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.bambu-filament{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:4px 8px;border:1px solid var(--dv-border);border-radius:999px;background:var(--dv-surface);color:var(--dv-text);font-size:8px;font-weight:800}
+.bambu-filament.active{border-color:var(--dv-brand-sky);box-shadow:0 0 0 2px color-mix(in srgb,var(--dv-brand-sky) 18%,transparent)}
+.bambu-filament-dot{width:12px;height:12px;border:1px solid var(--dv-border);border-radius:50%;background:var(--filament-color,var(--dv-surface-muted));box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)}
+.bambu-filament small{color:var(--dv-muted);font-size:7px;font-weight:800}
 .recommendation{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px;padding:12px 13px;border:1px solid #cddcef;border-radius:14px;background:#f6f9ff}
 .recommendation strong{font-size:11px}.recommendation .meta{margin-top:3px}
 
@@ -360,6 +365,25 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                 · Cama {% if bambu.temperatura_bed is not None %}{{ bambu.temperatura_bed|floatformat:0 }} °C{% else %}—{% endif %}
                                 · Wi-Fi {{ bambu.wifi|default:"—" }}
                             </div>
+
+                            {% if bambu.ams_slots or bambu.carrete_externo_info %}
+                            <div class="bambu-filaments" aria-label="Filamentos detectados">
+                                {% for slot in bambu.ams_slots %}
+                                <span class="bambu-filament{% if slot.activo %} active{% endif %}" title="{{ slot.label }}{% if slot.rfid %} · RFID{% endif %}">
+                                    <span class="bambu-filament-dot"{% if slot.color %} style="--filament-color:{{ slot.color }}"{% endif %}></span>
+                                    {{ slot.tipo }}
+                                    <small>S{{ slot.slot }}{% if slot.activo %} · EN USO{% endif %}</small>
+                                </span>
+                                {% endfor %}
+                                {% if bambu.carrete_externo_info %}
+                                <span class="bambu-filament{% if bambu.carrete_externo_info.activo %} active{% endif %}" title="Carrete externo">
+                                    <span class="bambu-filament-dot"{% if bambu.carrete_externo_info.color %} style="--filament-color:{{ bambu.carrete_externo_info.color }}"{% endif %}></span>
+                                    {{ bambu.carrete_externo_info.tipo }}
+                                    <small>EXTERNO{% if bambu.carrete_externo_info.activo %} · EN USO{% endif %}</small>
+                                </span>
+                                {% endif %}
+                            </div>
+                            {% endif %}
 
                             <div class="bambu-coherence {% if impresora.bambu_coherencia == 'OK' %}ok{% elif impresora.bambu_coherencia == 'REVISAR' %}warn{% else %}neutral{% endif %}">
                                 {% if impresora.bambu_coherencia == "OK" %}
