@@ -359,12 +359,25 @@ def _impresora_ocupada(
         Produccion.objects
         .filter(
             impresora=impresora,
-            estado="IMPRIMIENDO",
+        )
+        .filter(
+            Q(
+                estado="IMPRIMIENDO",
+            )
+            | Q(
+                estado="PENDIENTE",
+                comandos_bambu__tipo="PRINT",
+                comandos_bambu__estado__in=[
+                    "PENDIENTE",
+                    "EJECUTADO",
+                ],
+            )
         )
         .select_related(
             "producto",
             "impresora",
         )
+        .distinct()
         .order_by("id")
     )
 
@@ -680,6 +693,7 @@ def _encolar_print_bambu(
 
     existente = (
         ComandoBambu.objects
+        .select_for_update()
         .filter(
             produccion=produccion,
             tipo="PRINT",
@@ -693,9 +707,46 @@ def _encolar_print_bambu(
     )
 
     if existente:
-        raise ValueError(
-            "Esta producción ya tiene un inicio Bambu "
-            "pendiente o enviado."
+        if existente.estado == "PENDIENTE":
+            raise ValueError(
+                "Esta producción ya tiene un inicio Bambu "
+                "pendiente."
+            )
+
+        referencia = (
+            existente.resuelto_en
+            or existente.creado_en
+        )
+        espera_reintento = timedelta(
+            minutes=2
+        )
+
+        if (
+            not referencia
+            or ahora - referencia
+            < espera_reintento
+        ):
+            raise ValueError(
+                "El inicio ya fue enviado a la A1 y Gestión "
+                "todavía está esperando confirmación por telemetría."
+            )
+
+        # Si la A1 continúa físicamente libre varios minutos
+        # después de un PRINT enviado, cerramos ese intento y
+        # permitimos generar un UUID nuevo. Nunca reutilizamos
+        # el comando anterior.
+        existente.estado = "ERROR"
+        existente.resuelto_en = ahora
+        existente.error = (
+            "Inicio no confirmado por telemetría; "
+            "se habilitó un nuevo intento."
+        )
+        existente.save(
+            update_fields=[
+                "estado",
+                "resuelto_en",
+                "error",
+            ]
         )
 
     nombre_remoto = (
