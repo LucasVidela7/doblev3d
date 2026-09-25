@@ -298,9 +298,36 @@ def _payload_push(
 
 
 def _respuesta_archivo_impresion(archivo):
-    return _respuesta_archivo_impresion(
-        archivo
+    try:
+        handle = archivo.archivo.open(
+            "rb"
+        )
+    except (FileNotFoundError, OSError):
+        raise Http404(
+            "El archivo físico no está disponible."
+        )
+
+    response = FileResponse(
+        handle,
+        as_attachment=True,
+        filename=archivo.nombre_original,
+        content_type="application/octet-stream",
     )
+
+    response["X-DV-File-Id"] = str(
+        archivo.id
+    )
+    response["X-DV-SHA256"] = (
+        archivo.sha256
+    )
+    response["X-DV-Product-Id"] = str(
+        archivo.producto_id
+    )
+    response["X-DV-Quantity"] = str(
+        archivo.cantidad_unidades
+    )
+
+    return response
 
 
 @csrf_exempt
