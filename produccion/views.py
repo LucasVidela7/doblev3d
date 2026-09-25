@@ -170,6 +170,84 @@ def _impresora_ocupada(
 
 
 # ============================================================
+# VÍNCULO BAMBU ↔ IMPRESORA
+# ============================================================
+
+@transaction.atomic
+def vincular_impresora_bambu(request, estado_id):
+    if request.method != "POST":
+        return redirect("produccion:lista")
+
+    estado_bambu = get_object_or_404(
+        ImpresoraEstadoBambu,
+        id=estado_id,
+    )
+
+    accion = (
+        request.POST.get("accion", "VINCULAR")
+        .strip()
+        .upper()
+    )
+
+    if accion == "DESVINCULAR":
+        estado_bambu.impresora = None
+        estado_bambu.save(
+            update_fields=["impresora"]
+        )
+        messages.success(
+            request,
+            "Impresora Bambu desvinculada.",
+        )
+        return redirect(
+            reverse("produccion:lista") + "#ahora"
+        )
+
+    impresora_id = (
+        request.POST.get("impresora", "")
+        .strip()
+    )
+
+    if not impresora_id:
+        messages.error(
+            request,
+            "Elegí una impresora para vincular.",
+        )
+        return redirect(
+            reverse("produccion:lista") + "#bambu-en-vivo"
+        )
+
+    impresora = get_object_or_404(
+        Impresora,
+        id=impresora_id,
+        activa=True,
+    )
+
+    (
+        ImpresoraEstadoBambu.objects
+        .filter(impresora=impresora)
+        .exclude(id=estado_bambu.id)
+        .update(impresora=None)
+    )
+
+    estado_bambu.impresora = impresora
+    estado_bambu.save(
+        update_fields=["impresora"]
+    )
+
+    messages.success(
+        request,
+        (
+            f"{estado_bambu.nombre_bridge or estado_bambu.serial} "
+            f"vinculada a {impresora.nombre}."
+        ),
+    )
+
+    return redirect(
+        reverse("produccion:lista") + "#ahora"
+    )
+
+
+# ============================================================
 # LISTA DE PRODUCCIÓN
 # ============================================================
 
@@ -726,14 +804,16 @@ def lista_produccion(request):
         ARGENTINA_TZ,
     ).strftime("%Y-%m-%dT%H:%M")
 
-    # Telemetría recibida desde el Bambu Bridge. Se mantiene separada
-    # de la planificación manual hasta vincular cada serial con su
-    # Impresora operativa.
+    # Telemetría recibida desde el Bambu Bridge. Cuando un serial
+    # se vincula con una Impresora, el estado real se integra directamente
+    # en la tarjeta operativa de esa máquina.
     bambu_estados = list(
         ImpresoraEstadoBambu.objects
         .select_related("impresora")
         .order_by("nombre_bridge", "serial")
     )
+
+    bambu_por_impresora = {}
 
     for estado_bambu in bambu_estados:
         estado_bambu.sync_reciente = bool(
@@ -759,6 +839,24 @@ def lista_produccion(request):
                 estado_bambu.restante_texto = f"{horas} h"
             else:
                 estado_bambu.restante_texto = f"{minutos} min"
+
+        if estado_bambu.impresora_id:
+            bambu_por_impresora[
+                estado_bambu.impresora_id
+            ] = estado_bambu
+
+    for impresora in impresoras:
+        impresora.bambu_estado = (
+            bambu_por_impresora.get(
+                impresora.id
+            )
+        )
+
+    bambu_sin_vincular = [
+        estado_bambu
+        for estado_bambu in bambu_estados
+        if not estado_bambu.impresora_id
+    ]
 
     return render(
         request,
@@ -809,6 +907,7 @@ def lista_produccion(request):
             "impresoras_libres": impresoras_libres,
             "peso_faltante_texto": peso_faltante_texto,
             "bambu_estados": bambu_estados,
+            "bambu_sin_vincular": bambu_sin_vincular,
         },
     )
 
