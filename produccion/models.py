@@ -218,6 +218,40 @@ class Produccion(models.Model):
         related_name="reimpresiones",
     )
 
+    bambu_fuente_filamento = models.CharField(
+        max_length=20,
+        blank=True,
+    )
+
+    bambu_ams_id = models.SmallIntegerField(
+        null=True,
+        blank=True,
+    )
+
+    bambu_tray_id = models.SmallIntegerField(
+        null=True,
+        blank=True,
+    )
+
+    bambu_material = models.CharField(
+        max_length=80,
+        blank=True,
+    )
+
+    bambu_color_nombre = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+
+    bambu_color_hex = models.CharField(
+        max_length=9,
+        blank=True,
+    )
+
+    bambu_requiere_cambio_manual = models.BooleanField(
+        default=False,
+    )
+
     observaciones = models.TextField(
         blank=True,
     )
