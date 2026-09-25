@@ -147,3 +147,5 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-25T11:45-03 deploy control calidad alertas y base AMS
 
 2026-09-25T11:53-03 deploy visual AMS en tarjetas
+
+2026-09-25T11:58-03 deploy cancelacion fisica Bambu y bloqueo finalizar
