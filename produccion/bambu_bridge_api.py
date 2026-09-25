@@ -4,13 +4,14 @@ from datetime import datetime, timezone as dt_timezone
 
 from django.conf import settings
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import FileResponse, Http404, JsonResponse
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
 from pedidos.push import enviar_push_operativo
+from productos.models import ArchivoImpresion
 
 from .models import (
     ComandoBambu,
@@ -294,6 +295,80 @@ def _payload_push(
         "icon": "/static/brand/apple-touch-icon.png",
         "badge": "/static/brand/favicon.ico",
     }
+
+
+@csrf_exempt
+@require_GET
+def bambu_bridge_download_file(
+    request,
+    archivo_id,
+):
+    autorizado, motivo = _autorizado(
+        request
+    )
+
+    if not autorizado:
+        if motivo == "not_configured":
+            return JsonResponse(
+                {
+                    "ok": False,
+                    "detail": "Bambu bridge no configurado.",
+                },
+                status=503,
+            )
+
+        return JsonResponse(
+            {
+                "ok": False,
+                "detail": "No autorizado.",
+            },
+            status=401,
+        )
+
+    archivo = (
+        ArchivoImpresion.objects
+        .select_related("producto")
+        .filter(
+            id=archivo_id,
+        )
+        .first()
+    )
+
+    if not archivo:
+        raise Http404(
+            "Archivo de impresión inexistente."
+        )
+
+    try:
+        handle = archivo.archivo.open(
+            "rb"
+        )
+    except (FileNotFoundError, OSError):
+        raise Http404(
+            "El archivo físico no está disponible."
+        )
+
+    response = FileResponse(
+        handle,
+        as_attachment=True,
+        filename=archivo.nombre_original,
+        content_type="application/octet-stream",
+    )
+
+    response["X-DV-File-Id"] = str(
+        archivo.id
+    )
+    response["X-DV-SHA256"] = (
+        archivo.sha256
+    )
+    response["X-DV-Product-Id"] = str(
+        archivo.producto_id
+    )
+    response["X-DV-Quantity"] = str(
+        archivo.cantidad_unidades
+    )
+
+    return response
 
 
 @csrf_exempt
