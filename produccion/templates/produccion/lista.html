@@ -115,6 +115,15 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 .bambu-filament.active{border-color:var(--dv-brand-sky);box-shadow:0 0 0 2px color-mix(in srgb,var(--dv-brand-sky) 18%,transparent)}
 .bambu-filament-dot{width:12px;height:12px;border:1px solid var(--dv-border);border-radius:50%;background:var(--filament-color,var(--dv-surface-muted));box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)}
 .bambu-filament small{color:var(--dv-muted);font-size:7px;font-weight:800}
+.external-print{margin-top:11px;padding:11px;border:1px solid rgba(240,57,59,.34);border-radius:12px;background:var(--dv-brand-red-soft);color:var(--dv-text)}
+.external-print__eyebrow{font-size:8px;font-weight:900;letter-spacing:.04em;color:var(--dv-muted)}
+.external-print__job{margin-top:5px;font-size:11px;font-weight:900;overflow-wrap:anywhere}
+.external-print__match{margin-top:7px;padding:8px 9px;border:1px solid var(--dv-border);border-radius:9px;background:var(--dv-surface);font-size:8px;line-height:1.45}
+.external-print__match strong{font-size:9px}
+.external-print__form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;margin-top:9px}
+.external-print__form select{width:100%;min-height:40px;border:1px solid var(--dv-border);border-radius:10px;background:var(--dv-surface);color:var(--dv-text);padding:6px 8px;font-size:9px}
+.external-print__form .btn{min-height:40px}
+@media(max-width:720px){.external-print__form{grid-template-columns:1fr}.external-print__form .btn{width:100%}}
 .recommendation{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px;padding:12px 13px;border:1px solid #cddcef;border-radius:14px;background:#f6f9ff}
 .recommendation strong{font-size:11px}.recommendation .meta{margin-top:3px}
 
@@ -441,6 +450,12 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                 <div class="meta">
                                     {{ impresora.trabajo_actual.codigo }} · {{ impresora.trabajo_actual.tiempo_impresion_formateado }}
                                     {% if impresora.trabajo_actual.fin_estimado %}<br>Fin estimado {{ impresora.trabajo_actual.fin_estimado|date:"H:i" }}{% endif %}
+                                    {% if impresora.trabajo_actual.origen == "BAMBU_STUDIO" %}
+                                        <br>Origen: Bambu Studio
+                                        {% if impresora.trabajo_actual.archivo_impresion %}
+                                            · {{ impresora.trabajo_actual.archivo_impresion.nombre }} × {{ impresora.trabajo_actual.archivo_impresion.cantidad_unidades }}
+                                        {% endif %}
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -487,6 +502,58 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                     <input type="hidden" name="estado" value="CANCELADO">
                                     <button class="btn red" type="submit">CANCELAR</button>
                                 </form>
+                            {% endif %}
+                        </div>
+                    {% elif impresora.impresion_externa_detectada %}
+                        <div class="external-print">
+                            <div class="external-print__eyebrow">⚠ IMPRESIÓN INICIADA FUERA DE GESTIÓN</div>
+                            <div class="external-print__job">{{ impresora.bambu_estado.trabajo|default:"Trabajo Bambu sin nombre" }}</div>
+
+                            {% if impresora.archivo_externo_coincidente %}
+                                <div class="external-print__match">
+                                    <strong>Coincidencia de biblioteca encontrada</strong><br>
+                                    {{ impresora.archivo_externo_coincidente.producto.nombre }}
+                                    × {{ impresora.archivo_externo_coincidente.cantidad_unidades }}
+                                    · {{ impresora.archivo_externo_coincidente.nombre }}
+                                    {% if impresora.produccion_sugerida %}
+                                        <br>Sugerencia: {{ impresora.produccion_sugerida.codigo }}
+                                        · {{ impresora.produccion_sugerida.producto.nombre }}
+                                        × {{ impresora.produccion_sugerida.cantidad }}
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <div class="external-print__match">
+                                    No hubo coincidencia exacta con un .gcode.3mf de la biblioteca.
+                                    Podés asociarla manualmente a una producción pendiente.
+                                </div>
+                            {% endif %}
+
+                            {% if impresora.producciones_vinculables %}
+                                <form
+                                    method="post"
+                                    action="{% url 'produccion:bambu_vincular_impresion' impresora.bambu_estado.id %}"
+                                    class="external-print__form"
+                                >
+                                    {% csrf_token %}
+                                    <select name="produccion" required aria-label="Producción pendiente">
+                                        <option value="">Vincular a producción...</option>
+                                        {% for opcion in impresora.producciones_vinculables %}
+                                            {% with produccion=opcion.produccion %}
+                                            <option
+                                                value="{{ produccion.id }}"
+                                                {% if impresora.produccion_sugerida and impresora.produccion_sugerida.id == produccion.id %}selected{% endif %}
+                                            >
+                                                {% if opcion.coincidencia %}★ {% endif %}{{ produccion.codigo }} · {{ produccion.producto.nombre }} × {{ produccion.cantidad }}{% if produccion.pedido %} · {{ produccion.pedido.codigo }}{% endif %}
+                                            </option>
+                                            {% endwith %}
+                                        {% endfor %}
+                                    </select>
+                                    <button class="btn dark" type="submit">VINCULAR</button>
+                                </form>
+                            {% else %}
+                                <div class="meta" style="margin-top:8px">
+                                    No hay producciones pendientes para asociar.
+                                </div>
                             {% endif %}
                         </div>
                     {% elif impresora.siguiente_trabajo %}
@@ -713,6 +780,9 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                         {{ produccion.tiempo_impresion_formateado }}
                                         {% if produccion.fin_estimado %}<br>Fin estimado {{ produccion.fin_estimado|date:"H:i" }}{% endif %}
                                         {% if produccion.pedido %}<br>{{ produccion.pedido.codigo }} · {{ produccion.pedido.cliente.nombre }}{% endif %}
+                                        {% if produccion.origen == "BAMBU_STUDIO" %}
+                                            <br>Origen: Bambu Studio{% if produccion.bambu_trabajo %} · {{ produccion.bambu_trabajo }}{% endif %}
+                                        {% endif %}
                                         {% if produccion.reimpresion_de %}
                                             <br>↻ Reimpresión de {{ produccion.reimpresion_de.codigo }}
                                             {% if produccion.bambu_material or produccion.bambu_color_nombre %}
