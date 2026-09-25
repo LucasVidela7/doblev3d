@@ -2070,6 +2070,7 @@ def accion_rapida_necesidad(request):
     impresora = None
     estado = "PENDIENTE"
     inicio = timezone.now()
+    estado_bambu_inicio = None
 
     if accion == "INICIAR":
         impresora_id = (
@@ -2119,7 +2120,19 @@ def accion_rapida_necesidad(request):
                 reverse("produccion:lista") + "#ahora"
             )
 
-        estado = "IMPRIMIENDO"
+        estado_bambu_inicio = (
+            ImpresoraEstadoBambu.objects
+            .filter(
+                impresora=impresora,
+            )
+            .first()
+        )
+
+        estado = (
+            "PENDIENTE"
+            if estado_bambu_inicio
+            else "IMPRIMIENDO"
+        )
     elif accion != "PLANIFICAR":
         messages.error(
             request,
@@ -2144,6 +2157,45 @@ def accion_rapida_necesidad(request):
         ),
         observaciones=observaciones,
     )
+
+    if (
+        accion == "INICIAR"
+        and estado_bambu_inicio
+    ):
+        try:
+            _encolar_print_bambu(
+                produccion=produccion,
+                impresora=impresora,
+                seleccion_filamento=(
+                    request.POST.get(
+                        "filamento",
+                        "",
+                    )
+                ),
+            )
+        except ValueError as error:
+            produccion.delete()
+            messages.error(
+                request,
+                str(error),
+            )
+            return redirect(
+                reverse("produccion:lista")
+                + "#prod-necesidad"
+            )
+
+        messages.success(
+            request,
+            (
+                f"{produccion.codigo} quedó solicitada "
+                f"para {impresora.nombre}. "
+                "Se marcará IMPRIMIENDO cuando la A1 "
+                "confirme el inicio."
+            ),
+        )
+        return redirect(
+            reverse("produccion:lista") + "#prod-cola"
+        )
 
     if estado == "IMPRIMIENDO":
         messages.success(
