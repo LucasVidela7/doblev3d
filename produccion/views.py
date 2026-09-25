@@ -938,6 +938,21 @@ def lista_produccion(request):
 
     bambu_por_impresora = {}
 
+    producciones_vinculables_base = list(
+        Produccion.objects
+        .filter(estado="PENDIENTE")
+        .select_related(
+            "producto",
+            "impresora",
+            "pedido",
+            "pedido__cliente",
+        )
+        .order_by(
+            "inicio_impresion",
+            "id",
+        )
+    )
+
     for estado_bambu in bambu_estados:
         estado_bambu.sync_reciente = bool(
             estado_bambu.ultimo_contacto
@@ -1086,6 +1101,11 @@ def lista_produccion(request):
                 impresora.id
             )
         )
+        impresora.impresion_externa_detectada = False
+        impresora.archivo_externo_coincidente = None
+        impresora.produccion_sugerida = None
+        impresora.producciones_vinculables = []
+        impresora.ocupada_fisicamente = False
 
         bambu = impresora.bambu_estado
         if not bambu:
@@ -1170,6 +1190,73 @@ def lista_produccion(request):
         gestion_imprimiendo = (
             impresora.trabajo_actual is not None
         )
+
+        impresora.ocupada_fisicamente = (
+            bambu.esta_imprimiendo
+        )
+
+        if (
+            bambu.esta_imprimiendo
+            and not gestion_imprimiendo
+        ):
+            impresora.impresion_externa_detectada = True
+            impresora.esta_libre = False
+
+            archivo_coincidente = (
+                _archivo_impresion_coincidente(
+                    bambu.trabajo
+                )
+            )
+            impresora.archivo_externo_coincidente = (
+                archivo_coincidente
+            )
+
+            opciones = []
+
+            for pendiente in producciones_vinculables_base:
+                coincide_archivo = bool(
+                    archivo_coincidente
+                    and pendiente.producto_id
+                    == archivo_coincidente.producto_id
+                    and int(pendiente.cantidad or 0)
+                    == int(
+                        archivo_coincidente.cantidad_unidades
+                        or 0
+                    )
+                )
+
+                opciones.append(
+                    {
+                        "produccion": pendiente,
+                        "coincidencia": coincide_archivo,
+                    }
+                )
+
+            opciones.sort(
+                key=lambda item: (
+                    0
+                    if item["coincidencia"]
+                    else 1,
+                    item["produccion"].inicio_impresion
+                    or ahora,
+                    item["produccion"].id,
+                )
+            )
+
+            impresora.producciones_vinculables = (
+                opciones[:40]
+            )
+
+            sugeridas = [
+                item["produccion"]
+                for item in opciones
+                if item["coincidencia"]
+            ]
+
+            if sugeridas:
+                impresora.produccion_sugerida = (
+                    sugeridas[0]
+                )
 
         if (
             bambu.esta_imprimiendo
@@ -1258,6 +1345,17 @@ def lista_produccion(request):
         for estado_bambu in bambu_estados
         if not estado_bambu.impresora_id
     ]
+
+    # La telemetría física también define si una máquina está realmente
+    # disponible, aunque la impresión se haya iniciado desde Bambu Studio.
+    impresoras_libres_lista = [
+        impresora
+        for impresora in impresoras
+        if impresora.esta_libre
+    ]
+    impresoras_libres = len(
+        impresoras_libres_lista
+    )
 
     return render(
         request,
