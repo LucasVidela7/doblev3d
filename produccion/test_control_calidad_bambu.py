@@ -8,6 +8,7 @@ from django.urls import reverse
 from productos.models import Producto, TipoProducto
 
 from .models import (
+    ComandoBambu,
     ConfiguracionProduccion,
     Impresora,
     ImpresoraEstadoBambu,
@@ -84,6 +85,200 @@ class ControlCalidadBambuTests(TestCase):
             HTTP_AUTHORIZATION=(
                 "Bearer test-bridge-token"
             ),
+        )
+
+
+    def test_cancelar_desde_gestion_encola_stop_sin_cancelar_stock(self):
+        usuario = get_user_model().objects.create_user(
+            username="cancel-test",
+            password="test-pass",
+        )
+        self.client.force_login(usuario)
+
+        respuesta = self.client.post(
+            reverse(
+                "produccion:cancelar_bambu",
+                args=[self.produccion.id],
+            )
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            302,
+        )
+
+        self.produccion.refresh_from_db()
+
+        self.assertEqual(
+            self.produccion.estado,
+            "IMPRIMIENDO",
+        )
+        self.assertEqual(
+            self.produccion.evento_fin_bambu,
+            "CANCELACION_SOLICITADA",
+        )
+
+        comando = ComandoBambu.objects.get(
+            produccion=self.produccion
+        )
+        self.assertEqual(
+            comando.tipo,
+            "STOP",
+        )
+        self.assertEqual(
+            comando.estado,
+            "PENDIENTE",
+        )
+
+    def test_sync_entrega_stop_y_confirma_resultado(self):
+        comando = ComandoBambu.objects.create(
+            tipo="STOP",
+            impresora_estado=self.estado_bambu,
+            produccion=self.produccion,
+        )
+        self.produccion.evento_fin_bambu = (
+            "CANCELACION_SOLICITADA"
+        )
+        self.produccion.save(
+            update_fields=["evento_fin_bambu"]
+        )
+
+        respuesta = self._sync(
+            "RUNNING",
+            remaining=30,
+            progress=50,
+        )
+        data = respuesta.json()
+
+        self.assertEqual(
+            len(data["commands"]),
+            1,
+        )
+        self.assertEqual(
+            data["commands"][0]["type"],
+            "STOP",
+        )
+        self.assertEqual(
+            data["commands"][0]["command_id"],
+            str(comando.id_comando),
+        )
+
+        payload = {
+            "printers": [
+                {
+                    "name": "A1-TEST",
+                    "connected": True,
+                    "ip": "192.168.1.36",
+                    "serial": "SERIAL-CONTROL-1",
+                    "status": "RUNNING",
+                    "progress": 50,
+                    "remaining_minutes": 30,
+                    "job_name": "pieza.3mf",
+                    "nozzle_temp": 220,
+                    "bed_temp": 65,
+                    "wifi": "-55dBm",
+                    "last_update": 1790344318.45,
+                }
+            ],
+            "command_results": [
+                {
+                    "command_id": str(
+                        comando.id_comando
+                    ),
+                    "ok": True,
+                }
+            ],
+        }
+
+        respuesta = self.client.post(
+            reverse("bambu_bridge_sync"),
+            data=json.dumps(payload),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=(
+                "Bearer test-bridge-token"
+            ),
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            200,
+        )
+
+        comando.refresh_from_db()
+        self.produccion.refresh_from_db()
+
+        self.assertEqual(
+            comando.estado,
+            "EJECUTADO",
+        )
+        self.assertEqual(
+            self.produccion.evento_fin_bambu,
+            "CANCELACION_ENVIADA",
+        )
+
+    @patch(
+        "produccion.bambu_bridge_api.enviar_push_operativo"
+    )
+    def test_impresora_detenida_confirma_cancelacion(
+        self,
+        push_mock,
+    ):
+        self.produccion.evento_fin_bambu = (
+            "CANCELACION_ENVIADA"
+        )
+        self.produccion.save(
+            update_fields=["evento_fin_bambu"]
+        )
+
+        self._sync(
+            "FAILED",
+            remaining=0,
+            progress=50,
+        )
+
+        self.produccion.refresh_from_db()
+        self.producto.refresh_from_db()
+
+        self.assertEqual(
+            self.produccion.estado,
+            "CANCELADO",
+        )
+        self.assertEqual(
+            self.producto.stock,
+            0,
+        )
+        self.assertFalse(
+            self.produccion.ingresado_stock,
+        )
+        push_mock.assert_called_once()
+
+    def test_no_permite_finalizar_si_a1_sigue_imprimiendo(self):
+        usuario = get_user_model().objects.create_user(
+            username="finalizar-activo-test",
+            password="test-pass",
+        )
+        self.client.force_login(usuario)
+
+        respuesta = self.client.post(
+            reverse(
+                "produccion:cambiar_estado",
+                args=[self.produccion.id],
+            ),
+            {
+                "estado": "CONTROL",
+            },
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            302,
+        )
+
+        self.produccion.refresh_from_db()
+
+        self.assertEqual(
+            self.produccion.estado,
+            "IMPRIMIENDO",
         )
 
     @patch(
