@@ -1122,6 +1122,92 @@ def lista_produccion(request):
             ) <= timedelta(minutes=2)
         )
 
+        payload_bambu = (
+            estado_bambu.payload
+            if isinstance(
+                estado_bambu.payload,
+                dict,
+            )
+            else {}
+        )
+        estado_codigo = (
+            estado_bambu.estado or ""
+        ).strip().upper()
+
+        etiquetas_estado = {
+            "PREPARE": ("PREPARANDO", "busy"),
+            "RUNNING": ("IMPRIMIENDO", "busy"),
+            "PAUSE": ("PAUSADA", "medium"),
+            "FINISH": ("FINALIZADA", "free"),
+            "COMPLETED": ("FINALIZADA", "free"),
+            "SUCCESS": ("FINALIZADA", "free"),
+            "IDLE": ("DISPONIBLE", "free"),
+            "FAILED": ("ERROR", "high"),
+            "CANCELLED": ("CANCELADA", "medium"),
+            "CANCELED": ("CANCELADA", "medium"),
+        }
+
+        if not estado_bambu.sync_reciente:
+            estado_bambu.estado_texto = "SIN DATOS"
+            estado_bambu.estado_clase = "medium"
+        elif not estado_bambu.conectada:
+            estado_bambu.estado_texto = "DESCONECTADA"
+            estado_bambu.estado_clase = "high"
+        else:
+            (
+                estado_bambu.estado_texto,
+                estado_bambu.estado_clase,
+            ) = etiquetas_estado.get(
+                estado_codigo,
+                (
+                    estado_codigo or "DISPONIBLE",
+                    "free",
+                ),
+            )
+
+        print_error = payload_bambu.get(
+            "print_error"
+        )
+        fail_reason = str(
+            payload_bambu.get("fail_reason")
+            or ""
+        ).strip()
+
+        estado_bambu.tiene_error = (
+            print_error not in {
+                None,
+                "",
+                0,
+                "0",
+            }
+            or bool(fail_reason)
+            or estado_codigo == "FAILED"
+        )
+
+        partes_error = []
+        if print_error not in {
+            None,
+            "",
+            0,
+            "0",
+        }:
+            partes_error.append(
+                f"Código {print_error}"
+            )
+        if fail_reason:
+            partes_error.append(
+                fail_reason
+            )
+
+        estado_bambu.error_texto = (
+            " · ".join(partes_error)
+            or (
+                "La impresora informó un error."
+                if estado_bambu.tiene_error
+                else ""
+            )
+        )
+
         estado_bambu.ams_slots = []
         estado_bambu.carrete_externo_info = None
 
