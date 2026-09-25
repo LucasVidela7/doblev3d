@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from pedidos.models import Pedido
-from productos.archivos_impresion import _analizar_gcode_3mf, _archivo_fisico_disponible, _desmarcar_predeterminado, _guardar_archivo_impresion, _nombre_base
+from productos.archivos_impresion import _analizar_gcode_3mf, _archivo_fisico_disponible, _desmarcar_predeterminado, _guardar_archivo_impresion, _nombre_base, completar_metadata_gcode
 from productos.models import ArchivoImpresion, ConfiguracionCatalogo, Producto, detalle_color_catalogo
 from productos.miniaturas import asignar_miniaturas_productos
 
@@ -241,6 +241,87 @@ def _color_bambu_css(valor):
         return ""
 
     return f"#{limpio.upper()}"
+
+
+def _formatear_peso_gramos(valor):
+    try:
+        valor = float(
+            valor or 0
+        )
+    except (TypeError, ValueError):
+        valor = 0
+
+    if valor <= 0:
+        return "Sin peso estimado"
+
+    if valor >= 1000:
+        return (
+            f"{valor / 1000:.2f}"
+            .rstrip("0")
+            .rstrip(".")
+            + " kg"
+        )
+
+    return (
+        f"{valor:.0f} g"
+        if abs(valor - round(valor)) < 0.01
+        else f"{valor:.1f} g"
+    )
+
+
+def _preparar_resumen_operativo(produccion):
+    archivo = getattr(
+        produccion,
+        "archivo_impresion",
+        None,
+    )
+
+    if archivo:
+        completar_metadata_gcode(
+            archivo
+        )
+
+    tiempo = (
+        archivo.tiempo_estimado_minutos
+        if (
+            archivo
+            and archivo.tiempo_estimado_minutos
+        )
+        else produccion.tiempo_impresion_minutos
+    )
+
+    if (
+        archivo
+        and archivo.peso_estimado_gramos
+        is not None
+    ):
+        peso = archivo.peso_estimado_gramos
+    else:
+        peso = (
+            float(
+                getattr(
+                    produccion.producto,
+                    "peso_gramos",
+                    0,
+                )
+                or 0
+            )
+            * int(
+                produccion.cantidad
+                or 0
+            )
+        )
+
+    produccion.tiempo_operativo_texto = (
+        _formatear_minutos(
+            tiempo
+        )
+    )
+    produccion.peso_operativo_texto = (
+        _formatear_peso_gramos(
+            peso
+        )
+    )
 
 
 def _formatear_minutos(total):
@@ -887,6 +968,16 @@ def lista_produccion(request):
             "id",
         )
     )
+
+    for produccion in cola_pendiente:
+        _preparar_resumen_operativo(
+            produccion
+        )
+
+    for produccion in trabajos_imprimiendo_lista:
+        _preparar_resumen_operativo(
+            produccion
+        )
 
     historial_reciente = list(
         Produccion.objects
