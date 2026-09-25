@@ -21,12 +21,8 @@ def webpush_habilitado():
     )
 
 
-def enviar_push(payload):
+def _enviar_push_suscripciones(payload):
     if not webpush_habilitado():
-        return 0
-
-    config = ConfiguracionCatalogo.objects.first()
-    if config and not config.notificaciones_pedidos_web_activas:
         return 0
 
     enviados = 0
@@ -81,6 +77,22 @@ def enviar_push(payload):
             )
 
     return enviados
+
+
+def enviar_push(payload):
+    config = ConfiguracionCatalogo.objects.first()
+    if config and not config.notificaciones_pedidos_web_activas:
+        return 0
+
+    return _enviar_push_suscripciones(payload)
+
+
+def enviar_push_operativo(payload):
+    """
+    Avisos internos de Gestión (producción, impresoras, etc.).
+    No dependen del switch de pedidos web.
+    """
+    return _enviar_push_suscripciones(payload)
 
 
 def notificar_nueva_solicitud_web(solicitud_id):
