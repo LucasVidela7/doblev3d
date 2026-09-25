@@ -652,7 +652,7 @@ def cambiar_activo(
             ArchivoImpresion.objects
             .filter(
                 producto_id=producto_id,
-                cantidad_unidades=cantidad_unidades,
+                cantidad_unidades=registro.cantidad_unidades,
                 activo=True,
                 predeterminado=True,
             )
