@@ -13,7 +13,7 @@ from pedidos.models import Pedido
 from productos.models import Producto
 from productos.miniaturas import asignar_miniaturas_productos
 
-from .models import Impresora, ImpresoraEstadoBambu, Produccion
+from .models import ComandoBambu, Impresora, ImpresoraEstadoBambu, Produccion
 
 
 ARGENTINA_TZ = ZoneInfo("America/Argentina/Buenos_Aires")
@@ -1014,6 +1014,9 @@ def lista_produccion(request):
             impresora.bambu_coherencia_texto = (
                 "Sin telemetría Bambu vinculada."
             )
+            impresora.cancelacion_pendiente = False
+            impresora.puede_finalizar_manual = True
+            impresora.puede_cancelar_bambu = False
             continue
 
         if not bambu.sync_reciente:
@@ -1021,6 +1024,18 @@ def lista_produccion(request):
             impresora.bambu_coherencia_texto = (
                 "Esperando una sincronización reciente."
             )
+            impresora.cancelacion_pendiente = (
+                ComandoBambu.objects.filter(
+                    impresora_estado=bambu,
+                    produccion=impresora.trabajo_actual,
+                    tipo="STOP",
+                    estado="PENDIENTE",
+                ).exists()
+                if impresora.trabajo_actual
+                else False
+            )
+            impresora.puede_finalizar_manual = False
+            impresora.puede_cancelar_bambu = False
             continue
 
         if not bambu.conectada:
@@ -1028,6 +1043,18 @@ def lista_produccion(request):
             impresora.bambu_coherencia_texto = (
                 "La Raspberry no ve esta A1 conectada."
             )
+            impresora.cancelacion_pendiente = (
+                ComandoBambu.objects.filter(
+                    impresora_estado=bambu,
+                    produccion=impresora.trabajo_actual,
+                    tipo="STOP",
+                    estado="PENDIENTE",
+                ).exists()
+                if impresora.trabajo_actual
+                else False
+            )
+            impresora.puede_finalizar_manual = False
+            impresora.puede_cancelar_bambu = False
             continue
 
         estado_fisico = (
@@ -1039,6 +1066,27 @@ def lista_produccion(request):
             "PAUSE",
             "PREPARE",
         }
+
+        impresora.cancelacion_pendiente = (
+            ComandoBambu.objects.filter(
+                impresora_estado=bambu,
+                produccion=impresora.trabajo_actual,
+                tipo="STOP",
+                estado="PENDIENTE",
+            ).exists()
+            if impresora.trabajo_actual
+            else False
+        )
+        impresora.puede_finalizar_manual = (
+            not bambu.esta_imprimiendo
+        )
+        impresora.puede_cancelar_bambu = (
+            bambu.sync_reciente
+            and bambu.conectada
+            and bambu.esta_imprimiendo
+            and impresora.trabajo_actual is not None
+            and not impresora.cancelacion_pendiente
+        )
 
         gestion_imprimiendo = (
             impresora.trabajo_actual is not None
@@ -2016,6 +2064,154 @@ def repetir_produccion(
 
 
 # ============================================================
+# CANCELAR IMPRESIÓN FÍSICA EN BAMBU
+# ============================================================
+
+@transaction.atomic
+def cancelar_produccion_bambu(
+    request,
+    produccion_id,
+):
+    if request.method != "POST":
+        return redirect(
+            "produccion:lista"
+        )
+
+    produccion = get_object_or_404(
+        Produccion.objects
+        .select_for_update(of=("self",))
+        .select_related(
+            "impresora",
+            "producto",
+        ),
+        id=produccion_id,
+        estado="IMPRIMIENDO",
+    )
+
+    if not produccion.impresora_id:
+        messages.error(
+            request,
+            "La producción no tiene una impresora asignada.",
+        )
+        return redirect(
+            reverse("produccion:lista") + "#ahora"
+        )
+
+    estado_bambu = (
+        ImpresoraEstadoBambu.objects
+        .select_for_update()
+        .filter(
+            impresora_id=produccion.impresora_id,
+        )
+        .first()
+    )
+
+    if not estado_bambu:
+        messages.error(
+            request,
+            (
+                "Esta impresora no está vinculada al Bambu Bridge. "
+                "No se puede interrumpir físicamente desde Gestión."
+            ),
+        )
+        return redirect(
+            reverse("produccion:lista") + "#ahora"
+        )
+
+    sync_reciente = bool(
+        estado_bambu.ultimo_contacto
+        and (
+            timezone.now()
+            - estado_bambu.ultimo_contacto
+        ) <= timedelta(minutes=2)
+    )
+
+    estado_fisico = (
+        estado_bambu.estado or ""
+    ).strip().upper()
+
+    if (
+        not sync_reciente
+        or not estado_bambu.conectada
+    ):
+        messages.error(
+            request,
+            (
+                "No hay telemetría reciente de la A1. "
+                "No se envió ninguna orden de cancelación."
+            ),
+        )
+        return redirect(
+            reverse("produccion:lista") + "#ahora"
+        )
+
+    if estado_fisico not in {
+        "RUNNING",
+        "PAUSE",
+        "PREPARE",
+    }:
+        messages.error(
+            request,
+            (
+                "La A1 ya no figura imprimiendo. "
+                "Actualizá la pantalla antes de cancelar."
+            ),
+        )
+        return redirect(
+            reverse("produccion:lista") + "#ahora"
+        )
+
+    comando_existente = (
+        ComandoBambu.objects
+        .filter(
+            impresora_estado=estado_bambu,
+            produccion=produccion,
+            tipo="STOP",
+            estado="PENDIENTE",
+        )
+        .first()
+    )
+
+    if comando_existente:
+        messages.info(
+            request,
+            "La cancelación ya está solicitada.",
+        )
+        return redirect(
+            reverse("produccion:lista") + "#ahora"
+        )
+
+    ComandoBambu.objects.create(
+        tipo="STOP",
+        impresora_estado=estado_bambu,
+        produccion=produccion,
+    )
+
+    produccion.evento_fin_bambu = (
+        "CANCELACION_SOLICITADA"
+    )
+    produccion.save(
+        update_fields=[
+            "evento_fin_bambu",
+        ]
+    )
+
+    messages.warning(
+        request,
+        (
+            f"Cancelación solicitada para "
+            f"{produccion.impresora.nombre}. "
+            "La Raspberry interrumpirá la impresión "
+            "en el próximo sync."
+        ),
+    )
+
+    return redirect(
+        reverse("produccion:lista") + "#ahora"
+    )
+
+
+# ============================================================
 # CONTROL DE CALIDAD POST IMPRESIÓN
 # ============================================================
 
@@ -2163,6 +2359,62 @@ def cambiar_estado(
         return redirect(
             "produccion:lista"
         )
+
+    if (
+        nuevo_estado == "CONTROL"
+        and produccion.estado == "IMPRIMIENDO"
+        and produccion.impresora_id
+    ):
+        estado_bambu = (
+            ImpresoraEstadoBambu.objects
+            .filter(
+                impresora_id=produccion.impresora_id,
+            )
+            .first()
+        )
+
+        if estado_bambu:
+            sync_reciente = bool(
+                estado_bambu.ultimo_contacto
+                and (
+                    timezone.now()
+                    - estado_bambu.ultimo_contacto
+                ) <= timedelta(minutes=2)
+            )
+            estado_fisico = (
+                estado_bambu.estado or ""
+            ).strip().upper()
+
+            if (
+                not sync_reciente
+                or not estado_bambu.conectada
+            ):
+                messages.error(
+                    request,
+                    (
+                        "No se puede pasar a revisión sin "
+                        "telemetría reciente de la impresora."
+                    ),
+                )
+                return redirect(
+                    reverse("produccion:lista") + "#ahora"
+                )
+
+            if estado_fisico in {
+                "RUNNING",
+                "PAUSE",
+                "PREPARE",
+            }:
+                messages.error(
+                    request,
+                    (
+                        "La A1 todavía está imprimiendo. "
+                        "Esperá a que finalice o cancelá la impresión."
+                    ),
+                )
+                return redirect(
+                    reverse("produccion:lista") + "#ahora"
+                )
 
     # La transición planificada a IMPRIMIENDO se hace
     # por el botón específico, para validar horario y máquina.
