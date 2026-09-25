@@ -3,13 +3,35 @@ import json
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from .models import ImpresoraEstadoBambu
+from productos.models import ArchivoImpresion, Producto, TipoProducto
+
+from .models import (
+    ComandoBambu,
+    Impresora,
+    ImpresoraEstadoBambu,
+    Produccion,
+)
 
 
 @override_settings(
     BAMBU_BRIDGE_TOKEN="test-bridge-token",
 )
 class BambuBridgeSyncTests(TestCase):
+    def setUp(self):
+        tipo = TipoProducto.objects.create(
+            nombre="Tipo Bambu test",
+        )
+        self.producto = Producto.objects.create(
+            nombre="Producto Bambu test",
+            categoria="PRODUCTO",
+            tipo=tipo,
+            requiere_impresion=True,
+            activo=True,
+        )
+        self.impresora = Impresora.objects.create(
+            nombre="A1 Gestión test",
+        )
+
     def _payload(self):
         return {
             "bridge_id": "doblev3d-bambu",
@@ -110,4 +132,158 @@ class BambuBridgeSyncTests(TestCase):
         self.assertEqual(
             ImpresoraEstadoBambu.objects.get().progreso,
             34,
+        )
+
+
+    def test_sync_entrega_payload_print_con_archivo_y_filamento(self):
+        estado = ImpresoraEstadoBambu.objects.create(
+            impresora=self.impresora,
+            serial="03919D483100208",
+            nombre_bridge="A1-40",
+            conectada=True,
+            estado="FINISH",
+        )
+        archivo = ArchivoImpresion.objects.create(
+            producto=self.producto,
+            nombre="Archivo test",
+            cantidad_unidades=1,
+            archivo="productos/P0001/test.gcode.3mf",
+            nombre_original="test.gcode.3mf",
+            tamano_bytes=98765,
+            sha256="b" * 64,
+            placas=[1],
+            activo=True,
+            predeterminado=True,
+        )
+        produccion = Produccion.objects.create(
+            producto=self.producto,
+            cantidad=1,
+            impresora=self.impresora,
+            estado="PENDIENTE",
+            archivo_impresion=archivo,
+            bambu_fuente_filamento="AMS",
+            bambu_ams_id=0,
+            bambu_tray_id=2,
+        )
+        comando = ComandoBambu.objects.create(
+            tipo="PRINT",
+            impresora_estado=estado,
+            produccion=produccion,
+            trabajo_bambu_esperado=(
+                f"DV_{produccion.codigo}_"
+                f"{archivo.sha256[:8]}.gcode.3mf"
+            ),
+        )
+
+        payload = self._payload()
+        payload["printers"][0]["status"] = "FINISH"
+        payload["printers"][0]["job_name"] = ""
+
+        respuesta = self.client.post(
+            reverse("bambu_bridge_sync"),
+            data=json.dumps(payload),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=(
+                "Bearer test-bridge-token"
+            ),
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            200,
+        )
+
+        data = respuesta.json()
+        self.assertEqual(
+            len(data["commands"]),
+            1,
+        )
+
+        item = data["commands"][0]
+
+        self.assertEqual(
+            item["command_id"],
+            str(comando.id_comando),
+        )
+        self.assertEqual(
+            item["type"],
+            "PRINT",
+        )
+        self.assertEqual(
+            item["file_sha256"],
+            archivo.sha256,
+        )
+        self.assertEqual(
+            item["file_size_bytes"],
+            archivo.tamano_bytes,
+        )
+        self.assertEqual(
+            item["plate"],
+            1,
+        )
+        self.assertTrue(
+            item["use_ams"],
+        )
+        self.assertEqual(
+            item["ams_mapping"],
+            [2, -1, -1, -1, -1],
+        )
+
+    def test_telemetria_promueve_print_confirmado_a_imprimiendo(self):
+        estado = ImpresoraEstadoBambu.objects.create(
+            impresora=self.impresora,
+            serial="03919D483100208",
+            nombre_bridge="A1-40",
+            conectada=True,
+            estado="FINISH",
+        )
+        produccion = Produccion.objects.create(
+            producto=self.producto,
+            cantidad=1,
+            impresora=self.impresora,
+            estado="PENDIENTE",
+            bambu_trabajo="DV_PRD0001_test.gcode.3mf",
+        )
+        ComandoBambu.objects.create(
+            tipo="PRINT",
+            estado="EJECUTADO",
+            impresora_estado=estado,
+            produccion=produccion,
+            trabajo_bambu_esperado=(
+                "DV_PRD0001_test.gcode.3mf"
+            ),
+        )
+
+        payload = self._payload()
+        payload["printers"][0]["status"] = "RUNNING"
+        payload["printers"][0]["job_name"] = (
+            "DV_PRD0001_test.gcode.3mf"
+        )
+
+        respuesta = self.client.post(
+            reverse("bambu_bridge_sync"),
+            data=json.dumps(payload),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=(
+                "Bearer test-bridge-token"
+            ),
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            200,
+        )
+
+        produccion.refresh_from_db()
+
+        self.assertEqual(
+            produccion.estado,
+            "IMPRIMIENDO",
+        )
+        self.assertIsNotNone(
+            produccion.inicio_impresion,
+        )
+        self.assertEqual(
+            produccion.bambu_trabajo,
+            "DV_PRD0001_test.gcode.3mf",
         )
