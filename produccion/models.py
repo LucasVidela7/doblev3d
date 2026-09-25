@@ -1,3 +1,4 @@
+import uuid
 from datetime import timedelta
 from decimal import Decimal
 
@@ -391,6 +392,7 @@ class ComandoBambu(models.Model):
     ]
 
     id_comando = models.UUIDField(
+        default=uuid.uuid4,
         unique=True,
         editable=False,
     )
