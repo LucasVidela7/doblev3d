@@ -1346,182 +1346,458 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 
 <script>
 (function(){
-    const destino=document.getElementById('manual-destino');
-    const pedido=document.getElementById('manual-pedido-wrap');
-    function sync(){
-        if(!destino||!pedido)return;
-        pedido.style.display=destino.value==='PEDIDO'?'block':'none';
-    }
-    if(destino){destino.addEventListener('change',sync);sync();}
-
-    const gcodeDialog=document.getElementById('gcodeProductionDialog');
-    const gcodeForm=document.getElementById('gcodeProductionForm');
-    const gcodeClose=document.getElementById('gcodeProductionClose');
-    const gcodeCode=document.getElementById('gcodeProductionCode');
-    const gcodeJob=document.getElementById('gcodeProductionJob');
-    const gcodeCurrent=document.getElementById('gcodeProductionCurrent');
-    const gcodeFile=document.getElementById('gcodeProductionFile');
-    const gcodeVersion=document.getElementById('gcodeProductionVersion');
-    const gcodeProfile=document.getElementById('gcodeProductionProfile');
-    const gcodeNotes=document.getElementById('gcodeProductionNotes');
-
-    document.querySelectorAll('[data-gcode-open]').forEach(function(button){
-        button.addEventListener('click',function(){
-            if(!gcodeDialog||!gcodeForm)return;
-
-            gcodeForm.action=button.dataset.gcodeUrl||'';
-
-            if(gcodeCode){
-                gcodeCode.textContent=button.dataset.gcodeCode||'Producción';
-            }
-
-            if(gcodeJob){
-                gcodeJob.textContent=button.dataset.gcodeJob||'Producto × cantidad';
-            }
-
-            const current=(button.dataset.gcodeCurrent||'').trim();
-
-            if(gcodeCurrent){
-                gcodeCurrent.textContent=current
-                    ? 'Actual: '+current
-                    : 'Sin G-code asociado actualmente.';
-            }
-
-            if(gcodeVersion){
-                gcodeVersion.value=button.dataset.gcodeVersion||'';
-            }
-
-            if(gcodeProfile){
-                gcodeProfile.value=button.dataset.gcodeProfile||'';
-            }
-
-            if(gcodeNotes){
-                gcodeNotes.value='';
-            }
-
-            if(gcodeFile){
-                gcodeFile.value='';
-            }
-
-            gcodeDialog.showModal();
-        });
-    });
-
-    if(gcodeClose){
-        gcodeClose.addEventListener('click',function(){
-            gcodeDialog?.close();
-        });
+    function byId(id){
+        return document.getElementById(id);
     }
 
-    if(gcodeDialog){
-        gcodeDialog.addEventListener('click',function(event){
-            if(event.target===gcodeDialog){
-                gcodeDialog.close();
+    function closeDialog(id){
+        const dialog=byId(id);
+        if(dialog?.open)dialog.close();
+    }
+
+    function resetPageLoader(){
+        const loader=byId("dvPageLoader");
+        if(!loader)return;
+        loader.classList.remove("is-visible");
+        loader.setAttribute("aria-hidden","true");
+    }
+
+    function showReturnedMessages(doc){
+        doc.querySelectorAll(".dv-django-messages [data-dv-toast]").forEach(function(node){
+            const type=(node.dataset.dvToastType||"info").toLowerCase();
+            const message=(node.textContent||"").trim();
+            if(!message)return;
+
+            const toast=window.DVToast;
+            if(!toast)return;
+
+            if(type.includes("error")){
+                toast.error?.(message);
+            }else if(type.includes("success")){
+                toast.success?.(message);
+            }else if(type.includes("warning")){
+                toast.warning?.(message);
+            }else{
+                toast.info?.(message);
             }
         });
     }
 
-    const reprintDialog=document.getElementById('bambuReprintDialog');
-    const reprintForm=document.getElementById('bambuReprintForm');
-    const reprintClose=document.getElementById('bambuReprintClose');
-    const reprintCode=document.getElementById('bambuReprintCode');
-    const reprintJob=document.getElementById('bambuReprintJob');
-    const reprintPrinter=document.getElementById('bambuReprintPrinter');
-    const reprintFilament=document.getElementById('bambuReprintFilament');
-    const reprintManual=document.getElementById('bambuReprintManual');
-    const reprintManualColor=document.getElementById('bambuReprintColor');
+    function replaceNodeFromDocument(doc,id){
+        const current=byId(id);
+        const next=doc.getElementById(id);
+        if(current&&next){
+            current.replaceWith(next.cloneNode(true));
+        }
+    }
 
-    const filamentOptions = reprintFilament
-        ? Array.from(reprintFilament.querySelectorAll('option[data-printer]'))
-        : [];
+    function focusModifiedPlanning(options){
+        const productionId=String(options?.productionId||"").trim();
+        const productId=String(options?.productId||"").trim();
+
+        let target=null;
+
+        if(productionId){
+            target=document.querySelector(
+                '#flujo-produccion [data-production-id="'+CSS.escape(productionId)+'"]'
+            )||document.querySelector(
+                '#ahora [data-production-id="'+CSS.escape(productionId)+'"]'
+            );
+        }
+
+        if(!target&&productId){
+            const candidates=Array.from(
+                document.querySelectorAll(
+                    '#prod-cola [data-product-id="'+CSS.escape(productId)+'"]'
+                )
+            );
+            target=candidates[candidates.length-1]||document.querySelector(
+                '#prod-necesidad [data-product-id="'+CSS.escape(productId)+'"]'
+            );
+        }
+
+        if(!target){
+            target=byId("flujo-produccion");
+        }
+
+        if(target){
+            target.scrollIntoView({
+                behavior:"smooth",
+                block:"center",
+                inline:"nearest"
+            });
+
+            target.classList.add("production-focus");
+            window.setTimeout(function(){
+                target.classList.remove("production-focus");
+            },1400);
+        }
+    }
+
+    function refreshFromHtml(html,focus){
+        const doc=new DOMParser().parseFromString(html,"text/html");
+
+        showReturnedMessages(doc);
+
+        [
+            "ahora",
+            "flujo-produccion",
+            "startProductionDialog",
+            "gcodeProductionDialog",
+            "bambuReprintDialog",
+            "bambuCancelDialog"
+        ].forEach(function(id){
+            replaceNodeFromDocument(doc,id);
+        });
+
+        resetPageLoader();
+
+        window.requestAnimationFrame(function(){
+            focusModifiedPlanning(focus||{});
+        });
+    }
+
+    async function submitProductionForm(form,submitter){
+        if(form.dataset.submitting==="1")return;
+
+        form.dataset.submitting="1";
+
+        const buttons=Array.from(
+            form.querySelectorAll('button[type="submit"],input[type="submit"]')
+        );
+        buttons.forEach(function(button){
+            button.disabled=true;
+        });
+
+        const formData=new FormData(form);
+
+        if(submitter?.name){
+            formData.set(
+                submitter.name,
+                submitter.value||""
+            );
+        }
+
+        const card=form.closest("[data-production-id]");
+        const productionId=(
+            form.dataset.focusProduction
+            ||card?.dataset.productionId
+            ||""
+        );
+        const productId=(
+            form.dataset.focusProduct
+            ||card?.dataset.productId
+            ||form.querySelector('[name="producto"]')?.value
+            ||""
+        );
+
+        try{
+            const response=await fetch(form.action||window.location.href,{
+                method:(form.method||"POST").toUpperCase(),
+                body:formData,
+                credentials:"same-origin",
+                headers:{
+                    "X-Requested-With":"XMLHttpRequest"
+                }
+            });
+
+            if(!response.ok){
+                throw new Error(
+                    "No se pudo actualizar Producción."
+                );
+            }
+
+            const html=await response.text();
+
+            [
+                "startProductionDialog",
+                "gcodeProductionDialog",
+                "bambuReprintDialog",
+                "bambuCancelDialog"
+            ].forEach(closeDialog);
+
+            refreshFromHtml(
+                html,
+                {
+                    productionId,
+                    productId
+                }
+            );
+        }catch(error){
+            form.dataset.submitting="0";
+            buttons.forEach(function(button){
+                button.disabled=false;
+            });
+            resetPageLoader();
+            window.DVToast?.error?.(
+                error.message||"No se pudo actualizar Producción."
+            );
+        }
+    }
+
+    function openStartDialog(button){
+        const dialog=byId("startProductionDialog");
+        const form=byId("startProductionForm");
+        if(!dialog||!form)return;
+
+        const kind=button.dataset.startKind||"existing";
+        const nearestQuick=button.closest("[data-quick-form]");
+        const quantity=(
+            button.dataset.quantity
+            ||nearestQuick?.querySelector("[data-quick-quantity]")?.value
+            ||""
+        );
+        const productId=(
+            button.dataset.productId
+            ||nearestQuick?.querySelector('[name="producto"]')?.value
+            ||""
+        );
+        const personalizedId=(
+            button.dataset.personalizedId
+            ||nearestQuick?.querySelector('[name="personalizado_id"]')?.value
+            ||""
+        );
+
+        form.action=button.dataset.startUrl||"";
+        form.dataset.focusProduction=button.dataset.productionId||"";
+        form.dataset.focusProduct=productId;
+        form.dataset.submitting="0";
+
+        byId("startProductionPrinter").value="";
+        byId("startProductionProduct").value=kind==="quick"?productId:"";
+        byId("startProductionQuantity").value=kind==="quick"?quantity:"";
+        byId("startProductionPersonalized").value=kind==="quick"?personalizedId:"";
+        byId("startProductionAction").value="INICIAR";
+
+        const base=button.dataset.startJobBase||"";
+        const job=button.dataset.startJob||(base?(base+" × "+quantity):"Trabajo");
+
+        byId("startProductionCode").textContent=button.dataset.startCode||"Producción";
+        byId("startProductionJob").textContent=job;
+
+        dialog.querySelectorAll("[data-start-printer]").forEach(function(option){
+            option.classList.remove("is-selected");
+        });
+
+        const confirm=byId("startProductionConfirm");
+        if(confirm)confirm.disabled=true;
+
+        dialog.showModal();
+    }
+
+    function choosePrinter(button){
+        if(button.disabled)return;
+
+        const dialog=byId("startProductionDialog");
+        if(!dialog)return;
+
+        dialog.querySelectorAll("[data-start-printer]").forEach(function(option){
+            option.classList.toggle(
+                "is-selected",
+                option===button
+            );
+        });
+
+        byId("startProductionPrinter").value=button.dataset.startPrinter||"";
+        byId("startProductionConfirm").disabled=false;
+    }
+
+    function openGcodeDialog(button){
+        const dialog=byId("gcodeProductionDialog");
+        const form=byId("gcodeProductionForm");
+        if(!dialog||!form)return;
+
+        form.action=button.dataset.gcodeUrl||"";
+        form.dataset.focusProduction=button.closest("[data-production-id]")?.dataset.productionId||"";
+        form.dataset.focusProduct=button.closest("[data-product-id]")?.dataset.productId||"";
+        form.dataset.submitting="0";
+
+        byId("gcodeProductionCode").textContent=button.dataset.gcodeCode||"Producción";
+        byId("gcodeProductionJob").textContent=button.dataset.gcodeJob||"Producto × cantidad";
+
+        const current=(button.dataset.gcodeCurrent||"").trim();
+        byId("gcodeProductionCurrent").textContent=current
+            ? "Actual: "+current
+            : "Sin G-code asociado actualmente.";
+
+        byId("gcodeProductionVersion").value=button.dataset.gcodeVersion||"";
+        byId("gcodeProductionProfile").value=button.dataset.gcodeProfile||"";
+        byId("gcodeProductionNotes").value="";
+        byId("gcodeProductionFile").value="";
+
+        dialog.showModal();
+    }
 
     function syncReprintFilaments(){
-        if(!reprintPrinter||!reprintFilament)return;
-        const printerId=reprintPrinter.value;
-        reprintFilament.innerHTML='';
+        const printer=byId("bambuReprintPrinter");
+        const filament=byId("bambuReprintFilament");
+        const manual=byId("bambuReprintManual");
+        const manualColor=byId("bambuReprintColor");
 
-        const placeholder=document.createElement('option');
-        placeholder.value='';
-        placeholder.textContent=printerId?'Seleccionar filamento...':'Primero elegí una impresora...';
-        reprintFilament.appendChild(placeholder);
+        if(!printer||!filament)return;
 
-        filamentOptions
-            .filter(function(option){return option.dataset.printer===printerId;})
-            .forEach(function(option){reprintFilament.appendChild(option.cloneNode(true));});
+        const printerId=printer.value;
 
-        reprintFilament.disabled=!printerId;
-        if(reprintManual)reprintManual.style.display='none';
-        if(reprintManualColor)reprintManualColor.required=false;
+        Array.from(
+            filament.querySelectorAll("option[data-printer]")
+        ).forEach(function(option){
+            const visible=option.dataset.printer===printerId;
+            option.hidden=!visible;
+            option.disabled=!visible;
+        });
+
+        filament.disabled=!printerId;
+        filament.value="";
+
+        if(manual)manual.style.display="none";
+        if(manualColor)manualColor.required=false;
     }
 
     function syncManualReprint(){
-        if(!reprintFilament||!reprintManual)return;
-        const manual=reprintFilament.value==='MANUAL';
-        reprintManual.style.display=manual?'block':'none';
-        if(reprintManualColor)reprintManualColor.required=manual;
+        const filament=byId("bambuReprintFilament");
+        const manual=byId("bambuReprintManual");
+        const color=byId("bambuReprintColor");
+        if(!filament||!manual)return;
+
+        const isManual=filament.value==="MANUAL";
+        manual.style.display=isManual?"block":"none";
+        if(color)color.required=isManual;
     }
 
-    document.querySelectorAll('[data-reprint-open]').forEach(function(button){
-        button.addEventListener('click',function(){
-            if(!reprintDialog||!reprintForm)return;
-            reprintForm.action=button.dataset.reprintUrl||'';
-            if(reprintCode)reprintCode.textContent=button.dataset.reprintCode||'Producción';
-            if(reprintJob)reprintJob.textContent=button.dataset.reprintJob||'Trabajo';
-            if(reprintPrinter)reprintPrinter.value='';
+    function openReprintDialog(button){
+        const dialog=byId("bambuReprintDialog");
+        const form=byId("bambuReprintForm");
+        if(!dialog||!form)return;
+
+        form.action=button.dataset.reprintUrl||"";
+        form.dataset.focusProduction="";
+        form.dataset.focusProduct=button.closest("[data-product-id]")?.dataset.productId||"";
+        form.dataset.submitting="0";
+
+        byId("bambuReprintCode").textContent=button.dataset.reprintCode||"Producción";
+        byId("bambuReprintJob").textContent=button.dataset.reprintJob||"Trabajo";
+        byId("bambuReprintPrinter").value="";
+        syncReprintFilaments();
+        dialog.showModal();
+    }
+
+    function openCancelDialog(button){
+        const dialog=byId("bambuCancelDialog");
+        const form=byId("bambuCancelForm");
+        if(!dialog||!form)return;
+
+        form.action=button.dataset.cancelUrl||"";
+        form.dataset.focusProduction=button.dataset.productionId||button.closest("[data-production-id]")?.dataset.productionId||"";
+        form.dataset.focusProduct=button.closest("[data-product-id]")?.dataset.productId||"";
+        form.dataset.submitting="0";
+
+        byId("bambuCancelPrinter").textContent=button.dataset.printer||"Impresora";
+        byId("bambuCancelJob").textContent=button.dataset.job||"Impresión actual";
+        dialog.showModal();
+    }
+
+    document.addEventListener("click",function(event){
+        const start=event.target.closest("[data-start-open]");
+        if(start){
+            event.preventDefault();
+            openStartDialog(start);
+            return;
+        }
+
+        const printer=event.target.closest("[data-start-printer]");
+        if(printer){
+            event.preventDefault();
+            choosePrinter(printer);
+            return;
+        }
+
+        const gcode=event.target.closest("[data-gcode-open]");
+        if(gcode){
+            event.preventDefault();
+            openGcodeDialog(gcode);
+            return;
+        }
+
+        const reprint=event.target.closest("[data-reprint-open]");
+        if(reprint){
+            event.preventDefault();
+            openReprintDialog(reprint);
+            return;
+        }
+
+        const cancel=event.target.closest("[data-bambu-cancel-open]");
+        if(cancel){
+            event.preventDefault();
+            openCancelDialog(cancel);
+            return;
+        }
+
+        if(event.target.closest("#startProductionClose")){
+            closeDialog("startProductionDialog");
+            return;
+        }
+        if(event.target.closest("#gcodeProductionClose")){
+            closeDialog("gcodeProductionDialog");
+            return;
+        }
+        if(event.target.closest("#bambuReprintClose")){
+            closeDialog("bambuReprintDialog");
+            return;
+        }
+        if(event.target.closest("#bambuCancelClose")){
+            closeDialog("bambuCancelDialog");
+            return;
+        }
+
+        const dialog=event.target;
+        if(dialog instanceof HTMLDialogElement&&dialog.open&&event.target===dialog){
+            dialog.close();
+        }
+    });
+
+    document.addEventListener("change",function(event){
+        if(event.target.id==="manual-destino"){
+            const pedido=byId("manual-pedido-wrap");
+            if(pedido){
+                pedido.style.display=event.target.value==="PEDIDO"?"block":"none";
+            }
+        }
+
+        if(event.target.id==="bambuReprintPrinter"){
             syncReprintFilaments();
-            reprintDialog.showModal();
-        });
+        }
+
+        if(event.target.id==="bambuReprintFilament"){
+            syncManualReprint();
+        }
     });
 
-    if(reprintPrinter){
-        reprintPrinter.addEventListener('change',syncReprintFilaments);
-    }
-    if(reprintFilament){
-        reprintFilament.addEventListener('change',syncManualReprint);
-    }
-    if(reprintClose){
-        reprintClose.addEventListener('click',function(){
-            reprintDialog?.close();
-        });
-    }
-    if(reprintDialog){
-        reprintDialog.addEventListener('click',function(event){
-            if(event.target===reprintDialog)reprintDialog.close();
-        });
-    }
+    document.addEventListener("submit",function(event){
+        const form=event.target;
+        if(!(form instanceof HTMLFormElement))return;
 
-    const cancelDialog=document.getElementById('bambuCancelDialog');
-    const cancelForm=document.getElementById('bambuCancelForm');
-    const cancelClose=document.getElementById('bambuCancelClose');
-    const cancelPrinter=document.getElementById('bambuCancelPrinter');
-    const cancelJob=document.getElementById('bambuCancelJob');
+        const isProductionAjax=(
+            form.matches("[data-production-ajax]")
+            ||(
+                form.method.toLowerCase()==="post"
+                &&form.closest("#ahora,#flujo-produccion")
+            )
+        );
 
-    document.querySelectorAll('[data-bambu-cancel-open]').forEach(function(button){
-        button.addEventListener('click',function(){
-            if(!cancelDialog||!cancelForm)return;
-            cancelForm.action=button.dataset.cancelUrl||'';
-            if(cancelPrinter){
-                cancelPrinter.textContent=button.dataset.printer||'Impresora';
-            }
-            if(cancelJob){
-                cancelJob.textContent=button.dataset.job||'Impresión actual';
-            }
-            cancelDialog.showModal();
-        });
+        if(!isProductionAjax)return;
+
+        event.preventDefault();
+        submitProductionForm(
+            form,
+            event.submitter||null
+        );
     });
 
-    if(cancelClose){
-        cancelClose.addEventListener('click',function(){
-            cancelDialog?.close();
-        });
-    }
-
-    if(cancelDialog){
-        cancelDialog.addEventListener('click',function(event){
-            if(event.target===cancelDialog){
-                cancelDialog.close();
-            }
-        });
+    const initialDestino=byId("manual-destino");
+    if(initialDestino){
+        initialDestino.dispatchEvent(
+            new Event("change",{bubbles:true})
+        );
     }
 })();
 </script>
