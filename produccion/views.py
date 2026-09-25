@@ -277,11 +277,7 @@ def _formatear_peso_gramos(valor):
             + " kg"
         )
 
-    return (
-        f"{valor:.0f} g"
-        if abs(valor - round(valor)) < 0.01
-        else f"{valor:.1f} g"
-    )
+    return f"{valor:.0f} g"
 
 
 def _preparar_resumen_operativo(produccion):
