@@ -229,6 +229,69 @@ class BambuBridgeSyncTests(TestCase):
             [2, -1, -1, -1, -1],
         )
 
+    def test_confirma_resultado_comando_con_produccion_nullable(self):
+        estado = ImpresoraEstadoBambu.objects.create(
+            impresora=self.impresora,
+            serial="TEST-COMMAND-RESULT",
+            nombre_bridge="A1-test",
+            conectada=True,
+            estado="FINISH",
+        )
+        produccion = Produccion.objects.create(
+            producto=self.producto,
+            cantidad=1,
+            impresora=self.impresora,
+            estado="PENDIENTE",
+        )
+        comando = ComandoBambu.objects.create(
+            tipo="PRINT",
+            impresora_estado=estado,
+            produccion=produccion,
+            trabajo_bambu_esperado="test.gcode.3mf",
+        )
+
+        payload = {
+            "printers": [
+                {
+                    "name": "A1-test",
+                    "connected": True,
+                    "serial": "TEST-COMMAND-RESULT",
+                    "status": "FINISH",
+                }
+            ],
+            "command_results": [
+                {
+                    "command_id": str(comando.id_comando),
+                    "ok": False,
+                    "error": "timeout de prueba",
+                }
+            ],
+        }
+
+        respuesta = self.client.post(
+            reverse("bambu_bridge_sync"),
+            data=json.dumps(payload),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=(
+                "Bearer test-bridge-token"
+            ),
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            200,
+        )
+
+        comando.refresh_from_db()
+        self.assertEqual(
+            comando.estado,
+            "ERROR",
+        )
+        self.assertEqual(
+            comando.error,
+            "timeout de prueba",
+        )
+
     def test_telemetria_promueve_print_confirmado_a_imprimiendo(self):
         estado = ImpresoraEstadoBambu.objects.create(
             impresora=self.impresora,
