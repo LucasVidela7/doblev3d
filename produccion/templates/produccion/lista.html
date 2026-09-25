@@ -65,6 +65,20 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 .printer-actions{display:grid;grid-template-columns:1fr auto;gap:6px;margin-top:9px}
 .printer-actions form{margin:0}.printer-actions select{width:100%;min-height:36px;border:1px solid #d7dce2;border-radius:9px;background:#fff;padding:5px 7px;font-size:9px}
 
+.bambu-live-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:9px}
+.bambu-live{padding:14px;border:1px solid var(--border);border-radius:16px;background:var(--card);box-shadow:var(--shadow)}
+.bambu-live.stale{opacity:.72}
+.bambu-live-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.bambu-live-name{font-size:13px;font-weight:900}
+.bambu-live-job{margin-top:10px;font-size:12px;font-weight:900;line-height:1.35;overflow-wrap:anywhere}
+.bambu-progress{height:8px;margin-top:10px;border-radius:999px;background:#e9edf2;overflow:hidden}
+.bambu-progress span{display:block;height:100%;border-radius:inherit;background:var(--blue-t)}
+.bambu-live-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px}
+.bambu-live-kpi{padding:8px;border-radius:10px;background:#f7f8fa;text-align:center}
+.bambu-live-kpi span{display:block;color:var(--muted);font-size:8px;font-weight:900}
+.bambu-live-kpi b{display:block;margin-top:4px;font-size:13px}
+.bambu-live-meta{margin-top:9px;color:var(--muted);font-size:10px;line-height:1.5}
+
 .recommendation{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px;padding:12px 13px;border:1px solid #cddcef;border-radius:14px;background:#f6f9ff}
 .recommendation strong{font-size:11px}.recommendation .meta{margin-top:3px}
 
@@ -199,6 +213,73 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
             <div class="metric-note">{{ peso_faltante_texto }} pendientes aprox.</div>
         </div>
     </div>
+
+    {% if bambu_estados %}
+    <section class="section" id="bambu-en-vivo">
+        <div class="section-head">
+            <div>
+                <h2 class="section-title">Bambu en vivo</h2>
+                <div class="subtitle">Estado real informado por las A1 a través de la Raspberry.</div>
+            </div>
+            <div class="section-help">Solo lectura · no modifica la planificación.</div>
+        </div>
+
+        <div class="bambu-live-grid">
+            {% for bambu in bambu_estados %}
+                <article class="bambu-live{% if not bambu.sync_reciente %} stale{% endif %}">
+                    <div class="bambu-live-head">
+                        <div class="bambu-live-name">🖨 {{ bambu.nombre_bridge|default:bambu.serial }}</div>
+                        {% if bambu.sync_reciente and bambu.conectada %}
+                            <span class="pill free">EN LÍNEA</span>
+                        {% elif bambu.conectada %}
+                            <span class="pill medium">SYNC VENCIDO</span>
+                        {% else %}
+                            <span class="pill high">DESCONECTADA</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="bambu-live-job">
+                        {{ bambu.trabajo|default:"Sin trabajo informado" }}
+                    </div>
+
+                    <div class="bambu-progress" aria-label="Progreso de impresión">
+                        <span style="width:{{ bambu.progreso|default:0 }}%"></span>
+                    </div>
+
+                    <div class="bambu-live-kpis">
+                        <div class="bambu-live-kpi">
+                            <span>ESTADO</span>
+                            <b>
+                                {% if bambu.estado == "RUNNING" %}
+                                    IMPRIMIENDO
+                                {% else %}
+                                    {{ bambu.estado|default:"SIN DATO" }}
+                                {% endif %}
+                            </b>
+                        </div>
+                        <div class="bambu-live-kpi">
+                            <span>PROGRESO</span>
+                            <b>{% if bambu.progreso is not None %}{{ bambu.progreso }}%{% else %}—{% endif %}</b>
+                        </div>
+                        <div class="bambu-live-kpi">
+                            <span>RESTANTE</span>
+                            <b>{{ bambu.restante_texto }}</b>
+                        </div>
+                    </div>
+
+                    <div class="bambu-live-meta">
+                        Nozzle: {% if bambu.temperatura_nozzle is not None %}{{ bambu.temperatura_nozzle|floatformat:0 }} °C{% else %}—{% endif %}
+                        · Cama: {% if bambu.temperatura_bed is not None %}{{ bambu.temperatura_bed|floatformat:0 }} °C{% else %}—{% endif %}
+                        · Wi-Fi: {{ bambu.wifi|default:"—" }}
+                        <br>
+                        Último sync: {{ bambu.ultimo_contacto|date:"H:i:s" }}
+                        {% if not bambu.sync_reciente %} · datos no recientes{% endif %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
 
     <section class="section" id="ahora">
         <div class="section-head">
