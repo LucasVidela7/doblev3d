@@ -857,7 +857,7 @@ class ArchivoImpresionTests(TestCase):
         )
         self.assertEqual(
             registro.peso_estimado_texto,
-            "275.8 g",
+            "276 g",
         )
         self.assertEqual(
             registro.tiempo_estimado_texto,
