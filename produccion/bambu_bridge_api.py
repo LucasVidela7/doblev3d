@@ -647,7 +647,9 @@ def bambu_bridge_sync(request):
         for item in actualizadas
     ]
 
-    comandos = list(
+    ahora_comandos = timezone.now()
+
+    comandos_pendientes = (
         ComandoBambu.objects
         .filter(
             estado="PENDIENTE",
@@ -660,8 +662,45 @@ def bambu_bridge_sync(request):
         .order_by(
             "creado_en",
             "id",
-        )[:20]
+        )
     )
+
+    comandos = []
+
+    for comando in comandos_pendientes[:20]:
+        expirado = (
+            comando.expira_en
+            and comando.expira_en
+            <= ahora_comandos
+        )
+
+        produccion_inactiva = (
+            comando.produccion_id
+            and (
+                not comando.produccion
+                or comando.produccion.estado
+                != "IMPRIMIENDO"
+            )
+        )
+
+        if expirado or produccion_inactiva:
+            comando.estado = "EXPIRADO"
+            comando.resuelto_en = ahora_comandos
+            comando.error = (
+                "Comando vencido antes de ejecutarse."
+                if expirado
+                else "La producción ya no está imprimiendo."
+            )
+            comando.save(
+                update_fields=[
+                    "estado",
+                    "resuelto_en",
+                    "error",
+                ]
+            )
+            continue
+
+        comandos.append(comando)
 
     return JsonResponse(
         {
@@ -683,6 +722,14 @@ def bambu_bridge_sync(request):
                     ),
                     "production_id": (
                         comando.produccion_id
+                    ),
+                    "expected_job_name": (
+                        comando.trabajo_bambu_esperado
+                    ),
+                    "expires_at": (
+                        comando.expira_en.isoformat()
+                        if comando.expira_en
+                        else None
                     ),
                 }
                 for comando in comandos
