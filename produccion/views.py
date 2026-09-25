@@ -2215,10 +2215,11 @@ def cargar_gcode_produccion(
         with transaction.atomic():
             produccion = get_object_or_404(
                 Produccion.objects
-                .select_for_update()
+                .select_for_update(
+                    of=("self",)
+                )
                 .select_related(
                     "producto",
-                    "archivo_impresion",
                 ),
                 id=produccion_id,
                 estado="PENDIENTE",
