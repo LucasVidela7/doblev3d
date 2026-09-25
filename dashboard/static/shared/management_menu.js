@@ -151,3 +151,103 @@
         }
     });
 })();
+
+
+(function(){
+    function iniciarSubmitLocks(){
+        document.querySelectorAll(
+            "form[data-dv-submit-lock]"
+        ).forEach(function(form){
+            form.addEventListener(
+                "submit",
+                function(event){
+                    if(
+                        form.dataset.dvSubmitting
+                        === "1"
+                    ){
+                        event.preventDefault();
+                        return;
+                    }
+
+                    form.dataset.dvSubmitting="1";
+
+                    const buttons=Array.from(
+                        form.querySelectorAll(
+                            'button[type="submit"],input[type="submit"]'
+                        )
+                    );
+
+                    buttons.forEach(function(button){
+                        button.disabled=true;
+                        button.setAttribute(
+                            "aria-busy",
+                            "true"
+                        );
+
+                        if(button.tagName==="BUTTON"){
+                            if(
+                                !button.dataset.dvOriginalText
+                            ){
+                                button.dataset.dvOriginalText=(
+                                    button.textContent||""
+                                );
+                            }
+
+                            button.textContent=(
+                                button.dataset.dvLoadingText
+                                || "GUARDANDO…"
+                            );
+                        }else{
+                            if(
+                                !button.dataset.dvOriginalValue
+                            ){
+                                button.dataset.dvOriginalValue=(
+                                    button.value||""
+                                );
+                            }
+
+                            button.value=(
+                                button.dataset.dvLoadingText
+                                || "GUARDANDO…"
+                            );
+                        }
+                    });
+
+                    const loader=document.getElementById(
+                        "dvPageLoader"
+                    );
+
+                    if(loader){
+                        const label=loader.querySelector(
+                            ".dv-page-loader__text"
+                        );
+
+                        if(label){
+                            label.textContent=(
+                                form.dataset.dvLoadingLabel
+                                || "Guardando archivo"
+                            );
+                        }
+
+                        loader.classList.add(
+                            "is-visible"
+                        );
+                        loader.setAttribute(
+                            "aria-hidden",
+                            "false"
+                        );
+                    }
+                }
+            );
+        });
+    }
+
+    if(document.readyState==="loading"){
+        document.addEventListener(
+            "DOMContentLoaded",
+            iniciarSubmitLocks
+        );
+    }else{
+        iniciarSubmitLocks();
+    }
+})();
