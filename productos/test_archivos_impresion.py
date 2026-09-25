@@ -494,3 +494,52 @@ class ArchivoImpresionTests(TestCase):
             produccion.archivo_impresion_id,
             nuevo.id,
         )
+
+
+    def test_descarga_privada_por_produccion(self):
+        self.client.post(
+            reverse(
+                "productos:archivo_impresion_subir",
+                args=[self.producto.id],
+            ),
+            {
+                "archivo": self._archivo_valido(
+                    "prod.gcode.3mf"
+                ),
+                "cantidad_unidades": "6",
+            },
+        )
+
+        archivo = ArchivoImpresion.objects.get()
+
+        produccion = Produccion.objects.create(
+            producto=self.producto,
+            cantidad=6,
+            destino="STOCK",
+            estado="PENDIENTE",
+            tiempo_impresion_minutos=60,
+            archivo_impresion=archivo,
+        )
+
+        respuesta = self.client.get(
+            reverse(
+                "bambu_bridge_download_production_file",
+                args=[produccion.id],
+            ),
+            HTTP_AUTHORIZATION=(
+                "Bearer test-bridge-token"
+            ),
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            200,
+        )
+        self.assertEqual(
+            respuesta["X-DV-Production-Code"],
+            produccion.codigo,
+        )
+        self.assertEqual(
+            respuesta["X-DV-SHA256"],
+            archivo.sha256,
+        )
