@@ -2592,7 +2592,9 @@ def cargar_gcode_produccion(
                 f"G-code “{nuevo.nombre_original}” asociado a "
                 f"{produccion.producto.nombre} × {produccion.cantidad}. "
                 f"Se actualizaron {pendientes_actualizadas} "
-                "producción(es) pendiente(s) de esa misma combinación."
+                "producción(es) pendiente(s) de esa misma combinación. "
+                "Quedó guardado en Gestión; la Raspberry lo tomará "
+                "en el próximo ciclo de sincronización."
             ),
         )
 
