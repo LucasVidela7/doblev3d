@@ -1369,6 +1369,18 @@ class ArchivoImpresion(models.Model):
         blank=True,
     )
 
+    peso_estimado_gramos = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )
+
+    tiempo_estimado_minutos = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+    )
+
     notas = models.TextField(
         blank=True,
     )
@@ -1420,6 +1432,43 @@ class ArchivoImpresion(models.Model):
         if tamano >= 1024:
             return f"{tamano / 1024:.0f} KB"
         return f"{tamano} B"
+
+    @property
+    def peso_estimado_texto(self):
+        if self.peso_estimado_gramos is None:
+            return ""
+        valor = float(
+            self.peso_estimado_gramos
+        )
+        if valor >= 1000:
+            return (
+                f"{valor / 1000:.2f}"
+                .rstrip("0")
+                .rstrip(".")
+                + " kg"
+            )
+        return (
+            f"{valor:.0f} g"
+            if abs(valor - round(valor)) < 0.01
+            else f"{valor:.1f} g"
+        )
+
+    @property
+    def tiempo_estimado_texto(self):
+        if not self.tiempo_estimado_minutos:
+            return ""
+        minutos = int(
+            self.tiempo_estimado_minutos
+        )
+        horas, resto = divmod(
+            minutos,
+            60,
+        )
+        if horas and resto:
+            return f"{horas} h {resto} min"
+        if horas:
+            return f"{horas} h"
+        return f"{resto} min"
 
     @property
     def placas_texto(self):
