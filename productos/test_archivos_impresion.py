@@ -543,3 +543,69 @@ class ArchivoImpresionTests(TestCase):
             respuesta["X-DV-SHA256"],
             archivo.sha256,
         )
+
+
+    def test_sync_informa_archivos_pendientes_para_cache(self):
+        self.client.post(
+            reverse(
+                "productos:archivo_impresion_subir",
+                args=[self.producto.id],
+            ),
+            {
+                "archivo": self._archivo_valido(
+                    "cache.gcode.3mf"
+                ),
+                "cantidad_unidades": "6",
+            },
+        )
+
+        archivo = ArchivoImpresion.objects.get()
+
+        produccion = Produccion.objects.create(
+            producto=self.producto,
+            cantidad=6,
+            destino="STOCK",
+            estado="PENDIENTE",
+            tiempo_impresion_minutos=60,
+            archivo_impresion=archivo,
+        )
+
+        respuesta = self.client.post(
+            reverse("bambu_bridge_sync"),
+            data='{"printers": []}',
+            content_type="application/json",
+            HTTP_AUTHORIZATION=(
+                "Bearer test-bridge-token"
+            ),
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            200,
+        )
+
+        data = respuesta.json()
+
+        self.assertEqual(
+            len(data["files_to_cache"]),
+            1,
+        )
+        item = data["files_to_cache"][0]
+
+        self.assertEqual(
+            item["production_id"],
+            produccion.id,
+        )
+        self.assertEqual(
+            item["file_id"],
+            archivo.id,
+        )
+        self.assertEqual(
+            item["sha256"],
+            archivo.sha256,
+        )
+        self.assertTrue(
+            item["download_path"].endswith(
+                f"/{archivo.id}/download/"
+            )
+        )
