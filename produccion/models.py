@@ -24,6 +24,91 @@ class Impresora(models.Model):
         ordering = ["nombre"]
 
 
+class ImpresoraEstadoBambu(models.Model):
+    impresora = models.OneToOneField(
+        Impresora,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="estado_bambu",
+    )
+
+    serial = models.CharField(
+        max_length=32,
+        unique=True,
+    )
+
+    nombre_bridge = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+
+    ip = models.GenericIPAddressField(
+        protocol="IPv4",
+        null=True,
+        blank=True,
+    )
+
+    conectada = models.BooleanField(
+        default=False,
+    )
+
+    estado = models.CharField(
+        max_length=50,
+        blank=True,
+    )
+
+    progreso = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+    )
+
+    minutos_restantes = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+    )
+
+    trabajo = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    temperatura_nozzle = models.FloatField(
+        null=True,
+        blank=True,
+    )
+
+    temperatura_bed = models.FloatField(
+        null=True,
+        blank=True,
+    )
+
+    wifi = models.CharField(
+        max_length=32,
+        blank=True,
+    )
+
+    ultimo_evento_impresora = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    ultimo_contacto = models.DateTimeField(
+        auto_now=True,
+    )
+
+    payload = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    class Meta:
+        ordering = ["nombre_bridge", "serial"]
+
+    def __str__(self):
+        return self.nombre_bridge or self.serial
+
+
 class Produccion(models.Model):
     DESTINOS = [
         ("STOCK", "Stock"),

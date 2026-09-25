@@ -4,6 +4,7 @@ from django.urls import include, path
 
 from config.health import healthcheck
 from pedidos.public_views import pedido_publico
+from produccion.bambu_bridge_api import bambu_bridge_sync
 
 from productos.catalogo import (
     catalogo_404,
@@ -45,6 +46,11 @@ urlpatterns = [
     path("robots.txt", robots_txt, name="robots_txt"),
     path("sitemap.xml", sitemap_xml, name="sitemap_xml"),
     path("healthz/", healthcheck, name="healthcheck"),
+    path(
+        "api/bambu/bridge/sync/",
+        bambu_bridge_sync,
+        name="bambu_bridge_sync",
+    ),
     path("metricas/", include("metricas.urls")),
     # Sitio publico
     path(

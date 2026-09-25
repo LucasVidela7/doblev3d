@@ -201,6 +201,13 @@ SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
 CSRF_FAILURE_VIEW = "config.csrf.csrf_failure"
 
+# Token privado usado exclusivamente por la Raspberry del Bambu Bridge.
+# El valor vive en Railway y nunca se guarda en el repositorio.
+BAMBU_BRIDGE_TOKEN = os.getenv(
+    "BAMBU_BRIDGE_TOKEN",
+    "",
+).strip()
+
 # Protección opcional del checkout público. Si las claves quedan vacías,
 # el resto de defensas anti-spam sigue funcionando sin mostrar captcha.
 TURNSTILE_SITE_KEY = os.getenv("TURNSTILE_SITE_KEY", "").strip()
