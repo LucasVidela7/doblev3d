@@ -192,3 +192,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-25 — deploy manual QA: Bambu live telemetry refresh
 2026-09-25 — deploy manual QA: G-code upload progress
 2026-09-25 — deploy manual QA: animated upload + Bambu start progress
+2026-09-25 — deploy manual QA: add PRINT migration for progress UX
