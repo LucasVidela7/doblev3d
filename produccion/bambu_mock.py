@@ -723,6 +723,7 @@ def tick():
     _require_enabled()
 
     estados = ensure_printers()
+    actualizados = []
     now = timezone.now()
 
     for estado in estados:
@@ -777,10 +778,15 @@ def tick():
                 "wifi",
                 "payload",
                 "ultimo_evento_impresora",
+                "ultimo_contacto",
             ]
         )
 
-    return estados
+        actualizados.append(
+            estado
+        )
+
+    return actualizados
 
 
 @transaction.atomic
