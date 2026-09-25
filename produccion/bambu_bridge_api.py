@@ -1141,11 +1141,7 @@ def bambu_bridge_sync(request):
                                     .bambu_tray_id
                                     or 0
                                 )
-                            ),
-                            -1,
-                            -1,
-                            -1,
-                            -1,
+                            )
                         ]
                         if (
                             comando.tipo == "PRINT"

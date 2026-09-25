@@ -226,7 +226,7 @@ class BambuBridgeSyncTests(TestCase):
         )
         self.assertEqual(
             item["ams_mapping"],
-            [2, -1, -1, -1, -1],
+            [2],
         )
 
     def test_confirma_resultado_comando_con_produccion_nullable(self):
