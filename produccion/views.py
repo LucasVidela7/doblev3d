@@ -2416,6 +2416,52 @@ def cambiar_estado(
                     reverse("produccion:lista") + "#ahora"
                 )
 
+    if (
+        nuevo_estado == "CANCELADO"
+        and produccion.estado == "IMPRIMIENDO"
+        and produccion.impresora_id
+    ):
+        estado_bambu = (
+            ImpresoraEstadoBambu.objects
+            .filter(
+                impresora_id=produccion.impresora_id,
+            )
+            .first()
+        )
+
+        if estado_bambu:
+            sync_reciente = bool(
+                estado_bambu.ultimo_contacto
+                and (
+                    timezone.now()
+                    - estado_bambu.ultimo_contacto
+                ) <= timedelta(minutes=2)
+            )
+            estado_fisico = (
+                estado_bambu.estado or ""
+            ).strip().upper()
+
+            if (
+                sync_reciente
+                and estado_bambu.conectada
+                and estado_fisico in {
+                    "RUNNING",
+                    "PAUSE",
+                    "PREPARE",
+                }
+            ):
+                messages.error(
+                    request,
+                    (
+                        "La A1 sigue imprimiendo. "
+                        "Usá CANCELAR desde Centro de producción "
+                        "para interrumpir también la impresora."
+                    ),
+                )
+                return redirect(
+                    reverse("produccion:lista") + "#ahora"
+                )
+
     # La transición planificada a IMPRIMIENDO se hace
     # por el botón específico, para validar horario y máquina.
     if (
