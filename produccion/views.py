@@ -2505,6 +2505,163 @@ def repetir_produccion(
 
 
 # ============================================================
+# VINCULAR IMPRESIÓN INICIADA DESDE BAMBU STUDIO
+# ============================================================
+
+@transaction.atomic
+def vincular_impresion_externa(
+    request,
+    estado_id,
+):
+    if request.method != "POST":
+        return redirect(
+            "produccion:lista"
+        )
+
+    estado_bambu = get_object_or_404(
+        ImpresoraEstadoBambu.objects
+        .select_for_update()
+        .select_related("impresora"),
+        id=estado_id,
+    )
+
+    if not estado_bambu.impresora_id:
+        messages.error(
+            request,
+            "Primero vinculá la Bambu con una impresora de Gestión.",
+        )
+        return redirect(
+            reverse("produccion:lista") + "#ahora"
+        )
+
+    ahora = timezone.now()
+    sync_reciente = bool(
+        estado_bambu.ultimo_contacto
+        and (
+            ahora
+            - estado_bambu.ultimo_contacto
+        ) <= timedelta(minutes=2)
+    )
+
+    estado_fisico = (
+        estado_bambu.estado or ""
+    ).strip().upper()
+
+    if (
+        not sync_reciente
+        or not estado_bambu.conectada
+        or estado_fisico
+        not in {
+            "RUNNING",
+            "PAUSE",
+            "PREPARE",
+        }
+    ):
+        messages.error(
+            request,
+            (
+                "La A1 ya no tiene una impresión activa "
+                "con telemetría reciente."
+            ),
+        )
+        return redirect(
+            reverse("produccion:lista") + "#ahora"
+        )
+
+    ocupando = (
+        Produccion.objects
+        .select_for_update()
+        .filter(
+            impresora_id=estado_bambu.impresora_id,
+            estado="IMPRIMIENDO",
+        )
+        .first()
+    )
+
+    if ocupando:
+        messages.error(
+            request,
+            (
+                f"{estado_bambu.impresora.nombre} ya está vinculada "
+                f"a {ocupando.codigo}."
+            ),
+        )
+        return redirect(
+            reverse("produccion:lista") + "#ahora"
+        )
+
+    produccion_id = (
+        request.POST.get("produccion", "")
+        .strip()
+    )
+
+    produccion = get_object_or_404(
+        Produccion.objects
+        .select_for_update(of=("self",))
+        .select_related(
+            "producto",
+            "impresora",
+        ),
+        id=produccion_id,
+        estado="PENDIENTE",
+    )
+
+    archivo = _archivo_impresion_coincidente(
+        estado_bambu.trabajo,
+        producto_id=produccion.producto_id,
+        cantidad=produccion.cantidad,
+    )
+
+    produccion.estado = "IMPRIMIENDO"
+    produccion.impresora = (
+        estado_bambu.impresora
+    )
+    produccion.inicio_impresion = ahora
+    produccion.origen = "BAMBU_STUDIO"
+    produccion.bambu_trabajo = (
+        estado_bambu.trabajo or ""
+    )[:255]
+    produccion.archivo_impresion = (
+        archivo
+    )
+
+    produccion.save(
+        update_fields=[
+            "estado",
+            "impresora",
+            "inicio_impresion",
+            "origen",
+            "bambu_trabajo",
+            "archivo_impresion",
+        ]
+    )
+
+    if archivo:
+        detalle = (
+            f" Coincidió con el archivo "
+            f"“{archivo.nombre_original}”."
+        )
+    else:
+        detalle = (
+            " No hubo coincidencia exacta con la biblioteca "
+            "de archivos; el vínculo se registró manualmente."
+        )
+
+    messages.success(
+        request,
+        (
+            f"{produccion.codigo} vinculada a la impresión "
+            f"en curso de {estado_bambu.impresora.nombre}."
+            f"{detalle}"
+        ),
+    )
+
+    return redirect(
+        reverse("produccion:lista") + "#ahora"
+    )
+
+
+# ============================================================
 # CANCELAR IMPRESIÓN FÍSICA EN BAMBU
 # ============================================================
 
