@@ -648,6 +648,91 @@ def subir(request, producto_id):
     )
 
 
+def completar_metadata_gcode(
+    registro,
+):
+    if (
+        registro is None
+        or (
+            registro.peso_estimado_gramos
+            is not None
+            and registro.tiempo_estimado_minutos
+            is not None
+        )
+    ):
+        return False
+
+    try:
+        registro.archivo.open(
+            "rb"
+        )
+        analisis = _analizar_gcode_3mf(
+            registro.archivo
+        )
+    except Exception:
+        logger.exception(
+            "No se pudo completar metadata G-code. archivo_id=%s",
+            getattr(
+                registro,
+                "id",
+                None,
+            ),
+        )
+        return False
+    finally:
+        try:
+            registro.archivo.close()
+        except Exception:
+            pass
+
+    campos = []
+
+    if (
+        registro.peso_estimado_gramos
+        is None
+        and analisis.get(
+            "peso_estimado_gramos"
+        )
+        is not None
+    ):
+        registro.peso_estimado_gramos = (
+            analisis[
+                "peso_estimado_gramos"
+            ]
+        )
+        campos.append(
+            "peso_estimado_gramos"
+        )
+
+    if (
+        registro.tiempo_estimado_minutos
+        is None
+        and analisis.get(
+            "tiempo_estimado_minutos"
+        )
+        is not None
+    ):
+        registro.tiempo_estimado_minutos = (
+            analisis[
+                "tiempo_estimado_minutos"
+            ]
+        )
+        campos.append(
+            "tiempo_estimado_minutos"
+        )
+
+    if campos:
+        campos.append(
+            "actualizado_en"
+        )
+        registro.save(
+            update_fields=campos
+        )
+        return True
+
+    return False
+
+
 def descargar(
     request,
     producto_id,
