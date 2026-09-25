@@ -2449,6 +2449,13 @@ def cancelar_produccion_bambu(
         tipo="STOP",
         impresora_estado=estado_bambu,
         produccion=produccion,
+        expira_en=(
+            timezone.now()
+            + timedelta(minutes=2)
+        ),
+        trabajo_bambu_esperado=(
+            estado_bambu.trabajo or ""
+        )[:255],
     )
 
     produccion.evento_fin_bambu = (
