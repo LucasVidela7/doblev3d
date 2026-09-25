@@ -74,6 +74,10 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 .dv-confirm-dialog__job{margin-top:12px;padding:10px 11px;border:1px solid var(--dv-border);border-radius:11px;background:var(--dv-surface-soft);font-size:10px;font-weight:900}
 .dv-confirm-dialog__actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:17px}
 .dv-confirm-dialog__actions .btn{width:100%;min-height:42px;font-size:9px}
+.reprint-grid{display:grid;gap:10px;margin-top:14px}
+.reprint-field label{display:block;margin-bottom:5px;color:var(--dv-muted);font-size:8px;font-weight:900}
+.reprint-field select,.reprint-field input{width:100%;min-height:42px;border:1px solid var(--dv-border);border-radius:11px;background:var(--dv-surface);color:var(--dv-text);padding:7px 10px;font-size:10px}
+.reprint-hint{padding:9px 10px;border:1px solid var(--dv-border);border-radius:10px;background:var(--dv-surface-soft);color:var(--dv-muted);font-size:9px;line-height:1.45}
 
 .bambu-live-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:9px}
 .bambu-live{padding:14px;border:1px solid var(--dv-border);border-radius:16px;background:var(--dv-surface);box-shadow:var(--dv-shadow-soft);color:var(--dv-text)}
@@ -705,7 +709,18 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                 <div>
                                     <div class="dv-kanban-card__code">{{ produccion.codigo }}{% if produccion.impresora %} · {{ produccion.impresora.nombre }}{% endif %}</div>
                                     <div class="dv-kanban-card__title">{{ produccion.producto.nombre }} × {{ produccion.cantidad }}</div>
-                                    <div class="dv-kanban-card__meta">{{ produccion.tiempo_impresion_formateado }}{% if produccion.fin_estimado %}<br>Fin estimado {{ produccion.fin_estimado|date:"H:i" }}{% endif %}{% if produccion.pedido %}<br>{{ produccion.pedido.codigo }} · {{ produccion.pedido.cliente.nombre }}{% endif %}</div>
+                                    <div class="dv-kanban-card__meta">
+                                        {{ produccion.tiempo_impresion_formateado }}
+                                        {% if produccion.fin_estimado %}<br>Fin estimado {{ produccion.fin_estimado|date:"H:i" }}{% endif %}
+                                        {% if produccion.pedido %}<br>{{ produccion.pedido.codigo }} · {{ produccion.pedido.cliente.nombre }}{% endif %}
+                                        {% if produccion.reimpresion_de %}
+                                            <br>↻ Reimpresión de {{ produccion.reimpresion_de.codigo }}
+                                            {% if produccion.bambu_material or produccion.bambu_color_nombre %}
+                                                · {{ produccion.bambu_material }} {{ produccion.bambu_color_nombre }}
+                                            {% endif %}
+                                            {% if produccion.bambu_requiere_cambio_manual %} · cambio manual{% endif %}
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
                             <div class="dv-kanban-card__footer">
@@ -806,10 +821,14 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                             {% else %}
                             <div class="dv-kanban-card__footer">
                                 <span class="dv-kanban-badge" style="background:var(--dv-danger-soft,#fde8e8);color:var(--dv-danger-text,#963737)">FALLIDA</span>
-                                <form method="post" action="{% url 'produccion:repetir' produccion.id %}">
-                                    {% csrf_token %}
-                                    <button class="btn" type="submit">↻ REIMPRIMIR</button>
-                                </form>
+                                <button
+                                    class="btn"
+                                    type="button"
+                                    data-reprint-open
+                                    data-reprint-url="{% url 'produccion:repetir' produccion.id %}"
+                                    data-reprint-code="{{ produccion.codigo }}"
+                                    data-reprint-job="{{ produccion.producto.nombre }} × {{ produccion.cantidad }}"
+                                >↻ REIMPRIMIR</button>
                             </div>
                             {% endif %}
                         </article>
@@ -892,6 +911,102 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
     </section>
 </div>
 
+<dialog class="dv-confirm-dialog" id="bambuReprintDialog">
+    <div class="dv-confirm-dialog__body">
+        <div class="dv-confirm-dialog__icon">↻</div>
+        <h3>Preparar reimpresión</h3>
+        <p>
+            Elegí la impresora y el filamento. Si seleccionás un slot AMS, Gestión guardará ese slot para la futura orden de impresión.
+        </p>
+
+        <div class="dv-confirm-dialog__job">
+            <span id="bambuReprintCode">Producción</span><br>
+            <span id="bambuReprintJob">Trabajo</span>
+        </div>
+
+        <form method="post" id="bambuReprintForm">
+            {% csrf_token %}
+            <div class="reprint-grid">
+                <div class="reprint-field">
+                    <label for="bambuReprintPrinter">IMPRESORA</label>
+                    <select name="impresora" id="bambuReprintPrinter" required>
+                        <option value="">Seleccionar...</option>
+                        {% for impresora in impresoras %}
+                            <option value="{{ impresora.id }}">{{ impresora.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="reprint-field">
+                    <label for="bambuReprintFilament">FILAMENTO / COLOR</label>
+                    <select name="filamento" id="bambuReprintFilament" required disabled>
+                        <option value="">Primero elegí una impresora...</option>
+                        {% for impresora in impresoras %}
+                            {% if impresora.bambu_estado %}
+                                {% for slot in impresora.bambu_estado.ams_slots %}
+                                    <option
+                                        value="AMS:{{ slot.ams_id }}:{{ slot.tray_id }}"
+                                        data-printer="{{ impresora.id }}"
+                                        data-source="AMS"
+                                    >
+                                        AMS · Slot {{ slot.slot }} · {{ slot.tipo }}{% if slot.color %} · {{ slot.color }}{% endif %}
+                                    </option>
+                                {% endfor %}
+                                {% if impresora.bambu_estado.carrete_externo_info %}
+                                    <option
+                                        value="EXTERNO"
+                                        data-printer="{{ impresora.id }}"
+                                        data-source="EXTERNO"
+                                    >
+                                        Carrete externo · {{ impresora.bambu_estado.carrete_externo_info.tipo }}{% if impresora.bambu_estado.carrete_externo_info.color %} · {{ impresora.bambu_estado.carrete_externo_info.color }}{% endif %}
+                                    </option>
+                                {% endif %}
+                            {% endif %}
+                            <option
+                                value="MANUAL"
+                                data-printer="{{ impresora.id }}"
+                                data-source="MANUAL"
+                            >
+                                Cambio manual de filamento
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div id="bambuReprintManual" style="display:none">
+                    <div class="reprint-field">
+                        <label for="bambuReprintMaterial">MATERIAL</label>
+                        <select name="material_manual" id="bambuReprintMaterial">
+                            <option value="PLA">PLA</option>
+                            <option value="PETG">PETG</option>
+                            <option value="TPU">TPU</option>
+                            <option value="ABS">ABS</option>
+                            <option value="ASA">ASA</option>
+                        </select>
+                    </div>
+                    <div class="reprint-field" style="margin-top:10px">
+                        <label for="bambuReprintColor">COLOR DESEADO</label>
+                        <select name="color_manual" id="bambuReprintColor">
+                            <option value="">Seleccionar color...</option>
+                            {% for color in colores_reimpresion %}
+                                <option value="{{ color.almacenado }}">{{ color.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="reprint-hint" style="margin-top:10px">
+                        Gestión dejará marcada la reimpresión como “requiere cambio manual”. La Raspberry no puede cambiar físicamente un carrete externo.
+                    </div>
+                </div>
+            </div>
+
+            <div class="dv-confirm-dialog__actions">
+                <button class="btn" type="button" id="bambuReprintClose">VOLVER</button>
+                <button class="btn green" type="submit">CREAR REIMPRESIÓN</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
 <dialog class="dv-confirm-dialog" id="bambuCancelDialog">
     <div class="dv-confirm-dialog__body">
         <div class="dv-confirm-dialog__icon">■</div>
@@ -925,6 +1040,75 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         pedido.style.display=destino.value==='PEDIDO'?'block':'none';
     }
     if(destino){destino.addEventListener('change',sync);sync();}
+
+    const reprintDialog=document.getElementById('bambuReprintDialog');
+    const reprintForm=document.getElementById('bambuReprintForm');
+    const reprintClose=document.getElementById('bambuReprintClose');
+    const reprintCode=document.getElementById('bambuReprintCode');
+    const reprintJob=document.getElementById('bambuReprintJob');
+    const reprintPrinter=document.getElementById('bambuReprintPrinter');
+    const reprintFilament=document.getElementById('bambuReprintFilament');
+    const reprintManual=document.getElementById('bambuReprintManual');
+    const reprintManualColor=document.getElementById('bambuReprintColor');
+
+    const filamentOptions = reprintFilament
+        ? Array.from(reprintFilament.querySelectorAll('option[data-printer]'))
+        : [];
+
+    function syncReprintFilaments(){
+        if(!reprintPrinter||!reprintFilament)return;
+        const printerId=reprintPrinter.value;
+        reprintFilament.innerHTML='';
+
+        const placeholder=document.createElement('option');
+        placeholder.value='';
+        placeholder.textContent=printerId?'Seleccionar filamento...':'Primero elegí una impresora...';
+        reprintFilament.appendChild(placeholder);
+
+        filamentOptions
+            .filter(function(option){return option.dataset.printer===printerId;})
+            .forEach(function(option){reprintFilament.appendChild(option.cloneNode(true));});
+
+        reprintFilament.disabled=!printerId;
+        if(reprintManual)reprintManual.style.display='none';
+        if(reprintManualColor)reprintManualColor.required=false;
+    }
+
+    function syncManualReprint(){
+        if(!reprintFilament||!reprintManual)return;
+        const manual=reprintFilament.value==='MANUAL';
+        reprintManual.style.display=manual?'block':'none';
+        if(reprintManualColor)reprintManualColor.required=manual;
+    }
+
+    document.querySelectorAll('[data-reprint-open]').forEach(function(button){
+        button.addEventListener('click',function(){
+            if(!reprintDialog||!reprintForm)return;
+            reprintForm.action=button.dataset.reprintUrl||'';
+            if(reprintCode)reprintCode.textContent=button.dataset.reprintCode||'Producción';
+            if(reprintJob)reprintJob.textContent=button.dataset.reprintJob||'Trabajo';
+            if(reprintPrinter)reprintPrinter.value='';
+            syncReprintFilaments();
+            reprintDialog.showModal();
+        });
+    });
+
+    if(reprintPrinter){
+        reprintPrinter.addEventListener('change',syncReprintFilaments);
+    }
+    if(reprintFilament){
+        reprintFilament.addEventListener('change',syncManualReprint);
+    }
+    if(reprintClose){
+        reprintClose.addEventListener('click',function(){
+            reprintDialog?.close();
+        });
+    }
+    if(reprintDialog){
+        reprintDialog.addEventListener('click',function(event){
+            if(event.target===reprintDialog)reprintDialog.close();
+        });
+    }
 
     const cancelDialog=document.getElementById('bambuCancelDialog');
     const cancelForm=document.getElementById('bambuCancelForm');
