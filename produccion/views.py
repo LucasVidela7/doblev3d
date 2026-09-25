@@ -491,6 +491,7 @@ def lista_produccion(request):
             "impresora",
             "pedido",
             "pedido__cliente",
+            "archivo_impresion",
         )
         .exclude(
             estado="CANCELADO"
@@ -812,6 +813,7 @@ def lista_produccion(request):
             "impresora",
             "pedido",
             "pedido__cliente",
+            "archivo_impresion",
         )
         .order_by(
             "inicio_impresion",
