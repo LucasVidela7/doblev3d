@@ -175,3 +175,5 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-25T13:24-03 fix auditoria FileField gcode
 
 2026-09-25T13:32-03 fix 500 gcode produccion transaccion
+
+2026-09-25T13:36-03 fix postgres lock gcode upload
