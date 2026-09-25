@@ -137,3 +137,5 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-24 - Fix offset buscador header fijo categorias
 2026-09-24 - Hover boton Como pedirlo
 2026-09-25T11:10-03 deploy panel Bambu en vivo
+
+2026-09-25T11:16-03 deploy correccion modo oscuro Bambu en vivo
