@@ -30,6 +30,33 @@ def _nombre_base(nombre):
     return texto.strip()[:180]
 
 
+def _cantidad(valor):
+    try:
+        cantidad = int(valor)
+    except (TypeError, ValueError):
+        return None
+
+    return cantidad if cantidad > 0 else None
+
+
+def _desmarcar_predeterminado(
+    *,
+    producto_id,
+    cantidad_unidades,
+    excluir_id=None,
+):
+    qs = ArchivoImpresion.objects.filter(
+        producto_id=producto_id,
+        cantidad_unidades=cantidad_unidades,
+        predeterminado=True,
+    )
+
+    if excluir_id:
+        qs = qs.exclude(id=excluir_id)
+
+    qs.update(predeterminado=False)
+
+
 def _analizar_gcode_3mf(archivo):
     nombre = str(
         getattr(archivo, "name", "")
@@ -136,6 +163,22 @@ def subir(request, producto_id):
         id=producto_id,
     )
 
+    cantidad_unidades = _cantidad(
+        request.POST.get(
+            "cantidad_unidades"
+        )
+    )
+
+    if not cantidad_unidades:
+        messages.error(
+            request,
+            "Ingresá una cantidad de unidades válida.",
+        )
+        return redirect(
+            "productos:detalle",
+            producto_id=producto.id,
+        )
+
     archivo = request.FILES.get("archivo")
 
     if archivo is None:
@@ -218,23 +261,25 @@ def subir(request, producto_id):
 
     if (
         not producto.archivos_impresion
-        .filter(activo=True)
+        .filter(
+            activo=True,
+            cantidad_unidades=cantidad_unidades,
+        )
         .exists()
     ):
         predeterminado = True
 
     if predeterminado:
-        ArchivoImpresion.objects.filter(
-            producto=producto,
-            predeterminado=True,
-        ).update(
-            predeterminado=False
+        _desmarcar_predeterminado(
+            producto_id=producto.id,
+            cantidad_unidades=cantidad_unidades,
         )
 
     registro = ArchivoImpresion(
         producto=producto,
         nombre=nombre,
         version=version,
+        cantidad_unidades=cantidad_unidades,
         nombre_original=str(
             archivo.name
         )[:255],
@@ -267,7 +312,8 @@ def subir(request, producto_id):
     messages.success(
         request,
         (
-            f"Archivo “{registro.nombre}” cargado. "
+            f"Archivo “{registro.nombre}” cargado para "
+            f"{registro.cantidad_unidades} unidad(es). "
             f"{registro.tamano_formateado} · "
             f"placas: {placas}."
         ),
@@ -337,13 +383,10 @@ def predeterminar(
         activo=True,
     )
 
-    ArchivoImpresion.objects.filter(
+    _desmarcar_predeterminado(
         producto_id=producto_id,
-        predeterminado=True,
-    ).exclude(
-        id=registro.id,
-    ).update(
-        predeterminado=False
+        cantidad_unidades=registro.cantidad_unidades,
+        excluir_id=registro.id,
     )
 
     if not registro.predeterminado:
@@ -358,8 +401,8 @@ def predeterminar(
     messages.success(
         request,
         (
-            f"“{registro.nombre}” quedó como "
-            "archivo predeterminado."
+            f"“{registro.nombre}” quedó asignado como "
+            f"archivo principal para {registro.cantidad_unidades} unidad(es)."
         ),
     )
 
@@ -401,6 +444,7 @@ def cambiar_activo(
             ArchivoImpresion.objects
             .filter(
                 producto_id=producto_id,
+                cantidad_unidades=registro.cantidad_unidades,
                 activo=True,
                 predeterminado=True,
             )
@@ -420,6 +464,149 @@ def cambiar_activo(
         request,
         (
             f"Archivo {'activado' if registro.activo else 'desactivado'}."
+        ),
+    )
+
+    return redirect(
+        "productos:detalle",
+        producto_id=producto_id,
+    )
+
+
+@require_POST
+@transaction.atomic
+def reemplazar(
+    request,
+    producto_id,
+    archivo_id,
+):
+    anterior = get_object_or_404(
+        ArchivoImpresion.objects
+        .select_for_update()
+        .select_related("producto"),
+        id=archivo_id,
+        producto_id=producto_id,
+    )
+
+    archivo = request.FILES.get("archivo")
+
+    if archivo is None:
+        messages.error(
+            request,
+            "Seleccioná el nuevo archivo .gcode.3mf.",
+        )
+        return redirect(
+            "productos:detalle",
+            producto_id=producto_id,
+        )
+
+    try:
+        analisis = _analizar_gcode_3mf(
+            archivo
+        )
+    except ValueError as error:
+        messages.error(
+            request,
+            str(error),
+        )
+        return redirect(
+            "productos:detalle",
+            producto_id=producto_id,
+        )
+
+    if analisis["sha256"] == anterior.sha256:
+        messages.error(
+            request,
+            "El archivo nuevo es idéntico al actual.",
+        )
+        return redirect(
+            "productos:detalle",
+            producto_id=producto_id,
+        )
+
+    duplicado = (
+        ArchivoImpresion.objects
+        .filter(
+            producto_id=producto_id,
+            sha256=analisis["sha256"],
+        )
+        .exclude(id=anterior.id)
+        .first()
+    )
+
+    if duplicado:
+        messages.error(
+            request,
+            (
+                "Ese archivo ya existe en la biblioteca como "
+                f"“{duplicado.nombre}”."
+            ),
+        )
+        return redirect(
+            "productos:detalle",
+            producto_id=producto_id,
+        )
+
+    version = (
+        request.POST.get("version", "")
+        .strip()[:60]
+        or anterior.version
+    )
+
+    notas = (
+        request.POST.get("notas", "")
+        .strip()
+        or anterior.notas
+    )
+
+    _desmarcar_predeterminado(
+        producto_id=producto_id,
+        cantidad_unidades=anterior.cantidad_unidades,
+    )
+
+    nuevo = ArchivoImpresion(
+        producto=anterior.producto,
+        nombre=anterior.nombre,
+        version=version,
+        cantidad_unidades=anterior.cantidad_unidades,
+        reemplaza_a=anterior,
+        nombre_original=str(
+            archivo.name
+        )[:255],
+        tamano_bytes=analisis[
+            "tamano_bytes"
+        ],
+        sha256=analisis["sha256"],
+        placas=analisis["placas"],
+        perfil_impresora=anterior.perfil_impresora,
+        notas=notas,
+        activo=True,
+        predeterminado=True,
+    )
+
+    nuevo.archivo.save(
+        str(archivo.name),
+        archivo,
+        save=False,
+    )
+    nuevo.save()
+
+    anterior.activo = False
+    anterior.predeterminado = False
+    anterior.save(
+        update_fields=[
+            "activo",
+            "predeterminado",
+            "actualizado_en",
+        ]
+    )
+
+    messages.success(
+        request,
+        (
+            f"Archivo para {nuevo.cantidad_unidades} unidad(es) "
+            f"sustituido por “{nuevo.nombre_original}”. "
+            "La versión anterior quedó guardada en el historial."
         ),
     )
 
@@ -463,6 +650,7 @@ def eliminar(
             ArchivoImpresion.objects
             .filter(
                 producto_id=producto_id,
+                cantidad_unidades=registro.cantidad_unidades,
                 activo=True,
             )
             .order_by(
