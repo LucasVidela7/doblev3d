@@ -13,7 +13,7 @@ from pedidos.models import Pedido
 from productos.models import Producto
 from productos.miniaturas import asignar_miniaturas_productos
 
-from .models import Impresora, Produccion
+from .models import Impresora, ImpresoraEstadoBambu, Produccion
 
 
 ARGENTINA_TZ = ZoneInfo("America/Argentina/Buenos_Aires")
@@ -726,6 +726,40 @@ def lista_produccion(request):
         ARGENTINA_TZ,
     ).strftime("%Y-%m-%dT%H:%M")
 
+    # Telemetría recibida desde el Bambu Bridge. Se mantiene separada
+    # de la planificación manual hasta vincular cada serial con su
+    # Impresora operativa.
+    bambu_estados = list(
+        ImpresoraEstadoBambu.objects
+        .select_related("impresora")
+        .order_by("nombre_bridge", "serial")
+    )
+
+    for estado_bambu in bambu_estados:
+        estado_bambu.sync_reciente = bool(
+            estado_bambu.ultimo_contacto
+            and (
+                ahora - estado_bambu.ultimo_contacto
+            ) <= timedelta(minutes=2)
+        )
+
+        restante = estado_bambu.minutos_restantes
+        if restante is None:
+            estado_bambu.restante_texto = "Sin dato"
+        else:
+            horas, minutos = divmod(
+                max(int(restante), 0),
+                60,
+            )
+            if horas and minutos:
+                estado_bambu.restante_texto = (
+                    f"{horas} h {minutos} min"
+                )
+            elif horas:
+                estado_bambu.restante_texto = f"{horas} h"
+            else:
+                estado_bambu.restante_texto = f"{minutos} min"
+
     return render(
         request,
         "produccion/lista.html",
@@ -774,6 +808,7 @@ def lista_produccion(request):
             "ahora_input": ahora_input,
             "impresoras_libres": impresoras_libres,
             "peso_faltante_texto": peso_faltante_texto,
+            "bambu_estados": bambu_estados,
         },
     )
 
