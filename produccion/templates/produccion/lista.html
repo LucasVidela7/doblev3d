@@ -91,6 +91,11 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 .bambu-inline-actions{display:flex;justify-content:flex-end;margin-top:7px}
 .bambu-inline-actions form{margin:0}
 .bambu-inline-actions .btn{min-height:30px;font-size:7px;padding:0 9px}
+.bambu-coherence{margin-top:9px;padding:9px 10px;border:1px solid var(--dv-border);border-radius:10px;font-size:9px;font-weight:800;line-height:1.4}
+.bambu-coherence.ok{background:rgba(46,112,67,.12);border-color:rgba(46,112,67,.32);color:var(--dv-text)}
+.bambu-coherence.warn{background:var(--dv-brand-red-soft);border-color:rgba(240,57,59,.32);color:var(--dv-text)}
+.bambu-coherence.neutral{background:var(--dv-surface-muted);color:var(--dv-muted)}
+.bambu-timing{margin-top:7px;padding-top:7px;border-top:1px solid var(--dv-border);color:var(--dv-muted);font-size:9px;line-height:1.45}
 .recommendation{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px;padding:12px 13px;border:1px solid #cddcef;border-radius:14px;background:#f6f9ff}
 .recommendation strong{font-size:11px}.recommendation .meta{margin-top:3px}
 
@@ -353,6 +358,25 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                 Nozzle {% if bambu.temperatura_nozzle is not None %}{{ bambu.temperatura_nozzle|floatformat:0 }} °C{% else %}—{% endif %}
                                 · Cama {% if bambu.temperatura_bed is not None %}{{ bambu.temperatura_bed|floatformat:0 }} °C{% else %}—{% endif %}
                                 · Wi-Fi {{ bambu.wifi|default:"—" }}
+                            </div>
+
+                            <div class="bambu-coherence {% if impresora.bambu_coherencia == 'OK' %}ok{% elif impresora.bambu_coherencia == 'REVISAR' %}warn{% else %}neutral{% endif %}">
+                                {% if impresora.bambu_coherencia == "OK" %}
+                                    ✓ {{ impresora.bambu_coherencia_texto }}
+                                {% elif impresora.bambu_coherencia == "REVISAR" %}
+                                    ⚠ {{ impresora.bambu_coherencia_texto }}
+                                {% else %}
+                                    {{ impresora.bambu_coherencia_texto }}
+                                {% endif %}
+
+                                {% if bambu.fin_real_estimado %}
+                                    <div class="bambu-timing">
+                                        Fin estimado por la A1: {{ bambu.fin_real_estimado|date:"H:i" }}
+                                        {% if bambu.desvio_planificacion_texto %}
+                                            · {{ bambu.desvio_planificacion_texto }}
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
                             </div>
 
                             <div class="bambu-inline-actions">
