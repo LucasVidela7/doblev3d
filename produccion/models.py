@@ -97,6 +97,16 @@ class ImpresoraEstadoBambu(models.Model):
         auto_now=True,
     )
 
+    ams = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    carrete_externo = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
     payload = models.JSONField(
         default=dict,
         blank=True,
@@ -118,7 +128,9 @@ class Produccion(models.Model):
     ESTADOS = [
         ("PENDIENTE", "Pendiente"),
         ("IMPRIMIENDO", "Imprimiendo"),
+        ("CONTROL", "Pendiente de control"),
         ("LISTO", "Listo"),
+        ("FALLIDA", "Fallida"),
         ("CANCELADO", "Cancelado"),
     ]
 
@@ -175,6 +187,34 @@ class Produccion(models.Model):
 
     ingresado_stock = models.BooleanField(
         default=False,
+    )
+
+    fin_impresion_detectado = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    control_calidad_en = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    resultado_control = models.CharField(
+        max_length=20,
+        blank=True,
+    )
+
+    evento_fin_bambu = models.CharField(
+        max_length=30,
+        blank=True,
+    )
+
+    reimpresion_de = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reimpresiones",
     )
 
     observaciones = models.TextField(
@@ -263,3 +303,76 @@ class Produccion(models.Model):
             f"{self.codigo} - "
             f"{self.producto.nombre} x{self.cantidad}"
         )
+
+
+
+class ConfiguracionProduccion(models.Model):
+    avisos_impresion_activos = models.BooleanField(
+        default=True,
+    )
+
+    avisar_antes_finalizar = models.BooleanField(
+        default=True,
+    )
+
+    minutos_aviso_finalizacion = models.PositiveSmallIntegerField(
+        default=15,
+    )
+
+    avisar_finalizacion = models.BooleanField(
+        default=True,
+    )
+
+    avisar_cancelacion = models.BooleanField(
+        default=True,
+    )
+
+    def __str__(self):
+        return "Configuración de producción"
+
+
+class EventoBambu(models.Model):
+    TIPOS = [
+        ("PROXIMO_FIN", "Próxima a finalizar"),
+        ("FINALIZADA", "Finalizada"),
+        ("CANCELADA", "Cancelada"),
+    ]
+
+    clave = models.CharField(
+        max_length=180,
+        unique=True,
+    )
+
+    tipo = models.CharField(
+        max_length=30,
+        choices=TIPOS,
+    )
+
+    impresora_estado = models.ForeignKey(
+        ImpresoraEstadoBambu,
+        on_delete=models.CASCADE,
+        related_name="eventos",
+    )
+
+    produccion = models.ForeignKey(
+        Produccion,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="eventos_bambu",
+    )
+
+    creado_en = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    payload = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    class Meta:
+        ordering = ["-creado_en", "-id"]
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} · {self.impresora_estado}"
