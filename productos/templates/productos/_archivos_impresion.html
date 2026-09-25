@@ -38,6 +38,8 @@
       class="print-upload"
       method="post"
       enctype="multipart/form-data"
+      data-dv-submit-lock
+      data-dv-loading-label="Guardando G-code"
       action="{% url 'productos:archivo_impresion_subir' producto.id %}"
     >
       {% csrf_token %}
@@ -151,6 +153,8 @@
             <form
               method="post"
               enctype="multipart/form-data"
+              data-dv-submit-lock
+              data-dv-loading-label="Sustituyendo G-code"
               action="{% url 'productos:archivo_impresion_reemplazar' producto.id archivo.id %}"
               style="margin-top:7px;display:grid;gap:6px;min-width:240px"
             >
