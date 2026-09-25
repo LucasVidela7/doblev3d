@@ -10,7 +10,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from pedidos.models import Pedido
-from productos.models import ConfiguracionCatalogo, Producto, detalle_color_catalogo
+from productos.models import ArchivoImpresion, ConfiguracionCatalogo, Producto, detalle_color_catalogo
 from productos.miniaturas import asignar_miniaturas_productos
 
 from .models import ComandoBambu, Impresora, ImpresoraEstadoBambu, Produccion
@@ -126,6 +126,85 @@ def _tiempo_sugerido_produccion(producto, cantidad):
         return 0
 
     return unitario * cantidad
+
+
+def _normalizar_nombre_trabajo_bambu(valor):
+    texto = (
+        str(valor or "")
+        .strip()
+        .replace("\\", "/")
+        .split("/")[-1]
+        .casefold()
+    )
+
+    for sufijo in (
+        ".gcode.3mf",
+        ".3mf",
+        ".gcode",
+    ):
+        if texto.endswith(sufijo):
+            texto = texto[: -len(sufijo)]
+            break
+
+    return "".join(
+        caracter
+        for caracter in texto
+        if caracter.isalnum()
+    )
+
+
+def _archivo_impresion_coincidente(
+    trabajo_bambu,
+    *,
+    producto_id=None,
+    cantidad=None,
+):
+    nombre_normalizado = (
+        _normalizar_nombre_trabajo_bambu(
+            trabajo_bambu
+        )
+    )
+
+    if not nombre_normalizado:
+        return None
+
+    qs = (
+        ArchivoImpresion.objects
+        .filter(activo=True)
+        .select_related("producto")
+    )
+
+    if producto_id:
+        qs = qs.filter(
+            producto_id=producto_id
+        )
+
+    if cantidad:
+        qs = qs.filter(
+            cantidad_unidades=cantidad
+        )
+
+    coincidencias = []
+
+    for archivo in qs:
+        nombres = {
+            _normalizar_nombre_trabajo_bambu(
+                archivo.nombre_original
+            ),
+            _normalizar_nombre_trabajo_bambu(
+                archivo.nombre
+            ),
+        }
+
+        if nombre_normalizado in nombres:
+            coincidencias.append(
+                archivo
+            )
+
+    if len(coincidencias) == 1:
+        return coincidencias[0]
+
+    return None
 
 
 def _color_bambu_css(valor):
