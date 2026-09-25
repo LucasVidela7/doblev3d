@@ -4,10 +4,12 @@ from decimal import Decimal
 from html import escape
 
 from django.conf import settings
+from django.contrib import messages
+from django.db import transaction
 from django.db.models import Sum
 from django.http import HttpResponse, JsonResponse
 from django.middleware.csrf import get_token
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
@@ -24,7 +26,7 @@ from pedidos.models import (
 )
 from pedidos.impresiones_stock import obtener_impresiones_por_producto
 from produccion import views as produccion_views
-from produccion.models import ConfiguracionProduccion, Impresora, Produccion
+from produccion.models import ConfiguracionProduccion, Impresora, ImpresoraEstadoBambu, Produccion
 from productos.models import (
     COLORES_CATALOGO_PREDEFINIDOS,
     ConfiguracionCatalogo,
@@ -975,6 +977,105 @@ def inicio(request):
     )
 
 
+@require_POST
+@transaction.atomic
+def configurar_vinculo_bambu(
+    request,
+    estado_id,
+):
+    estado_bambu = get_object_or_404(
+        ImpresoraEstadoBambu.objects
+        .select_for_update(),
+        id=estado_id,
+    )
+
+    accion = (
+        request.POST.get(
+            "accion",
+            "VINCULAR",
+        )
+        .strip()
+        .upper()
+    )
+
+    if accion == "DESVINCULAR":
+        estado_bambu.impresora = None
+        estado_bambu.save(
+            update_fields=["impresora"]
+        )
+        messages.success(
+            request,
+            "Vinculación de impresora actualizada.",
+        )
+        return redirect(
+            reverse(
+                "dashboard:configuracion"
+            )
+            + "#impresoras"
+        )
+
+    impresora_id = (
+        request.POST.get(
+            "impresora",
+            "",
+        )
+        .strip()
+    )
+
+    if not impresora_id:
+        messages.error(
+            request,
+            "Elegí la impresora de Gestión.",
+        )
+        return redirect(
+            reverse(
+                "dashboard:configuracion"
+            )
+            + "#impresoras"
+        )
+
+    impresora = get_object_or_404(
+        Impresora.objects
+        .select_for_update(),
+        id=impresora_id,
+        activa=True,
+    )
+
+    (
+        ImpresoraEstadoBambu.objects
+        .select_for_update()
+        .filter(
+            impresora=impresora,
+        )
+        .exclude(
+            id=estado_bambu.id,
+        )
+        .update(
+            impresora=None
+        )
+    )
+
+    estado_bambu.impresora = impresora
+    estado_bambu.save(
+        update_fields=["impresora"]
+    )
+
+    messages.success(
+        request,
+        (
+            f"{estado_bambu.nombre_bridge or estado_bambu.serial} "
+            f"vinculada a {impresora.nombre}."
+        ),
+    )
+
+    return redirect(
+        reverse(
+            "dashboard:configuracion"
+        )
+        + "#impresoras"
+    )
+
+
 @never_cache
 def configuracion(request):
     config, _ = ConfiguracionCatalogo.objects.get_or_create(
@@ -1180,6 +1281,7 @@ def configuracion(request):
             "metricas",
             "legal",
             "apariencia",
+            "impresoras",
         }
         seccion = (
             request.POST.get("config_seccion")
@@ -1274,6 +1376,16 @@ def configuracion(request):
             ),
             "metricas_config": metricas_config,
             "produccion_config": produccion_config,
+            "impresoras_config": (
+                Impresora.objects
+                .filter(activa=True)
+                .order_by("nombre")
+            ),
+            "bambu_estados_config": (
+                ImpresoraEstadoBambu.objects
+                .select_related("impresora")
+                .order_by("nombre_bridge", "serial")
+            ),
             "metricas": resumen_metricas(periodo_metricas),
             "turnstile_configurado": bool(
                 getattr(settings, "TURNSTILE_SITE_KEY", "")
