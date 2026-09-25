@@ -432,6 +432,147 @@ class ControlCalidadBambuTests(TestCase):
             self.produccion.ingresado_stock,
         )
 
+    def test_reimprimir_fallida_con_slot_ams_guarda_filamento(self):
+        self.estado_bambu.ams = {
+            "ams": [
+                {
+                    "id": 0,
+                    "tray": [
+                        {
+                            "id": 3,
+                            "tray_type": "PLA",
+                            "tray_color": "0085D5FF",
+                        }
+                    ],
+                }
+            ],
+            "tray_now": "3",
+        }
+        self.estado_bambu.save(
+            update_fields=["ams"]
+        )
+
+        self.produccion.estado = "FALLIDA"
+        self.produccion.resultado_control = "FALLA"
+        self.produccion.save(
+            update_fields=[
+                "estado",
+                "resultado_control",
+            ]
+        )
+
+        usuario = get_user_model().objects.create_user(
+            username="ams-reprint-test",
+            password="test-pass",
+        )
+        self.client.force_login(usuario)
+
+        respuesta = self.client.post(
+            reverse(
+                "produccion:repetir",
+                args=[self.produccion.id],
+            ),
+            {
+                "impresora": str(self.impresora.id),
+                "filamento": "AMS:0:3",
+            },
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            302,
+        )
+
+        nueva = (
+            Produccion.objects
+            .exclude(id=self.produccion.id)
+            .get()
+        )
+
+        self.assertEqual(
+            nueva.impresora_id,
+            self.impresora.id,
+        )
+        self.assertEqual(
+            nueva.bambu_fuente_filamento,
+            "AMS",
+        )
+        self.assertEqual(
+            nueva.bambu_ams_id,
+            0,
+        )
+        self.assertEqual(
+            nueva.bambu_tray_id,
+            3,
+        )
+        self.assertEqual(
+            nueva.bambu_material,
+            "PLA",
+        )
+        self.assertEqual(
+            nueva.bambu_color_hex,
+            "#0085D5",
+        )
+        self.assertFalse(
+            nueva.bambu_requiere_cambio_manual,
+        )
+
+    def test_reimprimir_fallida_con_cambio_manual(self):
+        self.produccion.estado = "FALLIDA"
+        self.produccion.resultado_control = "FALLA"
+        self.produccion.save(
+            update_fields=[
+                "estado",
+                "resultado_control",
+            ]
+        )
+
+        usuario = get_user_model().objects.create_user(
+            username="manual-reprint-test",
+            password="test-pass",
+        )
+        self.client.force_login(usuario)
+
+        respuesta = self.client.post(
+            reverse(
+                "produccion:repetir",
+                args=[self.produccion.id],
+            ),
+            {
+                "impresora": str(self.impresora.id),
+                "filamento": "MANUAL",
+                "material_manual": "PLA",
+                "color_manual": "Azul",
+            },
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            302,
+        )
+
+        nueva = (
+            Produccion.objects
+            .exclude(id=self.produccion.id)
+            .get()
+        )
+
+        self.assertEqual(
+            nueva.bambu_fuente_filamento,
+            "MANUAL",
+        )
+        self.assertEqual(
+            nueva.bambu_material,
+            "PLA",
+        )
+        self.assertEqual(
+            nueva.bambu_color_nombre,
+            "Azul",
+        )
+        self.assertTrue(
+            nueva.bambu_requiere_cambio_manual,
+        )
+
     def test_reimprimir_fallida_crea_nueva_planificacion(self):
         self.produccion.estado = "FALLIDA"
         self.produccion.resultado_control = "FALLA"
