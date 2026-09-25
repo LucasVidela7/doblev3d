@@ -121,11 +121,26 @@ def _archivo_planificado(producto, cantidad):
 
 def _tiempo_sugerido_produccion(producto, cantidad):
     """
-    Prioriza un tiempo real ya utilizado para la misma cantidad.
-    Si todavía no existe, usa el tiempo unitario del producto como
-    estimación austera para no bloquear la planificación.
+    Prioriza el tiempo exacto del G-code para producto + cantidad.
+    Si no existe metadata del archivo, usa historial y luego el tiempo
+    configurado en el producto.
     """
     cantidad = max(int(cantidad or 0), 1)
+
+    archivo = _archivo_planificado(
+        producto,
+        cantidad,
+    )
+
+    if archivo:
+        completar_metadata_gcode(
+            archivo
+        )
+        if archivo.tiempo_estimado_minutos:
+            return int(
+                archivo.tiempo_estimado_minutos
+            )
+
     recomendado = obtener_tiempo_recomendado(
         producto,
         cantidad,
