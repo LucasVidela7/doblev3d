@@ -211,6 +211,53 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
     .history-row{grid-template-columns:1fr auto}.history-row .history-hide{display:none}
     .manual-grid{grid-template-columns:1fr}.manual-grid .wide{grid-column:auto}
 }
+
+/* Refinamiento operativo: tipografía legible + impresoras unificadas */
+.flow-nav a{font-size:9.5px}
+.metric-label{font-size:9px}.metric-note{font-size:10px}
+.subtitle{font-size:12px}.section-help{font-size:10px}
+.btn{font-size:10.5px}
+.pill{font-size:9px}
+.meta{font-size:10.5px;line-height:1.5}
+.code{font-size:9px}
+.printer-name{font-size:15px}
+.printer-job{font-size:15px}
+.printer{padding:16px;border-radius:18px}
+.printer-head{padding-bottom:10px;border-bottom:1px solid var(--dv-border)}
+.printer-summary{display:grid;grid-template-columns:58px minmax(0,1fr);gap:12px;align-items:center;padding:14px 0 11px}
+.printer-summary .product-thumb{width:58px;height:58px;border-radius:13px}
+.printer-summary__code{color:var(--dv-muted);font-size:10px;font-weight:900}
+.printer-summary__title{margin-top:3px;font-size:16px;font-weight:900;line-height:1.25}
+.printer-summary__stats{display:flex;flex-wrap:wrap;gap:7px;margin-top:7px}
+.printer-summary__stat{display:inline-flex;align-items:center;min-height:28px;padding:0 8px;border:1px solid var(--dv-border);border-radius:999px;background:var(--dv-surface-soft);font-size:10px;font-weight:900}
+.printer-live{padding:10px 0;border-top:1px solid var(--dv-border)}
+.printer-live__top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.printer-live__name{font-size:10px;font-weight:900;color:var(--dv-muted)}
+.printer-live__job{margin-top:7px;font-size:11px;font-weight:900;line-height:1.4;overflow-wrap:anywhere}
+.printer-live__meta{margin-top:7px;color:var(--dv-muted);font-size:10.5px;line-height:1.5}
+.printer-live .bambu-progress{margin-top:8px}
+.bambu-coherence{font-size:10.5px}
+.bambu-timing{font-size:10.5px}
+.bambu-filament{font-size:10px}.bambu-filament small{font-size:9px}
+.printer-action-note{font-size:10px}
+.production-kanban .dv-kanban-card__code{font-size:10px}
+.production-kanban .dv-kanban-card__title{font-size:13px}
+.production-kanban .dv-kanban-card__meta{font-size:10.5px;line-height:1.45}
+.production-kanban .prod-kpi span{font-size:9.5px}
+.production-kanban .prod-note{font-size:10.5px}
+.production-kanban .prod-actions input{font-size:11px}
+.dv-kanban-column__head p{font-size:10px}
+.dv-kanban-badge{font-size:9px}
+.external-print__eyebrow{font-size:10px}.external-print__job{font-size:12px}.external-print__match{font-size:10px}
+.start-printer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:14px}
+.start-printer-option{min-height:92px;padding:12px;border:1px solid var(--dv-border);border-radius:14px;background:var(--dv-surface);color:var(--dv-text);text-align:left;cursor:pointer}
+.start-printer-option strong{display:block;font-size:14px}
+.start-printer-option span{display:block;margin-top:5px;color:var(--dv-muted);font-size:10px;line-height:1.4}
+.start-printer-option.is-selected{border-color:var(--dv-brand-blue);box-shadow:0 0 0 3px color-mix(in srgb,var(--dv-brand-blue) 14%,transparent);background:var(--dv-brand-blue-soft)}
+.start-printer-option:disabled{opacity:.48;cursor:not-allowed}
+.production-focus{animation:productionFocus 1.25s ease}
+@keyframes productionFocus{0%,100%{box-shadow:var(--dv-shadow-soft)}35%{box-shadow:0 0 0 4px color-mix(in srgb,var(--dv-brand-sky) 38%,transparent),0 12px 30px rgba(19,74,154,.18)}}
+@media(max-width:650px){.start-printer-grid{grid-template-columns:1fr}.printer-summary{grid-template-columns:50px minmax(0,1fr)}.printer-summary .product-thumb{width:50px;height:50px}}
 </style>
 </head>
 <body>
@@ -324,16 +371,10 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                         {% if not bambu.sync_reciente %} · datos no recientes{% endif %}
                     </div>
 
-                    <form method="post" action="{% url 'produccion:bambu_vincular' bambu.id %}" class="bambu-link-form">
-                        {% csrf_token %}
-                        <select name="impresora" required aria-label="Vincular con impresora">
-                            <option value="">Vincular con...</option>
-                            {% for impresora in impresoras %}
-                                <option value="{{ impresora.id }}">{{ impresora.nombre }}</option>
-                            {% endfor %}
-                        </select>
-                        <button class="btn dark" type="submit">VINCULAR</button>
-                    </form>
+                    <div class="bambu-link-form" style="display:flex;align-items:center;justify-content:space-between">
+                        <span class="meta">La vinculación se administra desde Configuración.</span>
+                        <a class="btn dark" href="{% url 'dashboard:configuracion' %}#impresoras">CONFIGURAR</a>
+                    </div>
                 </article>
             {% endfor %}
         </div>
@@ -421,10 +462,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 
                                 {% if bambu.fin_real_estimado %}
                                     <div class="bambu-timing">
-                                        Fin estimado por la A1: {{ bambu.fin_real_estimado|date:"H:i" }}
-                                        {% if bambu.desvio_planificacion_texto %}
-                                            · {{ bambu.desvio_planificacion_texto }}
-                                        {% endif %}
+                                        Fin estimado: {{ bambu.fin_real_estimado|date:"H:i" }}
                                     </div>
                                 {% endif %}
                             </div>
