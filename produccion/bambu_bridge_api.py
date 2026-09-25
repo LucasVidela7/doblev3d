@@ -467,7 +467,56 @@ def bambu_bridge_sync(request):
             )
 
             if produccion:
+                cancelacion_solicitada = (
+                    produccion.evento_fin_bambu
+                    in {
+                        "CANCELACION_SOLICITADA",
+                        "CANCELACION_ENVIADA",
+                    }
+                )
+
                 if (
+                    cancelacion_solicitada
+                    and estado_actual
+                    and estado_actual
+                    not in ESTADOS_IMPRIMIENDO
+                ):
+                    produccion.estado = "CANCELADO"
+                    produccion.fin_impresion_detectado = (
+                        timezone.now()
+                    )
+                    produccion.evento_fin_bambu = (
+                        "CANCELADA_USUARIO"
+                    )
+                    produccion.resultado_control = ""
+                    produccion.save(
+                        update_fields=[
+                            "estado",
+                            "fin_impresion_detectado",
+                            "evento_fin_bambu",
+                            "resultado_control",
+                        ]
+                    )
+
+                    if (
+                        config.avisos_impresion_activos
+                        and config.avisar_cancelacion
+                        and _registrar_evento(
+                            tipo="CANCELADA",
+                            estado_bambu=estado,
+                            produccion=produccion,
+                            item=item,
+                        )
+                    ):
+                        notificaciones.append(
+                            _payload_push(
+                                tipo="CANCELADA",
+                                estado_bambu=estado,
+                                produccion=produccion,
+                            )
+                        )
+
+                elif (
                     estado_actual in ESTADOS_FINALIZADOS
                     and produccion.estado == "IMPRIMIENDO"
                 ):
@@ -510,14 +559,6 @@ def bambu_bridge_sync(request):
                     estado_actual in ESTADOS_CANCELADOS
                     and produccion.estado == "IMPRIMIENDO"
                 ):
-                    cancelacion_solicitada = (
-                        produccion.evento_fin_bambu
-                        in {
-                            "CANCELACION_SOLICITADA",
-                            "CANCELACION_ENVIADA",
-                        }
-                    )
-
                     produccion.estado = (
                         "CANCELADO"
                         if cancelacion_solicitada
