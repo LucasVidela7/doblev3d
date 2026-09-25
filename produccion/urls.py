@@ -43,6 +43,11 @@ urlpatterns = [
         name="bambu_vincular_impresion",
     ),
     path(
+        "<int:produccion_id>/gcode/",
+        views.cargar_gcode_produccion,
+        name="cargar_gcode",
+    ),
+    path(
         "<int:produccion_id>/iniciar/",
         views.iniciar_produccion,
         name="iniciar",
