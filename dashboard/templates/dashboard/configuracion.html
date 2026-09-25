@@ -166,12 +166,14 @@ html[data-dv-theme="dark"] .cfg-device.is-active{background:#173523;color:#b9ecc
 html[data-dv-theme="dark"] [data-config-tab="tienda"],html[data-dv-theme="dark"] #tienda{--section-color:#6aa6ff}
 html[data-dv-theme="dark"] [data-config-tab="whatsapp"],html[data-dv-theme="dark"] #whatsapp{--section-color:#69cf92}
 html[data-dv-theme="dark"] [data-config-tab="avisos"],html[data-dv-theme="dark"] #avisos{--section-color:#f0bd57}
+html[data-dv-theme="dark"] [data-config-tab="impresoras"],html[data-dv-theme="dark"] #impresoras{--section-color:#72a7f0}
 html[data-dv-theme="dark"] [data-config-tab="metricas"],html[data-dv-theme="dark"] #metricas{--section-color:#b39aef}
 html[data-dv-theme="dark"] [data-config-tab="legal"],html[data-dv-theme="dark"] #legal{--section-color:#ef91a6}
 html[data-dv-theme="dark"] [data-config-tab="apariencia"],html[data-dv-theme="dark"] #apariencia{--section-color:#72cad5}
 html[data-dv-theme="dark"] .cfg-content[data-section="tienda"]{--active-section-color:#6aa6ff}
 html[data-dv-theme="dark"] .cfg-content[data-section="whatsapp"]{--active-section-color:#69cf92}
 html[data-dv-theme="dark"] .cfg-content[data-section="avisos"]{--active-section-color:#f0bd57}
+html[data-dv-theme="dark"] .cfg-content[data-section="impresoras"]{--active-section-color:#72a7f0}
 html[data-dv-theme="dark"] .cfg-content[data-section="metricas"]{--active-section-color:#b39aef}
 html[data-dv-theme="dark"] .cfg-content[data-section="legal"]{--active-section-color:#ef91a6}
 html[data-dv-theme="dark"] .cfg-content[data-section="apariencia"]{--active-section-color:#72cad5}
@@ -1169,8 +1171,8 @@ campo.dispatchEvent(new Event("input",{bubbles:true}));
 });
 });
 
-const configSections=["tienda","costos","whatsapp","avisos","metricas","legal","apariencia"];
-const sectionLabels={tienda:"Tienda",costos:"Costos",whatsapp:"WhatsApp",avisos:"Notificaciones",metricas:"Métricas",legal:"Legal",apariencia:"Apariencia"};
+const configSections=["tienda","costos","whatsapp","avisos","impresoras","metricas","legal","apariencia"];
+const sectionLabels={tienda:"Tienda",costos:"Costos",whatsapp:"WhatsApp",avisos:"Notificaciones",impresoras:"Impresoras",metricas:"Métricas",legal:"Legal",apariencia:"Apariencia"};
 const sectionSelect=document.getElementById("cfgSectionSelect");
 const sectionInput=document.getElementById("configSeccion");
 const sectionLabel=document.getElementById("cfgCurrentSectionLabel");
