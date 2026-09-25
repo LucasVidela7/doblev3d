@@ -58,6 +58,11 @@ urlpatterns = [
         name="inicio_bambu_estado",
     ),
     path(
+        "bambu/mock/<str:serial>/",
+        views.bambu_mock_control,
+        name="bambu_mock_control",
+    ),
+    path(
         "<int:produccion_id>/repetir/",
         views.repetir_produccion,
         name="repetir",
