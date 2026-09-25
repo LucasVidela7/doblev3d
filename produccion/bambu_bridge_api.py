@@ -844,6 +844,22 @@ def bambu_bridge_sync(request):
 
         comandos.append(comando)
 
+    archivos_para_cache = list(
+        Produccion.objects
+        .filter(
+            estado="PENDIENTE",
+            archivo_impresion__isnull=False,
+        )
+        .select_related(
+            "archivo_impresion",
+            "producto",
+        )
+        .order_by(
+            "inicio_impresion",
+            "id",
+        )[:80]
+    )
+
     return JsonResponse(
         {
             "ok": True,
@@ -875,6 +891,39 @@ def bambu_bridge_sync(request):
                     ),
                 }
                 for comando in comandos
+            ],
+            "files_to_cache": [
+                {
+                    "production_id": produccion.id,
+                    "production_code": produccion.codigo,
+                    "product_id": produccion.producto_id,
+                    "product_name": produccion.producto.nombre,
+                    "quantity": produccion.cantidad,
+                    "file_id": produccion.archivo_impresion_id,
+                    "file_name": (
+                        produccion
+                        .archivo_impresion
+                        .nombre_original
+                    ),
+                    "size_bytes": (
+                        produccion
+                        .archivo_impresion
+                        .tamano_bytes
+                    ),
+                    "sha256": (
+                        produccion
+                        .archivo_impresion
+                        .sha256
+                    ),
+                    "download_path": reverse(
+                        "bambu_bridge_download_file",
+                        args=[
+                            produccion
+                            .archivo_impresion_id
+                        ],
+                    ),
+                }
+                for produccion in archivos_para_cache
             ],
         }
     )
