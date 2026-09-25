@@ -679,3 +679,126 @@ class ArchivoImpresionTests(TestCase):
             ArchivoImpresion.objects.count(),
             1,
         )
+
+
+    def test_subir_desde_producto_vincula_pendiente_de_misma_cantidad(self):
+        produccion = Produccion.objects.create(
+            producto=self.producto,
+            cantidad=4,
+            destino="STOCK",
+            estado="PENDIENTE",
+            tiempo_impresion_minutos=45,
+        )
+
+        self.assertIsNone(
+            produccion.archivo_impresion_id
+        )
+
+        respuesta = self.client.post(
+            reverse(
+                "productos:archivo_impresion_subir",
+                args=[self.producto.id],
+            ),
+            {
+                "archivo": self._archivo_valido(
+                    "producto-x4.gcode.3mf"
+                ),
+                "cantidad_unidades": "4",
+            },
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            302,
+        )
+
+        archivo = ArchivoImpresion.objects.get(
+            cantidad_unidades=4
+        )
+
+        produccion.refresh_from_db()
+
+        self.assertEqual(
+            produccion.archivo_impresion_id,
+            archivo.id,
+        )
+
+    def test_cambiar_principal_actualiza_pendientes(self):
+        url = reverse(
+            "productos:archivo_impresion_subir",
+            args=[self.producto.id],
+        )
+
+        self.client.post(
+            url,
+            {
+                "archivo": self._archivo_valido(
+                    "x4-v1.gcode.3mf"
+                ),
+                "cantidad_unidades": "4",
+                "nombre": "X4 v1",
+            },
+        )
+
+        primero = ArchivoImpresion.objects.get()
+
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(
+            buffer,
+            "w",
+            zipfile.ZIP_DEFLATED,
+        ) as paquete:
+            paquete.writestr(
+                "Metadata/plate_1.gcode",
+                "; alternativa\nG28\nG1 X30\n",
+            )
+
+        segundo_upload = SimpleUploadedFile(
+            "x4-v2.gcode.3mf",
+            buffer.getvalue(),
+            content_type="application/octet-stream",
+        )
+
+        self.client.post(
+            url,
+            {
+                "archivo": segundo_upload,
+                "cantidad_unidades": "4",
+                "nombre": "X4 v2",
+            },
+        )
+
+        segundo = ArchivoImpresion.objects.exclude(
+            id=primero.id
+        ).get()
+
+        produccion = Produccion.objects.create(
+            producto=self.producto,
+            cantidad=4,
+            destino="STOCK",
+            estado="PENDIENTE",
+            tiempo_impresion_minutos=45,
+            archivo_impresion=segundo,
+        )
+
+        respuesta = self.client.post(
+            reverse(
+                "productos:archivo_impresion_predeterminar",
+                args=[
+                    self.producto.id,
+                    primero.id,
+                ],
+            )
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            302,
+        )
+
+        produccion.refresh_from_db()
+
+        self.assertEqual(
+            produccion.archivo_impresion_id,
+            primero.id,
+        )
