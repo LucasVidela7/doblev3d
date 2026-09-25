@@ -1447,11 +1447,7 @@ class ArchivoImpresion(models.Model):
                 .rstrip(".")
                 + " kg"
             )
-        return (
-            f"{valor:.0f} g"
-            if abs(valor - round(valor)) < 0.01
-            else f"{valor:.1f} g"
-        )
+        return f"{valor:.0f} g"
 
     @property
     def tiempo_estimado_texto(self):
