@@ -450,6 +450,9 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                 <div class="meta">
                                     {{ impresora.trabajo_actual.codigo }} · {{ impresora.trabajo_actual.tiempo_impresion_formateado }}
                                     {% if impresora.trabajo_actual.fin_estimado %}<br>Fin estimado {{ impresora.trabajo_actual.fin_estimado|date:"H:i" }}{% endif %}
+                                    {% if impresora.trabajo_actual.archivo_impresion and impresora.trabajo_actual.origen != "BAMBU_STUDIO" %}
+                                        <br>G-code: {{ impresora.trabajo_actual.archivo_impresion.nombre }} × {{ impresora.trabajo_actual.archivo_impresion.cantidad_unidades }}
+                                    {% endif %}
                                     {% if impresora.trabajo_actual.origen == "BAMBU_STUDIO" %}
                                         <br>Origen: Bambu Studio
                                         {% if impresora.trabajo_actual.archivo_impresion %}
@@ -732,7 +735,15 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                 <div>
                                     <div class="dv-kanban-card__code">{{ produccion.codigo }}</div>
                                     <div class="dv-kanban-card__title">{{ produccion.producto.nombre }} × {{ produccion.cantidad }}</div>
-                                    <div class="dv-kanban-card__meta">{{ produccion.tiempo_impresion_formateado }}{% if produccion.pedido %}<br>{{ produccion.pedido.codigo }} · {{ produccion.pedido.cliente.nombre }}{% endif %}</div>
+                                    <div class="dv-kanban-card__meta">
+                                        {{ produccion.tiempo_impresion_formateado }}
+                                        {% if produccion.pedido %}<br>{{ produccion.pedido.codigo }} · {{ produccion.pedido.cliente.nombre }}{% endif %}
+                                        {% if produccion.archivo_impresion %}
+                                            <br>G-code: {{ produccion.archivo_impresion.nombre }} × {{ produccion.archivo_impresion.cantidad_unidades }}
+                                        {% else %}
+                                            <br>Sin G-code exacto asociado
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
                             <form method="post" action="{% url 'produccion:iniciar' produccion.id %}" class="prod-actions">
