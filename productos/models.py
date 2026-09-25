@@ -1,4 +1,5 @@
 from decimal import Decimal, ROUND_CEILING
+import uuid
 import re
 import unicodedata
 
@@ -971,6 +972,29 @@ class Producto(models.Model):
     def es_compuesto(self):
         return self.tipo_fabricacion == "COMPUESTO"
 
+    def archivo_impresion_para_cantidad(self, cantidad):
+        try:
+            cantidad = int(cantidad)
+        except (TypeError, ValueError):
+            return None
+
+        if cantidad <= 0 or not self.pk:
+            return None
+
+        return (
+            self.archivos_impresion
+            .filter(
+                cantidad_unidades=cantidad,
+                activo=True,
+            )
+            .order_by(
+                "-predeterminado",
+                "-actualizado_en",
+                "-id",
+            )
+            .first()
+        )
+
     @property
     def descripcion_componentes_catalogo(self):
         """Resumen corto y legible de las piezas que forman un producto compuesto."""
@@ -1270,6 +1294,199 @@ class Producto(models.Model):
     @property
     def codigo(self):
         return f"P{self.id:04d}" if self.id else "NUEVO"
+
+
+def archivo_impresion_upload_to(instance, filename):
+    sufijo = ".gcode.3mf"
+    codigo = (
+        f"P{instance.producto_id:04d}"
+        if instance.producto_id
+        else "producto"
+    )
+    return (
+        f"productos/{codigo}/"
+        f"{uuid.uuid4().hex}{sufijo}"
+    )
+
+
+class ArchivoImpresion(models.Model):
+    producto = models.ForeignKey(
+        Producto,
+        on_delete=models.CASCADE,
+        related_name="archivos_impresion",
+    )
+
+    nombre = models.CharField(
+        max_length=180,
+    )
+
+    version = models.CharField(
+        max_length=60,
+        blank=True,
+    )
+
+    cantidad_unidades = models.PositiveIntegerField(
+        default=1,
+        help_text=(
+            "Cantidad de unidades del producto incluidas "
+            "en este archivo de impresión."
+        ),
+    )
+
+    reemplaza_a = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reemplazos",
+    )
+
+    archivo = models.FileField(
+        upload_to=archivo_impresion_upload_to,
+        max_length=320,
+    )
+
+    nombre_original = models.CharField(
+        max_length=255,
+    )
+
+    tamano_bytes = models.PositiveBigIntegerField(
+        default=0,
+    )
+
+    sha256 = models.CharField(
+        max_length=64,
+        db_index=True,
+    )
+
+    placas = models.JSONField(
+        default=list,
+        blank=True,
+    )
+
+    perfil_impresora = models.CharField(
+        max_length=120,
+        blank=True,
+    )
+
+    peso_estimado_gramos = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )
+
+    tiempo_estimado_minutos = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+    )
+
+    notas = models.TextField(
+        blank=True,
+    )
+
+    activo = models.BooleanField(
+        default=True,
+    )
+
+    predeterminado = models.BooleanField(
+        default=False,
+    )
+
+    creado_en = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    actualizado_en = models.DateTimeField(
+        auto_now=True,
+    )
+
+    class Meta:
+        ordering = [
+            "cantidad_unidades",
+            "-predeterminado",
+            "-actualizado_en",
+            "-id",
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "producto",
+                    "cantidad_unidades",
+                ],
+                condition=models.Q(
+                    predeterminado=True,
+                ),
+                name=(
+                    "uniq_archivo_predeterminado_"
+                    "producto_cantidad"
+                ),
+            ),
+        ]
+
+    @property
+    def tamano_formateado(self):
+        tamano = int(self.tamano_bytes or 0)
+        if tamano >= 1024 * 1024:
+            return f"{tamano / (1024 * 1024):.1f} MB"
+        if tamano >= 1024:
+            return f"{tamano / 1024:.0f} KB"
+        return f"{tamano} B"
+
+    @property
+    def peso_estimado_texto(self):
+        if self.peso_estimado_gramos is None:
+            return ""
+        valor = float(
+            self.peso_estimado_gramos
+        )
+        if valor >= 1000:
+            return (
+                f"{valor / 1000:.2f}"
+                .rstrip("0")
+                .rstrip(".")
+                + " kg"
+            )
+        return f"{valor:.0f} g"
+
+    @property
+    def tiempo_estimado_texto(self):
+        if not self.tiempo_estimado_minutos:
+            return ""
+        minutos = int(
+            self.tiempo_estimado_minutos
+        )
+        horas, resto = divmod(
+            minutos,
+            60,
+        )
+        if horas and resto:
+            return f"{horas} h {resto} min"
+        if horas:
+            return f"{horas} h"
+        return f"{resto} min"
+
+    @property
+    def placas_texto(self):
+        placas = self.placas or []
+        if not placas:
+            return "Sin placa detectada"
+        return ", ".join(
+            f"Placa {placa}"
+            for placa in placas
+        )
+
+    def __str__(self):
+        version = (
+            f" · {self.version}"
+            if self.version
+            else ""
+        )
+        return (
+            f"{self.producto.codigo} · "
+            f"{self.cantidad_unidades} u. · "
+            f"{self.nombre}{version}"
+        )
 
 
 class ProductoComponente(models.Model):

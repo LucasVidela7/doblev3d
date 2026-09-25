@@ -13,7 +13,7 @@ from pedidos.models import (
     SolicitudWeb,
     SolicitudWebItem,
 )
-from produccion.models import Impresora, Produccion
+from produccion.models import Impresora, ImpresoraEstadoBambu, Produccion
 from productos.models import (
     ConfiguracionCatalogo,
     Producto,
@@ -804,3 +804,80 @@ class DashboardProduccionTests(TestCase):
             "legal@example.com",
         )
 
+
+
+    def test_configuracion_administra_vinculo_bambu(self):
+        estado = ImpresoraEstadoBambu.objects.create(
+            serial="SERIAL-CONFIG-1",
+            nombre_bridge="A1-CONFIG",
+            conectada=True,
+            estado="IDLE",
+        )
+
+        pagina = self.client.get(
+            reverse("dashboard:configuracion")
+        )
+
+        self.assertEqual(
+            pagina.status_code,
+            200,
+        )
+        self.assertContains(
+            pagina,
+            'data-config-tab="impresoras"',
+        )
+        self.assertContains(
+            pagina,
+            'id="impresoras"',
+        )
+        self.assertContains(
+            pagina,
+            "A1-CONFIG",
+        )
+
+        respuesta = self.client.post(
+            reverse(
+                "dashboard:configurar_vinculo_bambu",
+                args=[estado.id],
+            ),
+            {
+                "accion": "VINCULAR",
+                "impresora": str(
+                    self.impresora_a.id
+                ),
+            },
+        )
+
+        self.assertRedirects(
+            respuesta,
+            reverse("dashboard:configuracion")
+            + "#impresoras",
+        )
+
+        estado.refresh_from_db()
+
+        self.assertEqual(
+            estado.impresora_id,
+            self.impresora_a.id,
+        )
+
+        respuesta = self.client.post(
+            reverse(
+                "dashboard:configurar_vinculo_bambu",
+                args=[estado.id],
+            ),
+            {
+                "accion": "DESVINCULAR",
+            },
+        )
+
+        self.assertRedirects(
+            respuesta,
+            reverse("dashboard:configuracion")
+            + "#impresoras",
+        )
+
+        estado.refresh_from_db()
+        self.assertIsNone(
+            estado.impresora_id
+        )

@@ -73,6 +73,20 @@
             { scope: "/gestion/" }
         );
 
+    const notifyPermissionHelp = () => {
+        const message =
+            "Android bloqueó el permiso de notificaciones porque hay una " +
+            "burbuja, ventana flotante o superposición activa. Cerrá esas " +
+            "superposiciones (por ejemplo barra lateral flotante, chat, " +
+            "grabador o filtro de pantalla) y volvé a tocar Activar avisos.";
+
+        if (window.DVToast?.warning) {
+            window.DVToast.warning(message);
+        } else {
+            button.title = message;
+        }
+    };
+
     const syncState = async () => {
         if (
             !("serviceWorker" in navigator)
@@ -130,6 +144,7 @@
                 button.title = permission === "denied"
                     ? "Habilitá las notificaciones desde los permisos del navegador"
                     : "Activar notificaciones";
+                notifyPermissionHelp();
                 return;
             }
 
@@ -150,6 +165,16 @@
         } catch (error) {
             setState("inactive");
             button.title = error.message || "No pudimos activar los avisos";
+
+            if (
+                Notification.permission !== "granted"
+            ) {
+                notifyPermissionHelp();
+            } else if (window.DVToast?.error) {
+                window.DVToast.error(
+                    error.message || "No pudimos activar los avisos."
+                );
+            }
         } finally {
             button.disabled = false;
         }

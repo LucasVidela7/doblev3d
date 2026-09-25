@@ -201,6 +201,13 @@ SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
 CSRF_FAILURE_VIEW = "config.csrf.csrf_failure"
 
+# Token privado usado exclusivamente por la Raspberry del Bambu Bridge.
+# El valor vive en Railway y nunca se guarda en el repositorio.
+BAMBU_BRIDGE_TOKEN = os.getenv(
+    "BAMBU_BRIDGE_TOKEN",
+    "",
+).strip()
+
 # Protección opcional del checkout público. Si las claves quedan vacías,
 # el resto de defensas anti-spam sigue funcionando sin mostrar captcha.
 TURNSTILE_SITE_KEY = os.getenv("TURNSTILE_SITE_KEY", "").strip()
@@ -251,7 +258,41 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
+PRINT_FILES_ROOT = Path(
+    os.getenv(
+        "PRINT_FILES_ROOT",
+        str(BASE_DIR / "print_files"),
+    )
+)
+
+PRINT_FILES_PERSISTENT = _env_bool(
+    "PRINT_FILES_PERSISTENT",
+    False,
+)
+
+PRINT_FILE_MAX_BYTES = int(
+    os.getenv(
+        "PRINT_FILE_MAX_BYTES",
+        str(250 * 1024 * 1024),
+    )
+)
+
+# Los .gcode.3mf son archivos privados de Gestión. Se guardan mediante
+# FileSystemStorage y se descargan únicamente por una vista autenticada.
+MEDIA_ROOT = PRINT_FILES_ROOT
+MEDIA_URL = "/_private_print_files/"
+
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
+DATA_UPLOAD_MAX_MEMORY_SIZE = 300 * 1024 * 1024
+
 STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "OPTIONS": {
+            "location": str(PRINT_FILES_ROOT),
+            "base_url": MEDIA_URL,
+        },
+    },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
@@ -309,3 +350,36 @@ if railway_public_domain:
     railway_origin = f"https://{railway_public_domain}"
     if railway_origin not in CSRF_TRUSTED_ORIGINS:
         CSRF_TRUSTED_ORIGINS.append(railway_origin)
+
+
+
+# ----------------------------------------------------------
+# LOGGING
+# ----------------------------------------------------------
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "loggers": {
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "produccion": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "productos": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}

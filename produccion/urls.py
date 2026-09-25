@@ -33,6 +33,21 @@ urlpatterns = [
         name="tiempo_recomendado",
     ),
     path(
+        "bambu/<int:estado_id>/vincular/",
+        views.vincular_impresora_bambu,
+        name="bambu_vincular",
+    ),
+    path(
+        "bambu/<int:estado_id>/vincular-impresion/",
+        views.vincular_impresion_externa,
+        name="bambu_vincular_impresion",
+    ),
+    path(
+        "<int:produccion_id>/gcode/",
+        views.cargar_gcode_produccion,
+        name="cargar_gcode",
+    ),
+    path(
         "<int:produccion_id>/iniciar/",
         views.iniciar_produccion,
         name="iniciar",
@@ -41,6 +56,16 @@ urlpatterns = [
         "<int:produccion_id>/repetir/",
         views.repetir_produccion,
         name="repetir",
+    ),
+    path(
+        "<int:produccion_id>/cancelar-bambu/",
+        views.cancelar_produccion_bambu,
+        name="cancelar_bambu",
+    ),
+    path(
+        "<int:produccion_id>/control/",
+        views.controlar_produccion,
+        name="control",
     ),
     path(
         "<int:produccion_id>/estado/",

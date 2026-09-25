@@ -33,7 +33,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 .message{padding:11px 13px;border-radius:12px;margin-bottom:9px;font-size:10px;font-weight:800}
 .message.success{background:var(--green);color:var(--green-t)}.message.error{background:var(--red);color:var(--red-t)}
 
-.flow-nav{position:sticky;top:8px;z-index:12;display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:12px;padding:5px;border:1px solid rgba(225,229,235,.9);border-radius:16px;background:rgba(255,255,255,.94);box-shadow:var(--shadow);backdrop-filter:blur(8px)}
+.flow-nav{position:sticky;top:8px;z-index:12;display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-bottom:12px;padding:5px;border:1px solid rgba(225,229,235,.9);border-radius:16px;background:rgba(255,255,255,.94);box-shadow:var(--shadow);backdrop-filter:blur(8px)}
 .flow-nav a{min-height:39px;display:flex;align-items:center;justify-content:center;gap:5px;border-radius:11px;text-decoration:none;color:var(--muted);font-size:8px;font-weight:900}
 .flow-nav a:hover{background:#f2f4f7;color:var(--text)}
 
@@ -64,7 +64,68 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 .printer-next{margin-top:11px;padding:10px;border-radius:11px;background:#f7f8fa}
 .printer-actions{display:grid;grid-template-columns:1fr auto;gap:6px;margin-top:9px}
 .printer-actions form{margin:0}.printer-actions select{width:100%;min-height:36px;border:1px solid #d7dce2;border-radius:9px;background:#fff;padding:5px 7px;font-size:9px}
+.printer-action-note{display:flex;align-items:center;min-height:40px;padding:0 10px;border:1px solid var(--dv-border);border-radius:11px;background:var(--dv-surface-muted);color:var(--dv-muted);font-size:8px;font-weight:900}
+.dv-confirm-dialog{width:min(520px,calc(100% - 28px));padding:0;border:1px solid var(--dv-border);border-radius:18px;background:var(--dv-surface);color:var(--dv-text);box-shadow:0 24px 70px rgba(0,0,0,.32)}
+.dv-confirm-dialog::backdrop{background:rgba(7,12,20,.68);backdrop-filter:blur(3px)}
+.dv-confirm-dialog__body{padding:20px}
+.dv-confirm-dialog__icon{width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:13px;background:var(--dv-danger-soft,#fde8e8);font-size:20px}
+.dv-confirm-dialog h3{margin:12px 0 0;font-size:18px}
+.dv-confirm-dialog p{margin:8px 0 0;color:var(--dv-muted);font-size:11px;line-height:1.55}
+.dv-confirm-dialog__job{margin-top:12px;padding:10px 11px;border:1px solid var(--dv-border);border-radius:11px;background:var(--dv-surface-soft);font-size:10px;font-weight:900}
+.dv-confirm-dialog__actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:17px}
+.dv-confirm-dialog__actions .btn{width:100%;min-height:42px;font-size:9px}
+.reprint-grid{display:grid;gap:10px;margin-top:14px}
+.reprint-field label{display:block;margin-bottom:5px;color:var(--dv-muted);font-size:8px;font-weight:900}
+.reprint-field select,.reprint-field input,.reprint-field textarea{width:100%;min-height:42px;border:1px solid var(--dv-border);border-radius:11px;background:var(--dv-surface);color:var(--dv-text);padding:7px 10px;font-size:10px}
+.reprint-field textarea{min-height:82px;resize:vertical}
+.gcode-current{margin-top:10px;padding:9px 10px;border:1px solid var(--dv-border);border-radius:10px;background:var(--dv-surface-soft);color:var(--dv-muted);font-size:9px;line-height:1.45}
+.reprint-hint{padding:9px 10px;border:1px solid var(--dv-border);border-radius:10px;background:var(--dv-surface-soft);color:var(--dv-muted);font-size:9px;line-height:1.45}
 
+.bambu-live-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:9px}
+.bambu-live{padding:14px;border:1px solid var(--dv-border);border-radius:16px;background:var(--dv-surface);box-shadow:var(--dv-shadow-soft);color:var(--dv-text)}
+.bambu-live.stale{opacity:1;border-color:var(--dv-border)}
+.bambu-live-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.bambu-live-name{font-size:13px;font-weight:900;color:var(--dv-text)}
+.bambu-live-job{margin-top:10px;font-size:12px;font-weight:900;line-height:1.35;overflow-wrap:anywhere;color:var(--dv-text)}
+.bambu-progress{height:8px;margin-top:10px;border-radius:999px;background:var(--dv-surface-muted);overflow:hidden}
+.bambu-progress span{display:block;height:100%;border-radius:inherit;background:var(--dv-brand-sky)}
+.bambu-live-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px}
+.bambu-live-kpi{padding:8px;border:1px solid var(--dv-border);border-radius:10px;background:var(--dv-surface-soft);text-align:center}
+.bambu-live-kpi span{display:block;color:var(--dv-muted);font-size:8px;font-weight:900}
+.bambu-live-kpi b{display:block;margin-top:4px;font-size:13px;color:var(--dv-text)}
+.bambu-live-meta{margin-top:9px;color:var(--dv-muted);font-size:10px;line-height:1.5}
+#bambu-en-vivo .section-head{margin-bottom:16px}
+#bambu-en-vivo .subtitle{margin-top:5px}
+
+.bambu-link-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;margin-top:11px;padding-top:11px;border-top:1px solid var(--dv-border)}
+.bambu-link-form select{width:100%;min-height:38px;border:1px solid var(--dv-border);border-radius:10px;background:var(--dv-surface);color:var(--dv-text);padding:6px 8px;font-size:10px}
+.bambu-inline{margin-top:11px;padding:10px;border:1px solid var(--dv-border);border-radius:12px;background:var(--dv-surface-soft)}
+.bambu-inline-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.bambu-inline-title{font-size:9px;font-weight:900;color:var(--dv-muted)}
+.bambu-inline-job{margin-top:7px;font-size:10px;font-weight:900;line-height:1.35;overflow-wrap:anywhere;color:var(--dv-text)}
+.bambu-inline-meta{margin-top:6px;color:var(--dv-muted);font-size:9px;line-height:1.45}
+.bambu-inline-actions{display:flex;justify-content:flex-end;margin-top:7px}
+.bambu-inline-actions form{margin:0}
+.bambu-inline-actions .btn{min-height:30px;font-size:7px;padding:0 9px}
+.bambu-coherence{margin-top:9px;padding:9px 10px;border:1px solid var(--dv-border);border-radius:10px;font-size:9px;font-weight:800;line-height:1.4}
+.bambu-coherence.ok{background:rgba(46,112,67,.12);border-color:rgba(46,112,67,.32);color:var(--dv-text)}
+.bambu-coherence.warn{background:var(--dv-brand-red-soft);border-color:rgba(240,57,59,.32);color:var(--dv-text)}
+.bambu-coherence.neutral{background:var(--dv-surface-muted);color:var(--dv-muted)}
+.bambu-timing{margin-top:7px;padding-top:7px;border-top:1px solid var(--dv-border);color:var(--dv-muted);font-size:9px;line-height:1.45}
+.bambu-filaments{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.bambu-filament{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:4px 8px;border:1px solid var(--dv-border);border-radius:999px;background:var(--dv-surface);color:var(--dv-text);font-size:8px;font-weight:800}
+.bambu-filament.active{border-color:var(--dv-brand-sky);box-shadow:0 0 0 2px color-mix(in srgb,var(--dv-brand-sky) 18%,transparent)}
+.bambu-filament-dot{width:12px;height:12px;border:1px solid var(--dv-border);border-radius:50%;background:var(--filament-color,var(--dv-surface-muted));box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)}
+.bambu-filament small{color:var(--dv-muted);font-size:7px;font-weight:800}
+.external-print{margin-top:11px;padding:11px;border:1px solid rgba(240,57,59,.34);border-radius:12px;background:var(--dv-brand-red-soft);color:var(--dv-text)}
+.external-print__eyebrow{font-size:8px;font-weight:900;letter-spacing:.04em;color:var(--dv-muted)}
+.external-print__job{margin-top:5px;font-size:11px;font-weight:900;overflow-wrap:anywhere}
+.external-print__match{margin-top:7px;padding:8px 9px;border:1px solid var(--dv-border);border-radius:9px;background:var(--dv-surface);font-size:8px;line-height:1.45}
+.external-print__match strong{font-size:9px}
+.external-print__form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;margin-top:9px}
+.external-print__form select{width:100%;min-height:40px;border:1px solid var(--dv-border);border-radius:10px;background:var(--dv-surface);color:var(--dv-text);padding:6px 8px;font-size:9px}
+.external-print__form .btn{min-height:40px}
+@media(max-width:720px){.external-print__form{grid-template-columns:1fr}.external-print__form .btn{width:100%}}
 .recommendation{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px;padding:12px 13px;border:1px solid #cddcef;border-radius:14px;background:#f6f9ff}
 .recommendation strong{font-size:11px}.recommendation .meta{margin-top:3px}
 
@@ -131,7 +192,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 .production-kanban .manual{margin-top:10px}
 .production-kanban .manual summary{font-size:11px}
 @media(max-width:650px){
-    .flow-nav{grid-template-columns:repeat(5,minmax(105px,1fr));overflow-x:auto;scrollbar-width:none}
+    .flow-nav{grid-template-columns:repeat(6,minmax(105px,1fr));overflow-x:auto;scrollbar-width:none}
     .flow-nav::-webkit-scrollbar{display:none}
     .production-kanban .prod-actions.two{grid-template-columns:1fr}
     .production-kanban .prod-kpi-row{grid-template-columns:repeat(3,1fr)}
@@ -150,6 +211,53 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
     .history-row{grid-template-columns:1fr auto}.history-row .history-hide{display:none}
     .manual-grid{grid-template-columns:1fr}.manual-grid .wide{grid-column:auto}
 }
+
+/* Refinamiento operativo: tipografía legible + impresoras unificadas */
+.flow-nav a{font-size:9.5px}
+.metric-label{font-size:9px}.metric-note{font-size:10px}
+.subtitle{font-size:12px}.section-help{font-size:10px}
+.btn{font-size:10.5px}
+.pill{font-size:9px}
+.meta{font-size:10.5px;line-height:1.5}
+.code{font-size:9px}
+.printer-name{font-size:15px}
+.printer-job{font-size:15px}
+.printer{padding:16px;border-radius:18px}
+.printer-head{padding-bottom:10px;border-bottom:1px solid var(--dv-border)}
+.printer-summary{display:grid;grid-template-columns:58px minmax(0,1fr);gap:12px;align-items:center;padding:14px 0 11px}
+.printer-summary .product-thumb{width:58px;height:58px;border-radius:13px}
+.printer-summary__code{color:var(--dv-muted);font-size:10px;font-weight:900}
+.printer-summary__title{margin-top:3px;font-size:16px;font-weight:900;line-height:1.25}
+.printer-summary__stats{display:flex;flex-wrap:wrap;gap:7px;margin-top:7px}
+.printer-summary__stat{display:inline-flex;align-items:center;min-height:28px;padding:0 8px;border:1px solid var(--dv-border);border-radius:999px;background:var(--dv-surface-soft);font-size:10px;font-weight:900}
+.printer-live{padding:10px 0;border-top:1px solid var(--dv-border)}
+.printer-live__top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.printer-live__name{font-size:10px;font-weight:900;color:var(--dv-muted)}
+.printer-live__job{margin-top:7px;font-size:11px;font-weight:900;line-height:1.4;overflow-wrap:anywhere}
+.printer-live__meta{margin-top:7px;color:var(--dv-muted);font-size:10.5px;line-height:1.5}
+.printer-live .bambu-progress{margin-top:8px}
+.bambu-coherence{font-size:10.5px}
+.bambu-timing{font-size:10.5px}
+.bambu-filament{font-size:10px}.bambu-filament small{font-size:9px}
+.printer-action-note{font-size:10px}
+.production-kanban .dv-kanban-card__code{font-size:10px}
+.production-kanban .dv-kanban-card__title{font-size:13px}
+.production-kanban .dv-kanban-card__meta{font-size:10.5px;line-height:1.45}
+.production-kanban .prod-kpi span{font-size:9.5px}
+.production-kanban .prod-note{font-size:10.5px}
+.production-kanban .prod-actions input{font-size:11px}
+.dv-kanban-column__head p{font-size:10px}
+.dv-kanban-badge{font-size:9px}
+.external-print__eyebrow{font-size:10px}.external-print__job{font-size:12px}.external-print__match{font-size:10px}
+.start-printer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:14px}
+.start-printer-option{min-height:92px;padding:12px;border:1px solid var(--dv-border);border-radius:14px;background:var(--dv-surface);color:var(--dv-text);text-align:left;cursor:pointer}
+.start-printer-option strong{display:block;font-size:14px}
+.start-printer-option span{display:block;margin-top:5px;color:var(--dv-muted);font-size:10px;line-height:1.4}
+.start-printer-option.is-selected{border-color:var(--dv-brand-blue);box-shadow:0 0 0 3px color-mix(in srgb,var(--dv-brand-blue) 14%,transparent);background:var(--dv-brand-blue-soft)}
+.start-printer-option:disabled{opacity:.48;cursor:not-allowed}
+.production-focus{animation:productionFocus 1.25s ease}
+@keyframes productionFocus{0%,100%{box-shadow:var(--dv-shadow-soft)}35%{box-shadow:0 0 0 4px color-mix(in srgb,var(--dv-brand-sky) 38%,transparent),0 12px 30px rgba(19,74,154,.18)}}
+@media(max-width:650px){.start-printer-grid{grid-template-columns:1fr}.printer-summary{grid-template-columns:50px minmax(0,1fr)}.printer-summary .product-thumb{width:50px;height:50px}}
 </style>
 </head>
 <body>
@@ -174,6 +282,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         <a href="#prod-necesidad">↓ NECESIDAD</a>
         <a href="#prod-cola">≡ COLA</a>
         <a href="#prod-imprimiendo">● IMPRIMIENDO</a>
+        <a href="#prod-control">◉ CONTROL</a>
         <a href="#prod-listos">✓ LISTOS</a>
     </nav>
 
@@ -191,7 +300,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         <div class="metric">
             <div class="metric-label">IMPRIMIENDO</div>
             <div class="metric-value">{{ total_imprimiendo_unidades }}</div>
-            <div class="metric-note">{{ cantidad_imprimiendo }} trabajos activos</div>
+            <div class="metric-note">{{ cantidad_imprimiendo }} activos · {{ cantidad_control }} en control</div>
         </div>
         <div class="metric">
             <div class="metric-label">IMPRESORAS LIBRES</div>
@@ -200,18 +309,94 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         </div>
     </div>
 
+    {% if bambu_sin_vincular %}
+    <section class="section" id="bambu-en-vivo">
+        <div class="section-head">
+            <div>
+                <h2 class="section-title">Bambu en vivo</h2>
+                <div class="subtitle">Hay impresoras detectadas por la Raspberry que todavía no están vinculadas a Gestión.</div>
+            </div>
+            <div class="section-help">Vinculá cada serial una sola vez.</div>
+        </div>
+
+        <div class="bambu-live-grid">
+            {% for bambu in bambu_sin_vincular %}
+                <article class="bambu-live{% if not bambu.sync_reciente %} stale{% endif %}">
+                    <div class="bambu-live-head">
+                        <div class="bambu-live-name">🖨 {{ bambu.nombre_bridge|default:bambu.serial }}</div>
+                        {% if bambu.sync_reciente and bambu.conectada %}
+                            <span class="pill free">EN LÍNEA</span>
+                        {% elif bambu.conectada %}
+                            <span class="pill medium">SYNC VENCIDO</span>
+                        {% else %}
+                            <span class="pill high">DESCONECTADA</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="bambu-live-job">
+                        {{ bambu.trabajo|default:"Sin trabajo informado" }}
+                    </div>
+
+                    <div class="bambu-progress" aria-label="Progreso de impresión">
+                        <span style="width:{{ bambu.progreso|default:0 }}%"></span>
+                    </div>
+
+                    <div class="bambu-live-kpis">
+                        <div class="bambu-live-kpi">
+                            <span>ESTADO</span>
+                            <b>
+                                {% if bambu.estado == "RUNNING" %}
+                                    IMPRIMIENDO
+                                {% else %}
+                                    {{ bambu.estado|default:"SIN DATO" }}
+                                {% endif %}
+                            </b>
+                        </div>
+                        <div class="bambu-live-kpi">
+                            <span>PROGRESO</span>
+                            <b>{% if bambu.progreso is not None %}{{ bambu.progreso }}%{% else %}—{% endif %}</b>
+                        </div>
+                        <div class="bambu-live-kpi">
+                            <span>RESTANTE</span>
+                            <b>{{ bambu.restante_texto }}</b>
+                        </div>
+                    </div>
+
+                    <div class="bambu-live-meta">
+                        Nozzle: {% if bambu.temperatura_nozzle is not None %}{{ bambu.temperatura_nozzle|floatformat:0 }} °C{% else %}—{% endif %}
+                        · Cama: {% if bambu.temperatura_bed is not None %}{{ bambu.temperatura_bed|floatformat:0 }} °C{% else %}—{% endif %}
+                        · Wi-Fi: {{ bambu.wifi|default:"—" }}
+                        <br>
+                        Último sync: {{ bambu.ultimo_contacto|date:"H:i:s" }}
+                        {% if not bambu.sync_reciente %} · datos no recientes{% endif %}
+                    </div>
+
+                    <div class="bambu-link-form" style="display:flex;align-items:center;justify-content:space-between">
+                        <span class="meta">La vinculación se administra desde Configuración.</span>
+                        <a class="btn dark" href="{% url 'dashboard:configuracion' %}#impresoras">CONFIGURAR</a>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
     <section class="section" id="ahora">
         <div class="section-head">
             <div>
                 <h2 class="section-title">Ahora</h2>
-                <div class="subtitle">Qué está haciendo cada impresora y cuál es el siguiente trabajo disponible.</div>
+                <div class="subtitle">Estado real de cada impresora y producción vinculada.</div>
             </div>
-            <div class="section-help">Marcar LISTO libera la máquina y recalcula la necesidad.</div>
+            <div class="section-help">La vinculación Bambu se administra desde Configuración.</div>
         </div>
 
         <div class="printers">
             {% for impresora in impresoras %}
-                <article class="printer {% if impresora.esta_libre %}free{% else %}busy{% endif %}">
+                <article
+                    class="printer {% if impresora.esta_libre %}free{% else %}busy{% endif %}"
+                    data-printer-id="{{ impresora.id }}"
+                    {% if impresora.trabajo_actual %}data-production-id="{{ impresora.trabajo_actual.id }}"{% endif %}
+                >
                     <div class="printer-head">
                         <div class="printer-name">🖨 {{ impresora.nombre }}</div>
                         {% if impresora.esta_libre %}
@@ -222,31 +407,205 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                     </div>
 
                     {% if impresora.trabajo_actual %}
-                        <div class="product-visual">
+                        <div class="printer-summary">
                             {% if impresora.trabajo_actual.producto.imagen_produccion_url %}
                                 <img class="product-thumb" src="{{ impresora.trabajo_actual.producto.imagen_produccion_url }}" alt="" loading="lazy">
                             {% else %}
                                 <span class="product-thumb product-thumb-empty">3D</span>
                             {% endif %}
                             <div>
-                                <div class="printer-job">{{ impresora.trabajo_actual.producto.nombre }} × {{ impresora.trabajo_actual.cantidad }}</div>
-                                <div class="meta">
-                                    {{ impresora.trabajo_actual.codigo }} · {{ impresora.trabajo_actual.tiempo_impresion_formateado }}
-                                    {% if impresora.trabajo_actual.fin_estimado %}<br>Fin estimado {{ impresora.trabajo_actual.fin_estimado|date:"H:i" }}{% endif %}
+                                <div class="printer-summary__code">PRODUCCIÓN {{ impresora.trabajo_actual.codigo }}</div>
+                                <div class="printer-summary__title">{{ impresora.trabajo_actual.producto.nombre }} × {{ impresora.trabajo_actual.cantidad }}</div>
+                                <div class="printer-summary__stats">
+                                    <span class="printer-summary__stat">⏱ {{ impresora.trabajo_actual.tiempo_operativo_texto }}</span>
+                                    <span class="printer-summary__stat">⚖ {{ impresora.trabajo_actual.peso_operativo_texto }}</span>
+                                    {% if impresora.trabajo_actual.archivo_impresion %}
+                                        <span class="printer-summary__stat">G-code ×{{ impresora.trabajo_actual.archivo_impresion.cantidad_unidades }}</span>
+                                    {% endif %}
                                 </div>
+                                {% if impresora.trabajo_actual.archivo_impresion %}
+                                    <div class="meta">Archivo: {{ impresora.trabajo_actual.archivo_impresion.nombre_original }}</div>
+                                {% endif %}
+                                {% if impresora.trabajo_actual.origen == "BAMBU_STUDIO" %}
+                                    <div class="meta">Origen: Bambu Studio</div>
+                                {% endif %}
                             </div>
                         </div>
+                    {% endif %}
+
+                    {% if impresora.bambu_estado %}
+                        {% with bambu=impresora.bambu_estado %}
+                        <div class="printer-live">
+                            <div class="printer-live__top">
+                                <div class="printer-live__name">BAMBU EN VIVO · {{ bambu.nombre_bridge|default:bambu.serial }}</div>
+                                {% if bambu.sync_reciente and bambu.conectada %}
+                                    <span class="pill free">EN LÍNEA</span>
+                                {% elif bambu.conectada %}
+                                    <span class="pill medium">SYNC VENCIDO</span>
+                                {% else %}
+                                    <span class="pill high">DESCONECTADA</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="printer-live__job">{{ bambu.trabajo|default:"Sin trabajo informado" }}</div>
+
+                            <div class="bambu-progress" aria-label="Progreso real de impresión">
+                                <span style="width:{{ bambu.progreso|default:0 }}%"></span>
+                            </div>
+
+                            <div class="printer-live__meta">
+                                {% if bambu.estado == "RUNNING" %}IMPRIMIENDO{% else %}{{ bambu.estado|default:"SIN DATO" }}{% endif %}
+                                · {% if bambu.progreso is not None %}{{ bambu.progreso }}%{% else %}—{% endif %}
+                                · Restante {{ bambu.restante_texto }}
+                                · Nozzle {% if bambu.temperatura_nozzle is not None %}{{ bambu.temperatura_nozzle|floatformat:0 }} °C{% else %}—{% endif %}
+                                · Cama {% if bambu.temperatura_bed is not None %}{{ bambu.temperatura_bed|floatformat:0 }} °C{% else %}—{% endif %}
+                                · Wi-Fi {{ bambu.wifi|default:"—" }}
+                            </div>
+
+                            {% if bambu.ams_slots or bambu.carrete_externo_info %}
+                            <div class="bambu-filaments" aria-label="Filamentos detectados">
+                                {% for slot in bambu.ams_slots %}
+                                <span class="bambu-filament{% if slot.activo %} active{% endif %}" title="{{ slot.label }}{% if slot.rfid %} · RFID{% endif %}">
+                                    <span class="bambu-filament-dot"{% if slot.color %} style="--filament-color:{{ slot.color }}"{% endif %}></span>
+                                    {{ slot.tipo }}
+                                    <small>S{{ slot.slot }}{% if slot.activo %} · EN USO{% endif %}</small>
+                                </span>
+                                {% endfor %}
+                                {% if bambu.carrete_externo_info %}
+                                <span class="bambu-filament{% if bambu.carrete_externo_info.activo %} active{% endif %}" title="Carrete externo">
+                                    <span class="bambu-filament-dot"{% if bambu.carrete_externo_info.color %} style="--filament-color:{{ bambu.carrete_externo_info.color }}"{% endif %}></span>
+                                    {{ bambu.carrete_externo_info.tipo }}
+                                    <small>EXTERNO{% if bambu.carrete_externo_info.activo %} · EN USO{% endif %}</small>
+                                </span>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+
+                            <div class="bambu-coherence {% if impresora.bambu_coherencia == 'OK' %}ok{% elif impresora.bambu_coherencia == 'REVISAR' %}warn{% else %}neutral{% endif %}">
+                                {% if impresora.bambu_coherencia == "OK" %}
+                                    ✓ {{ impresora.bambu_coherencia_texto }}
+                                {% elif impresora.bambu_coherencia == "REVISAR" %}
+                                    ⚠ {{ impresora.bambu_coherencia_texto }}
+                                {% else %}
+                                    {{ impresora.bambu_coherencia_texto }}
+                                {% endif %}
+                                {% if bambu.fin_real_estimado %}
+                                    <div class="bambu-timing">Fin estimado: {{ bambu.fin_real_estimado|date:"H:i" }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endwith %}
+                    {% endif %}
+
+                    {% if impresora.trabajo_actual %}
                         <div class="printer-actions">
-                            <form method="post" action="{% url 'produccion:cambiar_estado' impresora.trabajo_actual.id %}">
-                                {% csrf_token %}
-                                <input type="hidden" name="estado" value="LISTO">
-                                <button class="btn green" type="submit">✓ MARCAR LISTO</button>
-                            </form>
-                            <form method="post" action="{% url 'produccion:cambiar_estado' impresora.trabajo_actual.id %}">
-                                {% csrf_token %}
-                                <input type="hidden" name="estado" value="CANCELADO">
-                                <button class="btn red" type="submit">CANCELAR</button>
-                            </form>
+                            {% if impresora.bambu_estado %}
+                                {% if impresora.puede_finalizar_manual %}
+                                <form
+                                    method="post"
+                                    action="{% url 'produccion:cambiar_estado' impresora.trabajo_actual.id %}"
+                                    data-production-ajax
+                                    data-focus-production="{{ impresora.trabajo_actual.id }}"
+                                >
+                                    {% csrf_token %}
+                                    <input type="hidden" name="estado" value="CONTROL">
+                                    <button class="btn green" type="submit">✓ FINALIZÓ / REVISAR</button>
+                                </form>
+                                {% else %}
+                                <div class="printer-action-note">
+                                    {% if impresora.bambu_estado.esta_imprimiendo %}
+                                        ● LA A1 SIGUE IMPRIMIENDO
+                                    {% else %}
+                                        TELEMETRÍA NO DISPONIBLE
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+
+                                {% if impresora.cancelacion_pendiente %}
+                                    <button class="btn red" type="button" disabled>CANCELANDO…</button>
+                                {% elif impresora.puede_cancelar_bambu %}
+                                    <button
+                                        class="btn red"
+                                        type="button"
+                                        data-bambu-cancel-open
+                                        data-cancel-url="{% url 'produccion:cancelar_bambu' impresora.trabajo_actual.id %}"
+                                        data-production-id="{{ impresora.trabajo_actual.id }}"
+                                        data-printer="{{ impresora.nombre }}"
+                                        data-job="{{ impresora.trabajo_actual.producto.nombre }} × {{ impresora.trabajo_actual.cantidad }}"
+                                    >CANCELAR</button>
+                                {% else %}
+                                    <button class="btn red" type="button" disabled>CANCELAR</button>
+                                {% endif %}
+                            {% else %}
+                                <form
+                                    method="post"
+                                    action="{% url 'produccion:cambiar_estado' impresora.trabajo_actual.id %}"
+                                    data-production-ajax
+                                    data-focus-production="{{ impresora.trabajo_actual.id }}"
+                                >
+                                    {% csrf_token %}
+                                    <input type="hidden" name="estado" value="CONTROL">
+                                    <button class="btn green" type="submit">✓ FINALIZÓ / REVISAR</button>
+                                </form>
+                                <form
+                                    method="post"
+                                    action="{% url 'produccion:cambiar_estado' impresora.trabajo_actual.id %}"
+                                    data-production-ajax
+                                    data-focus-production="{{ impresora.trabajo_actual.id }}"
+                                >
+                                    {% csrf_token %}
+                                    <input type="hidden" name="estado" value="CANCELADO">
+                                    <button class="btn red" type="submit">CANCELAR</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    {% elif impresora.impresion_externa_detectada %}
+                        <div class="external-print">
+                            <div class="external-print__eyebrow">⚠ IMPRESIÓN INICIADA FUERA DE GESTIÓN</div>
+                            <div class="external-print__job">{{ impresora.bambu_estado.trabajo|default:"Trabajo Bambu sin nombre" }}</div>
+
+                            {% if impresora.archivo_externo_coincidente %}
+                                <div class="external-print__match">
+                                    <strong>Coincidencia encontrada</strong><br>
+                                    {{ impresora.archivo_externo_coincidente.producto.nombre }}
+                                    × {{ impresora.archivo_externo_coincidente.cantidad_unidades }}
+                                    · {{ impresora.archivo_externo_coincidente.nombre }}
+                                    {% if impresora.produccion_sugerida %}
+                                        <br>Sugerencia: {{ impresora.produccion_sugerida.codigo }}
+                                        · {{ impresora.produccion_sugerida.producto.nombre }}
+                                        × {{ impresora.produccion_sugerida.cantidad }}
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <div class="external-print__match">
+                                    No hubo coincidencia exacta con la biblioteca. Podés asociarla a una producción pendiente.
+                                </div>
+                            {% endif %}
+
+                            {% if impresora.producciones_vinculables %}
+                                <form
+                                    method="post"
+                                    action="{% url 'produccion:bambu_vincular_impresion' impresora.bambu_estado.id %}"
+                                    class="external-print__form"
+                                    data-production-ajax
+                                >
+                                    {% csrf_token %}
+                                    <select name="produccion" required aria-label="Producción pendiente">
+                                        <option value="">Vincular a producción...</option>
+                                        {% for opcion in impresora.producciones_vinculables %}
+                                            {% with produccion=opcion.produccion %}
+                                            <option
+                                                value="{{ produccion.id }}"
+                                                {% if impresora.produccion_sugerida and impresora.produccion_sugerida.id == produccion.id %}selected{% endif %}
+                                            >
+                                                {% if opcion.coincidencia %}★ {% endif %}{{ produccion.codigo }} · {{ produccion.producto.nombre }} × {{ produccion.cantidad }}{% if produccion.pedido %} · {{ produccion.pedido.codigo }}{% endif %}
+                                            </option>
+                                            {% endwith %}
+                                        {% endfor %}
+                                    </select>
+                                    <button class="btn dark" type="submit">ASOCIAR</button>
+                                </form>
+                            {% endif %}
                         </div>
                     {% elif impresora.siguiente_trabajo %}
                         <div class="printer-next">
@@ -259,14 +618,20 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                 {% endif %}
                                 <div>
                                     <div class="printer-job">{{ impresora.siguiente_trabajo.producto.nombre }} × {{ impresora.siguiente_trabajo.cantidad }}</div>
-                                    <div class="meta">{{ impresora.siguiente_trabajo.codigo }} · {{ impresora.siguiente_trabajo.tiempo_impresion_formateado }}</div>
+                                    <div class="meta">{{ impresora.siguiente_trabajo.codigo }} · {{ impresora.siguiente_trabajo.tiempo_operativo_texto }} · {{ impresora.siguiente_trabajo.peso_operativo_texto }}</div>
                                 </div>
                             </div>
-                            <form method="post" action="{% url 'produccion:iniciar' impresora.siguiente_trabajo.id %}" style="margin-top:8px">
-                                {% csrf_token %}
-                                <input type="hidden" name="impresora" value="{{ impresora.id }}">
-                                <button class="btn green" type="submit">▶ INICIAR SIGUIENTE</button>
-                            </form>
+                            <button
+                                class="btn green"
+                                type="button"
+                                style="margin-top:8px;width:100%"
+                                data-start-open
+                                data-start-kind="existing"
+                                data-start-url="{% url 'produccion:iniciar' impresora.siguiente_trabajo.id %}"
+                                data-start-code="{{ impresora.siguiente_trabajo.codigo }}"
+                                data-start-job="{{ impresora.siguiente_trabajo.producto.nombre }} × {{ impresora.siguiente_trabajo.cantidad }}"
+                                data-production-id="{{ impresora.siguiente_trabajo.id }}"
+                            >▶ INICIAR</button>
                         </div>
                     {% elif impresora.sugerencia_necesidad and impresora.sugerencia_necesidad.puede_planificar_rapido %}
                         <div class="printer-next">
@@ -282,13 +647,18 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                     <div class="meta">{{ impresora.sugerencia_necesidad.tiempo_sugerido_texto }} · prioridad {{ impresora.sugerencia_necesidad.prioridad|lower }}</div>
                                 </div>
                             </div>
-                            <form method="post" action="{% url 'produccion:accion_rapida' %}" style="margin-top:8px">
-                                {% csrf_token %}
-                                <input type="hidden" name="producto" value="{{ impresora.sugerencia_necesidad.producto.id }}">
-                                <input type="hidden" name="cantidad" value="{{ impresora.sugerencia_necesidad.cantidad_sugerida }}">
-                                <input type="hidden" name="impresora" value="{{ impresora.id }}">
-                                <button class="btn green" type="submit" name="accion" value="INICIAR">▶ IMPRIMIR AHORA</button>
-                            </form>
+                            <button
+                                class="btn green"
+                                type="button"
+                                style="margin-top:8px;width:100%"
+                                data-start-open
+                                data-start-kind="quick"
+                                data-start-url="{% url 'produccion:accion_rapida' %}"
+                                data-start-code="{{ impresora.sugerencia_necesidad.producto.codigo }}"
+                                data-start-job="{{ impresora.sugerencia_necesidad.producto.nombre }} × {{ impresora.sugerencia_necesidad.cantidad_sugerida }}"
+                                data-product-id="{{ impresora.sugerencia_necesidad.producto.id }}"
+                                data-quantity="{{ impresora.sugerencia_necesidad.cantidad_sugerida }}"
+                            >▶ IMPRIMIR AHORA</button>
                         </div>
                     {% else %}
                         <div class="meta" style="margin-top:11px">No hay trabajos pendientes. La impresora está disponible.</div>
@@ -326,7 +696,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         </form>
 
         <div class="dv-kanban-shell">
-            <div class="dv-kanban-board" style="--dv-kanban-cols:4">
+            <div class="dv-kanban-board" style="--dv-kanban-cols:5">
                 <section class="dv-kanban-column is-danger" id="prod-necesidad">
                     <header class="dv-kanban-column__head">
                         <div><h2>Necesidad</h2><p>Faltantes que todavía no están cubiertos.</p></div>
@@ -353,20 +723,29 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                 <div class="prod-kpi hot"><span>FALTA</span><b>{{ item.falta_iniciar }}</b></div>
                             </div>
                             {% if item.puede_planificar_rapido %}
-                            <form method="post" action="{% url 'produccion:accion_rapida' %}" class="prod-actions">
+                            <form
+                                method="post"
+                                action="{% url 'produccion:accion_rapida' %}"
+                                class="prod-actions"
+                                data-production-ajax
+                                data-focus-product="{{ item.producto.id }}"
+                                data-quick-form
+                            >
                                 {% csrf_token %}
                                 <input type="hidden" name="producto" value="{{ item.producto.id }}">
-                                <input type="number" name="cantidad" min="1" value="{{ item.cantidad_sugerida }}" required aria-label="Cantidad">
-                                <select name="impresora" aria-label="Impresora">
-                                    {% for impresora in impresoras_libres_lista %}
-                                        <option value="{{ impresora.id }}">{{ impresora.nombre }}</option>
-                                    {% empty %}
-                                        <option value="">Sin impresoras libres</option>
-                                    {% endfor %}
-                                </select>
+                                <input type="number" name="cantidad" min="1" value="{{ item.cantidad_sugerida }}" required aria-label="Cantidad" data-quick-quantity>
                                 <div class="prod-actions two" style="margin-top:0">
                                     <button class="btn dark" type="submit" name="accion" value="PLANIFICAR">＋ A COLA</button>
-                                    <button class="btn green" type="submit" name="accion" value="INICIAR" {% if not impresoras_libres_lista %}disabled{% endif %}>▶ AHORA</button>
+                                    <button
+                                        class="btn green"
+                                        type="button"
+                                        data-start-open
+                                        data-start-kind="quick"
+                                        data-start-url="{% url 'produccion:accion_rapida' %}"
+                                        data-start-code="{{ item.producto.codigo }}"
+                                        data-start-job-base="{{ item.producto.nombre }}"
+                                        data-product-id="{{ item.producto.id }}"
+                                    >▶ AHORA</button>
                                 </div>
                             </form>
                             <div class="prod-note">{{ item.tiempo_sugerido_texto }} aprox. para la cantidad sugerida.</div>
@@ -380,21 +759,31 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                     <div class="prod-personal-item">
                                         <div class="dv-kanban-card__code">{{ personalizacion.pedido_codigo }} · {{ personalizacion.falta_planificar }} faltan</div>
                                         <div class="dv-kanban-card__meta">{{ personalizacion.detalle|default:"Sin detalle" }}{% if personalizacion.color %} · {{ personalizacion.color }}{% endif %}</div>
-                                        <form method="post" action="{% url 'produccion:accion_rapida' %}" class="prod-actions">
+                                        <form
+                                            method="post"
+                                            action="{% url 'produccion:accion_rapida' %}"
+                                            class="prod-actions"
+                                            data-production-ajax
+                                            data-focus-product="{{ item.producto.id }}"
+                                            data-quick-form
+                                        >
                                             {% csrf_token %}
                                             <input type="hidden" name="producto" value="{{ item.producto.id }}">
                                             <input type="hidden" name="personalizado_id" value="{{ personalizacion.detalle_id }}">
-                                            <input type="number" name="cantidad" min="1" max="{{ personalizacion.falta_planificar }}" value="{{ personalizacion.falta_planificar }}" required>
-                                            <select name="impresora">
-                                                {% for impresora in impresoras_libres_lista %}
-                                                    <option value="{{ impresora.id }}">{{ impresora.nombre }}</option>
-                                                {% empty %}
-                                                    <option value="">Sin impresoras libres</option>
-                                                {% endfor %}
-                                            </select>
+                                            <input type="number" name="cantidad" min="1" max="{{ personalizacion.falta_planificar }}" value="{{ personalizacion.falta_planificar }}" required data-quick-quantity>
                                             <div class="prod-actions two" style="margin-top:0">
                                                 <button class="btn dark" type="submit" name="accion" value="PLANIFICAR">＋ COLA</button>
-                                                <button class="btn green" type="submit" name="accion" value="INICIAR" {% if not impresoras_libres_lista %}disabled{% endif %}>▶ AHORA</button>
+                                                <button
+                                                    class="btn green"
+                                                    type="button"
+                                                    data-start-open
+                                                    data-start-kind="quick"
+                                                    data-start-url="{% url 'produccion:accion_rapida' %}"
+                                                    data-start-code="{{ personalizacion.pedido_codigo }}"
+                                                    data-start-job-base="{{ item.producto.nombre }}"
+                                                    data-product-id="{{ item.producto.id }}"
+                                                    data-personalized-id="{{ personalizacion.detalle_id }}"
+                                                >▶ AHORA</button>
                                             </div>
                                         </form>
                                     </div>
@@ -414,7 +803,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                     </header>
                     <div class="dv-kanban-list">
                         {% for produccion in cola_pendiente %}
-                        <article class="dv-kanban-card">
+                        <article class="dv-kanban-card" data-production-id="{{ produccion.id }}" data-product-id="{{ produccion.producto_id }}">
                             <div class="prod-card-image">
                                 {% if produccion.producto.imagen_produccion_url %}
                                     <img class="product-thumb" src="{{ produccion.producto.imagen_produccion_url }}" alt="" loading="lazy">
@@ -424,27 +813,54 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                 <div>
                                     <div class="dv-kanban-card__code">{{ produccion.codigo }}</div>
                                     <div class="dv-kanban-card__title">{{ produccion.producto.nombre }} × {{ produccion.cantidad }}</div>
-                                    <div class="dv-kanban-card__meta">{{ produccion.tiempo_impresion_formateado }}{% if produccion.pedido %}<br>{{ produccion.pedido.codigo }} · {{ produccion.pedido.cliente.nombre }}{% endif %}</div>
+                                    <div class="dv-kanban-card__meta">
+                                        {{ produccion.tiempo_operativo_texto }} · {{ produccion.peso_operativo_texto }}
+                                        {% if produccion.pedido %}<br>{{ produccion.pedido.codigo }} · {{ produccion.pedido.cliente.nombre }}{% endif %}
+                                        {% if produccion.archivo_impresion %}
+                                            <br>G-code: {{ produccion.archivo_impresion.nombre_original }}
+                                        {% else %}
+                                            <br>Sin G-code exacto asociado
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
-                            <form method="post" action="{% url 'produccion:iniciar' produccion.id %}" class="prod-actions">
-                                {% csrf_token %}
-                                <select name="impresora" required>
-                                    {% for impresora in impresoras_libres_lista %}
-                                        <option value="{{ impresora.id }}">{{ impresora.nombre }}</option>
-                                    {% empty %}
-                                        <option value="">Sin impresoras libres</option>
-                                    {% endfor %}
-                                </select>
-                                <button class="btn green" type="submit" {% if not impresoras_libres_lista %}disabled{% endif %}>▶ INICIAR</button>
-                            </form>
+                            <div class="prod-actions">
+                                <button
+                                    class="btn green"
+                                    type="button"
+                                    data-start-open
+                                    data-start-kind="existing"
+                                    data-start-url="{% url 'produccion:iniciar' produccion.id %}"
+                                    data-start-code="{{ produccion.codigo }}"
+                                    data-start-job="{{ produccion.producto.nombre }} × {{ produccion.cantidad }}"
+                                    data-production-id="{{ produccion.id }}"
+                                >▶ INICIAR</button>
+                            </div>
                             <div class="dv-kanban-card__footer">
                                 <span class="dv-kanban-badge">PENDIENTE</span>
-                                <form method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="estado" value="CANCELADO">
-                                    <button class="btn red" type="submit">QUITAR</button>
-                                </form>
+                                <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+                                    <button
+                                        class="btn"
+                                        type="button"
+                                        data-gcode-open
+                                        data-gcode-url="{% url 'produccion:cargar_gcode' produccion.id %}"
+                                        data-gcode-code="{{ produccion.codigo }}"
+                                        data-gcode-job="{{ produccion.producto.nombre }} × {{ produccion.cantidad }}"
+                                        data-gcode-current="{% if produccion.archivo_impresion %}{{ produccion.archivo_impresion.nombre_original }}{% endif %}"
+                                        data-gcode-version="{% if produccion.archivo_impresion %}{{ produccion.archivo_impresion.version }}{% endif %}"
+                                        data-gcode-profile="{% if produccion.archivo_impresion %}{{ produccion.archivo_impresion.perfil_impresora }}{% endif %}"
+                                    >{% if produccion.archivo_impresion %}↻ G-CODE{% else %}＋ G-CODE{% endif %}</button>
+                                    <form
+                                        method="post"
+                                        action="{% url 'produccion:cambiar_estado' produccion.id %}"
+                                        data-production-ajax
+                                        data-focus-production="{{ produccion.id }}"
+                                    >
+                                        {% csrf_token %}
+                                        <input type="hidden" name="estado" value="CANCELADO">
+                                        <button class="btn red" type="submit">QUITAR</button>
+                                    </form>
+                                </div>
                             </div>
                         </article>
                         {% empty %}<div class="dv-kanban-empty">No hay trabajos en cola.</div>{% endfor %}
@@ -458,7 +874,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                     </header>
                     <div class="dv-kanban-list">
                         {% for produccion in trabajos_imprimiendo_lista %}
-                        <article class="dv-kanban-card">
+                        <article class="dv-kanban-card" data-production-id="{{ produccion.id }}" data-product-id="{{ produccion.producto_id }}">
                             <div class="prod-card-image">
                                 {% if produccion.producto.imagen_produccion_url %}
                                     <img class="product-thumb" src="{{ produccion.producto.imagen_produccion_url }}" alt="" loading="lazy">
@@ -468,26 +884,137 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                 <div>
                                     <div class="dv-kanban-card__code">{{ produccion.codigo }}{% if produccion.impresora %} · {{ produccion.impresora.nombre }}{% endif %}</div>
                                     <div class="dv-kanban-card__title">{{ produccion.producto.nombre }} × {{ produccion.cantidad }}</div>
-                                    <div class="dv-kanban-card__meta">{{ produccion.tiempo_impresion_formateado }}{% if produccion.fin_estimado %}<br>Fin estimado {{ produccion.fin_estimado|date:"H:i" }}{% endif %}{% if produccion.pedido %}<br>{{ produccion.pedido.codigo }} · {{ produccion.pedido.cliente.nombre }}{% endif %}</div>
+                                    <div class="dv-kanban-card__meta">
+                                        {{ produccion.tiempo_operativo_texto }} · {{ produccion.peso_operativo_texto }}
+                                        {% if produccion.fin_estimado %}<br>Fin estimado {{ produccion.fin_estimado|date:"H:i" }}{% endif %}
+                                        {% if produccion.pedido %}<br>{{ produccion.pedido.codigo }} · {{ produccion.pedido.cliente.nombre }}{% endif %}
+                                        {% if produccion.origen == "BAMBU_STUDIO" %}
+                                            <br>Origen: Bambu Studio{% if produccion.bambu_trabajo %} · {{ produccion.bambu_trabajo }}{% endif %}
+                                        {% endif %}
+                                        {% if produccion.reimpresion_de %}
+                                            <br>↻ Reimpresión de {{ produccion.reimpresion_de.codigo }}
+                                            {% if produccion.bambu_material or produccion.bambu_color_nombre %}
+                                                · {{ produccion.bambu_material }} {{ produccion.bambu_color_nombre }}
+                                            {% endif %}
+                                            {% if produccion.bambu_requiere_cambio_manual %} · cambio manual{% endif %}
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
                             <div class="dv-kanban-card__footer">
                                 <span class="dv-kanban-badge">IMPRIMIENDO</span>
                                 <div style="display:flex;gap:5px">
-                                    <form method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="estado" value="LISTO">
-                                        <button class="btn green" type="submit">✓ LISTO</button>
-                                    </form>
-                                    <form method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="estado" value="CANCELADO">
-                                        <button class="btn red" type="submit">CANCELAR</button>
-                                    </form>
+                                    {% if produccion.impresora.estado_bambu %}
+                                        {% if produccion.impresora.estado_bambu.estado == "RUNNING" or produccion.impresora.estado_bambu.estado == "PAUSE" or produccion.impresora.estado_bambu.estado == "PREPARE" %}
+                                            <button class="btn green" type="button" disabled>● EN IMPRESIÓN</button>
+                                            <button
+                                                class="btn red"
+                                                type="button"
+                                                data-bambu-cancel-open
+                                                data-cancel-url="{% url 'produccion:cancelar_bambu' produccion.id %}"
+                                                data-production-id="{{ produccion.id }}"
+                                                data-printer="{{ produccion.impresora.nombre }}"
+                                                data-job="{{ produccion.producto.nombre }} × {{ produccion.cantidad }}"
+                                            >CANCELAR</button>
+                                        {% else %}
+                                            <form method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="estado" value="CONTROL">
+                                                <button class="btn green" type="submit">✓ FINALIZÓ</button>
+                                            </form>
+                                            <button
+                                                class="btn red"
+                                                type="button"
+                                                data-bambu-cancel-open
+                                                data-cancel-url="{% url 'produccion:cancelar_bambu' produccion.id %}"
+                                                data-production-id="{{ produccion.id }}"
+                                                data-printer="{{ produccion.impresora.nombre }}"
+                                                data-job="{{ produccion.producto.nombre }} × {{ produccion.cantidad }}"
+                                            >CANCELAR</button>
+                                        {% endif %}
+                                    {% else %}
+                                        <form method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="estado" value="CONTROL">
+                                            <button class="btn green" type="submit">✓ FINALIZÓ</button>
+                                        </form>
+                                        <form method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="estado" value="CANCELADO">
+                                            <button class="btn red" type="submit">CANCELAR</button>
+                                        </form>
+                                    {% endif %}
                                 </div>
                             </div>
                         </article>
                         {% empty %}<div class="dv-kanban-empty">No hay impresiones activas.</div>{% endfor %}
+                    </div>
+                </section>
+
+                <section class="dv-kanban-column is-warning" id="prod-control">
+                    <header class="dv-kanban-column__head">
+                        <div><h2>Control</h2><p>Terminadas físicamente. Confirmá la calidad antes de sumar stock.</p></div>
+                        <span class="dv-kanban-count">{{ cantidad_control }}</span>
+                    </header>
+                    <div class="dv-kanban-list">
+                        {% for produccion in control_calidad_lista %}
+                        <article class="dv-kanban-card" data-production-id="{{ produccion.id }}" data-product-id="{{ produccion.producto_id }}">
+                            <div class="prod-card-image">
+                                {% if produccion.producto.imagen_produccion_url %}
+                                    <img class="product-thumb" src="{{ produccion.producto.imagen_produccion_url }}" alt="" loading="lazy">
+                                {% else %}
+                                    <span class="product-thumb product-thumb-empty">3D</span>
+                                {% endif %}
+                                <div>
+                                    <div class="dv-kanban-card__code">
+                                        {{ produccion.codigo }}
+                                        {% if produccion.impresora %} · {{ produccion.impresora.nombre }}{% endif %}
+                                    </div>
+                                    <div class="dv-kanban-card__title">{{ produccion.producto.nombre }} × {{ produccion.cantidad }}</div>
+                                    <div class="dv-kanban-card__meta">
+                                        {% if produccion.estado == "CONTROL" %}
+                                            Impresión terminada · pendiente de revisión física.
+                                            {% if produccion.evento_fin_bambu == "CANCELADA" %}<br>La A1 informó una interrupción/cancelación.{% endif %}
+                                        {% else %}
+                                            Falló el control · no ingresó stock.
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if produccion.estado == "CONTROL" %}
+                            <div class="prod-actions two">
+                                <form method="post" action="{% url 'produccion:control' produccion.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="resultado" value="OK">
+                                    <button class="btn green" type="submit">✓ IMPRESIÓN CORRECTA</button>
+                                </form>
+                                <form method="post" action="{% url 'produccion:control' produccion.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="resultado" value="FALLA">
+                                    <button class="btn red" type="submit">✕ FALLÓ</button>
+                                </form>
+                            </div>
+                            <div class="prod-note">
+                                Recién al confirmar “Impresión correcta” se actualiza el stock cuando corresponda.
+                            </div>
+                            {% else %}
+                            <div class="dv-kanban-card__footer">
+                                <span class="dv-kanban-badge" style="background:var(--dv-danger-soft,#fde8e8);color:var(--dv-danger-text,#963737)">FALLIDA</span>
+                                <button
+                                    class="btn"
+                                    type="button"
+                                    data-reprint-open
+                                    data-reprint-url="{% url 'produccion:repetir' produccion.id %}"
+                                    data-reprint-code="{{ produccion.codigo }}"
+                                    data-reprint-job="{{ produccion.producto.nombre }} × {{ produccion.cantidad }}"
+                                >↻ REIMPRIMIR</button>
+                            </div>
+                            {% endif %}
+                        </article>
+                        {% empty %}
+                        <div class="dv-kanban-empty">No hay impresiones pendientes de control.</div>
+                        {% endfor %}
                     </div>
                 </section>
 
@@ -498,7 +1025,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                     </header>
                     <div class="dv-kanban-list">
                         {% for produccion in historial_reciente %}
-                        <article class="dv-kanban-card">
+                        <article class="dv-kanban-card" data-production-id="{{ produccion.id }}" data-product-id="{{ produccion.producto_id }}">
                             <div class="prod-card-image">
                                 {% if produccion.producto.imagen_produccion_url %}
                                     <img class="product-thumb" src="{{ produccion.producto.imagen_produccion_url }}" alt="" loading="lazy">
@@ -528,7 +1055,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
         <details class="card manual">
             <summary>＋ MÁS OPCIONES · PRODUCIR PARA STOCK / PLANIFICAR MANUAL</summary>
             <div class="manual-body">
-                <form method="post" action="{% url 'produccion:nueva' %}" class="manual-grid">
+                <form method="post" action="{% url 'produccion:nueva' %}" class="manual-grid" data-production-ajax>
                     {% csrf_token %}
                     <div class="field">
                         <label>PRODUCTO</label>
@@ -564,17 +1091,714 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
     </section>
 </div>
 
+<dialog class="dv-confirm-dialog" id="startProductionDialog">
+    <div class="dv-confirm-dialog__body">
+        <div class="dv-confirm-dialog__icon">▶</div>
+        <h3>Elegir impresora</h3>
+        <p>Seleccioná la impresora donde querés iniciar este trabajo. Las impresoras ocupadas o con una impresión física activa quedan bloqueadas.</p>
+
+        <div class="dv-confirm-dialog__job">
+            <span id="startProductionCode">Producción</span><br>
+            <span id="startProductionJob">Trabajo</span>
+        </div>
+
+        <div class="start-printer-grid" id="startPrinterGrid">
+            {% for impresora in impresoras %}
+            <button
+                type="button"
+                class="start-printer-option"
+                data-start-printer="{{ impresora.id }}"
+                {% if not impresora.esta_libre %}disabled{% endif %}
+            >
+                <strong>🖨 {{ impresora.nombre }}</strong>
+                <span>
+                    {% if impresora.esta_libre %}
+                        Disponible para iniciar.
+                    {% elif impresora.trabajo_actual %}
+                        Ocupada por {{ impresora.trabajo_actual.codigo }} · {{ impresora.trabajo_actual.producto.nombre }} × {{ impresora.trabajo_actual.cantidad }}.
+                    {% elif impresora.bambu_estado and impresora.bambu_estado.esta_imprimiendo %}
+                        La A1 está imprimiendo físicamente.
+                    {% else %}
+                        No disponible en este momento.
+                    {% endif %}
+                </span>
+            </button>
+            {% endfor %}
+        </div>
+
+        <form method="post" id="startProductionForm" data-production-ajax>
+            {% csrf_token %}
+            <input type="hidden" name="impresora" id="startProductionPrinter">
+            <input type="hidden" name="accion" id="startProductionAction" value="INICIAR">
+            <input type="hidden" name="producto" id="startProductionProduct">
+            <input type="hidden" name="cantidad" id="startProductionQuantity">
+            <input type="hidden" name="personalizado_id" id="startProductionPersonalized">
+            <div class="dv-confirm-dialog__actions">
+                <button class="btn" type="button" id="startProductionClose">VOLVER</button>
+                <button class="btn green" type="submit" id="startProductionConfirm" disabled>CONFIRMAR INICIO</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<dialog class="dv-confirm-dialog" id="gcodeProductionDialog">
+    <div class="dv-confirm-dialog__body">
+        <div class="dv-confirm-dialog__icon">⬆</div>
+        <h3>Archivo de impresión</h3>
+        <p>
+            Subí el .gcode.3mf para esta combinación de producto y cantidad.
+            Si ya existe uno principal, la nueva versión lo sustituirá y se aplicará también a las demás producciones pendientes iguales.
+        </p>
+
+        <div class="dv-confirm-dialog__job">
+            <span id="gcodeProductionCode">Producción</span><br>
+            <span id="gcodeProductionJob">Producto × cantidad</span>
+        </div>
+
+        <div class="gcode-current" id="gcodeProductionCurrent">
+            Sin G-code asociado actualmente.
+        </div>
+
+        <form
+            method="post"
+            enctype="multipart/form-data"
+            id="gcodeProductionForm"
+            data-dv-submit-lock
+            data-dv-loading-label="Guardando G-code"
+            data-production-ajax
+        >
+            {% csrf_token %}
+            <div class="reprint-grid">
+                <div class="reprint-field">
+                    <label for="gcodeProductionFile">ARCHIVO .GCODE.3MF</label>
+                    <input
+                        type="file"
+                        name="archivo"
+                        id="gcodeProductionFile"
+                        accept=".gcode.3mf"
+                        required
+                    >
+                </div>
+
+                <div class="reprint-field">
+                    <label for="gcodeProductionVersion">VERSIÓN</label>
+                    <input
+                        type="text"
+                        name="version"
+                        id="gcodeProductionVersion"
+                        maxlength="60"
+                        placeholder="Ej. v2"
+                    >
+                </div>
+
+                <div class="reprint-field">
+                    <label for="gcodeProductionProfile">PERFIL / IMPRESORA</label>
+                    <input
+                        type="text"
+                        name="perfil_impresora"
+                        id="gcodeProductionProfile"
+                        maxlength="120"
+                        placeholder="Ej. A1 · 0.4 mm"
+                    >
+                </div>
+
+                <div class="reprint-field">
+                    <label for="gcodeProductionNotes">NOTAS</label>
+                    <textarea
+                        name="notas"
+                        id="gcodeProductionNotes"
+                        placeholder="Opcional: qué cambió, soportes, perfil, observaciones..."
+                    ></textarea>
+                </div>
+
+                <div class="reprint-hint">
+                    La cantidad no se elige acá: queda tomada de la producción. Así evitamos asociar accidentalmente un archivo ×6 a una producción ×4.
+                </div>
+            </div>
+
+            <div class="dv-confirm-dialog__actions">
+                <button class="btn" type="button" id="gcodeProductionClose">VOLVER</button>
+                <button class="btn green" type="submit">GUARDAR G-CODE</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<dialog class="dv-confirm-dialog" id="bambuReprintDialog">
+    <div class="dv-confirm-dialog__body">
+        <div class="dv-confirm-dialog__icon">↻</div>
+        <h3>Preparar reimpresión</h3>
+        <p>
+            Elegí la impresora y el filamento. Si seleccionás un slot AMS, Gestión guardará ese slot para la futura orden de impresión.
+        </p>
+
+        <div class="dv-confirm-dialog__job">
+            <span id="bambuReprintCode">Producción</span><br>
+            <span id="bambuReprintJob">Trabajo</span>
+        </div>
+
+        <form method="post" id="bambuReprintForm" data-production-ajax>
+            {% csrf_token %}
+            <div class="reprint-grid">
+                <div class="reprint-field">
+                    <label for="bambuReprintPrinter">IMPRESORA</label>
+                    <select name="impresora" id="bambuReprintPrinter" required>
+                        <option value="">Seleccionar...</option>
+                        {% for impresora in impresoras %}
+                            <option value="{{ impresora.id }}">{{ impresora.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="reprint-field">
+                    <label for="bambuReprintFilament">FILAMENTO / COLOR</label>
+                    <select name="filamento" id="bambuReprintFilament" required disabled>
+                        <option value="">Primero elegí una impresora...</option>
+                        {% for impresora in impresoras %}
+                            {% if impresora.bambu_estado %}
+                                {% for slot in impresora.bambu_estado.ams_slots %}
+                                    <option
+                                        value="AMS:{{ slot.ams_id }}:{{ slot.tray_id }}"
+                                        data-printer="{{ impresora.id }}"
+                                        data-source="AMS"
+                                    >
+                                        AMS · Slot {{ slot.slot }} · {{ slot.tipo }}{% if slot.color %} · {{ slot.color }}{% endif %}
+                                    </option>
+                                {% endfor %}
+                                {% if impresora.bambu_estado.carrete_externo_info %}
+                                    <option
+                                        value="EXTERNO"
+                                        data-printer="{{ impresora.id }}"
+                                        data-source="EXTERNO"
+                                    >
+                                        Carrete externo · {{ impresora.bambu_estado.carrete_externo_info.tipo }}{% if impresora.bambu_estado.carrete_externo_info.color %} · {{ impresora.bambu_estado.carrete_externo_info.color }}{% endif %}
+                                    </option>
+                                {% endif %}
+                            {% endif %}
+                            <option
+                                value="MANUAL"
+                                data-printer="{{ impresora.id }}"
+                                data-source="MANUAL"
+                            >
+                                Cambio manual de filamento
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div id="bambuReprintManual" style="display:none">
+                    <div class="reprint-field">
+                        <label for="bambuReprintMaterial">MATERIAL</label>
+                        <select name="material_manual" id="bambuReprintMaterial">
+                            <option value="PLA">PLA</option>
+                            <option value="PETG">PETG</option>
+                            <option value="TPU">TPU</option>
+                            <option value="ABS">ABS</option>
+                            <option value="ASA">ASA</option>
+                        </select>
+                    </div>
+                    <div class="reprint-field" style="margin-top:10px">
+                        <label for="bambuReprintColor">COLOR DESEADO</label>
+                        <select name="color_manual" id="bambuReprintColor">
+                            <option value="">Seleccionar color...</option>
+                            {% for color in colores_reimpresion %}
+                                <option value="{{ color.almacenado }}">{{ color.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="reprint-hint" style="margin-top:10px">
+                        Gestión dejará marcada la reimpresión como “requiere cambio manual”. La Raspberry no puede cambiar físicamente un carrete externo.
+                    </div>
+                </div>
+            </div>
+
+            <div class="dv-confirm-dialog__actions">
+                <button class="btn" type="button" id="bambuReprintClose">VOLVER</button>
+                <button class="btn green" type="submit">CREAR REIMPRESIÓN</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<dialog class="dv-confirm-dialog" id="bambuCancelDialog">
+    <div class="dv-confirm-dialog__body">
+        <div class="dv-confirm-dialog__icon">■</div>
+        <h3>Interrumpir impresión</h3>
+        <p>
+            Esta acción enviará una orden real de <strong>STOP</strong> a la A1 mediante la Raspberry.
+            La pieza no se agregará al stock.
+        </p>
+        <div class="dv-confirm-dialog__job">
+            <span id="bambuCancelPrinter">Impresora</span><br>
+            <span id="bambuCancelJob">Trabajo</span>
+        </div>
+        <div class="dv-confirm-dialog__actions">
+            <button class="btn" type="button" id="bambuCancelClose">VOLVER</button>
+            <form method="post" id="bambuCancelForm" data-production-ajax>
+                {% csrf_token %}
+                <button class="btn red" type="submit">SÍ, INTERRUMPIR</button>
+            </form>
+        </div>
+    </div>
+</dialog>
+
 {% include "shared/navigation.html" %}
 
 <script>
 (function(){
-    const destino=document.getElementById('manual-destino');
-    const pedido=document.getElementById('manual-pedido-wrap');
-    function sync(){
-        if(!destino||!pedido)return;
-        pedido.style.display=destino.value==='PEDIDO'?'block':'none';
+    function byId(id){
+        return document.getElementById(id);
     }
-    if(destino){destino.addEventListener('change',sync);sync();}
+
+    function closeDialog(id){
+        const dialog=byId(id);
+        if(dialog?.open)dialog.close();
+    }
+
+    function resetPageLoader(){
+        const loader=byId("dvPageLoader");
+        if(!loader)return;
+        loader.classList.remove("is-visible");
+        loader.setAttribute("aria-hidden","true");
+    }
+
+    function showReturnedMessages(doc){
+        doc.querySelectorAll(".dv-django-messages [data-dv-toast]").forEach(function(node){
+            const type=(node.dataset.dvToastType||"info").toLowerCase();
+            const message=(node.textContent||"").trim();
+            if(!message)return;
+
+            const toast=window.DVToast;
+            if(!toast)return;
+
+            if(type.includes("error")){
+                toast.error?.(message);
+            }else if(type.includes("success")){
+                toast.success?.(message);
+            }else if(type.includes("warning")){
+                toast.warning?.(message);
+            }else{
+                toast.info?.(message);
+            }
+        });
+    }
+
+    function replaceNodeFromDocument(doc,id){
+        const current=byId(id);
+        const next=doc.getElementById(id);
+        if(current&&next){
+            current.replaceWith(next.cloneNode(true));
+        }
+    }
+
+    function focusModifiedPlanning(options){
+        const productionId=String(options?.productionId||"").trim();
+        const productId=String(options?.productId||"").trim();
+
+        let target=null;
+
+        if(productionId){
+            target=document.querySelector(
+                '#flujo-produccion [data-production-id="'+CSS.escape(productionId)+'"]'
+            )||document.querySelector(
+                '#ahora [data-production-id="'+CSS.escape(productionId)+'"]'
+            );
+        }
+
+        if(!target&&productId){
+            const candidates=Array.from(
+                document.querySelectorAll(
+                    '#prod-cola [data-product-id="'+CSS.escape(productId)+'"]'
+                )
+            );
+            target=candidates[candidates.length-1]||document.querySelector(
+                '#prod-necesidad [data-product-id="'+CSS.escape(productId)+'"]'
+            );
+        }
+
+        if(!target){
+            target=byId("flujo-produccion");
+        }
+
+        if(target){
+            target.scrollIntoView({
+                behavior:"smooth",
+                block:"center",
+                inline:"nearest"
+            });
+
+            target.classList.add("production-focus");
+            window.setTimeout(function(){
+                target.classList.remove("production-focus");
+            },1400);
+        }
+    }
+
+    function refreshFromHtml(html,focus){
+        const doc=new DOMParser().parseFromString(html,"text/html");
+
+        showReturnedMessages(doc);
+
+        [
+            "ahora",
+            "flujo-produccion",
+            "startProductionDialog",
+            "gcodeProductionDialog",
+            "bambuReprintDialog",
+            "bambuCancelDialog"
+        ].forEach(function(id){
+            replaceNodeFromDocument(doc,id);
+        });
+
+        resetPageLoader();
+
+        window.requestAnimationFrame(function(){
+            focusModifiedPlanning(focus||{});
+        });
+    }
+
+    async function submitProductionForm(form,submitter){
+        if(form.dataset.submitting==="1")return;
+
+        form.dataset.submitting="1";
+
+        const buttons=Array.from(
+            form.querySelectorAll('button[type="submit"],input[type="submit"]')
+        );
+        buttons.forEach(function(button){
+            button.disabled=true;
+        });
+
+        const formData=new FormData(form);
+
+        if(submitter?.name){
+            formData.set(
+                submitter.name,
+                submitter.value||""
+            );
+        }
+
+        const card=form.closest("[data-production-id]");
+        const productionId=(
+            form.dataset.focusProduction
+            ||card?.dataset.productionId
+            ||""
+        );
+        const productId=(
+            form.dataset.focusProduct
+            ||card?.dataset.productId
+            ||form.querySelector('[name="producto"]')?.value
+            ||""
+        );
+
+        try{
+            const response=await fetch(form.action||window.location.href,{
+                method:(form.method||"POST").toUpperCase(),
+                body:formData,
+                credentials:"same-origin",
+                headers:{
+                    "X-Requested-With":"XMLHttpRequest"
+                }
+            });
+
+            if(!response.ok){
+                throw new Error(
+                    "No se pudo actualizar Producción."
+                );
+            }
+
+            const html=await response.text();
+
+            [
+                "startProductionDialog",
+                "gcodeProductionDialog",
+                "bambuReprintDialog",
+                "bambuCancelDialog"
+            ].forEach(closeDialog);
+
+            refreshFromHtml(
+                html,
+                {
+                    productionId,
+                    productId
+                }
+            );
+        }catch(error){
+            form.dataset.submitting="0";
+            buttons.forEach(function(button){
+                button.disabled=false;
+            });
+            resetPageLoader();
+            window.DVToast?.error?.(
+                error.message||"No se pudo actualizar Producción."
+            );
+        }
+    }
+
+    function openStartDialog(button){
+        const dialog=byId("startProductionDialog");
+        const form=byId("startProductionForm");
+        if(!dialog||!form)return;
+
+        const kind=button.dataset.startKind||"existing";
+        const nearestQuick=button.closest("[data-quick-form]");
+        const quantity=(
+            button.dataset.quantity
+            ||nearestQuick?.querySelector("[data-quick-quantity]")?.value
+            ||""
+        );
+        const productId=(
+            button.dataset.productId
+            ||nearestQuick?.querySelector('[name="producto"]')?.value
+            ||""
+        );
+        const personalizedId=(
+            button.dataset.personalizedId
+            ||nearestQuick?.querySelector('[name="personalizado_id"]')?.value
+            ||""
+        );
+
+        form.action=button.dataset.startUrl||"";
+        form.dataset.focusProduction=button.dataset.productionId||"";
+        form.dataset.focusProduct=productId;
+        form.dataset.submitting="0";
+
+        byId("startProductionPrinter").value="";
+        byId("startProductionProduct").value=kind==="quick"?productId:"";
+        byId("startProductionQuantity").value=kind==="quick"?quantity:"";
+        byId("startProductionPersonalized").value=kind==="quick"?personalizedId:"";
+        byId("startProductionAction").value="INICIAR";
+
+        const base=button.dataset.startJobBase||"";
+        const job=button.dataset.startJob||(base?(base+" × "+quantity):"Trabajo");
+
+        byId("startProductionCode").textContent=button.dataset.startCode||"Producción";
+        byId("startProductionJob").textContent=job;
+
+        dialog.querySelectorAll("[data-start-printer]").forEach(function(option){
+            option.classList.remove("is-selected");
+        });
+
+        const confirm=byId("startProductionConfirm");
+        if(confirm)confirm.disabled=true;
+
+        dialog.showModal();
+    }
+
+    function choosePrinter(button){
+        if(button.disabled)return;
+
+        const dialog=byId("startProductionDialog");
+        if(!dialog)return;
+
+        dialog.querySelectorAll("[data-start-printer]").forEach(function(option){
+            option.classList.toggle(
+                "is-selected",
+                option===button
+            );
+        });
+
+        byId("startProductionPrinter").value=button.dataset.startPrinter||"";
+        byId("startProductionConfirm").disabled=false;
+    }
+
+    function openGcodeDialog(button){
+        const dialog=byId("gcodeProductionDialog");
+        const form=byId("gcodeProductionForm");
+        if(!dialog||!form)return;
+
+        form.action=button.dataset.gcodeUrl||"";
+        form.dataset.focusProduction=button.closest("[data-production-id]")?.dataset.productionId||"";
+        form.dataset.focusProduct=button.closest("[data-product-id]")?.dataset.productId||"";
+        form.dataset.submitting="0";
+
+        byId("gcodeProductionCode").textContent=button.dataset.gcodeCode||"Producción";
+        byId("gcodeProductionJob").textContent=button.dataset.gcodeJob||"Producto × cantidad";
+
+        const current=(button.dataset.gcodeCurrent||"").trim();
+        byId("gcodeProductionCurrent").textContent=current
+            ? "Actual: "+current
+            : "Sin G-code asociado actualmente.";
+
+        byId("gcodeProductionVersion").value=button.dataset.gcodeVersion||"";
+        byId("gcodeProductionProfile").value=button.dataset.gcodeProfile||"";
+        byId("gcodeProductionNotes").value="";
+        byId("gcodeProductionFile").value="";
+
+        dialog.showModal();
+    }
+
+    function syncReprintFilaments(){
+        const printer=byId("bambuReprintPrinter");
+        const filament=byId("bambuReprintFilament");
+        const manual=byId("bambuReprintManual");
+        const manualColor=byId("bambuReprintColor");
+
+        if(!printer||!filament)return;
+
+        const printerId=printer.value;
+
+        Array.from(
+            filament.querySelectorAll("option[data-printer]")
+        ).forEach(function(option){
+            const visible=option.dataset.printer===printerId;
+            option.hidden=!visible;
+            option.disabled=!visible;
+        });
+
+        filament.disabled=!printerId;
+        filament.value="";
+
+        if(manual)manual.style.display="none";
+        if(manualColor)manualColor.required=false;
+    }
+
+    function syncManualReprint(){
+        const filament=byId("bambuReprintFilament");
+        const manual=byId("bambuReprintManual");
+        const color=byId("bambuReprintColor");
+        if(!filament||!manual)return;
+
+        const isManual=filament.value==="MANUAL";
+        manual.style.display=isManual?"block":"none";
+        if(color)color.required=isManual;
+    }
+
+    function openReprintDialog(button){
+        const dialog=byId("bambuReprintDialog");
+        const form=byId("bambuReprintForm");
+        if(!dialog||!form)return;
+
+        form.action=button.dataset.reprintUrl||"";
+        form.dataset.focusProduction="";
+        form.dataset.focusProduct=button.closest("[data-product-id]")?.dataset.productId||"";
+        form.dataset.submitting="0";
+
+        byId("bambuReprintCode").textContent=button.dataset.reprintCode||"Producción";
+        byId("bambuReprintJob").textContent=button.dataset.reprintJob||"Trabajo";
+        byId("bambuReprintPrinter").value="";
+        syncReprintFilaments();
+        dialog.showModal();
+    }
+
+    function openCancelDialog(button){
+        const dialog=byId("bambuCancelDialog");
+        const form=byId("bambuCancelForm");
+        if(!dialog||!form)return;
+
+        form.action=button.dataset.cancelUrl||"";
+        form.dataset.focusProduction=button.dataset.productionId||button.closest("[data-production-id]")?.dataset.productionId||"";
+        form.dataset.focusProduct=button.closest("[data-product-id]")?.dataset.productId||"";
+        form.dataset.submitting="0";
+
+        byId("bambuCancelPrinter").textContent=button.dataset.printer||"Impresora";
+        byId("bambuCancelJob").textContent=button.dataset.job||"Impresión actual";
+        dialog.showModal();
+    }
+
+    document.addEventListener("click",function(event){
+        const start=event.target.closest("[data-start-open]");
+        if(start){
+            event.preventDefault();
+            openStartDialog(start);
+            return;
+        }
+
+        const printer=event.target.closest("[data-start-printer]");
+        if(printer){
+            event.preventDefault();
+            choosePrinter(printer);
+            return;
+        }
+
+        const gcode=event.target.closest("[data-gcode-open]");
+        if(gcode){
+            event.preventDefault();
+            openGcodeDialog(gcode);
+            return;
+        }
+
+        const reprint=event.target.closest("[data-reprint-open]");
+        if(reprint){
+            event.preventDefault();
+            openReprintDialog(reprint);
+            return;
+        }
+
+        const cancel=event.target.closest("[data-bambu-cancel-open]");
+        if(cancel){
+            event.preventDefault();
+            openCancelDialog(cancel);
+            return;
+        }
+
+        if(event.target.closest("#startProductionClose")){
+            closeDialog("startProductionDialog");
+            return;
+        }
+        if(event.target.closest("#gcodeProductionClose")){
+            closeDialog("gcodeProductionDialog");
+            return;
+        }
+        if(event.target.closest("#bambuReprintClose")){
+            closeDialog("bambuReprintDialog");
+            return;
+        }
+        if(event.target.closest("#bambuCancelClose")){
+            closeDialog("bambuCancelDialog");
+            return;
+        }
+
+        const dialog=event.target;
+        if(dialog instanceof HTMLDialogElement&&dialog.open&&event.target===dialog){
+            dialog.close();
+        }
+    });
+
+    document.addEventListener("change",function(event){
+        if(event.target.id==="manual-destino"){
+            const pedido=byId("manual-pedido-wrap");
+            if(pedido){
+                pedido.style.display=event.target.value==="PEDIDO"?"block":"none";
+            }
+        }
+
+        if(event.target.id==="bambuReprintPrinter"){
+            syncReprintFilaments();
+        }
+
+        if(event.target.id==="bambuReprintFilament"){
+            syncManualReprint();
+        }
+    });
+
+    document.addEventListener("submit",function(event){
+        const form=event.target;
+        if(!(form instanceof HTMLFormElement))return;
+
+        const isProductionAjax=(
+            form.matches("[data-production-ajax]")
+            ||(
+                form.method.toLowerCase()==="post"
+                &&form.closest("#ahora,#flujo-produccion")
+            )
+        );
+
+        if(!isProductionAjax)return;
+
+        event.preventDefault();
+        submitProductionForm(
+            form,
+            event.submitter||null
+        );
+    });
+
+    const initialDestino=byId("manual-destino");
+    if(initialDestino){
+        initialDestino.dispatchEvent(
+            new Event("change",{bubbles:true})
+        );
+    }
 })();
 </script>
 {% endtimezone %}

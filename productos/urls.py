@@ -5,6 +5,7 @@ from . import imagenes_views
 from . import imagenes_masivas
 from . import insumos
 from . import compras_insumos
+from . import archivos_impresion
 from . import modificacion_masiva
 from .tipos import categorias_seo, crear_tipo_producto
 
@@ -82,6 +83,36 @@ urlpatterns = [
         "<int:producto_id>/editar/",
         views.editar,
         name="editar",
+    ),
+    path(
+        "<int:producto_id>/archivos-impresion/subir/",
+        archivos_impresion.subir,
+        name="archivo_impresion_subir",
+    ),
+    path(
+        "<int:producto_id>/archivos-impresion/<int:archivo_id>/descargar/",
+        archivos_impresion.descargar,
+        name="archivo_impresion_descargar",
+    ),
+    path(
+        "<int:producto_id>/archivos-impresion/<int:archivo_id>/predeterminar/",
+        archivos_impresion.predeterminar,
+        name="archivo_impresion_predeterminar",
+    ),
+    path(
+        "<int:producto_id>/archivos-impresion/<int:archivo_id>/activo/",
+        archivos_impresion.cambiar_activo,
+        name="archivo_impresion_activo",
+    ),
+    path(
+        "<int:producto_id>/archivos-impresion/<int:archivo_id>/reemplazar/",
+        archivos_impresion.reemplazar,
+        name="archivo_impresion_reemplazar",
+    ),
+    path(
+        "<int:producto_id>/archivos-impresion/<int:archivo_id>/eliminar/",
+        archivos_impresion.eliminar,
+        name="archivo_impresion_eliminar",
     ),
     path(
         "<int:producto_id>/imagenes/",

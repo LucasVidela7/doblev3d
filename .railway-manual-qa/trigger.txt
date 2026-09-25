@@ -135,3 +135,57 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-24 - Fix categorias productos kits separadas
 2026-09-24 - Fix buscador y scroll categorias
 2026-09-24 - Fix offset buscador header fijo categorias
+2026-09-24 - Hover boton Como pedirlo
+2026-09-25T11:10-03 deploy panel Bambu en vivo
+
+2026-09-25T11:16-03 deploy correccion modo oscuro Bambu en vivo
+
+2026-09-25T11:24-03 deploy vinculo Bambu con impresoras de produccion
+
+2026-09-25T11:31-03 deploy comparacion Gestion vs Bambu
+
+2026-09-25T11:45-03 deploy control calidad alertas y base AMS
+
+2026-09-25T11:53-03 deploy visual AMS en tarjetas
+
+2026-09-25T11:58-03 deploy cancelacion fisica Bambu y bloqueo finalizar
+
+2026-09-25T12:07-03 deploy reimpresion avanzada con AMS y color
+
+2026-09-25T12:12-03 deploy reimpresion AMS y comandos Bambu seguros
+
+2026-09-25T12:20-03 deploy biblioteca privada gcode 3mf
+
+2026-09-25T12:34-03 deploy gcode por cantidad y sustitucion
+
+2026-09-25T12:43-03 deploy renombre impresoras
+
+2026-09-25T12:55-03 deploy asociacion impresiones externas Bambu Studio
+
+2026-09-25T13:02-03 deploy descarga privada gcode a Raspberry
+
+2026-09-25T13:00-03 deploy cache gcode Raspberry
+
+2026-09-25T12:59-03 deploy ayuda permisos Android notificaciones
+
+2026-09-25T13:08-03 deploy modal gcode desde Produccion
+
+2026-09-25T13:18-03 fix upload gcode 500 y loader
+
+2026-09-25T13:24-03 fix auditoria FileField gcode
+
+2026-09-25T13:32-03 fix 500 gcode produccion transaccion
+
+2026-09-25T13:36-03 fix postgres lock gcode upload
+
+2026-09-25T13:41-03 fix duplicado huerfano gcode
+
+2026-09-25T13:47-03 sync gcode producto con produccion pendiente
+
+2026-09-25T13:58-03 produccion ajax modal impresoras config metadata gcode
+
+2026-09-25T14:04-03 finalize produccion UI metadata gcode
+
+2026-09-25T14:07-03 fix bridge production file download
+
+2026-09-25T14:14-03 fix config impresoras hash navigation

@@ -1,4 +1,6 @@
 from django.contrib.auth import get_user_model
+from django.core.files.storage import default_storage
+from django.db.models.fields.files import FieldFile
 from django.test import TestCase
 from django.urls import reverse
 
@@ -7,6 +9,7 @@ from pedidos.models import Pago, Pedido
 
 from .context import contexto_auditoria
 from .models import RegistroAuditoria
+from .signals import _valor_serializable
 
 
 class AuditoriaTests(TestCase):
@@ -136,3 +139,22 @@ class AuditoriaTests(TestCase):
         ).latest("id")
         self.assertEqual(cierre.ruta, reverse("logout"))
         self.assertEqual(cierre.metodo, "POST")
+
+
+
+class AuditoriaFileFieldTests(TestCase):
+    def test_filefield_se_serializa_por_nombre(self):
+        class CampoArchivo:
+            storage = default_storage
+            name = "archivo"
+
+        valor = FieldFile(
+            instance=None,
+            field=CampoArchivo(),
+            name="productos/P0006/pepino.gcode.3mf",
+        )
+
+        self.assertEqual(
+            _valor_serializable(valor),
+            "productos/P0006/pepino.gcode.3mf",
+        )

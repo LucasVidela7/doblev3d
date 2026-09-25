@@ -19,6 +19,11 @@ urlpatterns = [
         name="configuracion",
     ),
     path(
+        "configuracion/impresoras/<int:estado_id>/vincular/",
+        views.configurar_vinculo_bambu,
+        name="configurar_vinculo_bambu",
+    ),
+    path(
         "configuracion/arrepentimiento/<int:solicitud_id>/resolver/",
         views.resolver_arrepentimiento,
         name="arrepentimiento_resolver",

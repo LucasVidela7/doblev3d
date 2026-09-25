@@ -1,0 +1,209 @@
+{% if producto.requiere_impresion %}
+<details class="section" open>
+  <summary>ARCHIVOS DE IMPRESIÓN</summary>
+  <div class="section-body">
+    <style>
+      .print-storage-note{margin-bottom:12px;padding:10px 12px;border:1px solid var(--dv-border,#e3e6ea);border-radius:11px;background:var(--dv-surface-soft,#f7f8fa);color:var(--dv-muted,#747980);font-size:10px;line-height:1.45}
+      .print-storage-note.warn{border-color:#e6c36a;background:color-mix(in srgb,#e6c36a 10%,var(--dv-surface,#fff));color:var(--dv-text,#24272b)}
+      .print-upload{display:grid;grid-template-columns:minmax(0,1.6fr) 100px minmax(110px,.55fr) minmax(150px,.7fr);gap:8px;align-items:end;padding:12px;border:1px solid var(--dv-border,#e3e6ea);border-radius:13px;background:var(--dv-surface-soft,#f7f8fa)}
+      .print-field label{display:block;margin-bottom:5px;color:var(--dv-muted,#747980);font-size:8px;font-weight:900}
+      .print-field input,.print-field textarea{width:100%;min-height:42px;border:1px solid var(--dv-border,#d4d7dc);border-radius:10px;background:var(--dv-surface,#fff);color:var(--dv-text,#24272b);padding:8px 10px;font-size:10px}
+      .print-field textarea{min-height:70px;resize:vertical}
+      .print-upload .wide{grid-column:1/-1}
+      .print-file-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:12px 0;border-top:1px solid var(--dv-border,#eef0f2);align-items:center}
+      .print-file-row:first-of-type{margin-top:12px}
+      .print-file-title{font-size:11px;font-weight:900;overflow-wrap:anywhere}
+      .print-file-meta{margin-top:4px;color:var(--dv-muted,#747980);font-size:9px;line-height:1.5}
+      .print-file-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+      .print-file-actions form{margin:0}
+      .print-hash{font-family:monospace;font-size:8px;color:var(--dv-muted,#747980)}
+      .print-check{display:flex;align-items:center;gap:7px;min-height:42px;color:var(--dv-text,#24272b);font-size:9px;font-weight:800}
+      @media(max-width:760px){
+        .print-upload{grid-template-columns:1fr}
+        .print-upload .wide{grid-column:auto}
+        .print-file-row{grid-template-columns:1fr}
+        .print-file-actions{justify-content:flex-start}
+      }
+    </style>
+
+    {% if archivos_impresion_persistentes %}
+      <div class="print-storage-note">✓ Biblioteca configurada sobre almacenamiento persistente.</div>
+    {% else %}
+      <div class="print-storage-note warn">
+        ⚠ El entorno todavía no tiene confirmado un volumen persistente. Podés probar la biblioteca en QA, pero un redeploy podría borrar los archivos físicos hasta montar el volumen.
+      </div>
+    {% endif %}
+
+    <form
+      class="print-upload"
+      method="post"
+      enctype="multipart/form-data"
+      data-dv-submit-lock
+      data-dv-loading-label="Guardando G-code"
+      action="{% url 'productos:archivo_impresion_subir' producto.id %}"
+    >
+      {% csrf_token %}
+
+      <div class="print-field">
+        <label>ARCHIVO .GCODE.3MF</label>
+        <input
+          type="file"
+          name="archivo"
+          accept=".gcode.3mf"
+          required
+        >
+      </div>
+
+      <div class="print-field">
+        <label>CANTIDAD</label>
+        <input
+          type="number"
+          name="cantidad_unidades"
+          min="1"
+          value="1"
+          required
+        >
+      </div>
+
+      <div class="print-field">
+        <label>VERSIÓN</label>
+        <input
+          type="text"
+          name="version"
+          maxlength="60"
+          placeholder="Ej. v3"
+        >
+      </div>
+
+      <div class="print-field">
+        <label>PERFIL / IMPRESORA</label>
+        <input
+          type="text"
+          name="perfil_impresora"
+          maxlength="120"
+          placeholder="Ej. A1 · 0.4 mm"
+        >
+      </div>
+
+      <div class="print-field">
+        <label>NOMBRE INTERNO</label>
+        <input
+          type="text"
+          name="nombre"
+          maxlength="180"
+          placeholder="Opcional · se toma del archivo"
+        >
+      </div>
+
+      <label class="print-check">
+        <input type="checkbox" name="predeterminado" value="1">
+        Usar como principal para esta cantidad
+      </label>
+
+      <button class="btn dark" type="submit">↑ SUBIR ARCHIVO</button>
+
+      <div class="print-field wide">
+        <label>NOTAS</label>
+        <textarea
+          name="notas"
+          placeholder="Opcional: altura de capa, soportes, versión de perfil, observaciones..."
+        ></textarea>
+      </div>
+    </form>
+
+    {% for archivo in archivos_impresion %}
+      <div class="print-file-row">
+        <div>
+          <div class="print-file-title">
+            {{ archivo.nombre }}
+            {% if archivo.version %} · {{ archivo.version }}{% endif %}
+          </div>
+          <div class="meta" style="margin-top:5px">
+            <span class="badge blue">× {{ archivo.cantidad_unidades }} u.</span>
+            {% if archivo.predeterminado %}<span class="badge ok">PRINCIPAL PARA ×{{ archivo.cantidad_unidades }}</span>{% endif %}
+            {% if archivo.activo %}<span class="badge">ACTIVO</span>{% else %}<span class="badge warning">INACTIVO</span>{% endif %}
+            {% if not archivo.disponible %}<span class="badge danger">ARCHIVO NO DISPONIBLE</span>{% endif %}
+          </div>
+          <div class="print-file-meta">
+            {{ archivo.nombre_original }} · {{ archivo.tamano_formateado }} · {{ archivo.placas_texto }}
+            {% if archivo.peso_estimado_texto or archivo.tiempo_estimado_texto %}
+                <br>
+                {% if archivo.tiempo_estimado_texto %}Tiempo G-code: {{ archivo.tiempo_estimado_texto }}{% endif %}
+                {% if archivo.tiempo_estimado_texto and archivo.peso_estimado_texto %} · {% endif %}
+                {% if archivo.peso_estimado_texto %}Peso G-code: {{ archivo.peso_estimado_texto }}{% endif %}
+            {% endif %}
+            {% if archivo.perfil_impresora %}<br>Perfil: {{ archivo.perfil_impresora }}{% endif %}
+            {% if archivo.notas %}<br>{{ archivo.notas }}{% endif %}
+          </div>
+          <div class="print-hash">SHA-256 {{ archivo.sha256|slice:":16" }}…</div>
+        </div>
+
+        <div class="print-file-actions">
+          {% if archivo.disponible %}
+            <a
+              class="btn"
+              href="{% url 'productos:archivo_impresion_descargar' producto.id archivo.id %}"
+            >↓ DESCARGAR</a>
+          {% endif %}
+
+          {% if archivo.activo and not archivo.predeterminado %}
+            <form method="post" action="{% url 'productos:archivo_impresion_predeterminar' producto.id archivo.id %}">
+              {% csrf_token %}
+              <button class="btn" type="submit">★ USAR PARA ×{{ archivo.cantidad_unidades }}</button>
+            </form>
+          {% endif %}
+
+          {% if archivo.activo %}
+          <details>
+            <summary class="btn" style="list-style:none">↻ SUSTITUIR</summary>
+            <form
+              method="post"
+              enctype="multipart/form-data"
+              data-dv-submit-lock
+              data-dv-loading-label="Sustituyendo G-code"
+              action="{% url 'productos:archivo_impresion_reemplazar' producto.id archivo.id %}"
+              style="margin-top:7px;display:grid;gap:6px;min-width:240px"
+            >
+              {% csrf_token %}
+              <div class="print-field">
+                <label>NUEVO .GCODE.3MF PARA ×{{ archivo.cantidad_unidades }}</label>
+                <input type="file" name="archivo" accept=".gcode.3mf" required>
+              </div>
+              <div class="print-field">
+                <label>VERSIÓN</label>
+                <input type="text" name="version" maxlength="60" value="{{ archivo.version }}" placeholder="Ej. v4">
+              </div>
+              <div class="print-field">
+                <label>NOTAS</label>
+                <textarea name="notas" placeholder="Qué cambió respecto de la versión anterior">{{ archivo.notas }}</textarea>
+              </div>
+              <button class="btn dark" type="submit">CONFIRMAR SUSTITUCIÓN</button>
+            </form>
+          </details>
+          {% endif %}
+
+          <form method="post" action="{% url 'productos:archivo_impresion_activo' producto.id archivo.id %}">
+            {% csrf_token %}
+            <button class="btn" type="submit">
+              {% if archivo.activo %}○ DESACTIVAR{% else %}● ACTIVAR{% endif %}
+            </button>
+          </form>
+
+          <form
+            method="post"
+            action="{% url 'productos:archivo_impresion_eliminar' producto.id archivo.id %}"
+            onsubmit="return confirm('¿Eliminar este archivo de impresión? Esta acción borra también el archivo físico.')"
+          >
+            {% csrf_token %}
+            <button class="btn danger-btn" type="submit">ELIMINAR</button>
+          </form>
+        </div>
+      </div>
+    {% empty %}
+      <div class="mini" style="margin-top:12px">
+        Todavía no hay archivos de impresión cargados para este producto.
+      </div>
+    {% endfor %}
+  </div>
+</details>
+{% endif %}

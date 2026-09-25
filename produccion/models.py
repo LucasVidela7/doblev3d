@@ -1,3 +1,4 @@
+import uuid
 from datetime import timedelta
 from decimal import Decimal
 
@@ -24,6 +25,101 @@ class Impresora(models.Model):
         ordering = ["nombre"]
 
 
+class ImpresoraEstadoBambu(models.Model):
+    impresora = models.OneToOneField(
+        Impresora,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="estado_bambu",
+    )
+
+    serial = models.CharField(
+        max_length=32,
+        unique=True,
+    )
+
+    nombre_bridge = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+
+    ip = models.GenericIPAddressField(
+        protocol="IPv4",
+        null=True,
+        blank=True,
+    )
+
+    conectada = models.BooleanField(
+        default=False,
+    )
+
+    estado = models.CharField(
+        max_length=50,
+        blank=True,
+    )
+
+    progreso = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+    )
+
+    minutos_restantes = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+    )
+
+    trabajo = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    temperatura_nozzle = models.FloatField(
+        null=True,
+        blank=True,
+    )
+
+    temperatura_bed = models.FloatField(
+        null=True,
+        blank=True,
+    )
+
+    wifi = models.CharField(
+        max_length=32,
+        blank=True,
+    )
+
+    ultimo_evento_impresora = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    ultimo_contacto = models.DateTimeField(
+        auto_now=True,
+    )
+
+    ams = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    carrete_externo = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    payload = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    class Meta:
+        ordering = ["nombre_bridge", "serial"]
+
+    def __str__(self):
+        return self.nombre_bridge or self.serial
+
+
 class Produccion(models.Model):
     DESTINOS = [
         ("STOCK", "Stock"),
@@ -33,8 +129,16 @@ class Produccion(models.Model):
     ESTADOS = [
         ("PENDIENTE", "Pendiente"),
         ("IMPRIMIENDO", "Imprimiendo"),
+        ("CONTROL", "Pendiente de control"),
         ("LISTO", "Listo"),
+        ("FALLIDA", "Fallida"),
         ("CANCELADO", "Cancelado"),
+    ]
+
+    ORIGENES = [
+        ("GESTION", "Gestión"),
+        ("BAMBU_STUDIO", "Bambu Studio"),
+        ("MANUAL", "Manual"),
     ]
 
     fecha = models.DateTimeField(
@@ -71,6 +175,12 @@ class Produccion(models.Model):
         default="PENDIENTE",
     )
 
+    origen = models.CharField(
+        max_length=20,
+        choices=ORIGENES,
+        default="GESTION",
+    )
+
     impresora = models.ForeignKey(
         Impresora,
         on_delete=models.PROTECT,
@@ -89,6 +199,81 @@ class Produccion(models.Model):
     )
 
     ingresado_stock = models.BooleanField(
+        default=False,
+    )
+
+    fin_impresion_detectado = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    control_calidad_en = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    resultado_control = models.CharField(
+        max_length=20,
+        blank=True,
+    )
+
+    evento_fin_bambu = models.CharField(
+        max_length=30,
+        blank=True,
+    )
+
+    reimpresion_de = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reimpresiones",
+    )
+
+    archivo_impresion = models.ForeignKey(
+        "productos.ArchivoImpresion",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="producciones",
+    )
+
+    bambu_trabajo = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    bambu_fuente_filamento = models.CharField(
+        max_length=20,
+        blank=True,
+    )
+
+    bambu_ams_id = models.SmallIntegerField(
+        null=True,
+        blank=True,
+    )
+
+    bambu_tray_id = models.SmallIntegerField(
+        null=True,
+        blank=True,
+    )
+
+    bambu_material = models.CharField(
+        max_length=80,
+        blank=True,
+    )
+
+    bambu_color_nombre = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+
+    bambu_color_hex = models.CharField(
+        max_length=9,
+        blank=True,
+    )
+
+    bambu_requiere_cambio_manual = models.BooleanField(
         default=False,
     )
 
@@ -177,4 +362,155 @@ class Produccion(models.Model):
         return (
             f"{self.codigo} - "
             f"{self.producto.nombre} x{self.cantidad}"
+        )
+
+
+
+class ConfiguracionProduccion(models.Model):
+    avisos_impresion_activos = models.BooleanField(
+        default=True,
+    )
+
+    avisar_antes_finalizar = models.BooleanField(
+        default=True,
+    )
+
+    minutos_aviso_finalizacion = models.PositiveSmallIntegerField(
+        default=15,
+    )
+
+    avisar_finalizacion = models.BooleanField(
+        default=True,
+    )
+
+    avisar_cancelacion = models.BooleanField(
+        default=True,
+    )
+
+    def __str__(self):
+        return "Configuración de producción"
+
+
+class EventoBambu(models.Model):
+    TIPOS = [
+        ("PROXIMO_FIN", "Próxima a finalizar"),
+        ("FINALIZADA", "Finalizada"),
+        ("CANCELADA", "Cancelada"),
+    ]
+
+    clave = models.CharField(
+        max_length=180,
+        unique=True,
+    )
+
+    tipo = models.CharField(
+        max_length=30,
+        choices=TIPOS,
+    )
+
+    impresora_estado = models.ForeignKey(
+        ImpresoraEstadoBambu,
+        on_delete=models.CASCADE,
+        related_name="eventos",
+    )
+
+    produccion = models.ForeignKey(
+        Produccion,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="eventos_bambu",
+    )
+
+    creado_en = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    payload = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    class Meta:
+        ordering = ["-creado_en", "-id"]
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} · {self.impresora_estado}"
+
+
+
+class ComandoBambu(models.Model):
+    TIPOS = [
+        ("STOP", "Detener impresión"),
+    ]
+
+    ESTADOS = [
+        ("PENDIENTE", "Pendiente"),
+        ("EJECUTADO", "Ejecutado"),
+        ("ERROR", "Error"),
+        ("EXPIRADO", "Expirado"),
+    ]
+
+    id_comando = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+    )
+
+    tipo = models.CharField(
+        max_length=30,
+        choices=TIPOS,
+    )
+
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADOS,
+        default="PENDIENTE",
+    )
+
+    impresora_estado = models.ForeignKey(
+        ImpresoraEstadoBambu,
+        on_delete=models.CASCADE,
+        related_name="comandos",
+    )
+
+    produccion = models.ForeignKey(
+        Produccion,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="comandos_bambu",
+    )
+
+    creado_en = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    expira_en = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    trabajo_bambu_esperado = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    resuelto_en = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    error = models.TextField(
+        blank=True,
+    )
+
+    class Meta:
+        ordering = ["creado_en", "id"]
+
+    def __str__(self):
+        return (
+            f"{self.get_tipo_display()} · "
+            f"{self.impresora_estado} · "
+            f"{self.get_estado_display()}"
         )
