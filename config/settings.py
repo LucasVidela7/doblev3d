@@ -208,6 +208,24 @@ BAMBU_BRIDGE_TOKEN = os.getenv(
     "",
 ).strip()
 
+# Simulador local de impresoras Bambu para QA.
+# Protección doble: aunque la variable se configure por error en producción,
+# el proceso se niega a arrancar fuera de un entorno reconocido como QA.
+_BAMBU_MOCK_REQUESTED = _env_bool(
+    "BAMBU_MOCK_ENABLED",
+    False,
+)
+
+if _BAMBU_MOCK_REQUESTED and not IS_QA:
+    raise ImproperlyConfigured(
+        "BAMBU_MOCK_ENABLED solo puede activarse en QA/test/staging."
+    )
+
+BAMBU_MOCK_ENABLED = bool(
+    _BAMBU_MOCK_REQUESTED
+    and IS_QA
+)
+
 # Protección opcional del checkout público. Si las claves quedan vacías,
 # el resto de defensas anti-spam sigue funcionando sin mostrar captcha.
 TURNSTILE_SITE_KEY = os.getenv("TURNSTILE_SITE_KEY", "").strip()
