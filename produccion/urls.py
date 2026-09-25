@@ -48,6 +48,11 @@ urlpatterns = [
         name="repetir",
     ),
     path(
+        "<int:produccion_id>/control/",
+        views.controlar_produccion,
+        name="control",
+    ),
+    path(
         "<int:produccion_id>/estado/",
         views.cambiar_estado,
         name="cambiar_estado",
