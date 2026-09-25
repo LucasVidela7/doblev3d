@@ -26,12 +26,14 @@ body{margin:0;padding-bottom:110px;background:var(--bg);color:var(--text);font-f
 [data-config-tab="tienda"],#tienda{--section-color:#2867c7}
 [data-config-tab="whatsapp"],#whatsapp{--section-color:#27824c}
 [data-config-tab="avisos"],#avisos{--section-color:#b57912}
+[data-config-tab="impresoras"],#impresoras{--section-color:#2563a9}
 [data-config-tab="metricas"],#metricas{--section-color:#7655bd}
 [data-config-tab="legal"],#legal{--section-color:#a7445b}
 [data-config-tab="apariencia"],#apariencia{--section-color:#16717a}
 .cfg-content[data-section="tienda"]{--active-section-color:#2867c7}
 .cfg-content[data-section="whatsapp"]{--active-section-color:#27824c}
 .cfg-content[data-section="avisos"]{--active-section-color:#b57912}
+.cfg-content[data-section="impresoras"]{--active-section-color:#2563a9}
 .cfg-content[data-section="metricas"]{--active-section-color:#7655bd}
 .cfg-content[data-section="legal"]{--active-section-color:#a7445b}
 .cfg-content[data-section="apariencia"]{--active-section-color:#16717a}
@@ -127,6 +129,13 @@ body{margin:0;padding-bottom:110px;background:var(--bg);color:var(--text);font-f
 .cfg-wa-payment{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr) minmax(260px,.9fr);gap:10px;margin-bottom:12px;padding:14px;border:1px solid color-mix(in srgb,var(--wa-amber) 34%,var(--line));border-radius:15px;background:color-mix(in srgb,var(--wa-amber) 7%,var(--surface));box-shadow:inset 4px 0 0 var(--wa-amber)}.cfg-wa-payment-copy strong{display:block;font-size:13px}.cfg-wa-payment-copy p{margin:5px 0 0;color:var(--muted);font-size:11px;line-height:1.45}.cfg-wa-payment-field .cfg-label{margin-top:0}.cfg-wa-payment-preview{align-self:stretch;display:flex;flex-direction:column;justify-content:center;padding:11px 12px;border:1px dashed color-mix(in srgb,var(--wa-amber) 42%,var(--line));border-radius:11px;background:var(--surface)}.cfg-wa-payment-preview small{color:var(--muted);font-size:8px;font-weight:900;letter-spacing:.07em}.cfg-wa-payment-preview strong{margin-top:5px;color:color-mix(in srgb,var(--wa-amber) 82%,var(--text));font-size:12px;line-height:1.4;word-break:break-word}
 .cfg-message{position:relative;overflow:hidden}.cfg-message h3{font-size:13px}.cfg-message p{font-size:11px;line-height:1.45}.cfg-message .cfg-textarea{min-height:116px}.cfg-message[data-tone]{box-shadow:inset 4px 0 0 var(--wa-color);border-color:color-mix(in srgb,var(--wa-color) 28%,var(--line))}.cfg-message[data-tone="order"]{--wa-color:var(--wa-blue)}.cfg-message[data-tone="ready"]{--wa-color:var(--wa-green)}.cfg-message[data-tone="balance"]{--wa-color:var(--wa-amber)}.cfg-message[data-tone="multi"]{--wa-color:var(--wa-purple)}.cfg-message[data-tone="other"]{--wa-color:var(--wa-teal)}.cfg-message-status{display:inline-flex;align-items:center;min-height:24px;margin-top:7px;padding:0 7px;border-radius:999px;background:color-mix(in srgb,var(--wa-color) 13%,var(--surface));color:var(--wa-color);font-size:8px;font-weight:900;letter-spacing:.04em}.cfg-message[data-tone] .cfg-var{background:color-mix(in srgb,var(--wa-color) 10%,var(--soft));color:color-mix(in srgb,var(--wa-color) 76%,var(--text))}
 .cfg-device{width:100%;min-height:56px;display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--text);font:inherit;text-align:left;cursor:pointer}.cfg-device-icon{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:var(--soft)}.cfg-device-copy{min-width:0;flex:1}.cfg-device-copy strong{display:block;font-size:12px}.cfg-device-copy span{display:block;margin-top:3px;color:var(--muted);font-size:10px}.cfg-device.is-active{border-color:#b6dcc0;background:#e8f6ec;color:#24633a}.cfg-device.is-blocked{border-color:#efc3c3;background:#fff2f2;color:#9a3030}.cfg-device:disabled{opacity:.58;cursor:not-allowed}
+.cfg-printers{display:grid;gap:10px}
+.cfg-printer-row{display:grid;grid-template-columns:minmax(180px,.8fr) minmax(220px,1fr) auto;gap:12px;align-items:center;padding:13px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.cfg-printer-name strong{display:block;font-size:13px}.cfg-printer-name span{display:block;margin-top:4px;color:var(--muted);font-size:10px;line-height:1.4}
+.cfg-printer-link{display:grid;gap:6px}.cfg-printer-link select{width:100%;min-height:42px;border:1px solid var(--line);border-radius:10px;background:var(--soft);color:var(--text);padding:0 10px;font-size:12px;font-weight:800}
+.cfg-printer-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.cfg-printer-state{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:5px 8px;border-radius:999px;background:var(--soft);color:var(--muted);font-size:9px;font-weight:900}
+@media(max-width:760px){.cfg-printer-row{grid-template-columns:1fr}.cfg-printer-actions{justify-content:stretch}.cfg-printer-actions .cfg-btn{flex:1}}
 .cfg-legal-list{display:grid;gap:7px}.cfg-legal-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:10px;border:1px solid var(--line);border-radius:11px;background:var(--surface)}.cfg-legal-item strong{display:block;font-size:11px}.cfg-legal-item span{display:block;margin-top:3px;color:var(--muted);font-size:10px}.cfg-legal-badge{align-self:start;display:inline-flex;min-height:24px;align-items:center;padding:0 7px;border-radius:999px;background:var(--warn-bg);color:var(--warn);font-size:9px;font-weight:900}.cfg-legal-badge.ok{background:var(--ok-bg);color:var(--ok)}.cfg-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:13px}
 .metrics-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}.metrics-periods{display:flex;gap:5px;flex-wrap:wrap}.metrics-periods a{min-height:31px;display:inline-flex;align-items:center;padding:0 10px;border:1px solid var(--line);border-radius:9px;background:var(--soft);color:var(--muted);text-decoration:none;font-size:10px;font-weight:900}.metrics-periods a.active{border-color:var(--section-color,var(--blue));background:var(--section-color,var(--blue));color:#fff}.metrics-range{color:var(--muted);font-size:10px;font-weight:800}
 .metrics-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-bottom:10px}.metric-kpi{min-width:0;padding:12px;border:1px solid var(--line);border-radius:13px;background:var(--soft)}.metric-kpi span{display:block;color:var(--muted);font-size:9px;font-weight:900;letter-spacing:.04em}.metric-kpi strong{display:block;margin-top:5px;font-size:24px;letter-spacing:-.04em}.metric-kpi small{display:block;margin-top:4px;color:var(--muted);font-size:9px;line-height:1.35}.metric-kpi.primary{border-color:rgba(19,74,154,.24);background:rgba(19,74,154,.06)}.metric-kpi.success{border-color:#b9dec5;background:var(--ok-bg)}
@@ -199,6 +208,7 @@ html[data-dv-theme="dark"] .cfg-nav a.is-active .cfg-nav-copy small{color:#d9e2e
 <a href="#whatsapp" data-config-tab="whatsapp"><span class="cfg-nav-icon">💬</span><span class="cfg-nav-copy"><strong>WhatsApp</strong><small>Mensajes, cobros y plantillas</small></span></a>
 <div class="cfg-nav-group">Operación</div>
 <a href="#avisos" data-config-tab="avisos"><span class="cfg-nav-icon">🔔</span><span class="cfg-nav-copy"><strong>Notificaciones</strong><small>Avisos web y dispositivos</small></span></a>
+<a href="#impresoras" data-config-tab="impresoras"><span class="cfg-nav-icon">🖨</span><span class="cfg-nav-copy"><strong>Impresoras</strong><small>Vinculación Bambu y Gestión</small></span></a>
 <a href="#metricas" data-config-tab="metricas"><span class="cfg-nav-icon">↗</span><span class="cfg-nav-copy"><strong>Métricas</strong><small>Embudo, visitas y conversión</small></span></a>
 <div class="cfg-nav-group">Negocio</div>
 <a href="#legal" data-config-tab="legal"><span class="cfg-nav-icon">⚖</span><span class="cfg-nav-copy"><strong>Legal</strong><small>Responsable, contacto y reclamos</small></span></a>
@@ -213,6 +223,7 @@ html[data-dv-theme="dark"] .cfg-nav a.is-active .cfg-nav-copy small{color:#d9e2e
 <option value="costos">◫ Costos</option>
 <option value="whatsapp">💬 WhatsApp</option>
 <option value="avisos">🔔 Notificaciones</option>
+<option value="impresoras">🖨 Impresoras</option>
 <option value="metricas">↗ Métricas</option>
 <option value="legal">⚖ Legal</option>
 <option value="apariencia">◐ Apariencia</option>
@@ -553,6 +564,51 @@ html[data-dv-theme="dark"] .cfg-nav a.is-active .cfg-nav-copy small{color:#d9e2e
 </div>
 </section>
 
+<section class="cfg-section" id="impresoras">
+<div class="cfg-section-head"><div><h2>Impresoras Bambu</h2><p>Vinculá cada impresora detectada por la Raspberry con su impresora operativa de Gestión. Esta configuración ya no se modifica desde Producción.</p></div><div class="cfg-icon">🖨</div></div>
+<div class="cfg-printers">
+{% for bambu in bambu_estados_config %}
+<div class="cfg-printer-row">
+    <div class="cfg-printer-name">
+        <strong>{{ bambu.nombre_bridge|default:bambu.serial }}</strong>
+        <span>Serial {{ bambu.serial }} · {% if bambu.conectada %}En línea{% else %}Sin conexión{% endif %}</span>
+        <span class="cfg-printer-state">
+            {% if bambu.impresora %}Vinculada a {{ bambu.impresora.nombre }}{% else %}Sin vincular{% endif %}
+        </span>
+    </div>
+    <div class="cfg-printer-link">
+        <label class="cfg-label" style="margin:0"><span>IMPRESORA DE GESTIÓN</span></label>
+        <select data-bambu-config-select="{{ bambu.id }}">
+            <option value="">Seleccionar...</option>
+            {% for impresora in impresoras_config %}
+                <option value="{{ impresora.id }}" {% if bambu.impresora_id == impresora.id %}selected{% endif %}>{{ impresora.nombre }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="cfg-printer-actions">
+        <button
+            class="cfg-btn principal"
+            type="button"
+            data-bambu-config-save
+            data-url="{% url 'dashboard:configurar_vinculo_bambu' bambu.id %}"
+            data-state="{{ bambu.id }}"
+        >GUARDAR VÍNCULO</button>
+        {% if bambu.impresora_id %}
+        <button
+            class="cfg-btn"
+            type="button"
+            data-bambu-config-unlink
+            data-url="{% url 'dashboard:configurar_vinculo_bambu' bambu.id %}"
+        >DESVINCULAR</button>
+        {% endif %}
+    </div>
+</div>
+{% empty %}
+<div class="cfg-box full"><div class="cfg-box-title">No hay impresoras Bambu detectadas</div><div class="cfg-box-copy">Cuando la Raspberry sincronice una A1, aparecerá acá para vincularla.</div></div>
+{% endfor %}
+</div>
+</section>
+
 <section class="cfg-section" id="legal">
 <div class="cfg-section-head"><div><h2>Información legal</h2><p>Doble V 3D es un emprendimiento personal. Acá se informan datos reales del titular cuando correspondan, sin inventar una sociedad o razón social.</p></div><div class="cfg-icon">⚖</div></div>
 <div class="cfg-grid">
@@ -798,6 +854,58 @@ if(destino){destino.textContent=render(campo.value);}
 document.querySelectorAll("[data-counter]").forEach(function(campo){
 actualizarCampo(campo);
 campo.addEventListener("input",function(){actualizarCampo(campo);});
+});
+
+const configForm=document.getElementById("configForm");
+const csrfToken=configForm?.querySelector('input[name="csrfmiddlewaretoken"]')?.value||"";
+
+async function saveBambuLink(button,unlink){
+    const url=button.dataset.url||"";
+    if(!url)return;
+
+    const stateId=button.dataset.state||"";
+    const select=stateId
+        ? document.querySelector('[data-bambu-config-select="'+stateId+'"]')
+        : button.closest(".cfg-printer-row")?.querySelector("[data-bambu-config-select]");
+
+    const body=new FormData();
+    body.append("csrfmiddlewaretoken",csrfToken);
+    body.append("accion",unlink?"DESVINCULAR":"VINCULAR");
+    if(!unlink){
+        const printerId=select?.value||"";
+        if(!printerId){
+            window.DVToast?.warning?.("Elegí la impresora de Gestión.");
+            return;
+        }
+        body.append("impresora",printerId);
+    }
+
+    button.disabled=true;
+    const original=button.textContent;
+    button.textContent=unlink?"DESVINCULANDO…":"GUARDANDO…";
+
+    try{
+        const response=await fetch(url,{
+            method:"POST",
+            body,
+            credentials:"same-origin",
+            headers:{"X-Requested-With":"XMLHttpRequest"}
+        });
+        if(!response.ok)throw new Error("No se pudo actualizar la vinculación.");
+        window.location.hash="impresoras";
+        window.location.reload();
+    }catch(error){
+        button.disabled=false;
+        button.textContent=original;
+        window.DVToast?.error?.(error.message||"No se pudo actualizar la vinculación.");
+    }
+}
+
+document.querySelectorAll("[data-bambu-config-save]").forEach(function(button){
+    button.addEventListener("click",function(){saveBambuLink(button,false);});
+});
+document.querySelectorAll("[data-bambu-config-unlink]").forEach(function(button){
+    button.addEventListener("click",function(){saveBambuLink(button,true);});
 });
 
 const colorField=document.getElementById("colores_disponibles");
