@@ -50,6 +50,7 @@
         .btn.principal{background:#1f6d3d;border-color:#1f6d3d;color:#fff}
         .btn.azul{background:#174f9a;border-color:#174f9a;color:#fff}
         .btn.peligro{background:var(--red);border-color:#efc4c4;color:var(--red-text)}
+        .btn.liberar{background:var(--amber);border-color:color-mix(in srgb,var(--amber-text) 30%,var(--line));color:var(--amber-text)}
         .btn:disabled{opacity:.45;cursor:not-allowed}
         .mensajes{display:grid;gap:8px;margin-bottom:12px}
         .mensaje{padding:10px 12px;border-radius:10px;background:var(--blue);color:var(--blue-text);font-size:10px;font-weight:800}
@@ -711,6 +712,43 @@
                 font-size:6.5px;
             }
         }
+
+        /* Ajustes BUGS Gestión · Preparación */
+        #falta-stock{--prep-state:#c65858}
+        #para-preparar{--prep-state:#174f9a}
+        #en-preparacion{--prep-state:#b57912}
+        #listos{--prep-state:#3e9558}
+        .kanban-board>.seccion{border-top-color:var(--prep-state)!important}
+        .kanban-board>.seccion .pedido{
+            border-left:4px solid var(--prep-state)!important;
+            box-shadow:inset 3px 0 0 var(--prep-state)!important
+        }
+        .kanban-board .pedido-head{min-height:78px}
+        .kanban-board .codigo{padding-right:48px}
+        .kanban-board .pedido-head-tools{max-width:44px}
+        .kanban-board .seccion-ayuda{font-size:9.5px}
+        .kanban-board .seccion-contador{font-size:9px}
+        .kanban-board .tag{font-size:8.5px}
+        .kanban-board .pedido-productos>summary{font-size:9.5px}
+        .kanban-board .pedido-productos-resumen{font-size:9px}
+        .kanban-board .producto-nombre{font-size:10.5px}
+        .kanban-board .producto-detalle{font-size:9px}
+        .kanban-board .stock span{font-size:8px}
+        .kanban-board .stock strong{font-size:9px}
+        .kanban-board .progreso-head{font-size:8.5px}
+        .kanban-board .saldo{font-size:9px}
+        .kanban-board .saldo strong{font-size:10px}
+        .kanban-board .btn{font-size:9px}
+        @media(max-width:1050px){
+            .flujo a{font-size:8.5px}
+            .flujo b{font-size:8.5px}
+        }
+        @media(max-width:430px){
+            .kanban-board .pedido-head{min-height:76px}
+            .kanban-board .codigo{padding-right:48px}
+            .flujo a{font-size:8px}
+        }
+
     </style>
 </head>
 <body>
