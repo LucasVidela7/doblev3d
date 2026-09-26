@@ -288,6 +288,128 @@ def _color_bambu_bandeja(bandeja):
     return ""
 
 
+def _slots_ams_bambu(estado_bambu):
+    payload = (
+        estado_bambu.payload
+        if isinstance(
+            getattr(estado_bambu, "payload", None),
+            dict,
+        )
+        else {}
+    )
+
+    fuentes = [
+        getattr(estado_bambu, "ams", None),
+        payload.get("ams"),
+    ]
+
+    unidades = []
+    tray_now = ""
+    visitados = set()
+
+    def recorrer(valor):
+        nonlocal tray_now
+
+        if isinstance(valor, (list, tuple)):
+            for item in valor:
+                recorrer(item)
+            return
+
+        if not isinstance(valor, dict):
+            return
+
+        marcador = id(valor)
+        if marcador in visitados:
+            return
+        visitados.add(marcador)
+
+        if (
+            not tray_now
+            and valor.get("tray_now") is not None
+        ):
+            tray_now = str(valor.get("tray_now"))
+
+        bandejas = valor.get("tray")
+        if (
+            "id" in valor
+            and isinstance(
+                bandejas,
+                (list, tuple, dict),
+            )
+        ):
+            unidades.append(valor)
+
+        for clave in ("ams", "units", "unit"):
+            if clave in valor:
+                recorrer(valor.get(clave))
+
+        if (
+            "ams" not in valor
+            and "tray" not in valor
+        ):
+            for subvalor in valor.values():
+                if isinstance(
+                    subvalor,
+                    (dict, list, tuple),
+                ):
+                    recorrer(subvalor)
+
+    for fuente in fuentes:
+        recorrer(fuente)
+
+    resultado = []
+    vistos = set()
+
+    for unidad in unidades:
+        try:
+            ams_id = int(unidad.get("id", 0))
+        except (TypeError, ValueError):
+            ams_id = 0
+
+        bandejas = unidad.get("tray", [])
+
+        if isinstance(bandejas, dict):
+            if any(
+                clave in bandejas
+                for clave in (
+                    "id",
+                    "tray_type",
+                    "tray_color",
+                    "tray_info_idx",
+                )
+            ):
+                bandejas = [bandejas]
+            else:
+                bandejas = list(bandejas.values())
+
+        if not isinstance(bandejas, (list, tuple)):
+            continue
+
+        for bandeja in bandejas:
+            if not isinstance(bandeja, dict):
+                continue
+
+            try:
+                tray_id = int(bandeja.get("id", 0))
+            except (TypeError, ValueError):
+                continue
+
+            clave = (ams_id, tray_id)
+            if clave in vistos:
+                continue
+            vistos.add(clave)
+
+            resultado.append(
+                {
+                    "ams_id": ams_id,
+                    "tray_id": tray_id,
+                    "bandeja": bandeja,
+                }
+            )
+
+    return resultado, tray_now
+
+
 def _formatear_peso_gramos(valor):
     try:
         valor = float(
@@ -486,43 +608,17 @@ def _filamento_para_print_bambu(
             )
 
         bandeja = None
-        ams_data = (
-            estado_bambu.ams
-            if isinstance(
-                estado_bambu.ams,
-                dict,
-            )
-            else {}
+        slots_ams, _ = _slots_ams_bambu(
+            estado_bambu
         )
 
-        for unidad in ams_data.get("ams", []) or []:
-            if not isinstance(unidad, dict):
-                continue
-
-            try:
-                unidad_id = int(
-                    unidad.get("id", 0)
-                )
-            except (TypeError, ValueError):
-                continue
-
-            if unidad_id != ams_id:
-                continue
-
-            for candidata in unidad.get("tray", []) or []:
-                if not isinstance(candidata, dict):
-                    continue
-
-                try:
-                    candidata_id = int(
-                        candidata.get("id", 0)
-                    )
-                except (TypeError, ValueError):
-                    continue
-
-                if candidata_id == tray_id:
-                    bandeja = candidata
-                    break
+        for slot in slots_ams:
+            if (
+                slot["ams_id"] == ams_id
+                and slot["tray_id"] == tray_id
+            ):
+                bandeja = slot["bandeja"]
+                break
 
         if not bandeja:
             raise ValueError(
@@ -1636,90 +1732,71 @@ def lista_produccion(request):
         estado_bambu.ams_slots = []
         estado_bambu.carrete_externo_info = None
 
-        ams_data = (
-            estado_bambu.ams
-            if isinstance(estado_bambu.ams, dict)
-            else {}
-        )
-        tray_now = str(
-            ams_data.get("tray_now", "")
+        slots_ams, tray_now = (
+            _slots_ams_bambu(
+                estado_bambu
+            )
         )
 
-        for unidad in ams_data.get("ams", []) or []:
-            if not isinstance(unidad, dict):
+        for slot_ams in slots_ams:
+            ams_id = slot_ams["ams_id"]
+            tray_id = slot_ams["tray_id"]
+            bandeja = slot_ams["bandeja"]
+
+            tipo = str(
+                bandeja.get("tray_type") or ""
+            ).strip()
+            color_raw = str(
+                bandeja.get("tray_color") or ""
+            ).strip()
+            color_css = _color_bambu_bandeja(
+                bandeja
+            )
+
+            if (
+                not tipo
+                and not color_css
+                and color_raw in {
+                    "",
+                    "00000000",
+                    "000000FF",
+                }
+                and not bandeja.get("tray_info_idx")
+            ):
                 continue
 
-            try:
-                ams_id = int(
-                    unidad.get("id", 0)
-                )
-            except (TypeError, ValueError):
-                ams_id = 0
+            indice_global = (
+                ams_id * 4
+                + tray_id
+            )
 
-            for bandeja in unidad.get("tray", []) or []:
-                if not isinstance(bandeja, dict):
-                    continue
-
-                try:
-                    tray_id = int(
-                        bandeja.get("id", 0)
-                    )
-                except (TypeError, ValueError):
-                    tray_id = 0
-
-                tipo = str(
-                    bandeja.get("tray_type") or ""
-                ).strip()
-                color_raw = str(
-                    bandeja.get("tray_color") or ""
-                ).strip()
-                color_css = _color_bambu_bandeja(
-                    bandeja
-                )
-
-                if (
-                    not tipo
-                    and color_raw in {
-                        "",
-                        "00000000",
-                        "000000FF",
-                    }
-                    and not bandeja.get("tray_info_idx")
-                ):
-                    continue
-
-                indice_global = (
-                    ams_id * 4
-                    + tray_id
-                )
-
-                estado_bambu.ams_slots.append(
-                    {
-                        "ams_id": ams_id,
-                        "tray_id": tray_id,
-                        "slot": tray_id + 1,
-                        "label": (
-                            f"AMS {ams_id + 1} · "
-                            f"Slot {tray_id + 1}"
-                        ),
-                        "tipo": tipo or "Filamento",
-                        "color": color_css,
-                        "activo": (
-                            tray_now
-                            == str(indice_global)
-                        ),
-                        "rfid": bool(
-                            str(
-                                bandeja.get(
-                                    "tag_uid"
-                                )
-                                or ""
-                            ).strip(
-                                "0"
+            estado_bambu.ams_slots.append(
+                {
+                    "ams_id": ams_id,
+                    "tray_id": tray_id,
+                    "slot": tray_id + 1,
+                    "label": (
+                        f"AMS {ams_id + 1} · "
+                        f"Slot {tray_id + 1}"
+                    ),
+                    "tipo": tipo or "Filamento",
+                    "color": color_css,
+                    "activo": (
+                        tray_now
+                        == str(indice_global)
+                    ),
+                    "rfid": bool(
+                        str(
+                            bandeja.get(
+                                "tag_uid"
                             )
-                        ),
-                    }
-                )
+                            or ""
+                        ).strip(
+                            "0"
+                        )
+                    ),
+                }
+            )
 
         carrete = (
             estado_bambu.carrete_externo
@@ -3752,36 +3829,17 @@ def repetir_produccion(
                 )
 
             bandeja = None
-            ams_data = (
-                estado_bambu.ams
-                if isinstance(estado_bambu.ams, dict)
-                else {}
+            slots_ams, _ = _slots_ams_bambu(
+                estado_bambu
             )
 
-            for unidad in ams_data.get("ams", []) or []:
-                if not isinstance(unidad, dict):
-                    continue
-                try:
-                    unidad_id = int(
-                        unidad.get("id", 0)
-                    )
-                except (TypeError, ValueError):
-                    continue
-                if unidad_id != ams_id:
-                    continue
-
-                for candidata in unidad.get("tray", []) or []:
-                    if not isinstance(candidata, dict):
-                        continue
-                    try:
-                        candidata_id = int(
-                            candidata.get("id", 0)
-                        )
-                    except (TypeError, ValueError):
-                        continue
-                    if candidata_id == tray_id:
-                        bandeja = candidata
-                        break
+            for slot in slots_ams:
+                if (
+                    slot["ams_id"] == ams_id
+                    and slot["tray_id"] == tray_id
+                ):
+                    bandeja = slot["bandeja"]
+                    break
 
             if not bandeja:
                 messages.error(
