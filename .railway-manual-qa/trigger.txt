@@ -198,3 +198,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-25 — deploy manual QA: dashboard alineado a planificación y Bambu
 2026-09-26 - BUGS Gestion: Produccion, G-code, Preparacion, Configuracion y UX
 2026-09-26 - QA final BUGS Gestion: rollback seguro G-code
+2026-09-26 - cache Bambu por SHA y reutilizacion entre PRD
