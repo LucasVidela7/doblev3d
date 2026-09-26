@@ -31,6 +31,100 @@ class BambuBridgeSyncTests(TestCase):
             ],
         }
 
+    def test_normaliza_ams_real_a1_combo(self):
+        estado = ImpresoraEstadoBambu(
+            ams={
+                "ams": [
+                    {
+                        "id": "0",
+                        "tray": [
+                            {
+                                "id": "0",
+                                "tray_type": "PLA",
+                                "tray_color": "FF6910FF",
+                            },
+                            {"id": "1"},
+                            {
+                                "id": "2",
+                                "tray_type": "PLA",
+                                "tray_color": "F6DA5AFF",
+                            },
+                            {
+                                "id": "3",
+                                "tray_type": "PLA",
+                                "tray_color": "0085D5FF",
+                            },
+                        ],
+                    }
+                ],
+                "tray_now": "3",
+            },
+            payload={},
+        )
+
+        slots, tray_now = _slots_ams_bambu(estado)
+
+        self.assertEqual(tray_now, "3")
+        self.assertEqual(
+            [
+                (
+                    slot["ams_id"],
+                    slot["tray_id"],
+                    _color_bambu_bandeja(slot["bandeja"]),
+                )
+                for slot in slots
+                if slot["bandeja"].get("tray_type")
+            ],
+            [
+                (0, 0, "#FF6910"),
+                (0, 2, "#F6DA5A"),
+                (0, 3, "#0085D5"),
+            ],
+        )
+
+    def test_normaliza_ams_lista_y_fallback_payload(self):
+        estado_lista = ImpresoraEstadoBambu(
+            ams=[
+                {
+                    "id": "0",
+                    "tray": [
+                        {
+                            "id": "2",
+                            "tray_type": "PLA",
+                            "tray_color": "0085D5FF",
+                        }
+                    ],
+                }
+            ],
+            payload={},
+        )
+        slots_lista, _ = _slots_ams_bambu(estado_lista)
+        self.assertEqual(slots_lista[0]["tray_id"], 2)
+
+        estado_payload = ImpresoraEstadoBambu(
+            ams={},
+            payload={
+                "ams": {
+                    "ams": [
+                        {
+                            "id": "0",
+                            "tray": [
+                                {
+                                    "id": "3",
+                                    "tray_type": "PLA",
+                                    "cols": ["0085D5FF"],
+                                }
+                            ],
+                        }
+                    ],
+                    "tray_now": "3",
+                }
+            },
+        )
+        slots_payload, tray_now = _slots_ams_bambu(estado_payload)
+        self.assertEqual(tray_now, "3")
+        self.assertEqual(slots_payload[0]["tray_id"], 3)
+
     def test_rechaza_sin_token(self):
         respuesta = self.client.post(
             reverse("bambu_bridge_sync"),
