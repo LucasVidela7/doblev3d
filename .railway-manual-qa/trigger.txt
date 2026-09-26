@@ -200,3 +200,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-26 - QA final BUGS Gestion: rollback seguro G-code
 2026-09-26 - cache Bambu por SHA y reutilizacion entre PRD
 2026-09-26 - progreso real upload G-code
+2026-09-26 - reembolsos de gastos y caja
