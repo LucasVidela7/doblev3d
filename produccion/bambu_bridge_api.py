@@ -58,6 +58,57 @@ def _numero_entero(valor, minimo=None, maximo=None):
     return numero
 
 
+def _resumen_ams_sync_debug(valor):
+    resumen = {
+        "tipo": type(valor).__name__,
+        "keys": [],
+        "unidades": 0,
+        "trays": [],
+    }
+
+    if isinstance(valor, dict):
+        resumen["keys"] = list(
+            valor.keys()
+        )[:20]
+        unidades = valor.get("ams")
+        if isinstance(unidades, dict):
+            unidades = [unidades]
+        if not isinstance(unidades, list):
+            unidades = []
+    elif isinstance(valor, list):
+        unidades = valor
+    else:
+        resumen["valor"] = str(
+            valor or ""
+        )[:160]
+        unidades = []
+
+    resumen["unidades"] = len(unidades)
+
+    for unidad in unidades[:4]:
+        if not isinstance(unidad, dict):
+            continue
+        bandejas = unidad.get("tray")
+        if isinstance(bandejas, dict):
+            bandejas = [bandejas]
+        if not isinstance(bandejas, list):
+            continue
+        for bandeja in bandejas[:6]:
+            if not isinstance(bandeja, dict):
+                continue
+            resumen["trays"].append(
+                {
+                    "ams_id": unidad.get("id"),
+                    "id": bandeja.get("id"),
+                    "tipo": bandeja.get("tray_type"),
+                    "color": bandeja.get("tray_color"),
+                    "cols": bandeja.get("cols"),
+                }
+            )
+
+    return resumen
+
+
 def _numero_float(valor):
     if valor in (None, ""):
         return None
@@ -656,6 +707,25 @@ def bambu_bridge_sync(request):
             estado_actual = str(
                 item.get("status") or ""
             ).strip().upper()[:50]
+
+            print(
+                "BAMBU_AMS_SYNC_DEBUG "
+                + json.dumps(
+                    {
+                        "serial": serial,
+                        "name": item.get("name"),
+                        "ams": _resumen_ams_sync_debug(
+                            item.get("ams")
+                        ),
+                        "external": bool(
+                            item.get("external_spool")
+                        ),
+                    },
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                ),
+                flush=True,
+            )
 
             defaults = {
                 "nombre_bridge": str(
