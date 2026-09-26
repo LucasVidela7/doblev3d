@@ -53,6 +53,11 @@ urlpatterns = [
         name="iniciar",
     ),
     path(
+        "<int:produccion_id>/inicio-bambu-estado/",
+        views.inicio_bambu_estado,
+        name="inicio_bambu_estado",
+    ),
+    path(
         "<int:produccion_id>/repetir/",
         views.repetir_produccion,
         name="repetir",
