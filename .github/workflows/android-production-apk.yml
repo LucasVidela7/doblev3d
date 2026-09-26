@@ -15,6 +15,10 @@ on:
       - ".github/workflows/android-production-apk.yml"
   workflow_dispatch:
 
+concurrency:
+  group: android-production
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -48,25 +52,31 @@ jobs:
         with:
           gradle-version: "8.9"
 
+      - name: Preparar icono real Doble V
+        run: |
+          mkdir -p android-app/app/src/main/res/mipmap-xxxhdpi
+          cp static/brand/apple-touch-icon.png android-app/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          cp static/brand/apple-touch-icon.png android-app/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
+
       - name: Compilar APK debug
         run: gradle -p android-app :app:assembleDebug --stacktrace
 
       - name: Renombrar APK
         run: |
-          cp android-app/app/build/outputs/apk/debug/app-debug.apk DobleV-Gestion-Produccion-v1.0.1.apk
+          cp android-app/app/build/outputs/apk/debug/app-debug.apk DobleV-Gestion-Produccion-v1.0.2.apk
 
       - name: Publicar APK en rama Android
         if: github.event_name == 'push'
         run: |
           mkdir -p releases/android
-          cp DobleV-Gestion-Produccion-v1.0.1.apk releases/android/DobleV-Gestion-Produccion-v1.0.1.apk
+          cp DobleV-Gestion-Produccion-v1.0.2.apk releases/android/DobleV-Gestion-Produccion-v1.0.2.apk
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add releases/android/DobleV-Gestion-Produccion-v1.0.1.apk
+          git add releases/android/DobleV-Gestion-Produccion-v1.0.2.apk
           if git diff --cached --quiet; then
             echo "APK sin cambios"
           else
-            git commit -m "Android producción: publicar APK v1.0.1"
+            git commit -m "Android producción: publicar APK v1.0.2"
             git pull --rebase origin android-production
             git push origin HEAD:android-production
           fi
@@ -74,7 +84,7 @@ jobs:
       - name: Publicar artefacto
         uses: actions/upload-artifact@v4
         with:
-          name: DobleV-Gestion-Produccion-v1.0.1
-          path: DobleV-Gestion-Produccion-v1.0.1.apk
+          name: DobleV-Gestion-Produccion-v1.0.2
+          path: DobleV-Gestion-Produccion-v1.0.2.apk
           if-no-files-found: error
           retention-days: 30
