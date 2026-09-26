@@ -153,7 +153,11 @@ class DashboardProduccionTests(TestCase):
         self.assertEqual(respuesta.status_code, 200)
         self.assertContains(
             respuesta,
-            "Impresoras y próximos trabajos",
+            "Planificación y máquinas",
+        )
+        self.assertContains(
+            respuesta,
+            "PRÓXIMAS PLANIFICACIONES",
         )
         self.assertContains(
             respuesta,
@@ -209,7 +213,7 @@ class DashboardProduccionTests(TestCase):
         )
         self.assertContains(
             respuesta,
-            "PRODUCCIÓN",
+            "PLANIFICACIÓN",
         )
         self.assertContains(
             respuesta,
@@ -305,6 +309,87 @@ class DashboardProduccionTests(TestCase):
         self.assertContains(
             respuesta,
             "REVISAR SOLICITUD",
+        )
+
+    def test_dashboard_resume_etapas_reales_de_planificacion(self):
+        ahora = timezone.now()
+
+        Produccion.objects.create(
+            producto=self.producto,
+            cantidad=3,
+            estado="PENDIENTE",
+            inicio_impresion=ahora + timedelta(hours=1),
+            tiempo_impresion_minutos=90,
+        )
+        Produccion.objects.create(
+            producto=self.producto,
+            cantidad=2,
+            impresora=self.impresora_a,
+            estado="IMPRIMIENDO",
+            inicio_impresion=ahora,
+            tiempo_impresion_minutos=90,
+        )
+        Produccion.objects.create(
+            producto=self.producto,
+            cantidad=1,
+            estado="CONTROL",
+            inicio_impresion=ahora - timedelta(hours=2),
+            tiempo_impresion_minutos=90,
+        )
+
+        respuesta = self.client.get(
+            reverse("dashboard:inicio")
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(
+            respuesta.context["unidades_planificadas"],
+            3,
+        )
+        self.assertEqual(
+            respuesta.context["unidades_imprimiendo"],
+            2,
+        )
+        self.assertEqual(
+            respuesta.context["unidades_control"],
+            1,
+        )
+        self.assertContains(respuesta, "EN COLA")
+        self.assertContains(respuesta, "IMPRIMIENDO")
+        self.assertContains(respuesta, "EN CONTROL")
+
+    def test_dashboard_detecta_impresion_bambu_externa(self):
+        ImpresoraEstadoBambu.objects.create(
+            impresora=self.impresora_b,
+            serial="BAMBU-DASH-EXT",
+            nombre_bridge="A1 Combo dashboard",
+            conectada=True,
+            estado="RUNNING",
+            progreso=43,
+            minutos_restantes=28,
+            trabajo="pieza_externa.3mf",
+        )
+
+        respuesta = self.client.get(
+            reverse("dashboard:inicio")
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(
+            respuesta,
+            "pieza_externa.3mf",
+        )
+        self.assertContains(
+            respuesta,
+            "Trabajo físico Bambu aún no asociado",
+        )
+        self.assertContains(
+            respuesta,
+            "Progreso 43%",
+        )
+        self.assertContains(
+            respuesta,
+            "REVISAR / ASOCIAR",
         )
 
     def test_dashboard_puede_iniciar_planificacion(self):
