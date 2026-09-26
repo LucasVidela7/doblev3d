@@ -163,6 +163,39 @@ def _normalizar_trabajo_bambu(valor):
     )
 
 
+def _huella_trabajo_bambu(valor):
+    texto = (
+        str(valor or "")
+        .strip()
+        .replace("\\", "/")
+        .split("/")[-1]
+        .casefold()
+    )
+
+    for sufijo in (
+        ".gcode.3mf",
+        ".3mf",
+        ".gcode",
+    ):
+        if texto.endswith(sufijo):
+            texto = texto[: -len(sufijo)]
+            break
+
+    for parte in reversed(
+        texto.replace("-", "_").split("_")
+    ):
+        if (
+            len(parte) >= 8
+            and all(
+                caracter in "0123456789abcdef"
+                for caracter in parte
+            )
+        ):
+            return parte
+
+    return ""
+
+
 def _trabajo_bambu_coincide(
     esperado,
     actual,
@@ -178,11 +211,35 @@ def _trabajo_bambu_coincide(
         )
     )
 
-    return bool(
+    if (
         esperado_normalizado
         and actual_normalizado
         and esperado_normalizado
         == actual_normalizado
+    ):
+        return True
+
+    # Compatibilidad durante la migración:
+    # DV_PRD0079_abcdef12 y DV_abcdef1234567890
+    # representan el mismo archivo si comparten la huella.
+    huella_esperada = _huella_trabajo_bambu(
+        esperado
+    )
+    huella_actual = _huella_trabajo_bambu(
+        actual
+    )
+
+    return bool(
+        huella_esperada
+        and huella_actual
+        and (
+            huella_esperada.startswith(
+                huella_actual
+            )
+            or huella_actual.startswith(
+                huella_esperada
+            )
+        )
     )
 
 
@@ -1127,6 +1184,11 @@ def bambu_bridge_sync(request):
                     ),
                     "expected_job_name": (
                         comando.trabajo_bambu_esperado
+                    ),
+                    "remote_name": (
+                        comando.trabajo_bambu_esperado
+                        if comando.tipo == "PRINT"
+                        else None
                     ),
                     "expires_at": (
                         comando.expira_en.isoformat()
