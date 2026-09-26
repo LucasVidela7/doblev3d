@@ -14,6 +14,7 @@ from .models import (
 
 from .views import (
     _color_bambu_bandeja,
+    _nombre_remoto_print_bambu,
     _slots_ams_bambu,
 )
 
@@ -380,8 +381,8 @@ class BambuBridgeSyncTests(TestCase):
             impresora_estado=estado,
             produccion=produccion,
             trabajo_bambu_esperado=(
-                f"DV_{produccion.codigo}_"
-                f"{archivo.sha256[:8]}.gcode.3mf"
+                f"DV_{archivo.sha256[:16]}"
+                ".gcode.3mf"
             ),
         )
 
@@ -418,6 +419,13 @@ class BambuBridgeSyncTests(TestCase):
         self.assertEqual(
             item["type"],
             "PRINT",
+        )
+        self.assertEqual(
+            item["remote_name"],
+            (
+                f"DV_{archivo.sha256[:16]}"
+                ".gcode.3mf"
+            ),
         )
         self.assertEqual(
             item["file_sha256"],
@@ -502,6 +510,59 @@ class BambuBridgeSyncTests(TestCase):
             "timeout de prueba",
         )
 
+    def test_dos_producciones_mismo_gcode_comparten_nombre_remoto(self):
+        archivo = ArchivoImpresion.objects.create(
+            producto=self.producto,
+            nombre="Archivo reutilizable",
+            cantidad_unidades=2,
+            archivo=(
+                "productos/P0001/"
+                "reutilizable.gcode.3mf"
+            ),
+            nombre_original=(
+                "reutilizable.gcode.3mf"
+            ),
+            tamano_bytes=12345,
+            sha256="a" * 64,
+            placas=[1],
+            activo=True,
+            predeterminado=True,
+        )
+        primera = Produccion.objects.create(
+            producto=self.producto,
+            cantidad=2,
+            estado="PENDIENTE",
+            archivo_impresion=archivo,
+        )
+        segunda = Produccion.objects.create(
+            producto=self.producto,
+            cantidad=2,
+            estado="PENDIENTE",
+            archivo_impresion=archivo,
+        )
+
+        nombre_primera = _nombre_remoto_print_bambu(
+            primera,
+            archivo,
+        )
+        nombre_segunda = _nombre_remoto_print_bambu(
+            segunda,
+            archivo,
+        )
+
+        self.assertNotEqual(
+            primera.codigo,
+            segunda.codigo,
+        )
+        self.assertEqual(
+            nombre_primera,
+            nombre_segunda,
+        )
+        self.assertEqual(
+            nombre_primera,
+            "DV_aaaaaaaaaaaaaaaa.gcode.3mf",
+        )
+
     def test_telemetria_promueve_print_confirmado_a_imprimiendo(self):
         estado = ImpresoraEstadoBambu.objects.create(
             impresora=self.impresora,
@@ -515,7 +576,7 @@ class BambuBridgeSyncTests(TestCase):
             cantidad=1,
             impresora=self.impresora,
             estado="PENDIENTE",
-            bambu_trabajo="DV_PRD0001_test.gcode.3mf",
+            bambu_trabajo="DV_bbbbbbbbbbbbbbbb.gcode.3mf",
         )
         ComandoBambu.objects.create(
             tipo="PRINT",
@@ -523,14 +584,14 @@ class BambuBridgeSyncTests(TestCase):
             impresora_estado=estado,
             produccion=produccion,
             trabajo_bambu_esperado=(
-                "DV_PRD0001_test.gcode.3mf"
+                "DV_bbbbbbbbbbbbbbbb.gcode.3mf"
             ),
         )
 
         payload = self._payload()
         payload["printers"][0]["status"] = "RUNNING"
         payload["printers"][0]["job_name"] = (
-            "DV_PRD0001_test.gcode.3mf"
+            "DV_PRD0001_bbbbbbbb.gcode.3mf"
         )
 
         respuesta = self.client.post(
@@ -558,5 +619,5 @@ class BambuBridgeSyncTests(TestCase):
         )
         self.assertEqual(
             produccion.bambu_trabajo,
-            "DV_PRD0001_test.gcode.3mf",
+            "DV_PRD0001_bbbbbbbb.gcode.3mf",
         )
