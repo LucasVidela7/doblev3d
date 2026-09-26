@@ -605,15 +605,16 @@ a,button{touch-action:manipulation}
         </div>
     </a>
 
-    <a href="{% url 'produccion:lista' %}" class="metrica m-planificacion">
+    <a href="{% url 'produccion:lista' %}#prod-necesidad" class="metrica m-planificacion">
         <div class="metrica-cabecera">
-            <div class="metrica-titulo">PRODUCCIÓN</div>
+            <div class="metrica-titulo">PLANIFICACIÓN</div>
             <div class="metrica-icono">🖨</div>
         </div>
         <div>
             <div class="metrica-numero">{{ total_a_imprimir }}</div>
             <div class="metrica-ayuda">
-                {{ producciones_pendientes }} en cola · {{ producciones_imprimiendo }} imprimiendo
+                por planificar · {{ unidades_planificadas }} en cola · {{ unidades_imprimiendo }} imprimiendo
+                {% if unidades_control %} · {{ unidades_control }} en control{% endif %}
             </div>
         </div>
     </a>
@@ -758,8 +759,14 @@ a,button{touch-action:manipulation}
 
     <div class="paneles">
         <div class="panel">
-            <h3 class="panel-titulo">Qué imprimir</h3>
-            <div class="panel-subtitulo">Faltantes que todavía no están cubiertos por stock, cola o impresión.</div>
+            <h3 class="panel-titulo">Pendiente de planificar</h3>
+            <div class="panel-subtitulo">
+                Unidades que todavía no están cubiertas por stock, cola, impresión o control.
+                {% if productos_con_necesidad %}
+                    {{ productos_con_necesidad }} producto{{ productos_con_necesidad|pluralize:"s" }}
+                    · {{ peso_faltante_dashboard }} estimados.
+                {% endif %}
+            </div>
 
             {% if top_impresion %}
             <div class="que-imprimir">
@@ -774,22 +781,23 @@ a,button{touch-action:manipulation}
                         <div>
                             <div class="que-imprimir-producto">{{ item.producto.nombre }}</div>
                             <div class="que-imprimir-meta">
-                                Pedido {{ item.cantidad_pedida }}
-                                · En cola {{ item.planificadas }}
+                                Stock {{ item.stock }}
+                                · Cola {{ item.planificadas }}
                                 · Imprimiendo {{ item.en_produccion }}
+                                {% if item.en_control %}· Control {{ item.en_control }}{% endif %}
                                 {% if item.cantidad_personalizada %}· {{ item.cantidad_personalizada }} personalizadas{% endif %}
                             </div>
                         </div>
                     </div>
                     <div class="que-imprimir-falta">
-                        <span>FALTA</span>
+                        <span>POR PLANIFICAR</span>
                         <strong>{{ item.falta_iniciar }}</strong>
                     </div>
                 </div>
                 {% endfor %}
             </div>
             {% else %}
-            <div class="sin-datos">No hay nada nuevo por imprimir.</div>
+            <div class="sin-datos">Toda la demanda de impresión está cubierta por stock o planificación.</div>
             {% endif %}
         </div>
 
