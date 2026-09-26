@@ -35,6 +35,7 @@ import java.util.Locale;
 
 public class MainActivity extends Activity {
     private static final String START_URL = "https://doblev3d.com.ar/gestion/";
+    private static final String APP_VERSION = "1.0.2";
     private static final int FILE_CHOOSER_REQUEST = 1001;
 
     private WebView webView;
@@ -53,10 +54,22 @@ public class MainActivity extends Activity {
         // Android 15 puede dibujar la Activity detrás de las barras del sistema.
         // Aplicamos los insets reales para que Gestión nunca quede debajo de
         // la hora, señal, batería ni del área de gestos inferior.
+        int statusFallback = getSystemBarDimension("status_bar_height");
+        int navigationFallback = getSystemBarDimension("navigation_bar_height");
+        root.setPadding(0, statusFallback, 0, navigationFallback);
+        root.setFitsSystemWindows(true);
+
         root.setOnApplyWindowInsetsListener((view, windowInsets) -> {
-            Insets statusBars = windowInsets.getInsets(WindowInsets.Type.statusBars());
-            Insets navigationBars = windowInsets.getInsets(WindowInsets.Type.navigationBars());
-            view.setPadding(0, statusBars.top, 0, navigationBars.bottom);
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                Insets statusBars = windowInsets.getInsets(WindowInsets.Type.statusBars());
+                Insets navigationBars = windowInsets.getInsets(WindowInsets.Type.navigationBars());
+                view.setPadding(
+                        0,
+                        Math.max(statusFallback, statusBars.top),
+                        0,
+                        Math.max(navigationFallback, navigationBars.bottom)
+                );
+            }
             return windowInsets;
         });
 
@@ -72,8 +85,10 @@ public class MainActivity extends Activity {
         progressParams.gravity = Gravity.TOP;
         root.addView(progressBar, progressParams);
         setContentView(root);
+        root.requestApplyInsets();
 
         configureWebView();
+        Toast.makeText(this, "Doble V Gestión v" + APP_VERSION, Toast.LENGTH_SHORT).show();
 
         if (savedInstanceState == null) {
             webView.loadUrl(START_URL);
@@ -222,6 +237,11 @@ public class MainActivity extends Activity {
             return;
         }
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private int getSystemBarDimension(String resourceName) {
+        int id = getResources().getIdentifier(resourceName, "dimen", "android");
+        return id > 0 ? getResources().getDimensionPixelSize(id) : 0;
     }
 
     private int dp(int value) {
