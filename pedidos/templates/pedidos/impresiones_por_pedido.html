@@ -1210,14 +1210,11 @@ function actualizarProgresoPedido(formulario,data){
         ? Math.round((listos*100)/total)
         : 0;
 
-    const conteo=pedido.querySelector("[data-preparacion-conteo]");
     const resumen=pedido.querySelector("[data-preparacion-resumen]");
     const porcentajeNodo=pedido.querySelector("[data-preparacion-porcentaje]");
     const barra=pedido.querySelector("[data-preparacion-bar]");
-    const estado=pedido.querySelector("[data-preparacion-status]");
 
-    if(conteo)conteo.textContent=listos+"/"+total+" preparados";
-    if(resumen)resumen.textContent=listos+"/"+total+" listos";
+    if(resumen)resumen.textContent=listos+"/"+total;
     if(porcentajeNodo)porcentajeNodo.textContent=porcentaje+"%";
     if(barra)barra.style.width=porcentaje+"%";
 
@@ -1227,11 +1224,6 @@ function actualizarProgresoPedido(formulario,data){
     ) || (total>0 && listos===total);
 
     pedido.classList.toggle("is-complete",completo);
-    if(estado){
-        estado.textContent=completo
-            ? "PAQUETE LISTO"
-            : "ARMANDO PAQUETE";
-    }
 }
 
 function actualizarEstadoProducto(formulario,data){
