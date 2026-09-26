@@ -77,3 +77,41 @@ body{
         --dv-page-gutter-mobile:8px;
     }
 }
+
+
+/* Feedback visual compartido para acciones de Gestión. */
+body.dv-management-page :is(
+    .btn,
+    .boton,
+    .btn-head,
+    .cfg-btn,
+    .fin-action,
+    .accion-principal
+):not(:disabled){
+    transition:
+        transform .14s ease,
+        filter .14s ease,
+        box-shadow .14s ease;
+}
+body.dv-management-page :is(
+    .btn,
+    .boton,
+    .btn-head,
+    .cfg-btn,
+    .fin-action,
+    .accion-principal
+):not(:disabled):hover{
+    transform:translateY(-1px);
+    filter:brightness(.97);
+    box-shadow:0 5px 14px rgba(16,35,62,.12);
+}
+body.dv-management-page :is(
+    .btn,
+    .boton,
+    .btn-head,
+    .cfg-btn,
+    .fin-action,
+    .accion-principal
+):not(:disabled):active{
+    transform:translateY(0) scale(.985);
+}
