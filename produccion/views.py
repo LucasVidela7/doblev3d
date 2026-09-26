@@ -2330,6 +2330,27 @@ def accion_rapida_necesidad(request):
                 "confirme el inicio."
             ),
         )
+
+        if (
+            request.headers.get(
+                "X-Requested-With"
+            )
+            == "XMLHttpRequest"
+        ):
+            return JsonResponse(
+                {
+                    "ok": True,
+                    "bambu": True,
+                    "production_id": produccion.id,
+                    "production_code": produccion.codigo,
+                    "printer": impresora.nombre,
+                    "status_url": reverse(
+                        "produccion:inicio_bambu_estado",
+                        args=[produccion.id],
+                    ),
+                }
+            )
+
         return redirect(
             reverse("produccion:lista") + "#prod-cola"
         )
@@ -3038,7 +3059,9 @@ def cargar_gcode_produccion(
                 f"G-code “{nuevo.nombre_original}” asociado a "
                 f"{produccion.producto.nombre} × {produccion.cantidad}. "
                 f"Se actualizaron {pendientes_actualizadas} "
-                "producción(es) pendiente(s) de esa misma combinación."
+                "producción(es) pendiente(s) de esa misma combinación. "
+                "Quedó guardado en Gestión; la Raspberry lo tomará "
+                "en el próximo ciclo de sincronización."
             ),
         )
 
@@ -3212,6 +3235,26 @@ def iniciar_produccion(
             ),
         )
 
+        if (
+            request.headers.get(
+                "X-Requested-With"
+            )
+            == "XMLHttpRequest"
+        ):
+            return JsonResponse(
+                {
+                    "ok": True,
+                    "bambu": True,
+                    "production_id": produccion.id,
+                    "production_code": produccion.codigo,
+                    "printer": impresora.nombre,
+                    "status_url": reverse(
+                        "produccion:inicio_bambu_estado",
+                        args=[produccion.id],
+                    ),
+                }
+            )
+
         return redirect(
             reverse("produccion:lista")
             + "#prod-cola"
@@ -3242,6 +3285,226 @@ def iniciar_produccion(
 
     return redirect(
         "produccion:lista"
+    )
+
+
+# ============================================================
+# ESTADO DE INICIO BAMBU
+# ============================================================
+
+def inicio_bambu_estado(
+    request,
+    produccion_id,
+):
+    if request.method != "GET":
+        return JsonResponse(
+            {
+                "ok": False,
+                "detail": "Método no permitido.",
+            },
+            status=405,
+        )
+
+    produccion = (
+        Produccion.objects
+        .select_related(
+            "impresora",
+            "archivo_impresion",
+        )
+        .filter(
+            id=produccion_id,
+        )
+        .first()
+    )
+
+    if not produccion:
+        return JsonResponse(
+            {
+                "ok": False,
+                "detail": "Producción inexistente.",
+            },
+            status=404,
+        )
+
+    comando = (
+        ComandoBambu.objects
+        .filter(
+            produccion=produccion,
+            tipo="PRINT",
+        )
+        .select_related(
+            "impresora_estado",
+        )
+        .order_by(
+            "-creado_en",
+            "-id",
+        )
+        .first()
+    )
+
+    estado_bambu = (
+        comando.impresora_estado
+        if comando
+        else (
+            ImpresoraEstadoBambu.objects
+            .filter(
+                impresora_id=(
+                    produccion.impresora_id
+                )
+            )
+            .first()
+            if produccion.impresora_id
+            else None
+        )
+    )
+
+    archivo = produccion.archivo_impresion
+
+    base = {
+        "ok": True,
+        "production_id": produccion.id,
+        "production_code": produccion.codigo,
+        "production_state": produccion.estado,
+        "printer": (
+            produccion.impresora.nombre
+            if produccion.impresora_id
+            else ""
+        ),
+        "file_name": (
+            archivo.nombre_original
+            if archivo
+            else ""
+        ),
+        "file_size_bytes": (
+            int(
+                archivo.tamano_bytes
+                or 0
+            )
+            if archivo
+            else 0
+        ),
+        "command_state": (
+            comando.estado
+            if comando
+            else ""
+        ),
+        "printer_state": (
+            estado_bambu.estado
+            if estado_bambu
+            else ""
+        ),
+    }
+
+    if produccion.estado == "IMPRIMIENDO":
+        return JsonResponse(
+            {
+                **base,
+                "phase": "confirmed",
+                "progress": 100,
+                "done": True,
+                "error": False,
+                "indeterminate": False,
+                "label": "Inicio confirmado por la A1",
+                "detail": (
+                    "La impresora está en PREPARE/RUNNING "
+                    "y Gestión ya la marcó como imprimiendo."
+                ),
+            }
+        )
+
+    if not comando:
+        return JsonResponse(
+            {
+                **base,
+                "phase": "queued",
+                "progress": 10,
+                "done": False,
+                "error": False,
+                "indeterminate": False,
+                "label": "Preparando solicitud",
+                "detail": (
+                    "Gestión todavía está creando "
+                    "la orden de impresión."
+                ),
+            }
+        )
+
+    if comando.estado in {
+        "ERROR",
+        "EXPIRADO",
+    }:
+        return JsonResponse(
+            {
+                **base,
+                "phase": "error",
+                "progress": 100,
+                "done": True,
+                "error": True,
+                "indeterminate": False,
+                "label": "No se pudo iniciar la impresión",
+                "detail": (
+                    comando.error
+                    or "La orden venció antes de ser confirmada."
+                ),
+            }
+        )
+
+    if comando.estado == "EJECUTADO":
+        return JsonResponse(
+            {
+                **base,
+                "phase": "confirming",
+                "progress": 88,
+                "done": False,
+                "error": False,
+                "indeterminate": True,
+                "label": "Archivo enviado · confirmando A1",
+                "detail": (
+                    "La Raspberry completó la orden. "
+                    "Esperando la telemetría física PREPARE/RUNNING."
+                ),
+            }
+        )
+
+    recibida_por_raspberry = bool(
+        estado_bambu
+        and estado_bambu.ultimo_contacto
+        and estado_bambu.ultimo_contacto
+        >= comando.creado_en
+    )
+
+    if recibida_por_raspberry:
+        return JsonResponse(
+            {
+                **base,
+                "phase": "transferring",
+                "progress": 58,
+                "done": False,
+                "error": False,
+                "indeterminate": True,
+                "label": "Raspberry procesando el G-code",
+                "detail": (
+                    "La orden ya llegó al bridge. "
+                    "Está preparando, transfiriendo por FTPS "
+                    "y validando el inicio."
+                ),
+            }
+        )
+
+    return JsonResponse(
+        {
+            **base,
+            "phase": "waiting",
+            "progress": 28,
+            "done": False,
+            "error": False,
+            "indeterminate": True,
+            "label": "Esperando a la Raspberry",
+            "detail": (
+                "La orden está en cola y será tomada "
+                "en el próximo ciclo de sincronización."
+            ),
+        }
     )
 
 
