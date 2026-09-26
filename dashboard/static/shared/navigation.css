@@ -1,18 +1,18 @@
 .dv-global-nav-spacer{
-    height:88px;
-    height:calc(88px + env(safe-area-inset-bottom));
+    height:96px;
+    height:calc(96px + env(safe-area-inset-bottom));
 }
 .dv-global-nav{
     position:fixed;
     z-index:1000;
     left:50%;
-    bottom:max(8px,env(safe-area-inset-bottom));
+    bottom:max(12px,env(safe-area-inset-bottom));
     transform:translateX(-50%);
-    width:min(720px,calc(100% - 16px));
+    width:min(720px,calc(100% - 24px));
     display:grid;
     grid-template-columns:repeat(5,minmax(0,1fr));
     gap:4px;
-    padding:6px;
+    padding:7px;
     border:1px solid rgba(255,255,255,.16);
     border-radius:18px;
     background:
@@ -28,8 +28,9 @@
     -webkit-backdrop-filter:blur(16px);
 }
 .dv-global-nav-item{
+    position:relative;
     min-width:0;
-    min-height:56px;
+    min-height:58px;
     display:flex;
     flex-direction:column;
     align-items:center;
@@ -40,7 +41,7 @@
     color:#d9dbe0;
     text-decoration:none;
     font-family:Arial,sans-serif;
-    font-size:8px;
+    font-size:9px;
     font-weight:900;
     line-height:1.1;
     letter-spacing:.12px;
@@ -67,9 +68,22 @@
     white-space:nowrap;
 }
 .dv-global-nav-item.is-active{
-    background:var(--dv-brand-blue,#134a9a);
+    background:linear-gradient(180deg,var(--dv-brand-sky,#4f9bd3),var(--dv-brand-blue,#134a9a));
     color:#fff;
-    box-shadow:0 4px 14px rgba(19,74,154,.34);
+    transform:translateY(-2px);
+    box-shadow:0 7px 18px rgba(19,74,154,.42);
+}
+.dv-global-nav-item.is-active::before{
+    content:"";
+    position:absolute;
+    top:4px;
+    left:50%;
+    width:24px;
+    height:3px;
+    transform:translateX(-50%);
+    border-radius:999px;
+    background:#fff;
+    opacity:.92;
 }
 .dv-global-nav-item.is-primary:not(.is-active){
     background:var(--dv-brand-sky,#4f9bd3);
@@ -93,14 +107,14 @@ html[data-dv-theme="dark"] .dv-global-nav{
 }
 @media(max-width:560px){
     .dv-global-nav{
-        width:calc(100% - 12px);
-        bottom:max(6px,env(safe-area-inset-bottom));
+        width:calc(100% - 16px);
+        bottom:max(8px,env(safe-area-inset-bottom));
         padding:5px;
         border-radius:17px;
     }
     .dv-global-nav-item{
         min-height:54px;
-        font-size:7px;
+        font-size:8px;
     }
     .dv-global-nav-icon{
         font-size:17px;
