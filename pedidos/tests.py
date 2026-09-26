@@ -10,7 +10,14 @@ from costos.models import ConfiguracionCostos
 from productos.models import Producto, ProductoComponente, TipoProducto
 from productos.image_models import ProductoImagen
 
-from .models import DetallePedido, Pedido
+from .models import (
+    CajaCorte,
+    DetallePedido,
+    Gasto,
+    Pedido,
+    ReembolsoGasto,
+)
+from .views import _resumen_caja_mercadopago
 
 
 class PrecioProductoApiTests(TestCase):
@@ -341,3 +348,121 @@ class AccionesPedidoEstadoTests(TestCase):
             'class="pedido-thumb"',
         )
 
+
+
+
+class ReembolsoGastoTests(TestCase):
+    def setUp(self):
+        usuario = get_user_model().objects.create_user(
+            username="reembolso-gasto-test",
+            password="test-pass",
+        )
+        self.client.force_login(usuario)
+        self.hoy = date.today()
+        self.gasto = Gasto.objects.create(
+            fecha_compra=self.hoy,
+            tipo="OPERATIVO",
+            categoria="OTRO",
+            descripcion="Compra Mercado Libre",
+            monto_total=Decimal("10000.00"),
+            medio_pago="MERCADO_PAGO",
+            cantidad_cuotas=1,
+        )
+
+    def _reembolsar(self, monto):
+        return self.client.post(
+            reverse(
+                "pedidos:registrar_reembolso_gasto",
+                args=[self.gasto.id],
+            ),
+            {
+                "fecha": self.hoy.isoformat(),
+                "monto": str(monto),
+                "periodo": self.hoy.strftime("%Y-%m"),
+                "observaciones": "Reclamo aprobado",
+            },
+        )
+
+    def test_permite_reembolso_parcial_y_total(self):
+        respuesta = self._reembolsar("4000")
+        self.assertEqual(respuesta.status_code, 302)
+
+        self.gasto.refresh_from_db()
+        self.assertEqual(
+            self.gasto.monto_reembolsado,
+            Decimal("4000.00"),
+        )
+        self.assertEqual(
+            self.gasto.monto_neto,
+            Decimal("6000.00"),
+        )
+
+        self._reembolsar("6000")
+        self.gasto.refresh_from_db()
+        self.assertEqual(
+            self.gasto.monto_reembolsado,
+            Decimal("10000.00"),
+        )
+        self.assertEqual(
+            self.gasto.saldo_reembolsable,
+            Decimal("0.00"),
+        )
+
+    def test_no_permite_reembolsar_mas_que_el_total(self):
+        self._reembolsar("9000")
+        self._reembolsar("2000")
+
+        total = sum(
+            (
+                reembolso.monto
+                for reembolso in ReembolsoGasto.objects.filter(
+                    gasto=self.gasto
+                )
+            ),
+            Decimal("0"),
+        )
+        self.assertEqual(
+            total,
+            Decimal("9000.00"),
+        )
+
+    def test_reembolso_vuelve_a_sumar_caja_desde_ultimo_corte(self):
+        CajaCorte.objects.create(
+            saldo_real=Decimal("5000.00"),
+            observaciones="Corte previo al reembolso",
+        )
+
+        self._reembolsar("2500")
+
+        caja = _resumen_caja_mercadopago(
+            self.hoy
+        )
+        self.assertEqual(
+            caja["reembolsos_desde_corte"],
+            Decimal("2500.00"),
+        )
+        self.assertEqual(
+            caja["saldo_estimado"],
+            Decimal("7500.00"),
+        )
+
+    def test_finanzas_muestra_reembolso_y_neto(self):
+        self._reembolsar("2500")
+
+        respuesta = self.client.get(
+            reverse("pedidos:finanzas"),
+            {
+                "periodo": self.hoy.strftime("%Y-%m"),
+                "vista": "gastos",
+            },
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(
+            respuesta,
+            "REEMBOLSO PARCIAL",
+        )
+        self.assertContains(
+            respuesta,
+            "Reembolsado +$",
+        )
