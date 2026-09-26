@@ -767,6 +767,7 @@
                     </div>
                     <div class="pedido-head-tools">
                         <span class="pedido-status">CANCELADO</span>
+                        {% include "pedidos/_pedido_menu.html" with pedido=item_pedido.pedido mostrar_detalle=1 %}
                     </div>
                 </header>
 
@@ -799,9 +800,6 @@
 
                 <footer class="pedido-foot">
                     <div class="saldo">Pagado <strong>&#36;{{ item_pedido.total_pagado|floatformat:0 }}</strong></div>
-                    <div class="acciones">
-                        <a href="{% url 'pedidos:detalle' item_pedido.pedido.id %}" class="btn">VER PEDIDO</a>
-                    </div>
                 </footer>
             </article>
             {% empty %}
@@ -876,7 +874,6 @@
                 <footer class="pedido-foot">
                     <div class="saldo">Saldo <strong>${{ item_pedido.saldo_pendiente|floatformat:0 }}</strong> · {{ item_pedido.estado_pago_display }}</div>
                     <div class="acciones">
-                        <a href="{% url 'pedidos:detalle' item_pedido.pedido.id %}" class="btn">Ver pedido</a>
                         <form method="post" action="{% url 'pedidos:iniciar_preparacion' item_pedido.pedido.id %}" data-kanban-post data-kanban-target="en-preparacion">
                             {% csrf_token %}
                             <button type="submit" class="btn principal">PREPARAR PEDIDO</button>
@@ -975,11 +972,10 @@
                 <footer class="pedido-foot">
                     <div class="saldo">Saldo <strong>${{ item_pedido.saldo_pendiente|floatformat:0 }}</strong> · {{ item_pedido.estado_pago_display }}</div>
                     <div class="acciones">
-                        <a href="{% url 'pedidos:detalle' item_pedido.pedido.id %}" class="btn">Ver pedido</a>
                         {% if item_pedido.reservados %}
                         <form method="post" action="{% url 'pedidos:liberar_preparacion' item_pedido.pedido.id %}" data-kanban-post onsubmit="return confirm('¿Liberar el stock que todavía no fue preparado?');">
                             {% csrf_token %}
-                            <button type="submit" class="btn peligro">LIBERAR PENDIENTES</button>
+                            <button type="submit" class="btn liberar">LIBERAR PENDIENTES</button>
                         </form>
                         {% endif %}
                     </div>
@@ -1042,7 +1038,6 @@
                 <footer class="pedido-foot">
                     <div class="saldo">Faltan imprimir <strong>{{ item_pedido.total_a_imprimir }}</strong> unidad{{ item_pedido.total_a_imprimir|pluralize:"es" }}</div>
                     <div class="acciones">
-                        <a href="{% url 'pedidos:detalle' item_pedido.pedido.id %}" class="btn">Ver pedido</a>
                         <a href="{% url 'produccion:lista' %}#que-imprimir" class="btn azul">VER EN PRODUCCIÓN</a>
                     </div>
                 </footer>
@@ -1100,7 +1095,6 @@
                 <footer class="pedido-foot">
                     <div class="saldo">{{ item_pedido.estado_pago_display }} · Total <strong>${{ item_pedido.total_pedido|floatformat:0 }}</strong></div>
                     <div class="acciones">
-                        <a href="{% url 'pedidos:detalle' item_pedido.pedido.id %}" class="btn">Ver pedido</a>
                         <form method="post" action="{% url 'pedidos:entregar' item_pedido.pedido.id %}" onsubmit="return confirmarEntrega({{ item_pedido.saldo_pendiente }});">
                             {% csrf_token %}
                             <button type="submit" class="btn principal">✓ ENTREGAR</button>
