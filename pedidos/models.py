@@ -1148,6 +1148,27 @@ class Gasto(models.Model):
             Decimal("0"),
         )
 
+    @property
+    def monto_reembolsado(self):
+        return sum(
+            (
+                reembolso.monto
+                for reembolso in self.reembolsos.all()
+            ),
+            Decimal("0"),
+        )
+
+    @property
+    def monto_neto(self):
+        return max(
+            self.monto_total - self.monto_reembolsado,
+            Decimal("0"),
+        )
+
+    @property
+    def saldo_reembolsable(self):
+        return self.monto_neto
+
     def __str__(self):
         return (
             f"{self.get_tipo_display()} - "
@@ -1207,6 +1228,42 @@ class CuotaGasto(models.Model):
         return (
             f"{self.gasto.descripcion} - "
             f"{self.numero}/{self.gasto.cantidad_cuotas}"
+        )
+
+
+class ReembolsoGasto(models.Model):
+    gasto = models.ForeignKey(
+        Gasto,
+        on_delete=models.CASCADE,
+        related_name="reembolsos",
+    )
+
+    fecha = models.DateField()
+
+    monto = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+    )
+
+    observaciones = models.TextField(
+        blank=True,
+    )
+
+    # Momento en que el dinero efectivamente vuelve a caja.
+    registrado_en = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    class Meta:
+        ordering = [
+            "-fecha",
+            "-id",
+        ]
+
+    def __str__(self):
+        return (
+            f"Reembolso - {self.gasto.descripcion} - "
+            f"$ {self.monto}"
         )
 
 
