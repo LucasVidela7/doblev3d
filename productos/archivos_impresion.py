@@ -503,6 +503,7 @@ def subir(request, producto_id):
                     archivo,
                 )
             except ValueError as error:
+                transaction.set_rollback(True)
                 messages.error(
                     request,
                     str(error),
@@ -653,6 +654,7 @@ def subir(request, producto_id):
             archivo,
         )
     except ValueError as error:
+        transaction.set_rollback(True)
         messages.error(
             request,
             str(error),
