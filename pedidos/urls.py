@@ -171,6 +171,12 @@ urlpatterns = [
     ),
 
     path(
+        "gastos/<int:gasto_id>/reembolsar/",
+        views.registrar_reembolso_gasto,
+        name="registrar_reembolso_gasto",
+    ),
+
+    path(
         "gastos/cuotas/<int:cuota_id>/estado/",
         views.cambiar_estado_cuota,
         name="cambiar_estado_cuota",
