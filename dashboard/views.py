@@ -184,208 +184,59 @@ def push_desuscribir(request):
 
 DASHBOARD_PRODUCCION_STYLE = r"""
 <style id="dv-dashboard-produccion-style">
-.dv-produccion-panel{
-    display:flex;
-    flex-direction:column;
-    gap:12px;
-}
-.dv-produccion-cabecera{
-    display:flex;
-    align-items:flex-start;
-    justify-content:space-between;
-    gap:12px;
-}
-.dv-produccion-link{
-    color:#555b63;
-    font-size:9px;
-    font-weight:900;
-    text-decoration:none;
-    white-space:nowrap;
-}
-.dv-maquinas{
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:8px;
-}
-.dv-maquina{
-    min-width:0;
-    padding:11px;
-    border:1px solid #e5e7eb;
-    border-radius:13px;
-    background:#fafafa;
-}
-.dv-maquina-head{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:8px;
-    margin-bottom:7px;
-}
-.dv-maquina-nombre{
-    min-width:0;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-    font-size:11px;
-    font-weight:900;
-}
-.dv-maquina-estado{
-    flex:0 0 auto;
-    display:inline-flex;
-    padding:4px 7px;
-    border-radius:999px;
-    font-size:7px;
-    font-weight:900;
-}
-.dv-maquina-estado.imprimiendo{
-    background:#e3efff;
-    color:#245a9b;
-}
-.dv-maquina-estado.libre{
-    background:#dff4e5;
-    color:#24633a;
-}
-.dv-maquina-producto{
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-    font-size:11px;
-    font-weight:800;
-}
-.dv-producto-linea{
-    display:grid;
-    grid-template-columns:40px minmax(0,1fr);
-    gap:8px;
-    align-items:center;
-    min-width:0;
-}
-.dv-producto-thumb{
-    width:40px;
-    height:40px;
-    border:1px solid var(--dv-border,#e5e7eb);
-    border-radius:9px;
-    background:var(--dv-surface-soft,#f2f4f7);
-    object-fit:cover;
-    display:block;
-}
-.dv-producto-thumb.vacia{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color:var(--dv-muted,#73777f);
-    font-size:7px;
-    font-weight:900;
-    letter-spacing:.04em;
-}
-.dv-maquina-meta{
-    margin-top:4px;
-    color:#73777f;
-    font-size:8px;
-    line-height:1.4;
-}
-.dv-maquina-acciones{
-    display:grid;
-    grid-template-columns:1fr auto;
-    gap:6px;
-    margin-top:8px;
-}
-.dv-maquina-acciones form{
-    margin:0;
-}
-.dv-btn-listo,.dv-btn-cancelar,.dv-btn-iniciar{
-    width:100%;
-    min-height:31px;
-    padding:0 9px;
-    border-radius:9px;
-    font-family:Arial,sans-serif;
-    font-size:8px;
-    font-weight:900;
-    cursor:pointer;
-}
-.dv-btn-listo{
-    border:0;
-    background:#24633a;
-    color:#fff;
-}
-.dv-btn-cancelar{
-    border:1px solid #eccaca;
-    background:#fff;
-    color:#9a3030;
-}
-.dv-planificaciones{
-    padding-top:10px;
-    border-top:1px solid #eceef1;
-}
-.dv-planificaciones-titulo{
-    margin-bottom:7px;
-    color:#73777f;
-    font-size:8px;
-    font-weight:900;
-    letter-spacing:.35px;
-}
-.dv-plan{
-    display:grid;
-    grid-template-columns:minmax(0,1fr) auto;
-    gap:8px;
-    align-items:center;
-    padding:8px 0;
-}
-.dv-plan + .dv-plan{
-    border-top:1px solid #f0f1f3;
-}
-.dv-plan-producto{
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-    font-size:10px;
-    font-weight:900;
-}
-.dv-plan .dv-producto-linea{
-    grid-template-columns:36px minmax(0,1fr);
-}
-.dv-plan .dv-producto-thumb{
-    width:36px;
-    height:36px;
-    border-radius:8px;
-}
-.dv-plan-meta{
-    margin-top:3px;
-    color:#73777f;
-    font-size:8px;
-    line-height:1.35;
-}
-.dv-plan-form{
-    display:flex;
-    align-items:center;
-    gap:5px;
-    margin:0;
-}
-.dv-plan-select{
-    width:112px;
-    min-height:31px;
-    padding:4px 6px;
-    border:1px solid #d9dce0;
-    border-radius:8px;
-    background:#fff;
-    font-size:8px;
-}
-.dv-btn-iniciar{
-    width:auto;
-    border:0;
-    background:#24272b;
-    color:#fff;
-}
-.dv-sin-produccion{
-    padding:12px 8px;
-    color:#73777f;
-    text-align:center;
-    font-size:9px;
-}
+.dv-produccion-panel{display:flex;flex-direction:column;gap:14px}
+.dv-produccion-cabecera{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.dv-produccion-link{color:var(--dv-muted,#555b63);font-size:9px;font-weight:900;text-decoration:none;white-space:nowrap}
+.dv-plan-resumen{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.dv-plan-kpi{min-width:0;padding:9px 10px;border:1px solid var(--dv-border,#e5e7eb);border-radius:11px;background:var(--dv-surface-soft,#fafafa)}
+.dv-plan-kpi span{display:block;color:var(--dv-muted,#73777f);font-size:7px;font-weight:900;letter-spacing:.04em}
+.dv-plan-kpi strong{display:block;margin-top:4px;color:var(--dv-text,#24272b);font-size:18px;line-height:1}
+.dv-plan-kpi.planificar strong{color:#9a6810}
+.dv-plan-kpi.cola strong{color:#245a9b}
+.dv-plan-kpi.imprimiendo strong{color:#24633a}
+.dv-plan-kpi.control strong{color:#63408c}
+.dv-plan-resumen-meta{margin-top:-4px;color:var(--dv-muted,#73777f);font-size:8px;line-height:1.4}
+.dv-maquinas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.dv-maquina{min-width:0;padding:11px;border:1px solid var(--dv-border,#e5e7eb);border-radius:13px;background:var(--dv-surface-soft,#fafafa)}
+.dv-maquina.is-warning{border-color:color-mix(in srgb,#d3992c 45%,var(--dv-border,#e5e7eb))}
+.dv-maquina.is-error{border-color:color-mix(in srgb,#d9534f 50%,var(--dv-border,#e5e7eb))}
+.dv-maquina-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
+.dv-maquina-nombre{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:900}
+.dv-maquina-estado{flex:0 0 auto;display:inline-flex;padding:4px 7px;border-radius:999px;font-size:7px;font-weight:900}
+.dv-maquina-estado.imprimiendo{background:#e3efff;color:#245a9b}
+.dv-maquina-estado.libre{background:#dff4e5;color:#24633a}
+.dv-maquina-estado.medium{background:#fff2c7;color:#765b00}
+.dv-maquina-estado.high{background:#fde5e5;color:#9a3030}
+.dv-maquina-producto{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:800}
+.dv-producto-linea{display:grid;grid-template-columns:40px minmax(0,1fr);gap:8px;align-items:center;min-width:0}
+.dv-producto-thumb{width:40px;height:40px;border:1px solid var(--dv-border,#e5e7eb);border-radius:9px;background:var(--dv-surface-muted,#f2f4f7);object-fit:cover;display:block}
+.dv-producto-thumb.vacia{display:flex;align-items:center;justify-content:center;color:var(--dv-muted,#73777f);font-size:7px;font-weight:900;letter-spacing:.04em}
+.dv-maquina-meta{margin-top:4px;color:var(--dv-muted,#73777f);font-size:8px;line-height:1.45}
+.dv-bambu-progress{height:6px;margin-top:8px;overflow:hidden;border-radius:999px;background:color-mix(in srgb,var(--dv-text,#24272b) 10%,transparent)}
+.dv-bambu-progress span{display:block;height:100%;border-radius:inherit;background:var(--dv-brand-sky,#397bd1)}
+.dv-maquina-link{display:inline-flex;margin-top:8px;color:var(--dv-text,#24272b);font-size:8px;font-weight:900;text-decoration:none}
+.dv-planificaciones{padding-top:10px;border-top:1px solid var(--dv-border,#eceef1)}
+.dv-planificaciones-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
+.dv-planificaciones-titulo{color:var(--dv-muted,#73777f);font-size:8px;font-weight:900;letter-spacing:.35px}
+.dv-planificaciones-contador{color:var(--dv-muted,#73777f);font-size:8px;font-weight:800}
+.dv-plan{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px 0}
+.dv-plan + .dv-plan{border-top:1px solid var(--dv-border,#f0f1f3)}
+.dv-plan-producto{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;font-weight:900}
+.dv-plan .dv-producto-linea{grid-template-columns:36px minmax(0,1fr)}
+.dv-plan .dv-producto-thumb{width:36px;height:36px;border-radius:8px}
+.dv-plan-meta{margin-top:3px;color:var(--dv-muted,#73777f);font-size:8px;line-height:1.4}
+.dv-plan-destino{display:inline-flex;margin-top:4px;padding:3px 6px;border-radius:999px;background:var(--dv-surface-muted,#eef0f3);color:var(--dv-muted,#555b63);font-size:7px;font-weight:900}
+.dv-plan-abrir{display:inline-flex;align-items:center;justify-content:center;min-height:31px;padding:0 9px;border:1px solid var(--dv-border,#d9dce0);border-radius:9px;background:var(--dv-surface,#fff);color:var(--dv-text,#24272b);font-size:8px;font-weight:900;text-decoration:none}
+.dv-sin-produccion{padding:12px 8px;color:var(--dv-muted,#73777f);text-align:center;font-size:9px}
+html[data-dv-theme="dark"] .dv-maquina-estado.imprimiendo{background:rgba(57,123,209,.20);color:#9fc5ff}
+html[data-dv-theme="dark"] .dv-maquina-estado.libre{background:rgba(62,155,91,.18);color:#9fddb1}
+html[data-dv-theme="dark"] .dv-maquina-estado.medium{background:rgba(214,167,55,.18);color:#f1cf7b}
+html[data-dv-theme="dark"] .dv-maquina-estado.high{background:rgba(217,83,79,.18);color:#ffaaa7}
 @media(max-width:720px){
+    .dv-plan-resumen{grid-template-columns:repeat(2,minmax(0,1fr))}
     .dv-maquinas{grid-template-columns:1fr}
     .dv-plan{grid-template-columns:1fr}
-    .dv-plan-form{width:100%}
-    .dv-plan-select{flex:1;width:auto}
+    .dv-plan-abrir{width:100%}
 }
 </style>
 """
@@ -419,144 +270,304 @@ def _panel_produccion_dashboard(
     impresoras,
     producciones_actuales,
     planificaciones,
+    resumen,
 ):
-    csrf_token = escape(get_token(request))
     ahora = timezone.now()
+    produccion_url = escape(reverse("produccion:lista"))
 
     actuales_por_impresora = {}
     for produccion in producciones_actuales:
-        if produccion.impresora_id not in actuales_por_impresora:
-            actuales_por_impresora[produccion.impresora_id] = produccion
-
-    impresoras_libres = [
-        impresora
-        for impresora in impresoras
-        if impresora.id not in actuales_por_impresora
-    ]
+        existente = actuales_por_impresora.get(
+            produccion.impresora_id
+        )
+        if (
+            existente is None
+            or (
+                produccion.estado == "IMPRIMIENDO"
+                and existente.estado != "IMPRIMIENDO"
+            )
+        ):
+            actuales_por_impresora[
+                produccion.impresora_id
+            ] = produccion
 
     maquinas_html = []
 
     for impresora in impresoras:
-        produccion = actuales_por_impresora.get(impresora.id)
+        produccion = actuales_por_impresora.get(
+            impresora.id
+        )
         nombre = escape(impresora.nombre)
 
+        try:
+            bambu = impresora.estado_bambu
+        except ImpresoraEstadoBambu.DoesNotExist:
+            bambu = None
+
+        sync_reciente = bool(
+            bambu
+            and bambu.ultimo_contacto
+            and (
+                ahora - bambu.ultimo_contacto
+            ) <= timedelta(minutes=2)
+        )
+        estado_fisico = (
+            (bambu.estado or "").strip().upper()
+            if bambu
+            else ""
+        )
+        bambu_ocupada = bool(
+            bambu
+            and sync_reciente
+            and bambu.conectada
+            and estado_fisico in {
+                "RUNNING",
+                "PAUSE",
+                "PREPARE",
+            }
+        )
+
+        tarjeta_clase = ""
+        if bambu and (
+            not sync_reciente
+            or not bambu.conectada
+        ):
+            tarjeta_clase = " is-warning"
+
         if produccion:
-            producto = escape(produccion.producto.nombre)
+            producto = escape(
+                produccion.producto.nombre
+            )
             miniatura = _miniatura_producto_dashboard(
                 produccion.producto
             )
             fin = produccion.fin_estimado
             fin_texto = (
-                timezone.localtime(fin).strftime("%H:%M")
+                timezone.localtime(
+                    fin
+                ).strftime("%H:%M")
                 if fin
                 else "—"
             )
-            peso = escape(produccion.peso_total_formateado)
-            listo_url = escape(
-                reverse(
-                    "dashboard:produccion_estado",
-                    args=[produccion.id],
-                )
+            peso = escape(
+                produccion.peso_total_formateado
             )
+
+            if produccion.estado == "IMPRIMIENDO":
+                estado_texto = "IMPRIMIENDO"
+                estado_clase = "imprimiendo"
+            elif bambu:
+                estado_texto = "INICIANDO"
+                estado_clase = "medium"
+            else:
+                estado_texto = "EN COLA"
+                estado_clase = "medium"
+
+            progreso_html = ""
+            bambu_meta = ""
+
+            if bambu:
+                if not sync_reciente:
+                    bambu_meta = (
+                        "Bambu · telemetría vencida"
+                    )
+                elif not bambu.conectada:
+                    bambu_meta = "Bambu · desconectada"
+                else:
+                    progreso = (
+                        int(bambu.progreso)
+                        if bambu.progreso is not None
+                        else None
+                    )
+                    restante = (
+                        f"{bambu.minutos_restantes} min restantes"
+                        if bambu.minutos_restantes is not None
+                        else "sin ETA física"
+                    )
+                    bambu_meta = (
+                        f"Bambu · {escape(estado_fisico or 'IDLE')} "
+                        f"· {escape(restante)}"
+                    )
+                    if progreso is not None:
+                        progreso_seguro = max(
+                            0,
+                            min(progreso, 100),
+                        )
+                        progreso_html = (
+                            '<div class="dv-bambu-progress" '
+                            f'aria-label="Progreso {progreso_seguro}%">'
+                            f'<span style="width:{progreso_seguro}%"></span>'
+                            '</div>'
+                        )
 
             maquinas_html.append(
                 f"""
-                <div class="dv-maquina">
+                <div class="dv-maquina{tarjeta_clase}">
                     <div class="dv-maquina-head">
                         <div class="dv-maquina-nombre">🖨 {nombre}</div>
-                        <span class="dv-maquina-estado imprimiendo">IMPRIMIENDO</span>
+                        <span class="dv-maquina-estado {estado_clase}">
+                            {estado_texto}
+                        </span>
                     </div>
                     <div class="dv-producto-linea">
                         {miniatura}
                         <div>
-                            <div class="dv-maquina-producto">{producto} × {produccion.cantidad}</div>
-                            <div class="dv-maquina-meta">
-                                Termina {fin_texto} · ⚖ {peso}
+                            <div class="dv-maquina-producto">
+                                {producto} × {produccion.cantidad}
                             </div>
+                            <div class="dv-maquina-meta">
+                                {escape(produccion.codigo)}
+                                · Fin planificado {fin_texto}
+                                · ⚖ {peso}
+                            </div>
+                            {
+                                f'<div class="dv-maquina-meta">{bambu_meta}</div>'
+                                if bambu_meta
+                                else ''
+                            }
+                            {progreso_html}
                         </div>
                     </div>
-                    <div class="dv-maquina-acciones">
-                        <form method="post" action="{listo_url}">
-                            <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
-                            <input type="hidden" name="estado" value="CONTROL">
-                            <button type="submit" class="dv-btn-listo">✓ FINALIZÓ</button>
-                        </form>
-                        <form method="post" action="{listo_url}">
-                            <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
-                            <input type="hidden" name="estado" value="CANCELADO">
-                            <button type="submit" class="dv-btn-cancelar" title="Cancelar impresión">×</button>
-                        </form>
-                    </div>
+                    <a class="dv-maquina-link" href="{produccion_url}#ahora">
+                        ABRIR EN PRODUCCIÓN →
+                    </a>
                 </div>
                 """
             )
-        else:
+            continue
+
+        if bambu_ocupada:
+            trabajo = escape(
+                bambu.trabajo
+                or "Impresión iniciada fuera de Gestión"
+            )
+            estado_texto = {
+                "RUNNING": "IMPRIMIENDO",
+                "PAUSE": "PAUSADA",
+                "PREPARE": "PREPARANDO",
+            }.get(
+                estado_fisico,
+                estado_fisico,
+            )
+            estado_clase = (
+                "medium"
+                if estado_fisico == "PAUSE"
+                else "imprimiendo"
+            )
+            progreso = (
+                int(bambu.progreso)
+                if bambu.progreso is not None
+                else 0
+            )
+            progreso = max(0, min(progreso, 100))
+            restante = (
+                f"{bambu.minutos_restantes} min restantes"
+                if bambu.minutos_restantes is not None
+                else "sin ETA"
+            )
+
             maquinas_html.append(
                 f"""
                 <div class="dv-maquina">
                     <div class="dv-maquina-head">
                         <div class="dv-maquina-nombre">🖨 {nombre}</div>
-                        <span class="dv-maquina-estado libre">LIBRE</span>
+                        <span class="dv-maquina-estado {estado_clase}">
+                            {estado_texto}
+                        </span>
                     </div>
-                    <div class="dv-maquina-meta">Libre para tomar el siguiente trabajo de la cola.</div>
+                    <div class="dv-maquina-producto">{trabajo}</div>
+                    <div class="dv-maquina-meta">
+                        Trabajo físico Bambu aún no asociado
+                        · {escape(restante)}
+                    </div>
+                    <div class="dv-bambu-progress" aria-label="Progreso {progreso}%">
+                        <span style="width:{progreso}%"></span>
+                    </div>
+                    <a class="dv-maquina-link" href="{produccion_url}#ahora">
+                        REVISAR / ASOCIAR →
+                    </a>
                 </div>
                 """
             )
+            continue
+
+        if bambu and (
+            not sync_reciente
+            or not bambu.conectada
+        ):
+            detalle = (
+                "Telemetría vencida"
+                if not sync_reciente
+                else "Sin conexión con la Raspberry"
+            )
+            maquinas_html.append(
+                f"""
+                <div class="dv-maquina is-warning">
+                    <div class="dv-maquina-head">
+                        <div class="dv-maquina-nombre">🖨 {nombre}</div>
+                        <span class="dv-maquina-estado medium">SIN DATOS</span>
+                    </div>
+                    <div class="dv-maquina-meta">
+                        {detalle}. Verificá el estado físico antes de planificar.
+                    </div>
+                    <a class="dv-maquina-link" href="{produccion_url}#ahora">
+                        REVISAR EN PRODUCCIÓN →
+                    </a>
+                </div>
+                """
+            )
+            continue
+
+        maquinas_html.append(
+            f"""
+            <div class="dv-maquina">
+                <div class="dv-maquina-head">
+                    <div class="dv-maquina-nombre">🖨 {nombre}</div>
+                    <span class="dv-maquina-estado libre">DISPONIBLE</span>
+                </div>
+                <div class="dv-maquina-meta">
+                    {
+                        'Bambu sincronizada y libre.'
+                        if bambu
+                        else 'Impresora manual disponible para el siguiente trabajo.'
+                    }
+                </div>
+            </div>
+            """
+        )
 
     if not maquinas_html:
         maquinas_html.append(
-            '<div class="dv-sin-produccion">No hay impresoras activas configuradas.</div>'
+            '<div class="dv-sin-produccion">'
+            'No hay impresoras activas configuradas.'
+            '</div>'
         )
 
     planes_html = []
 
     for produccion in planificaciones:
-        producto = escape(produccion.producto.nombre)
+        producto = escape(
+            produccion.producto.nombre
+        )
         miniatura = _miniatura_producto_dashboard(
             produccion.producto
         )
-        peso = escape(produccion.peso_total_formateado)
         inicio = produccion.inicio_impresion
 
         if inicio and inicio <= ahora:
-            inicio_texto = "Disponible ahora"
+            inicio_texto = "Lista para iniciar"
         elif inicio:
-            inicio_texto = timezone.localtime(inicio).strftime(
-                "%d/%m · %H:%M"
-            )
+            inicio_texto = timezone.localtime(
+                inicio
+            ).strftime("%d/%m · %H:%M")
         else:
             inicio_texto = "Sin horario"
 
-        iniciar_url = escape(
-            reverse(
-                "dashboard:produccion_iniciar",
-                args=[produccion.id],
-            )
+        destino_texto = (
+            f"PEDIDO {escape(produccion.pedido.codigo)}"
+            if produccion.pedido_id
+            else "STOCK"
         )
-
-        if impresoras_libres:
-            opciones = "".join(
-                (
-                    f'<option value="{impresora.id}">'
-                    f'{escape(impresora.nombre)}</option>'
-                )
-                for impresora in impresoras_libres
-            )
-
-            accion = f"""
-                <form method="post" action="{iniciar_url}" class="dv-plan-form">
-                    <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
-                    <select name="impresora" class="dv-plan-select" required>
-                        <option value="">Impresora…</option>
-                        {opciones}
-                    </select>
-                    <button type="submit" class="dv-btn-iniciar">▶</button>
-                </form>
-            """
-        else:
-            accion = (
-                '<span class="dv-maquina-estado imprimiendo">SIN MÁQUINA LIBRE</span>'
-            )
 
         planes_html.append(
             f"""
@@ -564,34 +575,68 @@ def _panel_produccion_dashboard(
                 <div class="dv-producto-linea">
                     {miniatura}
                     <div>
-                        <div class="dv-plan-producto">{producto} × {produccion.cantidad}</div>
-                        <div class="dv-plan-meta">
-                            {inicio_texto} · {escape(produccion.tiempo_impresion_formateado)} · ⚖ {peso}
+                        <div class="dv-plan-producto">
+                            {producto} × {produccion.cantidad}
                         </div>
+                        <div class="dv-plan-meta">
+                            {escape(produccion.codigo)}
+                            · {inicio_texto}
+                            · {escape(produccion.tiempo_impresion_formateado)}
+                        </div>
+                        <span class="dv-plan-destino">{destino_texto}</span>
                     </div>
                 </div>
-                {accion}
+                <a class="dv-plan-abrir" href="{produccion_url}#prod-cola">
+                    ABRIR
+                </a>
             </div>
             """
         )
 
     if not planes_html:
         planes_html.append(
-            '<div class="dv-sin-produccion">La cola está vacía.</div>'
+            '<div class="dv-sin-produccion">'
+            'No hay trabajos planificados esperando impresora.'
+            '</div>'
         )
-
-    produccion_url = escape(reverse("produccion:lista"))
 
     return f"""
     <div class="panel dv-produccion-panel">
         <div class="dv-produccion-cabecera">
             <div>
-                <h3 class="panel-titulo">Ahora y cola</h3>
+                <h3 class="panel-titulo">Planificación y máquinas</h3>
                 <div class="panel-subtitulo" style="margin-bottom:0">
-                    Impresoras y próximos trabajos
+                    Del faltante pendiente al control post impresión
                 </div>
             </div>
-            <a class="dv-produccion-link" href="{produccion_url}">VER TODO →</a>
+            <a class="dv-produccion-link" href="{produccion_url}">
+                VER CENTRO →
+            </a>
+        </div>
+
+        <div class="dv-plan-resumen">
+            <div class="dv-plan-kpi planificar">
+                <span>POR PLANIFICAR</span>
+                <strong>{int(resumen.get("por_planificar") or 0)}</strong>
+            </div>
+            <div class="dv-plan-kpi cola">
+                <span>EN COLA</span>
+                <strong>{int(resumen.get("en_cola") or 0)}</strong>
+            </div>
+            <div class="dv-plan-kpi imprimiendo">
+                <span>IMPRIMIENDO</span>
+                <strong>{int(resumen.get("imprimiendo") or 0)}</strong>
+            </div>
+            <div class="dv-plan-kpi control">
+                <span>EN CONTROL</span>
+                <strong>{int(resumen.get("control") or 0)}</strong>
+            </div>
+        </div>
+
+        <div class="dv-plan-resumen-meta">
+            {int(resumen.get("productos_con_necesidad") or 0)} producto(s)
+            todavía requieren planificación
+            · {escape(str(resumen.get("peso_faltante") or "0 g"))}
         </div>
 
         <div class="dv-maquinas">
@@ -599,12 +644,18 @@ def _panel_produccion_dashboard(
         </div>
 
         <div class="dv-planificaciones">
-            <div class="dv-planificaciones-titulo">COLA · PRÓXIMOS TRABAJOS</div>
+            <div class="dv-planificaciones-head">
+                <div class="dv-planificaciones-titulo">
+                    PRÓXIMAS PLANIFICACIONES
+                </div>
+                <div class="dv-planificaciones-contador">
+                    {int(resumen.get("trabajos_en_cola") or 0)} trabajo(s)
+                </div>
+            </div>
             {''.join(planes_html)}
         </div>
     </div>
     """
-
 
 def _inyectar_panel_produccion(response, panel_html):
     try:
@@ -710,46 +761,73 @@ def inicio(request):
         .count()
     )
 
-    producciones_pendientes = (
+    producciones_pendientes_qs = (
         Produccion.objects
         .filter(estado="PENDIENTE")
-        .count()
     )
-
-    producciones_imprimiendo = (
+    producciones_imprimiendo_qs = (
         Produccion.objects
         .filter(estado="IMPRIMIENDO")
-        .count()
+    )
+    producciones_control_qs = (
+        Produccion.objects
+        .filter(estado="CONTROL")
     )
 
-    unidades_en_produccion = (
-        Produccion.objects
-        .filter(
-            estado__in=[
-                "PENDIENTE",
-                "IMPRIMIENDO",
-            ]
-        )
+    producciones_pendientes = (
+        producciones_pendientes_qs.count()
+    )
+    producciones_imprimiendo = (
+        producciones_imprimiendo_qs.count()
+    )
+    producciones_control = (
+        producciones_control_qs.count()
+    )
+
+    unidades_planificadas = (
+        producciones_pendientes_qs
         .aggregate(total=Sum("cantidad"))
         .get("total")
         or 0
+    )
+    unidades_imprimiendo = (
+        producciones_imprimiendo_qs
+        .aggregate(total=Sum("cantidad"))
+        .get("total")
+        or 0
+    )
+    unidades_control = (
+        producciones_control_qs
+        .aggregate(total=Sum("cantidad"))
+        .get("total")
+        or 0
+    )
+    unidades_en_produccion = (
+        unidades_planificadas
+        + unidades_imprimiendo
+        + unidades_control
     )
 
     impresoras_dashboard = list(
         Impresora.objects
         .filter(activa=True)
+        .select_related("estado_bambu")
         .order_by("nombre")
     )
 
     producciones_actuales_dashboard = list(
         Produccion.objects
         .filter(
-            estado="IMPRIMIENDO",
+            estado__in=[
+                "PENDIENTE",
+                "IMPRIMIENDO",
+            ],
             impresora__isnull=False,
         )
         .select_related(
             "producto",
             "impresora",
+            "pedido",
         )
         .order_by(
             "inicio_impresion",
@@ -759,12 +837,18 @@ def inicio(request):
 
     planificaciones_dashboard = list(
         Produccion.objects
-        .filter(estado="PENDIENTE")
-        .select_related("producto")
+        .filter(
+            estado="PENDIENTE",
+            impresora__isnull=True,
+        )
+        .select_related(
+            "producto",
+            "pedido",
+        )
         .order_by(
             "inicio_impresion",
             "id",
-        )[:4]
+        )[:5]
     )
 
     # Próximas entregas: primero atrasadas y luego las más cercanas.
@@ -798,6 +882,49 @@ def inicio(request):
     )
 
     top_impresion = necesidad_impresion[:5]
+    productos_con_necesidad = len(
+        necesidad_impresion
+    )
+
+    peso_faltante_gramos = sum(
+        Decimal(
+            str(
+                getattr(
+                    item["producto"],
+                    "peso_gramos",
+                    0,
+                )
+                or 0
+            )
+        )
+        * Decimal(
+            max(
+                int(
+                    item.get(
+                        "falta_iniciar"
+                    )
+                    or 0
+                ),
+                0,
+            )
+        )
+        for item in necesidad_impresion
+    )
+
+    if peso_faltante_gramos >= Decimal("1000"):
+        peso_faltante_dashboard = (
+            f"{peso_faltante_gramos / Decimal('1000'):.2f}"
+            .rstrip("0")
+            .rstrip(".")
+            + " kg"
+        )
+    else:
+        peso_faltante_dashboard = (
+            f"{peso_faltante_gramos:.1f}"
+            .rstrip("0")
+            .rstrip(".")
+            + " g"
+        )
 
     productos_dashboard = [
         produccion.producto
@@ -940,8 +1067,14 @@ def inicio(request):
             "pedidos_atrasados": pedidos_atrasados,
             "producciones_pendientes": producciones_pendientes,
             "producciones_imprimiendo": producciones_imprimiendo,
+            "producciones_control": producciones_control,
+            "unidades_planificadas": unidades_planificadas,
+            "unidades_imprimiendo": unidades_imprimiendo,
+            "unidades_control": unidades_control,
             "unidades_en_produccion": unidades_en_produccion,
             "total_a_imprimir": total_a_imprimir,
+            "productos_con_necesidad": productos_con_necesidad,
+            "peso_faltante_dashboard": peso_faltante_dashboard,
             "productos_sin_stock": productos_sin_stock,
             "proximas_entregas": proximas_entregas,
             "top_impresion": top_impresion,
@@ -969,6 +1102,15 @@ def inicio(request):
         impresoras_dashboard,
         producciones_actuales_dashboard,
         planificaciones_dashboard,
+        {
+            "por_planificar": total_a_imprimir,
+            "en_cola": unidades_planificadas,
+            "imprimiendo": unidades_imprimiendo,
+            "control": unidades_control,
+            "productos_con_necesidad": productos_con_necesidad,
+            "peso_faltante": peso_faltante_dashboard,
+            "trabajos_en_cola": producciones_pendientes,
+        },
     )
 
     return _inyectar_panel_produccion(
