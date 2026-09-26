@@ -50,6 +50,7 @@
         .btn.principal{background:#1f6d3d;border-color:#1f6d3d;color:#fff}
         .btn.azul{background:#174f9a;border-color:#174f9a;color:#fff}
         .btn.peligro{background:var(--red);border-color:#efc4c4;color:var(--red-text)}
+        .btn.liberar{background:var(--amber);border-color:color-mix(in srgb,var(--amber-text) 30%,var(--line));color:var(--amber-text)}
         .btn:disabled{opacity:.45;cursor:not-allowed}
         .mensajes{display:grid;gap:8px;margin-bottom:12px}
         .mensaje{padding:10px 12px;border-radius:10px;background:var(--blue);color:var(--blue-text);font-size:10px;font-weight:800}
@@ -711,6 +712,43 @@
                 font-size:6.5px;
             }
         }
+
+        /* Ajustes BUGS Gestión · Preparación */
+        #falta-stock{--prep-state:#c65858}
+        #para-preparar{--prep-state:#174f9a}
+        #en-preparacion{--prep-state:#b57912}
+        #listos{--prep-state:#3e9558}
+        .kanban-board>.seccion{border-top-color:var(--prep-state)!important}
+        .kanban-board>.seccion .pedido{
+            border-left:4px solid var(--prep-state)!important;
+            box-shadow:inset 3px 0 0 var(--prep-state)!important
+        }
+        .kanban-board .pedido-head{min-height:78px}
+        .kanban-board .codigo{padding-right:48px}
+        .kanban-board .pedido-head-tools{max-width:44px}
+        .kanban-board .seccion-ayuda{font-size:9.5px}
+        .kanban-board .seccion-contador{font-size:9px}
+        .kanban-board .tag{font-size:8.5px}
+        .kanban-board .pedido-productos>summary{font-size:9.5px}
+        .kanban-board .pedido-productos-resumen{font-size:9px}
+        .kanban-board .producto-nombre{font-size:10.5px}
+        .kanban-board .producto-detalle{font-size:9px}
+        .kanban-board .stock span{font-size:8px}
+        .kanban-board .stock strong{font-size:9px}
+        .kanban-board .progreso-head{font-size:8.5px}
+        .kanban-board .saldo{font-size:9px}
+        .kanban-board .saldo strong{font-size:10px}
+        .kanban-board .btn{font-size:9px}
+        @media(max-width:1050px){
+            .flujo a{font-size:8.5px}
+            .flujo b{font-size:8.5px}
+        }
+        @media(max-width:430px){
+            .kanban-board .pedido-head{min-height:76px}
+            .kanban-board .codigo{padding-right:48px}
+            .flujo a{font-size:8px}
+        }
+
     </style>
 </head>
 <body>
@@ -767,6 +805,7 @@
                     </div>
                     <div class="pedido-head-tools">
                         <span class="pedido-status">CANCELADO</span>
+                        {% include "pedidos/_pedido_menu.html" with pedido=item_pedido.pedido mostrar_detalle=1 %}
                     </div>
                 </header>
 
@@ -799,9 +838,6 @@
 
                 <footer class="pedido-foot">
                     <div class="saldo">Pagado <strong>&#36;{{ item_pedido.total_pagado|floatformat:0 }}</strong></div>
-                    <div class="acciones">
-                        <a href="{% url 'pedidos:detalle' item_pedido.pedido.id %}" class="btn">VER PEDIDO</a>
-                    </div>
                 </footer>
             </article>
             {% empty %}
@@ -841,19 +877,16 @@
                         <div class="pedido-linea"><span class="codigo">{{ item_pedido.pedido.codigo }}</span><span class="cliente">{{ item_pedido.pedido.cliente.nombre }}</span></div>
                         <div class="meta">
                             <span class="tag entrega {{ item_pedido.entrega_clase }}">Entrega {{ item_pedido.entrega_texto }}</span>
-                            <span class="tag">{{ item_pedido.total_piezas }} pieza{{ item_pedido.total_piezas|pluralize:"s" }}</span>
-                            <span class="tag">{{ item_pedido.preparacion_total }} producto{{ item_pedido.preparacion_total|pluralize:"s" }}</span>
                         </div>
                     </div>
                     <div class="pedido-head-tools">
-                        <span class="pedido-status">TODO DISPONIBLE</span>
                         {% include "pedidos/_pedido_menu.html" with pedido=item_pedido.pedido mostrar_detalle=1 %}
                     </div>
                 </header>
                 <details class="pedido-productos" id="productos-pedido-{{ item_pedido.pedido.id }}">
                     <summary>
-                        <span>PRODUCTOS DEL PEDIDO</span>
-                        <span class="pedido-productos-resumen">{{ item_pedido.preparacion_total }} producto{{ item_pedido.preparacion_total|pluralize:"s" }}</span>
+                        <span>PRODUCTOS</span>
+                        <span class="pedido-productos-resumen">{{ item_pedido.preparacion_total }}</span>
                     </summary>
                     <section class="productos">
                     {% for item in item_pedido.productos %}
@@ -879,7 +912,6 @@
                 <footer class="pedido-foot">
                     <div class="saldo">Saldo <strong>${{ item_pedido.saldo_pendiente|floatformat:0 }}</strong> · {{ item_pedido.estado_pago_display }}</div>
                     <div class="acciones">
-                        <a href="{% url 'pedidos:detalle' item_pedido.pedido.id %}" class="btn">Ver pedido</a>
                         <form method="post" action="{% url 'pedidos:iniciar_preparacion' item_pedido.pedido.id %}" data-kanban-post data-kanban-target="en-preparacion">
                             {% csrf_token %}
                             <button type="submit" class="btn principal">PREPARAR PEDIDO</button>
@@ -906,12 +938,10 @@
                         <div class="pedido-linea"><span class="codigo">{{ item_pedido.pedido.codigo }}</span><span class="cliente">{{ item_pedido.pedido.cliente.nombre }}</span></div>
                         <div class="meta">
                             <span class="tag entrega {{ item_pedido.entrega_clase }}">Entrega {{ item_pedido.entrega_texto }}</span>
-                            <span class="tag" data-preparacion-conteo>{{ item_pedido.preparacion_listos }}/{{ item_pedido.preparacion_total }} preparados</span>
-                            {% if item_pedido.reservados %}<span class="tag">{{ item_pedido.reservados }} con stock reservado</span>{% endif %}
+                            {% if item_pedido.reservados %}<span class="tag">{{ item_pedido.reservados }} reservados</span>{% endif %}
                         </div>
                     </div>
                     <div class="pedido-head-tools">
-                        <span class="pedido-status" data-preparacion-status>ARMANDO PAQUETE</span>
                         {% include "pedidos/_pedido_menu.html" with pedido=item_pedido.pedido mostrar_detalle=1 %}
                     </div>
                 </header>
@@ -922,8 +952,8 @@
 
                 <details class="pedido-productos" id="productos-pedido-{{ item_pedido.pedido.id }}">
                     <summary>
-                        <span>PRODUCTOS DEL PAQUETE</span>
-                        <span class="pedido-productos-resumen" data-preparacion-resumen>{{ item_pedido.preparacion_listos }}/{{ item_pedido.preparacion_total }} listos</span>
+                        <span>PRODUCTOS</span>
+                        <span class="pedido-productos-resumen" data-preparacion-resumen>{{ item_pedido.preparacion_listos }}/{{ item_pedido.preparacion_total }}</span>
                     </summary>
                     <section class="productos">
                     {% for item in item_pedido.productos %}
@@ -980,11 +1010,10 @@
                 <footer class="pedido-foot">
                     <div class="saldo">Saldo <strong>${{ item_pedido.saldo_pendiente|floatformat:0 }}</strong> · {{ item_pedido.estado_pago_display }}</div>
                     <div class="acciones">
-                        <a href="{% url 'pedidos:detalle' item_pedido.pedido.id %}" class="btn">Ver pedido</a>
                         {% if item_pedido.reservados %}
                         <form method="post" action="{% url 'pedidos:liberar_preparacion' item_pedido.pedido.id %}" data-kanban-post onsubmit="return confirm('¿Liberar el stock que todavía no fue preparado?');">
                             {% csrf_token %}
-                            <button type="submit" class="btn peligro">LIBERAR PENDIENTES</button>
+                            <button type="submit" class="btn liberar">LIBERAR PENDIENTES</button>
                         </form>
                         {% endif %}
                     </div>
@@ -1009,21 +1038,17 @@
                         <div class="pedido-linea"><span class="codigo">{{ item_pedido.pedido.codigo }}</span><span class="cliente">{{ item_pedido.pedido.cliente.nombre }}</span></div>
                         <div class="meta">
                             <span class="tag entrega {{ item_pedido.entrega_clase }}">Entrega {{ item_pedido.entrega_texto }}</span>
-                            <span class="tag">{{ item_pedido.faltantes_stock }} faltante{{ item_pedido.faltantes_stock|pluralize:"s" }}</span>
                         </div>
                     </div>
                     <div class="pedido-head-tools">
-                        <span class="pedido-status">FALTA PRODUCCIÓN</span>
                         {% include "pedidos/_pedido_menu.html" with pedido=item_pedido.pedido mostrar_detalle=1 %}
                     </div>
                 </header>
 
-                <div class="falta-resumen">Todavía no reserves este pedido. Producción debe completar las piezas faltantes primero.</div>
-
                 <details class="pedido-productos" id="productos-pedido-{{ item_pedido.pedido.id }}">
                     <summary>
-                        <span>PRODUCTOS Y FALTANTES</span>
-                        <span class="pedido-productos-resumen">{{ item_pedido.faltantes_stock }} faltante{{ item_pedido.faltantes_stock|pluralize:"s" }}</span>
+                        <span>FALTANTES</span>
+                        <span class="pedido-productos-resumen">{{ item_pedido.faltantes_stock }}</span>
                     </summary>
                     <section class="productos">
                     {% for item in item_pedido.productos %}
@@ -1051,7 +1076,6 @@
                 <footer class="pedido-foot">
                     <div class="saldo">Faltan imprimir <strong>{{ item_pedido.total_a_imprimir }}</strong> unidad{{ item_pedido.total_a_imprimir|pluralize:"es" }}</div>
                     <div class="acciones">
-                        <a href="{% url 'pedidos:detalle' item_pedido.pedido.id %}" class="btn">Ver pedido</a>
                         <a href="{% url 'produccion:lista' %}#que-imprimir" class="btn azul">VER EN PRODUCCIÓN</a>
                     </div>
                 </footer>
@@ -1075,20 +1099,18 @@
                         <div class="pedido-linea"><span class="codigo">{{ item_pedido.pedido.codigo }}</span><span class="cliente">{{ item_pedido.pedido.cliente.nombre }}</span></div>
                         <div class="meta">
                             <span class="tag entrega {{ item_pedido.entrega_clase }}">Entrega {{ item_pedido.entrega_texto }}</span>
-                            <span class="tag">{{ item_pedido.total_piezas }} pieza{{ item_pedido.total_piezas|pluralize:"s" }}</span>
                             <span class="tag">Saldo ${{ item_pedido.saldo_pendiente|floatformat:0 }}</span>
                         </div>
                     </div>
                     <div class="pedido-head-tools">
-                        <span class="pedido-status">PAQUETE LISTO</span>
                         {% include "pedidos/_pedido_menu.html" with pedido=item_pedido.pedido mostrar_detalle=1 %}
                     </div>
                 </header>
 
                 <details class="pedido-productos" id="productos-pedido-{{ item_pedido.pedido.id }}">
                     <summary>
-                        <span>CONTENIDO DEL PEDIDO</span>
-                        <span class="pedido-productos-resumen">{{ item_pedido.total_piezas }} pieza{{ item_pedido.total_piezas|pluralize:"s" }}</span>
+                        <span>PRODUCTOS</span>
+                        <span class="pedido-productos-resumen">{{ item_pedido.total_piezas }}</span>
                     </summary>
                     <section class="productos">
                     {% for item in item_pedido.productos %}
@@ -1111,7 +1133,6 @@
                 <footer class="pedido-foot">
                     <div class="saldo">{{ item_pedido.estado_pago_display }} · Total <strong>${{ item_pedido.total_pedido|floatformat:0 }}</strong></div>
                     <div class="acciones">
-                        <a href="{% url 'pedidos:detalle' item_pedido.pedido.id %}" class="btn">Ver pedido</a>
                         <form method="post" action="{% url 'pedidos:entregar' item_pedido.pedido.id %}" onsubmit="return confirmarEntrega({{ item_pedido.saldo_pendiente }});">
                             {% csrf_token %}
                             <button type="submit" class="btn principal">✓ ENTREGAR</button>
@@ -1189,14 +1210,11 @@ function actualizarProgresoPedido(formulario,data){
         ? Math.round((listos*100)/total)
         : 0;
 
-    const conteo=pedido.querySelector("[data-preparacion-conteo]");
     const resumen=pedido.querySelector("[data-preparacion-resumen]");
     const porcentajeNodo=pedido.querySelector("[data-preparacion-porcentaje]");
     const barra=pedido.querySelector("[data-preparacion-bar]");
-    const estado=pedido.querySelector("[data-preparacion-status]");
 
-    if(conteo)conteo.textContent=listos+"/"+total+" preparados";
-    if(resumen)resumen.textContent=listos+"/"+total+" listos";
+    if(resumen)resumen.textContent=listos+"/"+total;
     if(porcentajeNodo)porcentajeNodo.textContent=porcentaje+"%";
     if(barra)barra.style.width=porcentaje+"%";
 
@@ -1206,11 +1224,6 @@ function actualizarProgresoPedido(formulario,data){
     ) || (total>0 && listos===total);
 
     pedido.classList.toggle("is-complete",completo);
-    if(estado){
-        estado.textContent=completo
-            ? "PAQUETE LISTO"
-            : "ARMANDO PAQUETE";
-    }
 }
 
 function actualizarEstadoProducto(formulario,data){
