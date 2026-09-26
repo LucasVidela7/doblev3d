@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Doble V Gestión</string>
+    <string name="offline_title">Sin conexión</string>
+    <string name="offline_message">No se pudo conectar con Doble V Gestión. Revisá tu conexión y volvé a intentar.</string>
+</resources>
