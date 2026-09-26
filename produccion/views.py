@@ -259,6 +259,35 @@ def _color_bambu_css(valor):
     return f"#{limpio.upper()}"
 
 
+def _color_bambu_bandeja(bandeja):
+    """
+    Devuelve un color CSS #RRGGBB desde la telemetría real Bambu.
+
+    Firmware/bridge pueden informar el color como tray_color (RGBA de
+    8 dígitos) o repetirlo en cols. Conservamos ambos caminos para que
+    AMS Lite/Combo no dependa de una única variante del payload.
+    """
+    if not isinstance(bandeja, dict):
+        return ""
+
+    candidatos = [
+        bandeja.get("tray_color"),
+        bandeja.get("color"),
+        bandeja.get("color_hex"),
+    ]
+
+    cols = bandeja.get("cols")
+    if isinstance(cols, (list, tuple)):
+        candidatos.extend(cols)
+
+    for candidato in candidatos:
+        color = _color_bambu_css(candidato)
+        if color:
+            return color
+
+    return ""
+
+
 def _formatear_peso_gramos(valor):
     try:
         valor = float(
@@ -504,14 +533,8 @@ def _filamento_para_print_bambu(
             bandeja.get("tray_type")
             or "Filamento"
         )[:80]
-        color_raw = str(
-            bandeja.get("tray_color")
-            or ""
-        ).strip()
-        color_hex = (
-            f"#{color_raw[:6].upper()}"
-            if len(color_raw) >= 6
-            else ""
+        color_hex = _color_bambu_bandeja(
+            bandeja
         )
 
         indice_global = (
@@ -555,14 +578,8 @@ def _filamento_para_print_bambu(
             carrete.get("tray_type")
             or "Filamento"
         )[:80]
-        color_raw = str(
-            carrete.get("tray_color")
-            or ""
-        ).strip()
-        color_hex = (
-            f"#{color_raw[:6].upper()}"
-            if len(color_raw) >= 6
-            else ""
+        color_hex = _color_bambu_bandeja(
+            carrete
         )
 
         return {
@@ -1656,6 +1673,9 @@ def lista_produccion(request):
                 color_raw = str(
                     bandeja.get("tray_color") or ""
                 ).strip()
+                color_css = _color_bambu_bandeja(
+                    bandeja
+                )
 
                 if (
                     not tipo
@@ -1683,11 +1703,7 @@ def lista_produccion(request):
                             f"Slot {tray_id + 1}"
                         ),
                         "tipo": tipo or "Filamento",
-                        "color": (
-                            _color_bambu_css(
-                                color_raw
-                            )
-                        ),
+                        "color": color_css,
                         "activo": (
                             tray_now
                             == str(indice_global)
@@ -1717,8 +1733,8 @@ def lista_produccion(request):
         tipo_externo = str(
             carrete.get("tray_type") or ""
         ).strip()
-        color_externo = _color_bambu_css(
-            carrete.get("tray_color")
+        color_externo = _color_bambu_bandeja(
+            carrete
         )
 
         if tipo_externo or color_externo:
@@ -3780,13 +3796,8 @@ def repetir_produccion(
             material = str(
                 bandeja.get("tray_type") or "Filamento"
             )[:80]
-            color_raw = str(
-                bandeja.get("tray_color") or ""
-            ).strip()
-            color_hex = (
-                f"#{color_raw[:6].upper()}"
-                if len(color_raw) >= 6
-                else ""
+            color_hex = _color_bambu_bandeja(
+                bandeja
             )
             color_nombre = color_hex
 
@@ -3822,13 +3833,8 @@ def repetir_produccion(
             material = str(
                 carrete.get("tray_type") or "Filamento"
             )[:80]
-            color_raw = str(
-                carrete.get("tray_color") or ""
-            ).strip()
-            color_hex = (
-                f"#{color_raw[:6].upper()}"
-                if len(color_raw) >= 6
-                else ""
+            color_hex = _color_bambu_bandeja(
+                carrete
             )
             color_nombre = color_hex
 
