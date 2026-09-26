@@ -846,7 +846,6 @@
                         </div>
                     </div>
                     <div class="pedido-head-tools">
-                        <span class="pedido-status">TODO DISPONIBLE</span>
                         {% include "pedidos/_pedido_menu.html" with pedido=item_pedido.pedido mostrar_detalle=1 %}
                     </div>
                 </header>
@@ -911,7 +910,6 @@
                         </div>
                     </div>
                     <div class="pedido-head-tools">
-                        <span class="pedido-status" data-preparacion-status>ARMANDO PAQUETE</span>
                         {% include "pedidos/_pedido_menu.html" with pedido=item_pedido.pedido mostrar_detalle=1 %}
                     </div>
                 </header>
@@ -1013,12 +1011,9 @@
                         </div>
                     </div>
                     <div class="pedido-head-tools">
-                        <span class="pedido-status">FALTA PRODUCCIÓN</span>
                         {% include "pedidos/_pedido_menu.html" with pedido=item_pedido.pedido mostrar_detalle=1 %}
                     </div>
                 </header>
-
-                <div class="falta-resumen">Todavía no reserves este pedido. Producción debe completar las piezas faltantes primero.</div>
 
                 <details class="pedido-productos" id="productos-pedido-{{ item_pedido.pedido.id }}">
                     <summary>
@@ -1080,7 +1075,6 @@
                         </div>
                     </div>
                     <div class="pedido-head-tools">
-                        <span class="pedido-status">PAQUETE LISTO</span>
                         {% include "pedidos/_pedido_menu.html" with pedido=item_pedido.pedido mostrar_detalle=1 %}
                     </div>
                 </header>
