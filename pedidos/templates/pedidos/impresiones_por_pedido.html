@@ -841,8 +841,6 @@
                         <div class="pedido-linea"><span class="codigo">{{ item_pedido.pedido.codigo }}</span><span class="cliente">{{ item_pedido.pedido.cliente.nombre }}</span></div>
                         <div class="meta">
                             <span class="tag entrega {{ item_pedido.entrega_clase }}">Entrega {{ item_pedido.entrega_texto }}</span>
-                            <span class="tag">{{ item_pedido.total_piezas }} pieza{{ item_pedido.total_piezas|pluralize:"s" }}</span>
-                            <span class="tag">{{ item_pedido.preparacion_total }} producto{{ item_pedido.preparacion_total|pluralize:"s" }}</span>
                         </div>
                     </div>
                     <div class="pedido-head-tools">
@@ -905,8 +903,7 @@
                         <div class="pedido-linea"><span class="codigo">{{ item_pedido.pedido.codigo }}</span><span class="cliente">{{ item_pedido.pedido.cliente.nombre }}</span></div>
                         <div class="meta">
                             <span class="tag entrega {{ item_pedido.entrega_clase }}">Entrega {{ item_pedido.entrega_texto }}</span>
-                            <span class="tag" data-preparacion-conteo>{{ item_pedido.preparacion_listos }}/{{ item_pedido.preparacion_total }} preparados</span>
-                            {% if item_pedido.reservados %}<span class="tag">{{ item_pedido.reservados }} con stock reservado</span>{% endif %}
+                            {% if item_pedido.reservados %}<span class="tag">{{ item_pedido.reservados }} reservados</span>{% endif %}
                         </div>
                     </div>
                     <div class="pedido-head-tools">
@@ -1007,7 +1004,6 @@
                         <div class="pedido-linea"><span class="codigo">{{ item_pedido.pedido.codigo }}</span><span class="cliente">{{ item_pedido.pedido.cliente.nombre }}</span></div>
                         <div class="meta">
                             <span class="tag entrega {{ item_pedido.entrega_clase }}">Entrega {{ item_pedido.entrega_texto }}</span>
-                            <span class="tag">{{ item_pedido.faltantes_stock }} faltante{{ item_pedido.faltantes_stock|pluralize:"s" }}</span>
                         </div>
                     </div>
                     <div class="pedido-head-tools">
@@ -1070,7 +1066,6 @@
                         <div class="pedido-linea"><span class="codigo">{{ item_pedido.pedido.codigo }}</span><span class="cliente">{{ item_pedido.pedido.cliente.nombre }}</span></div>
                         <div class="meta">
                             <span class="tag entrega {{ item_pedido.entrega_clase }}">Entrega {{ item_pedido.entrega_texto }}</span>
-                            <span class="tag">{{ item_pedido.total_piezas }} pieza{{ item_pedido.total_piezas|pluralize:"s" }}</span>
                             <span class="tag">Saldo ${{ item_pedido.saldo_pendiente|floatformat:0 }}</span>
                         </div>
                     </div>
