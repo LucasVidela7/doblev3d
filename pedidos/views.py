@@ -40,6 +40,7 @@ from .models import (
     Pago,
     Gasto,
     CuotaGasto,
+    ReembolsoGasto,
     CajaCorte,
 )
 
@@ -3153,6 +3154,126 @@ def cambiar_estado_cuota(
 
 
 @transaction.atomic
+def registrar_reembolso_gasto(
+    request,
+    gasto_id,
+):
+    if request.method != "POST":
+        return redirect(
+            "pedidos:finanzas"
+        )
+
+    gasto = get_object_or_404(
+        Gasto.objects.select_for_update(),
+        id=gasto_id,
+    )
+
+    monto_texto = (
+        request.POST.get("monto") or ""
+    ).strip()
+    fecha_texto = (
+        request.POST.get("fecha") or ""
+    ).strip()
+    observaciones = (
+        request.POST.get("observaciones") or ""
+    ).strip()
+
+    try:
+        monto = Decimal(
+            monto_texto
+        ).quantize(
+            Decimal("0.01")
+        )
+    except (
+        InvalidOperation,
+        TypeError,
+        ValueError,
+    ):
+        messages.error(
+            request,
+            "El monto del reembolso no es válido."
+        )
+        monto = Decimal("0")
+
+    try:
+        fecha_reembolso = (
+            date.fromisoformat(fecha_texto)
+            if fecha_texto
+            else timezone.localdate()
+        )
+    except (TypeError, ValueError):
+        messages.error(
+            request,
+            "La fecha del reembolso no es válida."
+        )
+        fecha_reembolso = None
+
+    reembolsado = (
+        ReembolsoGasto.objects
+        .filter(gasto=gasto)
+        .aggregate(total=Sum("monto"))
+        .get("total")
+        or Decimal("0")
+    )
+    disponible = max(
+        gasto.monto_total - reembolsado,
+        Decimal("0"),
+    )
+
+    if monto <= 0:
+        messages.error(
+            request,
+            "El reembolso debe ser mayor a cero."
+        )
+    elif fecha_reembolso is None:
+        pass
+    elif monto > disponible:
+        messages.error(
+            request,
+            (
+                "El reembolso supera el saldo disponible "
+                f"de $ {disponible:,.2f}."
+            )
+        )
+    else:
+        ReembolsoGasto.objects.create(
+            gasto=gasto,
+            fecha=fecha_reembolso,
+            monto=monto,
+            observaciones=observaciones,
+        )
+        messages.success(
+            request,
+            (
+                f"Reembolso registrado: $ {monto:,.2f} "
+                f"de {gasto.descripcion}."
+            )
+        )
+
+        if CompraInsumo.objects.filter(
+            gasto=gasto
+        ).exists():
+            messages.warning(
+                request,
+                (
+                    "El reembolso ajustó Finanzas y caja, "
+                    "pero no modifica automáticamente el stock "
+                    "de la compra de insumos."
+                )
+            )
+
+    periodo = request.POST.get(
+        "periodo",
+        gasto.fecha_compra.strftime("%Y-%m"),
+    )
+
+    return redirect(
+        f"{redirect('pedidos:finanzas').url}"
+        f"?periodo={periodo}&vista=gastos"
+    )
+
+
+@transaction.atomic
 def eliminar_gasto(
     request,
     gasto_id,
@@ -3298,7 +3419,8 @@ def _resumen_caja_mercadopago(hoy):
 
     Como el usuario indicó que hoy maneja la operatoria por
     Mercado Pago, esta primera versión considera todos los
-    cobros y egresos registrados como movimientos de esa caja.
+    cobros, reembolsos y egresos registrados como movimientos
+    de esa caja.
     """
     corte = (
         CajaCorte.objects
@@ -3314,6 +3436,8 @@ def _resumen_caja_mercadopago(hoy):
             "corte": None,
             "saldo_base": Decimal("0"),
             "ingresos_desde_corte": Decimal("0"),
+            "cobros_desde_corte": Decimal("0"),
+            "reembolsos_desde_corte": Decimal("0"),
             "egresos_desde_corte": Decimal("0"),
             "saldo_estimado": Decimal("0"),
             "requiere_corte": True,
@@ -3323,6 +3447,18 @@ def _resumen_caja_mercadopago(hoy):
         Pago.objects
         .filter(
             fecha__gt=corte.fecha,
+        )
+        .aggregate(
+            total=Sum("monto")
+        )
+        .get("total")
+        or Decimal("0")
+    )
+
+    reembolsos = (
+        ReembolsoGasto.objects
+        .filter(
+            registrado_en__gt=corte.fecha,
         )
         .aggregate(
             total=Sum("monto")
@@ -3344,16 +3480,22 @@ def _resumen_caja_mercadopago(hoy):
         or Decimal("0")
     )
 
+    ingresos_totales = (
+        ingresos + reembolsos
+    )
+
     saldo_estimado = (
         corte.saldo_real
-        + ingresos
+        + ingresos_totales
         - egresos
     )
 
     return {
         "corte": corte,
         "saldo_base": corte.saldo_real,
-        "ingresos_desde_corte": ingresos,
+        "ingresos_desde_corte": ingresos_totales,
+        "cobros_desde_corte": ingresos,
+        "reembolsos_desde_corte": reembolsos,
         "egresos_desde_corte": egresos,
         "saldo_estimado": saldo_estimado,
         "requiere_corte": False,
@@ -3876,7 +4018,10 @@ def finanzas(request):
             fecha_compra__lte=fin,
         )
         .select_related("compra_insumos")
-        .prefetch_related("cuotas")
+        .prefetch_related(
+            "cuotas",
+            "reembolsos",
+        )
         .order_by(
             "-fecha_compra",
             "-id",
@@ -3891,7 +4036,7 @@ def finanzas(request):
         or Decimal("0")
     )
 
-    gastos_operativos = (
+    gastos_operativos_brutos = (
         gastos_base
         .filter(tipo="OPERATIVO")
         .filter(compra_insumos__isnull=True)
@@ -3899,12 +4044,65 @@ def finanzas(request):
         .get("total")
         or Decimal("0")
     )
-    inversiones_periodo = (
-        gastos_base
-        .filter(tipo="INVERSION")
-        .aggregate(total=Sum("monto_total"))
+
+    reembolsos_periodo = (
+        ReembolsoGasto.objects
+        .filter(
+            fecha__gte=inicio,
+            fecha__lte=fin,
+        )
+        .aggregate(total=Sum("monto"))
         .get("total")
         or Decimal("0")
+    )
+    reembolsos_operativos_periodo = (
+        ReembolsoGasto.objects
+        .filter(
+            fecha__gte=inicio,
+            fecha__lte=fin,
+            gasto__tipo="OPERATIVO",
+            gasto__compra_insumos__isnull=True,
+        )
+        .aggregate(total=Sum("monto"))
+        .get("total")
+        or Decimal("0")
+    )
+    reembolsos_stock_periodo = (
+        ReembolsoGasto.objects
+        .filter(
+            fecha__gte=inicio,
+            fecha__lte=fin,
+            gasto__compra_insumos__isnull=False,
+        )
+        .aggregate(total=Sum("monto"))
+        .get("total")
+        or Decimal("0")
+    )
+    reembolsos_inversion_periodo = (
+        ReembolsoGasto.objects
+        .filter(
+            fecha__gte=inicio,
+            fecha__lte=fin,
+            gasto__tipo="INVERSION",
+        )
+        .aggregate(total=Sum("monto"))
+        .get("total")
+        or Decimal("0")
+    )
+
+    gastos_operativos = (
+        gastos_operativos_brutos
+        - reembolsos_operativos_periodo
+    )
+    inversiones_periodo = (
+        (
+            gastos_base
+            .filter(tipo="INVERSION")
+            .aggregate(total=Sum("monto_total"))
+            .get("total")
+            or Decimal("0")
+        )
+        - reembolsos_inversion_periodo
     )
 
     resultado_operativo = (
@@ -3965,6 +4163,7 @@ def finanzas(request):
 
     flujo_neto_caja = (
         cobrado_periodo
+        + reembolsos_periodo
         - cuotas_pagadas_periodo
     )
 
@@ -4249,21 +4448,42 @@ def finanzas(request):
         acumulado = _rentabilidad_acumulada()
 
         gastos_operativos_acumulados = (
-            Gasto.objects
-            .filter(
-                tipo="OPERATIVO",
-                compra_insumos__isnull=True,
+            (
+                Gasto.objects
+                .filter(
+                    tipo="OPERATIVO",
+                    compra_insumos__isnull=True,
+                )
+                .aggregate(total=Sum("monto_total"))
+                .get("total")
+                or Decimal("0")
             )
-            .aggregate(total=Sum("monto_total"))
-            .get("total")
-            or Decimal("0")
+            - (
+                ReembolsoGasto.objects
+                .filter(
+                    gasto__tipo="OPERATIVO",
+                    gasto__compra_insumos__isnull=True,
+                )
+                .aggregate(total=Sum("monto"))
+                .get("total")
+                or Decimal("0")
+            )
         )
         inversion_total = (
-            Gasto.objects
-            .filter(tipo="INVERSION")
-            .aggregate(total=Sum("monto_total"))
-            .get("total")
-            or Decimal("0")
+            (
+                Gasto.objects
+                .filter(tipo="INVERSION")
+                .aggregate(total=Sum("monto_total"))
+                .get("total")
+                or Decimal("0")
+            )
+            - (
+                ReembolsoGasto.objects
+                .filter(gasto__tipo="INVERSION")
+                .aggregate(total=Sum("monto"))
+                .get("total")
+                or Decimal("0")
+            )
         )
 
         resultado_operativo_acumulado = (
@@ -4371,6 +4591,14 @@ def finanzas(request):
 
             "gastos_operativos":
                 gastos_operativos,
+            "gastos_operativos_brutos":
+                gastos_operativos_brutos,
+            "reembolsos_periodo":
+                reembolsos_periodo,
+            "reembolsos_operativos_periodo":
+                reembolsos_operativos_periodo,
+            "reembolsos_stock_periodo":
+                reembolsos_stock_periodo,
             "compras_stock_periodo":
                 compras_stock_periodo,
             "inversiones_periodo":
