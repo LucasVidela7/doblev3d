@@ -41,6 +41,63 @@ ESTADOS_CANCELADOS = {
 }
 
 
+def _merge_dict_telemetria(anterior, nuevo):
+    if not isinstance(nuevo, dict):
+        return nuevo
+
+    resultado = (
+        dict(anterior)
+        if isinstance(anterior, dict)
+        else {}
+    )
+
+    for clave, valor in nuevo.items():
+        if (
+            isinstance(valor, dict)
+            and isinstance(
+                resultado.get(clave),
+                dict,
+            )
+        ):
+            resultado[clave] = (
+                _merge_dict_telemetria(
+                    resultado.get(clave),
+                    valor,
+                )
+            )
+        else:
+            resultado[clave] = valor
+
+    return resultado
+
+
+def _merge_ams_telemetria(anterior, nuevo):
+    if nuevo in (None, "", {}, []):
+        return (
+            anterior
+            if isinstance(anterior, (dict, list))
+            else {}
+        )
+
+    if isinstance(nuevo, list):
+        return nuevo
+
+    if not isinstance(nuevo, dict):
+        return (
+            anterior
+            if isinstance(anterior, (dict, list))
+            else {}
+        )
+
+    if isinstance(anterior, dict):
+        return _merge_dict_telemetria(
+            anterior,
+            nuevo,
+        )
+
+    return nuevo
+
+
 def _numero_entero(valor, minimo=None, maximo=None):
     if valor in (None, ""):
         return None
@@ -687,10 +744,13 @@ def bambu_bridge_sync(request):
                 "ultimo_evento_impresora": _fecha_epoch(
                     item.get("last_update")
                 ),
-                "ams": (
-                    item.get("ams")
-                    if isinstance(item.get("ams"), (dict, list))
-                    else {}
+                "ams": _merge_ams_telemetria(
+                    (
+                        existente.ams
+                        if existente
+                        else {}
+                    ),
+                    item.get("ams"),
                 ),
                 "carrete_externo": (
                     item.get("external_spool")
