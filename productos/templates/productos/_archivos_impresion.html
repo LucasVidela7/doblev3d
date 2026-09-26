@@ -17,7 +17,16 @@
       .print-file-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
       .print-file-actions form{margin:0}
       .print-hash{font-family:monospace;font-size:8px;color:var(--dv-muted,#747980)}
-      .print-check{display:flex;align-items:center;gap:7px;min-height:42px;color:var(--dv-text,#24272b);font-size:9px;font-weight:800}
+      .print-principal-note{display:flex;align-items:center;min-height:42px;padding:8px 10px;border:1px solid color-mix(in srgb,var(--dv-brand-blue,#134a9a) 18%,var(--dv-border,#d4d7dc));border-radius:10px;background:color-mix(in srgb,var(--dv-brand-blue,#134a9a) 6%,var(--dv-surface,#fff));color:var(--dv-text,#24272b);font-size:10px;font-weight:800;line-height:1.35}
+      .print-overwrite-dialog{width:min(500px,calc(100% - 24px));padding:0;border:1px solid var(--dv-border,#d4d7dc);border-radius:18px;background:var(--dv-surface,#fff);color:var(--dv-text,#24272b);box-shadow:0 24px 70px rgba(0,0,0,.28)}
+      .print-overwrite-dialog::backdrop{background:rgba(8,12,20,.66);backdrop-filter:blur(3px)}
+      .print-overwrite-body{padding:18px}
+      .print-overwrite-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:var(--dv-warning-soft,#fff5d8);font-size:20px}
+      .print-overwrite-dialog h3{margin:12px 0 0;font-size:18px}
+      .print-overwrite-dialog p{margin:8px 0 0;color:var(--dv-muted,#747980);font-size:11px;line-height:1.55}
+      .print-overwrite-current{margin-top:11px;padding:10px 11px;border:1px solid var(--dv-border,#d4d7dc);border-radius:11px;background:var(--dv-surface-soft,#f7f8fa);font-size:10px;font-weight:900}
+      .print-overwrite-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+      .print-overwrite-actions .btn{width:100%;min-height:42px}
       @media(max-width:760px){
         .print-upload{grid-template-columns:1fr}
         .print-upload .wide{grid-column:auto}
@@ -95,10 +104,10 @@
         >
       </div>
 
-      <label class="print-check">
-        <input type="checkbox" name="predeterminado" value="1">
-        Usar como principal para esta cantidad
-      </label>
+      <input type="hidden" name="confirmar_reemplazo_principal" value="0" data-gcode-overwrite-confirmed>
+      <div class="print-principal-note">
+        El archivo nuevo quedará automáticamente como principal para esta cantidad.
+      </div>
 
       <button class="btn dark" type="submit">↑ SUBIR ARCHIVO</button>
 
@@ -110,6 +119,80 @@
         ></textarea>
       </div>
     </form>
+
+    <dialog class="print-overwrite-dialog" id="gcodeOverwriteDialog">
+      <div class="print-overwrite-body">
+        <div class="print-overwrite-icon">↻</div>
+        <h3>Reemplazar G-code principal</h3>
+        <p id="gcodeOverwriteText">Ya existe un archivo principal para esta cantidad.</p>
+        <div class="print-overwrite-current" id="gcodeOverwriteCurrent"></div>
+        <div class="print-overwrite-actions">
+          <button class="btn" type="button" data-gcode-overwrite-cancel>CANCELAR</button>
+          <button class="btn dark" type="button" data-gcode-overwrite-confirm>REEMPLAZAR PRINCIPAL</button>
+        </div>
+      </div>
+    </dialog>
+
+    <script>
+    (function(){
+      const form=document.querySelector(".print-upload");
+      if(!form)return;
+
+      const cantidad=form.querySelector("[name='cantidad_unidades']");
+      const confirmado=form.querySelector("[data-gcode-overwrite-confirmed]");
+      const dialog=document.getElementById("gcodeOverwriteDialog");
+      const current=document.getElementById("gcodeOverwriteCurrent");
+      const textNode=document.getElementById("gcodeOverwriteText");
+      const cancel=dialog?.querySelector("[data-gcode-overwrite-cancel]");
+      const confirmBtn=dialog?.querySelector("[data-gcode-overwrite-confirm]");
+      const principales=new Map();
+
+      {% for archivo in archivos_impresion %}
+        {% if archivo.activo and archivo.predeterminado %}
+          principales.set({{ archivo.cantidad_unidades }}, "{{ archivo.nombre|escapejs }}");
+        {% endif %}
+      {% endfor %}
+
+      form.addEventListener("submit",function(event){
+        if(confirmado?.value==="1")return;
+
+        const qty=parseInt(cantidad?.value||"0",10);
+        const principal=principales.get(qty);
+        if(!principal)return;
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        const mensaje="Ya existe un G-code principal para "+qty+" unidad"+(qty===1?"":"es")+".";
+        if(textNode)textNode.textContent=mensaje;
+        if(current)current.textContent="Principal actual: "+principal;
+
+        if(dialog && typeof dialog.showModal==="function"){
+          dialog.showModal();
+          return;
+        }
+
+        if(window.confirm(mensaje+" ¿Querés reemplazarlo?")){
+          confirmado.value="1";
+          form.requestSubmit();
+        }
+      },true);
+
+      cancel?.addEventListener("click",function(){
+        dialog?.close();
+      });
+
+      confirmBtn?.addEventListener("click",function(){
+        if(confirmado)confirmado.value="1";
+        dialog?.close();
+        form.requestSubmit();
+      });
+
+      dialog?.addEventListener("cancel",function(){
+        if(confirmado)confirmado.value="0";
+      });
+    })();
+    </script>
 
     {% for archivo in archivos_impresion %}
       <div class="print-file-row">
