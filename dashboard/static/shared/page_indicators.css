@@ -43,7 +43,7 @@ body[data-dv-section="configuracion"]{
 /* Título de página: una referencia constante sin invadir el contenido. */
 body[data-dv-section] h1{
     position:relative;
-    padding-left:14px;
+    padding-left:18px;
 }
 body[data-dv-section] h1::before{
     content:"";
@@ -161,7 +161,7 @@ html[data-dv-theme="dark"] .dv-management-menu__link[data-dv-section]:not(.is-pr
 
 @media(max-width:760px){
     body[data-dv-section] h1{
-        padding-left:11px;
+        padding-left:15px;
     }
     body[data-dv-section] h1::before{
         width:4px;
@@ -375,6 +375,13 @@ body[data-dv-section] :is(
     .card-head
 ){
     box-shadow:inset 3px 0 0 var(--dv-page-accent);
+}
+body[data-dv-section] :is(
+    .seccion-head,
+    .section-head,
+    .panel-head
+){
+    padding-left:12px;
 }
 
 /* Tablas: encabezado relacionado al área, filas más fáciles de recorrer. */
