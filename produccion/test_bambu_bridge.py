@@ -245,6 +245,75 @@ class BambuBridgeSyncTests(TestCase):
             "pieza.3mf",
         )
 
+    def test_sync_no_borra_ams_completo_con_paquete_parcial(self):
+        ImpresoraEstadoBambu.objects.create(
+            serial="03919D483100208",
+            nombre_bridge="A1-40",
+            conectada=True,
+            estado="RUNNING",
+            ams={
+                "ams": [
+                    {
+                        "id": "0",
+                        "tray": [
+                            {
+                                "id": "0",
+                                "tray_type": "PLA",
+                                "tray_color": "FF6910FF",
+                            },
+                            {
+                                "id": "2",
+                                "tray_type": "PLA",
+                                "tray_color": "F6DA5AFF",
+                            },
+                            {
+                                "id": "3",
+                                "tray_type": "PLA",
+                                "tray_color": "0085D5FF",
+                            },
+                        ],
+                    }
+                ],
+                "tray_now": "3",
+                "tray_pre": "255",
+            },
+        )
+
+        payload = self._payload()
+        payload["printers"][0]["ams"] = {
+            "tray_pre": "3",
+        }
+
+        respuesta = self.client.post(
+            reverse("bambu_bridge_sync"),
+            data=json.dumps(payload),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=(
+                "Bearer test-bridge-token"
+            ),
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+
+        estado = ImpresoraEstadoBambu.objects.get(
+            serial="03919D483100208"
+        )
+
+        self.assertEqual(
+            estado.ams["tray_pre"],
+            "3",
+        )
+        self.assertEqual(
+            len(estado.ams["ams"][0]["tray"]),
+            3,
+        )
+        self.assertEqual(
+            estado.ams["ams"][0]["tray"][0][
+                "tray_color"
+            ],
+            "FF6910FF",
+        )
+
     def test_actualiza_mismo_serial_sin_duplicar(self):
         payload = self._payload()
 
