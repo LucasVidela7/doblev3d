@@ -431,6 +431,26 @@ def subir(request, producto_id):
         .first()
     )
 
+    principal_existente = (
+        ArchivoImpresion.objects
+        .select_for_update()
+        .filter(
+            producto=producto,
+            cantidad_unidades=cantidad_unidades,
+            activo=True,
+            predeterminado=True,
+        )
+        .first()
+    )
+
+    reemplazo_confirmado = (
+        request.POST.get(
+            "confirmar_reemplazo_principal",
+            ""
+        )
+        == "1"
+    )
+
     if duplicado:
         if (
             duplicado.cantidad_unidades
@@ -449,7 +469,30 @@ def subir(request, producto_id):
                 producto_id=producto.id,
             )
 
-        from produccion.models import Produccion
+        if (
+            principal_existente
+            and principal_existente.id != duplicado.id
+            and not reemplazo_confirmado
+        ):
+            messages.warning(
+                request,
+                (
+                    f"Ya existe un G-code principal para "
+                    f"{cantidad_unidades} unidad(es): "
+                    f"“{principal_existente.nombre}”. "
+                    "Confirmá el reemplazo antes de continuar."
+                ),
+            )
+            return redirect(
+                "productos:detalle",
+                producto_id=producto.id,
+            )
+
+        _desmarcar_predeterminado(
+            producto_id=producto.id,
+            cantidad_unidades=cantidad_unidades,
+            excluir_id=duplicado.id,
+        )
 
         if not _archivo_fisico_disponible(
             duplicado
@@ -460,6 +503,7 @@ def subir(request, producto_id):
                     archivo,
                 )
             except ValueError as error:
+                transaction.set_rollback(True)
                 messages.error(
                     request,
                     str(error),
@@ -495,6 +539,20 @@ def subir(request, producto_id):
             return redirect(
                 "productos:detalle",
                 producto_id=producto.id,
+            )
+
+        if (
+            not duplicado.activo
+            or not duplicado.predeterminado
+        ):
+            duplicado.activo = True
+            duplicado.predeterminado = True
+            duplicado.save(
+                update_fields=[
+                    "activo",
+                    "predeterminado",
+                    "actualizado_en",
+                ]
             )
 
         _sincronizar_pendientes_gcode(
@@ -540,28 +598,30 @@ def subir(request, producto_id):
         .strip()
     )
 
-    predeterminado = (
-        request.POST.get(
-            "predeterminado"
+    if (
+        principal_existente
+        and not reemplazo_confirmado
+    ):
+        messages.warning(
+            request,
+            (
+                f"Ya existe un G-code principal para "
+                f"{cantidad_unidades} unidad(es): "
+                f"“{principal_existente.nombre}”. "
+                "Confirmá el reemplazo antes de continuar."
+            ),
         )
-        == "1"
+        return redirect(
+            "productos:detalle",
+            producto_id=producto.id,
+        )
+
+    _desmarcar_predeterminado(
+        producto_id=producto.id,
+        cantidad_unidades=cantidad_unidades,
     )
 
-    if (
-        not producto.archivos_impresion
-        .filter(
-            activo=True,
-            cantidad_unidades=cantidad_unidades,
-        )
-        .exists()
-    ):
-        predeterminado = True
-
-    if predeterminado:
-        _desmarcar_predeterminado(
-            producto_id=producto.id,
-            cantidad_unidades=cantidad_unidades,
-        )
+    predeterminado = True
 
     registro = ArchivoImpresion(
         producto=producto,
@@ -594,6 +654,7 @@ def subir(request, producto_id):
             archivo,
         )
     except ValueError as error:
+        transaction.set_rollback(True)
         messages.error(
             request,
             str(error),
