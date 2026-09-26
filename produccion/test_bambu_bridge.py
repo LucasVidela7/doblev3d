@@ -12,6 +12,8 @@ from .models import (
     Produccion,
 )
 
+from .views import _color_bambu_bandeja
+
 
 @override_settings(
     BAMBU_BRIDGE_TOKEN="test-bridge-token",
@@ -52,6 +54,28 @@ class BambuBridgeSyncTests(TestCase):
                 }
             ],
         }
+
+    def test_normaliza_color_ams_rgba_real(self):
+        self.assertEqual(
+            _color_bambu_bandeja(
+                {
+                    "tray_color": "FF6910FF",
+                    "cols": ["FF6910FF"],
+                }
+            ),
+            "#FF6910",
+        )
+
+    def test_color_ams_usa_cols_si_tray_color_no_llega(self):
+        self.assertEqual(
+            _color_bambu_bandeja(
+                {
+                    "tray_color": "",
+                    "cols": ["0085D5FF"],
+                }
+            ),
+            "#0085D5",
+        )
 
     def test_rechaza_sin_token(self):
         respuesta = self.client.post(
