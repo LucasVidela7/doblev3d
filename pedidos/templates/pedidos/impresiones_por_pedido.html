@@ -851,8 +851,8 @@
                 </header>
                 <details class="pedido-productos" id="productos-pedido-{{ item_pedido.pedido.id }}">
                     <summary>
-                        <span>PRODUCTOS DEL PEDIDO</span>
-                        <span class="pedido-productos-resumen">{{ item_pedido.preparacion_total }} producto{{ item_pedido.preparacion_total|pluralize:"s" }}</span>
+                        <span>PRODUCTOS</span>
+                        <span class="pedido-productos-resumen">{{ item_pedido.preparacion_total }}</span>
                     </summary>
                     <section class="productos">
                     {% for item in item_pedido.productos %}
@@ -920,8 +920,8 @@
 
                 <details class="pedido-productos" id="productos-pedido-{{ item_pedido.pedido.id }}">
                     <summary>
-                        <span>PRODUCTOS DEL PAQUETE</span>
-                        <span class="pedido-productos-resumen" data-preparacion-resumen>{{ item_pedido.preparacion_listos }}/{{ item_pedido.preparacion_total }} listos</span>
+                        <span>PRODUCTOS</span>
+                        <span class="pedido-productos-resumen" data-preparacion-resumen>{{ item_pedido.preparacion_listos }}/{{ item_pedido.preparacion_total }}</span>
                     </summary>
                     <section class="productos">
                     {% for item in item_pedido.productos %}
@@ -1017,8 +1017,8 @@
 
                 <details class="pedido-productos" id="productos-pedido-{{ item_pedido.pedido.id }}">
                     <summary>
-                        <span>PRODUCTOS Y FALTANTES</span>
-                        <span class="pedido-productos-resumen">{{ item_pedido.faltantes_stock }} faltante{{ item_pedido.faltantes_stock|pluralize:"s" }}</span>
+                        <span>FALTANTES</span>
+                        <span class="pedido-productos-resumen">{{ item_pedido.faltantes_stock }}</span>
                     </summary>
                     <section class="productos">
                     {% for item in item_pedido.productos %}
@@ -1081,8 +1081,8 @@
 
                 <details class="pedido-productos" id="productos-pedido-{{ item_pedido.pedido.id }}">
                     <summary>
-                        <span>CONTENIDO DEL PEDIDO</span>
-                        <span class="pedido-productos-resumen">{{ item_pedido.total_piezas }} pieza{{ item_pedido.total_piezas|pluralize:"s" }}</span>
+                        <span>PRODUCTOS</span>
+                        <span class="pedido-productos-resumen">{{ item_pedido.total_piezas }}</span>
                     </summary>
                     <section class="productos">
                     {% for item in item_pedido.productos %}
