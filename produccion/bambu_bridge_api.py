@@ -41,6 +41,68 @@ ESTADOS_CANCELADOS = {
 }
 
 
+def _merge_dict_telemetria(anterior, nuevo):
+    if not isinstance(nuevo, dict):
+        return nuevo
+
+    resultado = (
+        dict(anterior)
+        if isinstance(anterior, dict)
+        else {}
+    )
+
+    for clave, valor in nuevo.items():
+        if (
+            isinstance(valor, dict)
+            and isinstance(
+                resultado.get(clave),
+                dict,
+            )
+        ):
+            resultado[clave] = (
+                _merge_dict_telemetria(
+                    resultado.get(clave),
+                    valor,
+                )
+            )
+        else:
+            resultado[clave] = valor
+
+    return resultado
+
+
+def _merge_ams_telemetria(anterior, nuevo):
+    """
+    Los reportes MQTT de Bambu son incrementales. Un paquete puede
+    traer sólo tray_pre/tray_now y no volver a incluir las bandejas.
+    No debe borrar el último snapshot completo del AMS.
+    """
+    if nuevo in (None, "", {}, []):
+        return (
+            anterior
+            if isinstance(anterior, (dict, list))
+            else {}
+        )
+
+    if isinstance(nuevo, list):
+        return nuevo
+
+    if not isinstance(nuevo, dict):
+        return (
+            anterior
+            if isinstance(anterior, (dict, list))
+            else {}
+        )
+
+    if isinstance(anterior, dict):
+        return _merge_dict_telemetria(
+            anterior,
+            nuevo,
+        )
+
+    return nuevo
+
+
 def _numero_entero(valor, minimo=None, maximo=None):
     if valor in (None, ""):
         return None
@@ -56,57 +118,6 @@ def _numero_entero(valor, minimo=None, maximo=None):
         numero = min(maximo, numero)
 
     return numero
-
-
-def _resumen_ams_sync_debug(valor):
-    resumen = {
-        "tipo": type(valor).__name__,
-        "keys": [],
-        "unidades": 0,
-        "trays": [],
-    }
-
-    if isinstance(valor, dict):
-        resumen["keys"] = list(
-            valor.keys()
-        )[:20]
-        unidades = valor.get("ams")
-        if isinstance(unidades, dict):
-            unidades = [unidades]
-        if not isinstance(unidades, list):
-            unidades = []
-    elif isinstance(valor, list):
-        unidades = valor
-    else:
-        resumen["valor"] = str(
-            valor or ""
-        )[:160]
-        unidades = []
-
-    resumen["unidades"] = len(unidades)
-
-    for unidad in unidades[:4]:
-        if not isinstance(unidad, dict):
-            continue
-        bandejas = unidad.get("tray")
-        if isinstance(bandejas, dict):
-            bandejas = [bandejas]
-        if not isinstance(bandejas, list):
-            continue
-        for bandeja in bandejas[:6]:
-            if not isinstance(bandeja, dict):
-                continue
-            resumen["trays"].append(
-                {
-                    "ams_id": unidad.get("id"),
-                    "id": bandeja.get("id"),
-                    "tipo": bandeja.get("tray_type"),
-                    "color": bandeja.get("tray_color"),
-                    "cols": bandeja.get("cols"),
-                }
-            )
-
-    return resumen
 
 
 def _numero_float(valor):
@@ -708,25 +719,6 @@ def bambu_bridge_sync(request):
                 item.get("status") or ""
             ).strip().upper()[:50]
 
-            print(
-                "BAMBU_AMS_SYNC_DEBUG "
-                + json.dumps(
-                    {
-                        "serial": serial,
-                        "name": item.get("name"),
-                        "ams": _resumen_ams_sync_debug(
-                            item.get("ams")
-                        ),
-                        "external": bool(
-                            item.get("external_spool")
-                        ),
-                    },
-                    ensure_ascii=False,
-                    separators=(",", ":"),
-                ),
-                flush=True,
-            )
-
             defaults = {
                 "nombre_bridge": str(
                     item.get("name") or ""
@@ -757,10 +749,13 @@ def bambu_bridge_sync(request):
                 "ultimo_evento_impresora": _fecha_epoch(
                     item.get("last_update")
                 ),
-                "ams": (
-                    item.get("ams")
-                    if isinstance(item.get("ams"), (dict, list))
-                    else {}
+                "ams": _merge_ams_telemetria(
+                    (
+                        existente.ams
+                        if existente
+                        else {}
+                    ),
+                    item.get("ams"),
                 ),
                 "carrete_externo": (
                     item.get("external_spool")
