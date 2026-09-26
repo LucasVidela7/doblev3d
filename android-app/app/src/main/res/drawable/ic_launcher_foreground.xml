@@ -4,14 +4,14 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Logo Doble V 3D, centrado dentro de la zona segura del adaptive icon. -->
+    <!-- Logo Doble V 3D dentro de la zona segura del adaptive icon. -->
     <path
         android:fillColor="#F83238"
-        android:pathData="M20,32 L37,32 L51,56 L65,32 L82,32 L51,87 Z" />
+        android:pathData="M23,35 L38,35 L51,58 L64,35 L78,35 L51,82 Z" />
     <path
         android:fillColor="#B40E27"
-        android:pathData="M61,39 L65,32 L82,32 L70,54 Z" />
+        android:pathData="M60,42 L64,35 L78,35 L68,54 Z" />
     <path
         android:fillColor="#1F57A5"
-        android:pathData="M85,32 L102,32 L72,87 L62,69 Z" />
+        android:pathData="M76,35 L86,35 L64,82 L57,68 Z" />
 </vector>
