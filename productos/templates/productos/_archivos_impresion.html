@@ -27,6 +27,15 @@
       .print-overwrite-current{margin-top:11px;padding:10px 11px;border:1px solid var(--dv-border,#d4d7dc);border-radius:11px;background:var(--dv-surface-soft,#f7f8fa);font-size:10px;font-weight:900}
       .print-overwrite-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
       .print-overwrite-actions .btn{width:100%;min-height:42px}
+      .print-upload-progress{grid-column:1/-1;margin-top:2px;padding:10px 11px;border:1px solid var(--dv-border,#d4d7dc);border-radius:11px;background:var(--dv-surface,#fff)}
+      .print-upload-progress[hidden]{display:none!important}
+      .print-upload-progress-head{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:10px;font-weight:900}
+      .print-upload-progress-track{height:8px;margin-top:8px;overflow:hidden;border-radius:999px;background:var(--dv-surface-muted,#e8ebef)}
+      .print-upload-progress-bar{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--dv-brand-sky,#69b6eb),var(--dv-brand-blue,#134a9a));transition:width .15s ease}
+      .print-upload-progress.is-processing .print-upload-progress-bar{width:100%!important;animation:gcode-processing 1.1s ease-in-out infinite alternate}
+      .print-upload-progress-note{margin-top:6px;color:var(--dv-muted,#747980);font-size:9px;line-height:1.4}
+      .print-upload-progress.is-error{border-color:var(--dv-danger-border,#efcaca);background:var(--dv-danger-soft,#fff3f3)}
+      @keyframes gcode-processing{from{opacity:.55}to{opacity:1}}
       @media(max-width:760px){
         .print-upload{grid-template-columns:1fr}
         .print-upload .wide{grid-column:auto}
@@ -47,8 +56,8 @@
       class="print-upload"
       method="post"
       enctype="multipart/form-data"
-      data-dv-submit-lock
-      data-dv-loading-label="Guardando G-code"
+      data-gcode-upload
+      data-gcode-upload-label="Subiendo G-code"
       action="{% url 'productos:archivo_impresion_subir' producto.id %}"
     >
       {% csrf_token %}
@@ -109,7 +118,7 @@
         El archivo nuevo quedará automáticamente como principal para esta cantidad.
       </div>
 
-      <button class="btn dark" type="submit">↑ SUBIR ARCHIVO</button>
+      <button class="btn dark" type="submit" data-gcode-upload-submit>↑ SUBIR ARCHIVO</button>
 
       <div class="print-field wide">
         <label>NOTAS</label>
@@ -242,8 +251,8 @@
             <form
               method="post"
               enctype="multipart/form-data"
-              data-dv-submit-lock
-              data-dv-loading-label="Sustituyendo G-code"
+              data-gcode-upload
+              data-gcode-upload-label="Sustituyendo G-code"
               action="{% url 'productos:archivo_impresion_reemplazar' producto.id archivo.id %}"
               style="margin-top:7px;display:grid;gap:6px;min-width:240px"
             >
@@ -260,7 +269,7 @@
                 <label>NOTAS</label>
                 <textarea name="notas" placeholder="Qué cambió respecto de la versión anterior">{{ archivo.notas }}</textarea>
               </div>
-              <button class="btn dark" type="submit">CONFIRMAR SUSTITUCIÓN</button>
+              <button class="btn dark" type="submit" data-gcode-upload-submit>CONFIRMAR SUSTITUCIÓN</button>
             </form>
           </details>
           {% endif %}
@@ -287,6 +296,183 @@
         Todavía no hay archivos de impresión cargados para este producto.
       </div>
     {% endfor %}
+
+    <script>
+    (function(){
+      function humanSize(bytes){
+        const value=Number(bytes||0);
+        if(!value)return "";
+        if(value<1024*1024)return (value/1024).toFixed(0)+" KB";
+        return (value/(1024*1024)).toFixed(1)+" MB";
+      }
+
+      function ensureProgress(form){
+        let box=form.querySelector("[data-gcode-upload-progress]");
+        if(box)return box;
+
+        box=document.createElement("div");
+        box.className="print-upload-progress";
+        box.hidden=true;
+        box.setAttribute("data-gcode-upload-progress","");
+        box.innerHTML=
+          '<div class="print-upload-progress-head">'+
+            '<strong data-gcode-upload-status>Preparando archivo…</strong>'+
+            '<span data-gcode-upload-percent>0%</span>'+
+          '</div>'+
+          '<div class="print-upload-progress-track">'+
+            '<span class="print-upload-progress-bar" data-gcode-upload-bar></span>'+
+          '</div>'+
+          '<div class="print-upload-progress-note" data-gcode-upload-note></div>';
+
+        form.appendChild(box);
+        return box;
+      }
+
+      function resetUpload(form,box,message){
+        const submit=form.querySelector("[data-gcode-upload-submit]");
+        form.dataset.gcodeUploading="";
+        if(submit){
+          submit.disabled=false;
+          if(submit.dataset.originalLabel){
+            submit.textContent=submit.dataset.originalLabel;
+          }
+        }
+        box.classList.remove("is-processing");
+        box.classList.add("is-error");
+        const status=box.querySelector("[data-gcode-upload-status]");
+        const note=box.querySelector("[data-gcode-upload-note]");
+        if(status)status.textContent="No se pudo completar la carga";
+        if(note)note.textContent=message||"Revisá la conexión e intentá nuevamente.";
+      }
+
+      function bindUpload(form){
+        if(form.dataset.gcodeUploadBound==="1")return;
+        form.dataset.gcodeUploadBound="1";
+
+        const fileInput=form.querySelector('input[type="file"][name="archivo"]');
+        const submit=form.querySelector("[data-gcode-upload-submit]");
+        const box=ensureProgress(form);
+
+        fileInput?.addEventListener("change",function(){
+          const file=fileInput.files?.[0];
+          if(!file)return;
+          const note=box.querySelector("[data-gcode-upload-note]");
+          if(note){
+            note.textContent=file.name+(file.size?" · "+humanSize(file.size):"");
+          }
+        });
+
+        form.addEventListener("submit",function(event){
+          if(event.defaultPrevented)return;
+          if(form.dataset.gcodeUploading==="1"){
+            event.preventDefault();
+            return;
+          }
+
+          const file=fileInput?.files?.[0];
+          if(!file)return;
+
+          event.preventDefault();
+          event.stopPropagation();
+
+          form.dataset.gcodeUploading="1";
+          box.hidden=false;
+          box.classList.remove("is-error","is-processing");
+
+          const status=box.querySelector("[data-gcode-upload-status]");
+          const percent=box.querySelector("[data-gcode-upload-percent]");
+          const bar=box.querySelector("[data-gcode-upload-bar]");
+          const note=box.querySelector("[data-gcode-upload-note]");
+
+          if(status)status.textContent=form.dataset.gcodeUploadLabel||"Subiendo G-code";
+          if(percent)percent.textContent="0%";
+          if(bar)bar.style.width="0%";
+          if(note)note.textContent=file.name+" · "+humanSize(file.size);
+
+          if(submit){
+            submit.dataset.originalLabel=submit.textContent;
+            submit.disabled=true;
+            submit.textContent="SUBIENDO…";
+          }
+
+          const xhr=new XMLHttpRequest();
+          xhr.open((form.method||"POST").toUpperCase(),form.action,true);
+          xhr.setRequestHeader("X-Requested-With","XMLHttpRequest");
+
+          xhr.upload.addEventListener("progress",function(progressEvent){
+            if(!progressEvent.lengthComputable)return;
+
+            const value=Math.min(
+              100,
+              Math.round(
+                (progressEvent.loaded/progressEvent.total)*100
+              )
+            );
+
+            if(percent)percent.textContent=value+"%";
+            if(bar)bar.style.width=value+"%";
+
+            if(value>=100){
+              box.classList.add("is-processing");
+              if(status)status.textContent="Procesando G-code…";
+              if(note)note.textContent="Archivo recibido. Analizando y guardando la impresión.";
+              if(submit)submit.textContent="PROCESANDO…";
+            }
+          });
+
+          xhr.addEventListener("load",function(){
+            if(xhr.status>=200 && xhr.status<400){
+              if(percent)percent.textContent="100%";
+              if(bar)bar.style.width="100%";
+              box.classList.remove("is-processing");
+              if(status)status.textContent="Carga completada";
+              if(note)note.textContent="Actualizando producto…";
+
+              window.location.href=(
+                xhr.responseURL
+                || window.location.href
+              );
+              return;
+            }
+
+            resetUpload(
+              form,
+              box,
+              "El servidor respondió con error "+xhr.status+"."
+            );
+          });
+
+          xhr.addEventListener("error",function(){
+            resetUpload(
+              form,
+              box,
+              "Se perdió la conexión durante la subida."
+            );
+          });
+
+          xhr.addEventListener("abort",function(){
+            resetUpload(
+              form,
+              box,
+              "La subida fue cancelada."
+            );
+          });
+
+          xhr.send(new FormData(form));
+        });
+      }
+
+      function initUploads(){
+        document.querySelectorAll("[data-gcode-upload]").forEach(bindUpload);
+      }
+
+      if(document.readyState==="loading"){
+        document.addEventListener("DOMContentLoaded",initUploads,{once:true});
+      }else{
+        initUploads();
+      }
+    })();
+    </script>
   </div>
 </details>
 {% endif %}
