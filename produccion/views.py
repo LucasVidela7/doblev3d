@@ -698,15 +698,26 @@ def _nombre_remoto_print_bambu(
     produccion,
     archivo,
 ):
-    codigo = "".join(
-        caracter
-        for caracter in produccion.codigo.upper()
-        if caracter.isalnum()
-    )[:20] or "PRD"
+    # El archivo remoto pertenece al contenido, no a una PRD.
+    # Distintas producciones con el mismo G-code reutilizan
+    # la misma copia física en cada impresora.
+    huella = str(
+        archivo.sha256 or ""
+    ).strip().lower()
+
+    if (
+        len(huella) != 64
+        or any(
+            caracter not in "0123456789abcdef"
+            for caracter in huella
+        )
+    ):
+        raise ValueError(
+            "El G-code no tiene un SHA-256 válido."
+        )
 
     return (
-        f"DV_{codigo}_"
-        f"{archivo.sha256[:8]}.gcode.3mf"
+        f"DV_{huella[:16]}.gcode.3mf"
     )
 
 
