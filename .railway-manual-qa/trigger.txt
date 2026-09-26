@@ -195,3 +195,4 @@ QA deploy: formulario independiente arrepentimientos 2026-09-22
 2026-09-25 — deploy manual QA: add PRINT migration for progress UX
 2026-09-25 — deploy manual QA: AMS color picker
 2026-09-25 — deploy manual QA: Bambu mock simulator
+2026-09-25 — deploy manual QA: dashboard alineado a planificación y Bambu
