@@ -6,6 +6,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Insets;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -13,6 +14,7 @@ import android.provider.Settings;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowInsets;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
 import android.webkit.MimeTypeMap;
@@ -47,6 +49,16 @@ public class MainActivity extends Activity {
         webView = new WebView(this);
         progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
         progressBar.setMax(100);
+
+        // Android 15 puede dibujar la Activity detrás de las barras del sistema.
+        // Aplicamos los insets reales para que Gestión nunca quede debajo de
+        // la hora, señal, batería ni del área de gestos inferior.
+        root.setOnApplyWindowInsetsListener((view, windowInsets) -> {
+            Insets statusBars = windowInsets.getInsets(WindowInsets.Type.statusBars());
+            Insets navigationBars = windowInsets.getInsets(WindowInsets.Type.navigationBars());
+            view.setPadding(0, statusBars.top, 0, navigationBars.bottom);
+            return windowInsets;
+        });
 
         root.addView(webView, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
