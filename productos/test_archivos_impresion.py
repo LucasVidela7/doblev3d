@@ -291,6 +291,90 @@ class ArchivoImpresionTests(TestCase):
             self.producto.archivo_impresion_para_cantidad(3)
         )
 
+    def test_subir_misma_cantidad_pide_confirmacion_y_reemplaza_principal(self):
+        url = reverse(
+            "productos:archivo_impresion_subir",
+            args=[self.producto.id],
+        )
+
+        self.client.post(
+            url,
+            {
+                "archivo": self._archivo_valido(
+                    "x4-v1.gcode.3mf"
+                ),
+                "cantidad_unidades": "4",
+                "nombre": "X4 v1",
+            },
+        )
+
+        primero = ArchivoImpresion.objects.get()
+
+        def archivo_v2():
+            buffer = io.BytesIO()
+            with zipfile.ZipFile(
+                buffer,
+                "w",
+                zipfile.ZIP_DEFLATED,
+            ) as paquete:
+                paquete.writestr(
+                    "Metadata/plate_1.gcode",
+                    "; alternativa v2\nG28\nG1 X31\n",
+                )
+            return SimpleUploadedFile(
+                "x4-v2.gcode.3mf",
+                buffer.getvalue(),
+                content_type="application/octet-stream",
+            )
+
+        self.client.post(
+            url,
+            {
+                "archivo": archivo_v2(),
+                "cantidad_unidades": "4",
+                "nombre": "X4 v2",
+            },
+        )
+
+        self.assertEqual(
+            ArchivoImpresion.objects.count(),
+            1,
+        )
+        primero.refresh_from_db()
+        self.assertTrue(
+            primero.predeterminado
+        )
+
+        self.client.post(
+            url,
+            {
+                "archivo": archivo_v2(),
+                "cantidad_unidades": "4",
+                "nombre": "X4 v2",
+                "confirmar_reemplazo_principal": "1",
+            },
+        )
+
+        self.assertEqual(
+            ArchivoImpresion.objects.count(),
+            2,
+        )
+        primero.refresh_from_db()
+        segundo = ArchivoImpresion.objects.exclude(
+            id=primero.id
+        ).get()
+
+        self.assertFalse(
+            primero.predeterminado
+        )
+        self.assertTrue(
+            segundo.predeterminado
+        )
+        self.assertEqual(
+            self.producto.archivo_impresion_para_cantidad(4).id,
+            segundo.id,
+        )
+
     def test_sustituir_conserva_historial_y_misma_cantidad(self):
         url = reverse(
             "productos:archivo_impresion_subir",
@@ -771,6 +855,7 @@ class ArchivoImpresionTests(TestCase):
                 "archivo": segundo_upload,
                 "cantidad_unidades": "4",
                 "nombre": "X4 v2",
+                "confirmar_reemplazo_principal": "1",
             },
         )
 
