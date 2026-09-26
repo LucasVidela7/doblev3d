@@ -340,6 +340,20 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 .production-focus{animation:productionFocus 1.25s ease}
 @keyframes productionFocus{0%,100%{box-shadow:var(--dv-shadow-soft)}35%{box-shadow:0 0 0 4px color-mix(in srgb,var(--dv-brand-sky) 38%,transparent),0 12px 30px rgba(19,74,154,.18)}}
 @media(max-width:650px){.start-printer-grid{grid-template-columns:1fr}.printer-summary{grid-template-columns:50px minmax(0,1fr)}.printer-summary .product-thumb{width:50px;height:50px}}
+
+/* Ajustes BUGS Gestión · Producción / Control */
+.btn:not(:disabled){transition:transform .14s ease,filter .14s ease,box-shadow .14s ease,border-color .14s ease}
+.btn:not(:disabled):hover{transform:translateY(-1px);filter:brightness(.97);box-shadow:0 5px 14px rgba(16,35,62,.12)}
+.product-detail-link{color:inherit;text-decoration:none;cursor:pointer;border-radius:8px;transition:color .14s ease,background .14s ease}
+.product-detail-link:hover{color:var(--dv-brand-blue,#134a9a);text-decoration:none}
+.product-thumb-link{display:block;flex:0 0 auto}
+.product-thumb-link:hover{box-shadow:0 0 0 3px color-mix(in srgb,var(--dv-brand-sky,#69b6eb) 22%,transparent)}
+.control-failed-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px}
+.control-failed-actions form{margin:0}
+.control-remove{width:36px;min-width:36px!important;padding:0!important;font-size:18px!important;line-height:1}
+.printer-live__meta,.meta{font-size:max(9.5px,0.62rem)}
+.production-kanban .dv-kanban-card__meta{font-size:10.5px}
+
 </style>
 </head>
 <body>
@@ -486,14 +500,16 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
 
                     {% if impresora.trabajo_actual %}
                         <div class="printer-summary">
+                            <a class="product-detail-link product-thumb-link" href="{% url 'productos:detalle' impresora.trabajo_actual.producto.id %}" aria-label="Ver {{ impresora.trabajo_actual.producto.nombre }}">
                             {% if impresora.trabajo_actual.producto.imagen_produccion_url %}
                                 <img class="product-thumb" src="{{ impresora.trabajo_actual.producto.imagen_produccion_url }}" alt="" loading="lazy">
                             {% else %}
                                 <span class="product-thumb product-thumb-empty">3D</span>
                             {% endif %}
+                            </a>
                             <div>
                                 <div class="printer-summary__code">PRODUCCIÓN {{ impresora.trabajo_actual.codigo }}</div>
-                                <div class="printer-summary__title">{{ impresora.trabajo_actual.producto.nombre }} × {{ impresora.trabajo_actual.cantidad }}</div>
+                                <div class="printer-summary__title"><a class="product-detail-link" href="{% url 'productos:detalle' impresora.trabajo_actual.producto.id %}">{{ impresora.trabajo_actual.producto.nombre }}</a> × {{ impresora.trabajo_actual.cantidad }}</div>
                                 <div class="printer-summary__stats">
                                     <span class="printer-summary__stat">⏱ {{ impresora.trabajo_actual.tiempo_operativo_texto }}</span>
                                     <span class="printer-summary__stat">⚖ {{ impresora.trabajo_actual.peso_operativo_texto }}</span>
@@ -962,14 +978,16 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                         {% for produccion in trabajos_imprimiendo_lista %}
                         <article class="dv-kanban-card" data-production-id="{{ produccion.id }}" data-product-id="{{ produccion.producto_id }}">
                             <div class="prod-card-image">
+                                <a class="product-detail-link product-thumb-link" href="{% url 'productos:detalle' produccion.producto.id %}" aria-label="Ver {{ produccion.producto.nombre }}">
                                 {% if produccion.producto.imagen_produccion_url %}
                                     <img class="product-thumb" src="{{ produccion.producto.imagen_produccion_url }}" alt="" loading="lazy">
                                 {% else %}
                                     <span class="product-thumb product-thumb-empty">3D</span>
                                 {% endif %}
+                                </a>
                                 <div>
                                     <div class="dv-kanban-card__code">{{ produccion.codigo }}{% if produccion.impresora %} · {{ produccion.impresora.nombre }}{% endif %}</div>
-                                    <div class="dv-kanban-card__title">{{ produccion.producto.nombre }} × {{ produccion.cantidad }}</div>
+                                    <div class="dv-kanban-card__title"><a class="product-detail-link" href="{% url 'productos:detalle' produccion.producto.id %}">{{ produccion.producto.nombre }}</a> × {{ produccion.cantidad }}</div>
                                     <div class="dv-kanban-card__meta">
                                         {{ produccion.tiempo_operativo_texto }} · {{ produccion.peso_operativo_texto }}
                                         {% if produccion.fin_estimado %}<br>Fin estimado {{ produccion.fin_estimado|date:"H:i" }}{% endif %}
@@ -992,7 +1010,6 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                 <div style="display:flex;gap:5px">
                                     {% if produccion.impresora.estado_bambu %}
                                         {% if produccion.impresora.estado_bambu.estado == "RUNNING" or produccion.impresora.estado_bambu.estado == "PAUSE" or produccion.impresora.estado_bambu.estado == "PREPARE" %}
-                                            <button class="btn green" type="button" disabled>● EN IMPRESIÓN</button>
                                             <button
                                                 class="btn red"
                                                 type="button"
@@ -1046,17 +1063,19 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                         {% for produccion in control_calidad_lista %}
                         <article class="dv-kanban-card" data-production-id="{{ produccion.id }}" data-product-id="{{ produccion.producto_id }}">
                             <div class="prod-card-image">
+                                <a class="product-detail-link product-thumb-link" href="{% url 'productos:detalle' produccion.producto.id %}" aria-label="Ver {{ produccion.producto.nombre }}">
                                 {% if produccion.producto.imagen_produccion_url %}
                                     <img class="product-thumb" src="{{ produccion.producto.imagen_produccion_url }}" alt="" loading="lazy">
                                 {% else %}
                                     <span class="product-thumb product-thumb-empty">3D</span>
                                 {% endif %}
+                                </a>
                                 <div>
                                     <div class="dv-kanban-card__code">
                                         {{ produccion.codigo }}
                                         {% if produccion.impresora %} · {{ produccion.impresora.nombre }}{% endif %}
                                     </div>
-                                    <div class="dv-kanban-card__title">{{ produccion.producto.nombre }} × {{ produccion.cantidad }}</div>
+                                    <div class="dv-kanban-card__title"><a class="product-detail-link" href="{% url 'productos:detalle' produccion.producto.id %}">{{ produccion.producto.nombre }}</a> × {{ produccion.cantidad }}</div>
                                     <div class="dv-kanban-card__meta">
                                         {% if produccion.estado == "CONTROL" %}
                                             Impresión terminada · pendiente de revisión física.
@@ -1073,7 +1092,7 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                                 <form method="post" action="{% url 'produccion:control' produccion.id %}">
                                     {% csrf_token %}
                                     <input type="hidden" name="resultado" value="OK">
-                                    <button class="btn green" type="submit">✓ IMPRESIÓN CORRECTA</button>
+                                    <button class="btn green" type="submit">✓ CORRECTA</button>
                                 </form>
                                 <form method="post" action="{% url 'produccion:control' produccion.id %}">
                                     {% csrf_token %}
@@ -1087,14 +1106,21 @@ h1{margin:0;font-size:clamp(27px,4vw,38px);letter-spacing:-.035em}
                             {% else %}
                             <div class="dv-kanban-card__footer">
                                 <span class="dv-kanban-badge" style="background:var(--dv-danger-soft,#fde8e8);color:var(--dv-danger-text,#963737)">FALLIDA</span>
-                                <button
-                                    class="btn"
-                                    type="button"
-                                    data-reprint-open
-                                    data-reprint-url="{% url 'produccion:repetir' produccion.id %}"
-                                    data-reprint-code="{{ produccion.codigo }}"
-                                    data-reprint-job="{{ produccion.producto.nombre }} × {{ produccion.cantidad }}"
-                                >↻ REIMPRIMIR</button>
+                                <div class="control-failed-actions">
+                                    <button
+                                        class="btn"
+                                        type="button"
+                                        data-reprint-open
+                                        data-reprint-url="{% url 'produccion:repetir' produccion.id %}"
+                                        data-reprint-code="{{ produccion.codigo }}"
+                                        data-reprint-job="{{ produccion.producto.nombre }} × {{ produccion.cantidad }}"
+                                    >↻ REIMPRIMIR</button>
+                                    <form method="post" action="{% url 'produccion:cambiar_estado' produccion.id %}" onsubmit="return confirm('¿Quitar {{ produccion.codigo }} de Control? Seguirá disponible en el historial.');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="estado" value="CANCELADO">
+                                        <button class="btn red control-remove" type="submit" title="Quitar de Control" aria-label="Quitar {{ produccion.codigo }} de Control">×</button>
+                                    </form>
+                                </div>
                             </div>
                             {% endif %}
                         </article>
